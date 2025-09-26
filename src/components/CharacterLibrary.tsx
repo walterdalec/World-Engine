@@ -12,6 +12,9 @@ type Character = {
   traits: string[];
   portraitUrl?: string;
   mode: "POINT_BUY" | "ROLL";
+  level?: number;
+  knownSpells?: string[]; // Array of spell IDs
+  knownCantrips?: string[]; // Array of cantrip IDs
 };
 
 type Props = { 

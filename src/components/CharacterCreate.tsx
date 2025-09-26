@@ -26,11 +26,52 @@ type Character = {
   traits: string[];
   portraitUrl?: string;
   mode: "POINT_BUY" | "ROLL";
+  level?: number;
+  knownSpells?: string[]; // Array of spell IDs
+  knownCantrips?: string[]; // Array of cantrip IDs
 };
 
 const DEFAULT_STATS: Record<Stats, number> = {
   STR: 8, DEX: 8, CON: 8, INT: 8, WIS: 8, CHA: 8,
 };
+
+// Spell limitation calculations
+function calculateMaxCantrips(level: number, intScore: number, wisScore: number): number {
+  const baseCantrips = Math.floor(level / 2) + 1; // 1 at level 1, 2 at level 3, 3 at level 5, etc.
+  const abilityBonus = Math.floor((Math.max(intScore, wisScore) - 10) / 2);
+  return Math.max(1, baseCantrips + Math.max(0, abilityBonus));
+}
+
+function calculateMaxSpells(level: number, intScore: number, wisScore: number): number {
+  if (level < 2) return 0; // No spells until level 2
+  
+  const baseSpells = Math.max(0, level - 1); // 1 at level 2, 2 at level 3, etc.
+  const abilityBonus = Math.floor((Math.max(intScore, wisScore) - 12) / 2); // Bonus starts at 13+ ability score
+  return Math.max(0, baseSpells + Math.max(0, abilityBonus));
+}
+
+function calculateMaxSpellLevel(level: number): number {
+  if (level < 2) return 0; // No spells until level 2
+  if (level < 4) return 1;  // 1st level spells at levels 2-3
+  if (level < 6) return 2;  // 2nd level spells at levels 4-5
+  if (level < 8) return 3;  // 3rd level spells at levels 6-7
+  if (level < 10) return 4; // 4th level spells at levels 8-9
+  if (level < 12) return 5; // 5th level spells at levels 10-11
+  if (level < 14) return 6; // 6th level spells at levels 12-13
+  if (level < 16) return 7; // 7th level spells at levels 14-15
+  if (level < 18) return 8; // 8th level spells at levels 16-17
+  return 9;                 // 9th level spells at levels 18+
+}
+
+function getSpellcastingClass(archetype: string): 'wizard' | 'cleric' | 'mixed' | 'none' {
+  const wizardTypes = ['wizard', 'sorcerer', 'warlock'];
+  const clericTypes = ['cleric', 'druid', 'ranger', 'paladin'];
+  
+  if (wizardTypes.includes(archetype.toLowerCase())) return 'wizard'; // INT-based
+  if (clericTypes.includes(archetype.toLowerCase())) return 'cleric';  // WIS-based
+  if (['bard'].includes(archetype.toLowerCase())) return 'mixed';      // Either INT or WIS
+  return 'none';
+}
 
 // Comprehensive trait system with mechanical benefits
 const TRAIT_DEFINITIONS = {
@@ -470,6 +511,9 @@ export default function CharacterCreate() {
     traits: [],
     portraitUrl: "",
     mode: "POINT_BUY",
+    level: 1,
+    knownSpells: [],
+    knownCantrips: [],
   });
 
   const pointsSpent = useMemo(() => {
@@ -652,7 +696,7 @@ export default function CharacterCreate() {
         name: char.name,
         race: char.species,
         characterClass: char.archetype,
-        level: 1,
+        level: char.level || 1,
         createdAt: new Date().toISOString(),
         data: { ...char, createdAt: new Date().toISOString() }
       };
@@ -728,6 +772,26 @@ export default function CharacterCreate() {
               </div>
             )}
             <SelectRow label="Class" value={char.archetype} onChange={(v) => setField("archetype", v)} options={CLASS_OPTIONS} />
+            <div style={{ display: "grid", gap: 4 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>Level</span>
+              </div>
+              <input
+                type="number"
+                min="1"
+                max="20"
+                value={char.level || 1}
+                onChange={(e) => setField("level", parseInt(e.target.value) || 1)}
+                style={{
+                  padding: "8px",
+                  border: "1px solid #374151",
+                  borderRadius: "4px",
+                  background: "#1f2937",
+                  color: "#f9fafb",
+                  fontSize: "14px"
+                }}
+              />
+            </div>
             <div style={{ display: "grid", gap: 4 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>Background</span>
@@ -948,6 +1012,201 @@ export default function CharacterCreate() {
             </div>
           )}
         </div>
+
+        {/* Spell Management Section */}
+        {getSpellcastingClass(char.archetype) !== 'none' && (
+          <div style={card}>
+            <h2 style={sectionTitle}>Spells & Cantrips</h2>
+            
+            {/* Spell Capacity Display */}
+            <div style={{ marginBottom: "16px", padding: "12px", background: "rgba(59, 130, 246, 0.1)", border: "1px solid #3b82f6", borderRadius: "8px" }}>
+              <h3 style={{ margin: "0 0 8px", color: "#3b82f6", fontSize: "1rem" }}>Spell Capacity ({getSpellcastingClass(char.archetype)} caster):</h3>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", fontSize: "0.9em" }}>
+                <div>
+                  <strong>Cantrips:</strong> {char.knownCantrips?.length || 0} / {calculateMaxCantrips(char.level || 1, char.stats.INT, char.stats.WIS)}
+                </div>
+                <div>
+                  <strong>Spells:</strong> {char.knownSpells?.length || 0} / {calculateMaxSpells(char.level || 1, char.stats.INT, char.stats.WIS)}
+                </div>
+                <div>
+                  <strong>Max Spell Level:</strong> {calculateMaxSpellLevel(char.level || 1)}
+                </div>
+                <div>
+                  <strong>Primary Ability:</strong> {getSpellcastingClass(char.archetype) === 'wizard' ? `INT (${char.stats.INT})` : 
+                                                     getSpellcastingClass(char.archetype) === 'cleric' ? `WIS (${char.stats.WIS})` : 
+                                                     `INT (${char.stats.INT}) or WIS (${char.stats.WIS})`}
+                </div>
+              </div>
+            </div>
+
+            {/* Cantrip Selection */}
+            <div style={{ marginBottom: "16px" }}>
+              <h3 style={{ margin: "0 0 8px", color: "#8b5cf6", fontSize: "1.1rem" }}>Known Cantrips:</h3>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "8px" }}>
+                {(char.knownCantrips || []).map((cantripId, index) => {
+                  const cantrip = JSON.parse(localStorage.getItem('world-engine-saved-spells') || '[]')
+                    .find((spell: any) => spell.name === cantripId && spell.level === 0);
+                  return (
+                    <span
+                      key={index}
+                      style={{
+                        background: "#1e293b",
+                        color: "#e2e8f0",
+                        padding: "4px 8px",
+                        borderRadius: "4px",
+                        fontSize: "12px",
+                        border: "1px solid #8b5cf6",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px"
+                      }}
+                    >
+                      {cantrip?.name || cantripId}
+                      <button
+                        onClick={() => {
+                          const updated = (char.knownCantrips || []).filter((_, i) => i !== index);
+                          setField("knownCantrips", updated);
+                        }}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "#ef4444",
+                          cursor: "pointer",
+                          padding: "0",
+                          fontSize: "12px"
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </span>
+                  );
+                })}
+              </div>
+              <button
+                onClick={() => {
+                  const savedSpells = JSON.parse(localStorage.getItem('world-engine-saved-spells') || '[]');
+                  const availableCantrips = savedSpells.filter((spell: any) => 
+                    spell.level === 0 && !(char.knownCantrips || []).includes(spell.name)
+                  );
+                  
+                  if (availableCantrips.length === 0) {
+                    alert('No saved cantrips available! Create some cantrips in the Spell Generator first.');
+                    return;
+                  }
+                  
+                  if ((char.knownCantrips || []).length >= calculateMaxCantrips(char.level || 1, char.stats.INT, char.stats.WIS)) {
+                    alert('Maximum cantrips reached! Increase level or ability scores for more.');
+                    return;
+                  }
+                  
+                  const randomCantrip = availableCantrips[Math.floor(Math.random() * availableCantrips.length)];
+                  const updated = [...(char.knownCantrips || []), randomCantrip.name];
+                  setField("knownCantrips", updated);
+                }}
+                disabled={(char.knownCantrips || []).length >= calculateMaxCantrips(char.level || 1, char.stats.INT, char.stats.WIS)}
+                style={{
+                  padding: "6px 12px",
+                  background: (char.knownCantrips || []).length >= calculateMaxCantrips(char.level || 1, char.stats.INT, char.stats.WIS) ? "#374151" : "#8b5cf6",
+                  color: "#f9fafb",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: (char.knownCantrips || []).length >= calculateMaxCantrips(char.level || 1, char.stats.INT, char.stats.WIS) ? "not-allowed" : "pointer",
+                  fontSize: "12px"
+                }}
+              >
+                + Add Random Cantrip
+              </button>
+            </div>
+
+            {/* Spell Selection */}
+            {calculateMaxSpells(char.level || 1, char.stats.INT, char.stats.WIS) > 0 && (
+              <div style={{ marginBottom: "16px" }}>
+                <h3 style={{ margin: "0 0 8px", color: "#8b5cf6", fontSize: "1.1rem" }}>Known Spells:</h3>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "8px" }}>
+                  {(char.knownSpells || []).map((spellId, index) => {
+                    const spell = JSON.parse(localStorage.getItem('world-engine-saved-spells') || '[]')
+                      .find((s: any) => s.name === spellId && s.level > 0);
+                    return (
+                      <span
+                        key={index}
+                        style={{
+                          background: "#1e293b",
+                          color: "#e2e8f0",
+                          padding: "4px 8px",
+                          borderRadius: "4px",
+                          fontSize: "12px",
+                          border: "1px solid #3b82f6",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "4px"
+                        }}
+                      >
+                        {spell?.name || spellId} {spell && `(${spell.level})`}
+                        <button
+                          onClick={() => {
+                            const updated = (char.knownSpells || []).filter((_, i) => i !== index);
+                            setField("knownSpells", updated);
+                          }}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            color: "#ef4444",
+                            cursor: "pointer",
+                            padding: "0",
+                            fontSize: "12px"
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </span>
+                    );
+                  })}
+                </div>
+                <button
+                  onClick={() => {
+                    const savedSpells = JSON.parse(localStorage.getItem('world-engine-saved-spells') || '[]');
+                    const maxLevel = calculateMaxSpellLevel(char.level || 1);
+                    const availableSpells = savedSpells.filter((spell: any) => 
+                      spell.level > 0 && spell.level <= maxLevel && !(char.knownSpells || []).includes(spell.name)
+                    );
+                    
+                    if (availableSpells.length === 0) {
+                      alert(`No saved spells available up to level ${maxLevel}! Create some spells in the Spell Generator first.`);
+                      return;
+                    }
+                    
+                    if ((char.knownSpells || []).length >= calculateMaxSpells(char.level || 1, char.stats.INT, char.stats.WIS)) {
+                      alert('Maximum spells reached! Increase level or ability scores for more.');
+                      return;
+                    }
+                    
+                    const randomSpell = availableSpells[Math.floor(Math.random() * availableSpells.length)];
+                    const updated = [...(char.knownSpells || []), randomSpell.name];
+                    setField("knownSpells", updated);
+                  }}
+                  disabled={(char.knownSpells || []).length >= calculateMaxSpells(char.level || 1, char.stats.INT, char.stats.WIS)}
+                  style={{
+                    padding: "6px 12px",
+                    background: (char.knownSpells || []).length >= calculateMaxSpells(char.level || 1, char.stats.INT, char.stats.WIS) ? "#374151" : "#3b82f6",
+                    color: "#f9fafb",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: (char.knownSpells || []).length >= calculateMaxSpells(char.level || 1, char.stats.INT, char.stats.WIS) ? "not-allowed" : "pointer",
+                    fontSize: "12px"
+                  }}
+                >
+                  + Add Random Spell (max level {calculateMaxSpellLevel(char.level || 1)})
+                </button>
+              </div>
+            )}
+            
+            {calculateMaxSpells(char.level || 1, char.stats.INT, char.stats.WIS) === 0 && (
+              <div style={{ padding: "12px", background: "rgba(156, 163, 175, 0.1)", border: "1px solid #6b7280", borderRadius: "8px", textAlign: "center", color: "#9ca3af" }}>
+                No spells available at level {char.level || 1}. Reach level 2 to learn spells!
+              </div>
+            )}
+          </div>
+        )}
 
         <div style={{ display: "flex", gap: 8 }}>
           <button onClick={saveCharacter}>Save (JSON + local)</button>

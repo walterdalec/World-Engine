@@ -26,9 +26,10 @@ interface Props {
   onCharacterCreator: () => void;
   onNameGenerator: () => void;
   onSpellGenerator: () => void;
+  onHealingSystem: () => void;
 }
 
-export function MainMenu({ onNewCampaign, onLoadCampaign, onCharacterCreator, onNameGenerator, onSpellGenerator }: Props) {
+export function MainMenu({ onNewCampaign, onLoadCampaign, onCharacterCreator, onNameGenerator, onSpellGenerator, onHealingSystem }: Props) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [characters, setCharacters] = useState<SavedCharacter[]>([]);
   const [activeTab, setActiveTab] = useState<'campaigns' | 'characters'>('campaigns');
@@ -445,6 +446,65 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onCharacterCreator, on
                 </div>
               )}
 
+              {((character.data.knownCantrips && character.data.knownCantrips.length > 0) || 
+                (character.data.knownSpells && character.data.knownSpells.length > 0)) && (
+                <div style={{ marginBottom: '20px' }}>
+                  <h4 style={{ margin: '0 0 12px 0', color: '#8b5cf6' }}>Spells & Magic</h4>
+                  
+                  {character.data.level && (
+                    <p style={{ margin: '0 0 8px 0', color: '#94a3b8', fontSize: '14px' }}>
+                      Level {character.data.level} Character
+                    </p>
+                  )}
+                  
+                  {character.data.knownCantrips && character.data.knownCantrips.length > 0 && (
+                    <div style={{ marginBottom: '12px' }}>
+                      <h5 style={{ margin: '0 0 6px 0', color: '#ec4899' }}>Known Cantrips:</h5>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                        {character.data.knownCantrips.map((cantrip: string, index: number) => (
+                          <span
+                            key={index}
+                            style={{
+                              background: '#ec4899',
+                              color: 'white',
+                              padding: '3px 8px',
+                              borderRadius: '4px',
+                              fontSize: '11px',
+                              fontWeight: 'bold'
+                            }}
+                          >
+                            {cantrip}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {character.data.knownSpells && character.data.knownSpells.length > 0 && (
+                    <div>
+                      <h5 style={{ margin: '0 0 6px 0', color: '#3b82f6' }}>Known Spells:</h5>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                        {character.data.knownSpells.map((spell: string, index: number) => (
+                          <span
+                            key={index}
+                            style={{
+                              background: '#3b82f6',
+                              color: 'white',
+                              padding: '3px 8px',
+                              borderRadius: '4px',
+                              fontSize: '11px',
+                              fontWeight: 'bold'
+                            }}
+                          >
+                            {spell}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {character.data.mode && (
                 <div style={{ marginBottom: '15px' }}>
                   <h4 style={{ margin: '0 0 8px 0', color: '#8b5cf6' }}>Creation Method</h4>
@@ -629,6 +689,12 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onCharacterCreator, on
                 <div style={{ fontSize: '3rem', marginBottom: '10px' }}>✨</div>
                 <h3 style={{ margin: '0 0 5px 0' }}>Spell Generator</h3>
                 <p style={{ margin: 0, opacity: 0.9 }}>Create custom spells</p>
+              </div>
+
+              <div style={newCardStyle} onClick={onHealingSystem}>
+                <div style={{ fontSize: '3rem', marginBottom: '10px' }}>⚕️</div>
+                <h3 style={{ margin: '0 0 5px 0' }}>Healing System</h3>
+                <p style={{ margin: 0, opacity: 0.9 }}>Manage party health & healing</p>
               </div>
 
               {characters.map(character => (

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { SettlementGenerator, QuestGenerator, TreasureGenerator, SeededRandom } from "../seededGenerators";
+import ExplorationMode from "./ExplorationMode";
 
 interface Settlement {
   type: 'city' | 'town' | 'village' | 'hut' | 'shrine' | 'outpost' | 'trading_post';
@@ -36,6 +37,29 @@ export default function SimpleWorldMap({ seedStr = "verdance-seed-001", onBack }
   });
   const [activeEncounter, setActiveEncounter] = useState<Encounter | null>(null);
   const [activeSettlement, setActiveSettlement] = useState<Settlement | null>(null);
+  const [inExploration, setInExploration] = useState<boolean>(false);
+  const [playerCharacters, setPlayerCharacters] = useState<any[]>([]);
+
+  // Load player characters from localStorage on component mount
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('world-engine-saved-characters') || '[]');
+      setPlayerCharacters(saved.slice(0, 4)); // Maximum of 4 characters for party
+    } catch (error) {
+      console.error('Error loading saved characters:', error);
+      // Create default character if none exist
+      setPlayerCharacters([{
+        name: "Adventurer",
+        class: "Fighter",
+        baseStats: { strength: 15, constitution: 14, wisdom: 12, intelligence: 10, dexterity: 13, charisma: 11 },
+        finalStats: { strength: 15, constitution: 14, wisdom: 12, intelligence: 10, dexterity: 13, charisma: 11 },
+        hitPoints: 20,
+        level: 1,
+        knownSpells: [],
+        knownCantrips: []
+      }]);
+    }
+  }, []);
 
   const viewportSize = 15;
 
@@ -497,6 +521,49 @@ export default function SimpleWorldMap({ seedStr = "verdance-seed-001", onBack }
     }
   };
 
+  const handleTileClick = (x: number, y: number) => {
+    setSelected({ x, y });
+    const settlement = getSettlement(x, y);
+    const encounter = settlement ? null : getEncounter(x, y);
+    
+    if (settlement) {
+      setActiveSettlement(settlement);
+      setActiveEncounter(null);
+    } else if (encounter) {
+      setActiveEncounter(encounter);
+      setActiveSettlement(null);
+    } else {
+      setActiveSettlement(null);
+      setActiveEncounter(null);
+    }
+  };
+
+  const handleEncounterStart = (encounter: Encounter) => {
+    setActiveEncounter(encounter);
+    setInExploration(true);
+  };
+
+  const handleEncounterEnd = (result: 'completed' | 'fled' | 'failed', rewards?: any) => {
+    setInExploration(false);
+    setActiveEncounter(null);
+    
+    if (result === 'completed' && rewards) {
+      let message = '✅ Encounter completed successfully!\n\n';
+      if (rewards.experience) message += `Experience gained: ${rewards.experience} XP\n`;
+      if (rewards.gold) message += `Gold found: ${rewards.gold} coins\n`;
+      if (rewards.items) message += `Items found: ${rewards.items.join(', ')}\n`;
+      if (rewards.special) message += `Special reward: ${rewards.special}\n`;
+      if (rewards.buff) message += `Temporary effect: ${rewards.buff}\n`;
+      if (rewards.questProgress) message += `Quest progress: ${rewards.questProgress}\n`;
+      
+      alert(message);
+    } else if (result === 'fled') {
+      alert('🏃 Your party fled from the encounter safely.');
+    } else if (result === 'failed') {
+      alert('💀 The encounter ended badly for your party...');
+    }
+  };
+
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       let newX = playerPos.x;
@@ -566,23 +633,6 @@ export default function SimpleWorldMap({ seedStr = "verdance-seed-001", onBack }
 
   const grid = generateGrid();
 
-  const handleTileClick = (x: number, y: number) => {
-    setSelected({ x, y });
-    const settlement = getSettlement(x, y);
-    const encounter = getEncounter(x, y);
-    
-    if (settlement) {
-      setActiveSettlement(settlement);
-      setActiveEncounter(null);
-    } else if (encounter) {
-      setActiveEncounter(encounter);
-      setActiveSettlement(null);
-    } else {
-      setActiveSettlement(null);
-      setActiveEncounter(null);
-    }
-  };
-
   const getDangerColor = (danger: string) => {
     switch (danger) {
       case 'safe': return '#10b981';
@@ -593,6 +643,18 @@ export default function SimpleWorldMap({ seedStr = "verdance-seed-001", onBack }
       default: return '#6b7280';
     }
   };
+
+  // If in exploration mode, render ExplorationMode component
+  if (inExploration && activeEncounter && playerCharacters.length > 0) {
+    return (
+      <ExplorationMode
+        encounter={activeEncounter}
+        playerCharacters={playerCharacters}
+        onEncounterEnd={handleEncounterEnd}
+        onBack={() => setInExploration(false)}
+      />
+    );
+  }
 
   return (
     <div style={{ minHeight: "100vh", background: "#0f172a", color: "#f1f5f9", padding: "20px" }}>
@@ -787,7 +849,7 @@ export default function SimpleWorldMap({ seedStr = "verdance-seed-001", onBack }
           <p style={{ margin: "10px 0", color: "#d1d5db" }}>{activeEncounter.description}</p>
           <div style={{ marginTop: "15px", display: "flex", gap: "10px", justifyContent: "center" }}>
             <button 
-              onClick={() => alert(`Approaching ${activeEncounter.name}... (Encounter system coming soon!)`)}
+              onClick={() => handleEncounterStart(activeEncounter)}
               style={{ 
                 padding: "8px 16px", 
                 background: getDangerColor(activeEncounter.danger), 

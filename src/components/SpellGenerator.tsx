@@ -33,9 +33,9 @@ const SPELL_DATA = {
     somatic: ["Precise gestures", "Complex hand movements", "Ritualistic dance", "Finger patterns", "Sweeping motions"],
     material: ["Crystal focus", "Rare herbs", "Precious metals", "Ancient runes", "Elemental essence", "Sacred symbols", "Exotic components"]
   },
-  durations: ["Instantaneous", "1 round", "1 minute", "10 minutes", "1 hour", "8 hours", "24 hours", "7 days", "30 days", "Permanent", "Until dispelled"],
+  durations: ["Instantaneous", "1 round", "2 rounds", "3 rounds", "5 rounds", "10 rounds", "1 minute (10 rounds)", "Permanent", "Until dispelled", "Concentration, up to 1 round", "Concentration, up to 3 rounds", "Concentration, up to 10 rounds"],
   ranges: ["Self", "Touch", "30 feet", "60 feet", "120 feet", "300 feet", "500 feet", "1 mile", "Unlimited", "Sight"],
-  castingTimes: ["1 action", "1 bonus action", "1 reaction", "1 minute", "10 minutes", "1 hour", "8 hours", "24 hours"],
+  castingTimes: ["1 action", "1 bonus action", "1 reaction", "2 actions", "3 actions", "1 full round", "2 rounds", "3 rounds"],
   
   effects: {
     abjuration: ["Creates protective barrier", "Wards against harm", "Dispels magic", "Banishes creatures", "Prevents effects", "Shields from damage"],
@@ -49,7 +49,7 @@ const SPELL_DATA = {
   },
   
   adjectives: ["Ancient", "Blazing", "Chilling", "Dark", "Ethereal", "Flaming", "Glowing", "Hidden", "Infinite", "Jagged", "Kinetic", "Luminous", "Mystic", "Nebulous", "Obliterating", "Prismatic", "Quickening", "Radiant", "Searing", "Thunderous", "Umbral", "Vivid", "Withering", "Xenolithic", "Yielding", "Zealous"],
-  nouns: ["Blade", "Bolt", "Chain", "Disk", "Eye", "Fist", "Globe", "Hand", "Image", "Javelin", "Key", "Lance", "Missile", "Needle", "Orb", "Prism", "Quill", "Ray", "Shield", "Tentacle", "Umbrella", "Veil", "Wall", "Xerus", "Yoke", "Zone"]
+  nouns: ["Blade", "Bolt", "Chain", "Disk", "Eye", "Fist", "Globe", "Hand", "Image", "Javelin", "Key", "Lance", "Missile", "Needle", "Orb", "Prism", "Quill", "Ray", "Shield", "Tentacle", "Umbrella", "Veil", "Wall", "Xerus", "Yoke", "Zone", "Arrow", "Barrier", "Beam", "Bind", "Blast", "Burst", "Cage", "Cloak", "Dart", "Echo", "Flash", "Force", "Guard", "Hammer", "Light", "Lock", "Mark", "Net", "Portal", "Pulse", "Ring", "Seal", "Sight", "Spark", "Spear", "Spike", "Spiral", "Star", "Step", "Strike", "Sword", "Touch", "Trap", "Vision", "Ward", "Wave", "Wind"]
 };
 
 interface GeneratedSpell {
@@ -89,6 +89,9 @@ export default function SpellGenerator({ onBack }: SpellGeneratorProps) {
   };
 
   const generateSpell = (): GeneratedSpell => {
+    // Generate spell name first so we can use it for smart descriptions
+    const spellName = generateSpellName();
+    
     // Choose school
     const school = selectedSchool === 'any' 
       ? getRandomElement(SPELL_DATA.schools)
@@ -99,41 +102,198 @@ export default function SpellGenerator({ onBack }: SpellGeneratorProps) {
       ? getRandomElement(SPELL_DATA.levels)
       : SPELL_DATA.levels.find(l => l.level === selectedLevel) || getRandomElement(SPELL_DATA.levels);
     
-    // Generate components (always verbal, sometimes somatic, sometimes material)
+    // Generate components based on spell level
     const components: string[] = [];
-    components.push(`V (${getRandomElement(SPELL_DATA.components.verbal)})`);
-    
-    if (Math.random() > 0.3) {
-      components.push(`S (${getRandomElement(SPELL_DATA.components.somatic)})`);
-    }
-    
-    if (Math.random() > 0.4) {
-      components.push(`M (${getRandomElement(SPELL_DATA.components.material)})`);
-    }
-    
-    // Generate effect description
-    const effects = SPELL_DATA.effects[school.name.toLowerCase() as keyof typeof SPELL_DATA.effects] || SPELL_DATA.effects.evocation;
-    const primaryEffect = getRandomElement(effects);
-    
-    // Create description based on school and level
-    let description = primaryEffect;
     
     if (level.level === 0) {
-      description += ". This cantrip can be cast at will.";
+      // Cantrips: Simple components, usually just verbal
+      components.push(`V (${getRandomElement(['Simple word', 'Quick chant', 'Whispered phrase', 'Spoken command'])})`);
+      
+      if (Math.random() > 0.6) {
+        components.push(`S (${getRandomElement(['Quick gesture', 'Simple motion', 'Finger snap', 'Hand wave'])})`);
+      }
+      
+      // Cantrips rarely have material components
+      if (Math.random() > 0.8) {
+        components.push(`M (${getRandomElement(['Small focus', 'Tiny crystal', 'Bit of string', 'Drop of water'])})`);
+      }
+    } else {
+      // Higher level spells: More complex components
+      components.push(`V (${getRandomElement(SPELL_DATA.components.verbal)})`);
+      
+      if (Math.random() > 0.3) {
+        components.push(`S (${getRandomElement(SPELL_DATA.components.somatic)})`);
+      }
+      
+      if (Math.random() > 0.4) {
+        components.push(`M (${getRandomElement(SPELL_DATA.components.material)})`);
+      }
+    }
+    
+    // Generate casting time based on spell level
+    let castingTime: string;
+    if (level.level === 0) {
+      // Cantrips are quick to cast
+      castingTime = getRandomElement(['1 action', '1 action', '1 bonus action', '1 action']); // Heavily weighted toward 1 action
+    } else if (level.level <= 2) {
+      castingTime = getRandomElement(['1 action', '1 action', '1 bonus action', '2 actions']);
+    } else if (level.level <= 5) {
+      castingTime = getRandomElement(['1 action', '2 actions', '3 actions', '1 full round']);
+    } else {
+      castingTime = getRandomElement(['2 actions', '3 actions', '1 full round', '2 rounds', '3 rounds']);
+    }
+    
+    // Generate duration based on spell level
+    let duration: string;
+    if (level.level === 0) {
+      // Cantrips have simple durations
+      duration = getRandomElement(['Instantaneous', 'Instantaneous', '1 round', '2 rounds', 'Instantaneous']); // Heavily weighted toward instantaneous
+    } else if (level.level <= 2) {
+      duration = getRandomElement(['Instantaneous', '1 round', '2 rounds', '3 rounds', 'Concentration, up to 1 round']);
+    } else if (level.level <= 5) {
+      duration = getRandomElement(['1 round', '3 rounds', '5 rounds', '10 rounds', 'Concentration, up to 3 rounds']);
+    } else {
+      duration = getRandomElement(['5 rounds', '10 rounds', '1 minute (10 rounds)', 'Concentration, up to 10 rounds', 'Until dispelled']);
+    }
+    
+    // Generate range based on spell level  
+    let range: string;
+    if (level.level === 0) {
+      // Cantrips have limited range
+      range = getRandomElement(['Self', 'Touch', '30 feet', '60 feet', 'Self']);
+    } else if (level.level <= 2) {
+      range = getRandomElement(['Self', 'Touch', '30 feet', '60 feet', '120 feet']);
+    } else {
+      range = getRandomElement(SPELL_DATA.ranges);
+    }
+    
+    // Generate effect description based on spell name and school
+    const effects = SPELL_DATA.effects[school.name.toLowerCase() as keyof typeof SPELL_DATA.effects] || SPELL_DATA.effects.evocation;
+    let primaryEffect = getRandomElement(effects);
+    
+    // Smart description generation based on spell name keywords
+    const nameLower = spellName.toLowerCase();
+    let smartDescription = "";
+    
+    // Override effect based on spell name components for better coherence
+    if (nameLower.includes('javelin') || nameLower.includes('bolt') || nameLower.includes('missile') || nameLower.includes('ray') || 
+        nameLower.includes('arrow') || nameLower.includes('dart') || nameLower.includes('spear') || nameLower.includes('beam')) {
+      // Projectile spells - usually evocation damage
+      if (school.name.toLowerCase() === 'evocation') {
+        smartDescription = level.level === 0 ? "Projects a small magical projectile that deals minor damage" : "Hurls a powerful magical projectile that deals significant damage";
+      } else if (school.name.toLowerCase() === 'conjuration') {
+        smartDescription = level.level === 0 ? "Conjures a small ethereal projectile" : "Summons a magical projectile from another plane";
+      } else {
+        smartDescription = primaryEffect.replace('Summons creatures', 'Creates a magical projectile').replace('Charms targets', 'Launches an enchanted projectile');
+      }
+    } else if (nameLower.includes('shield') || nameLower.includes('wall') || nameLower.includes('barrier') || 
+               nameLower.includes('ward') || nameLower.includes('guard') || nameLower.includes('cloak')) {
+      // Defensive spells - usually abjuration
+      if (school.name.toLowerCase() === 'abjuration') {
+        smartDescription = level.level === 0 ? "Creates a small protective barrier" : "Manifests a powerful defensive barrier";
+      } else if (school.name.toLowerCase() === 'conjuration') {
+        smartDescription = level.level === 0 ? "Summons a minor protective construct" : "Conjures a substantial defensive barrier";
+      } else {
+        smartDescription = primaryEffect.replace('Deals damage', 'Creates a protective barrier').replace('Charms targets', 'Forms a mental shield');
+      }
+    } else if (nameLower.includes('eye') || nameLower.includes('vision') || nameLower.includes('sight') || 
+               nameLower.includes('echo') || nameLower.includes('mark')) {
+      // Divination spells
+      if (school.name.toLowerCase() === 'divination') {
+        smartDescription = level.level === 0 ? "Grants brief insight or reveals hidden information" : "Provides extensive knowledge or scrying ability";
+      } else {
+        smartDescription = primaryEffect.replace('Summons creatures', 'Creates a magical eye').replace('Deals damage', 'Reveals through mystical sight');
+      }
+    } else if (nameLower.includes('hand') || nameLower.includes('fist') || nameLower.includes('grasp') || 
+               nameLower.includes('touch') || nameLower.includes('force')) {
+      // Force manipulation spells
+      if (school.name.toLowerCase() === 'evocation') {
+        smartDescription = level.level === 0 ? "Creates a small spectral hand that can manipulate objects" : "Manifests a powerful force hand";
+      } else if (school.name.toLowerCase() === 'conjuration') {
+        smartDescription = level.level === 0 ? "Summons a minor helping hand" : "Conjures a substantial spectral appendage";
+      } else {
+        smartDescription = primaryEffect.replace('Reveals information', 'Manipulates objects with magical force');
+      }
+    } else if (nameLower.includes('chain') || nameLower.includes('bind') || nameLower.includes('hold') || 
+               nameLower.includes('cage') || nameLower.includes('net') || nameLower.includes('trap') || nameLower.includes('lock')) {
+      // Restraining/control spells
+      if (school.name.toLowerCase() === 'enchantment') {
+        smartDescription = level.level === 0 ? "Briefly restrains or influences a target" : "Powerfully binds or controls targets";
+      } else if (school.name.toLowerCase() === 'conjuration') {
+        smartDescription = level.level === 0 ? "Conjures ethereal bonds" : "Summons substantial restraining forces";
+      } else {
+        smartDescription = primaryEffect.replace('Deals damage', 'Restrains and binds targets');
+      }
+    } else if (nameLower.includes('image') || nameLower.includes('illusion') || nameLower.includes('phantom') || 
+               nameLower.includes('veil') || nameLower.includes('cloak')) {
+      // Illusion spells
+      if (school.name.toLowerCase() === 'illusion') {
+        smartDescription = level.level === 0 ? "Creates a minor illusion or false image" : "Manifests convincing illusions that can fool multiple senses";
+      } else {
+        smartDescription = primaryEffect.replace('Summons creatures', 'Creates illusory beings').replace('Deals damage', 'Confuses with false images');
+      }
+    } else if (nameLower.includes('heal') || nameLower.includes('cure') || nameLower.includes('restore')) {
+      // Healing spells - usually divine magic
+      smartDescription = level.level === 0 ? "Provides minor healing or restoration" : "Grants significant healing and restoration";
+    } else if (nameLower.includes('blade') || nameLower.includes('sword') || nameLower.includes('hammer') || 
+               nameLower.includes('strike') || nameLower.includes('spike') || nameLower.includes('needle')) {
+      // Weapon spells - usually evocation or conjuration
+      if (school.name.toLowerCase() === 'evocation') {
+        smartDescription = level.level === 0 ? "Creates a small magical weapon that strikes for minor damage" : "Manifests a powerful magical weapon";
+      } else if (school.name.toLowerCase() === 'conjuration') {
+        smartDescription = level.level === 0 ? "Summons a minor spectral weapon" : "Conjures a substantial magical weapon";
+      } else {
+        smartDescription = primaryEffect.replace('Reveals information', 'Creates a magical weapon').replace('Charms targets', 'Strikes with enchanted force');
+      }
+    } else if (nameLower.includes('portal') || nameLower.includes('step') || nameLower.includes('gate')) {
+      // Transportation spells - usually conjuration
+      if (school.name.toLowerCase() === 'conjuration') {
+        smartDescription = level.level === 0 ? "Creates a tiny spatial rift for minor teleportation" : "Opens substantial portals for transportation";
+      } else {
+        smartDescription = primaryEffect.replace('Deals damage', 'Creates dimensional rifts').replace('Charms targets', 'Transports through magical means');
+      }
+    } else if (nameLower.includes('light') || nameLower.includes('flash') || nameLower.includes('star') || 
+               nameLower.includes('spark') || nameLower.includes('burst')) {
+      // Light/energy spells - usually evocation
+      if (school.name.toLowerCase() === 'evocation') {
+        smartDescription = level.level === 0 ? "Produces a small burst of magical light or energy" : "Creates brilliant flashes of devastating energy";
+      } else {
+        smartDescription = primaryEffect.replace('Summons creatures', 'Generates magical illumination').replace('Charms targets', 'Dazzles with brilliant light');
+      }
+    } else {
+      // Use the original effect but make it more coherent
+      smartDescription = primaryEffect;
+      
+      // Scale effect based on level
+      if (level.level === 0) {
+        smartDescription = smartDescription.replace('Deals damage', 'Deals minor damage');
+        smartDescription = smartDescription.replace('Creates powerful', 'Creates small');
+        smartDescription = smartDescription.replace('Unleashes power', 'Produces a small effect');
+        smartDescription = smartDescription.replace('Destroys matter', 'Damages objects slightly');
+        smartDescription = smartDescription.replace('Summons creatures', 'Conjures minor effects');
+        smartDescription = smartDescription.replace('Controls minds', 'Influences thoughts slightly');
+      }
+    }
+    
+    // Create description based on school and level
+    let description = smartDescription;
+    
+    if (level.level === 0) {
+      description += ". This cantrip can be cast at will without expending a spell slot.";
     } else if (level.level >= 5) {
       description += ". When cast using a spell slot of 6th level or higher, the effects are enhanced.";
     }
     
     // Add flavor text based on school
     const flavorTexts = {
-      abjuration: "Protective energies swirl around the target.",
-      conjuration: "Reality bends as the magic takes effect.",
-      divination: "Knowledge flows into your mind.",
-      enchantment: "The target's eyes glaze over momentarily.",
-      evocation: "Energy crackles through the air.",
-      illusion: "The air shimmers with deceptive magic.",
-      necromancy: "Dark energy pulses ominously.",
-      transmutation: "The very essence of matter shifts."
+      abjuration: level.level === 0 ? "A faint protective shimmer appears." : "Protective energies swirl around the target.",
+      conjuration: level.level === 0 ? "A small magical effect manifests briefly." : "Reality bends as the magic takes effect.",
+      divination: level.level === 0 ? "You sense a hint of information." : "Knowledge flows into your mind.",
+      enchantment: level.level === 0 ? "The target feels a subtle influence." : "The target's eyes glaze over momentarily.",
+      evocation: level.level === 0 ? "A small spark of energy appears." : "Energy crackles through the air.",
+      illusion: level.level === 0 ? "A minor illusion flickers briefly." : "The air shimmers with deceptive magic.",
+      necromancy: level.level === 0 ? "A faint dark energy stirs." : "Dark energy pulses ominously.",
+      transmutation: level.level === 0 ? "Something shifts slightly." : "The very essence of matter shifts."
     };
     
     const flavor = flavorTexts[school.name.toLowerCase() as keyof typeof flavorTexts];
@@ -142,13 +302,13 @@ export default function SpellGenerator({ onBack }: SpellGeneratorProps) {
     }
     
     return {
-      name: generateSpellName(),
+      name: spellName,
       level: level.level,
       school: school.name,
-      castingTime: getRandomElement(SPELL_DATA.castingTimes),
-      range: getRandomElement(SPELL_DATA.ranges),
+      castingTime,
+      range,
       components,
-      duration: getRandomElement(SPELL_DATA.durations),
+      duration,
       description,
       color: school.color
     };
@@ -175,6 +335,16 @@ export default function SpellGenerator({ onBack }: SpellGeneratorProps) {
       const updated = [...savedSpells, spell];
       setSavedSpells(updated);
       localStorage.setItem('world-engine-saved-spells', JSON.stringify(updated));
+      
+      // Show informative message about spell usage
+      const spellType = spell.level === 0 ? 'cantrip' : `level ${spell.level} spell`;
+      const usageNote = spell.level === 0 
+        ? 'Cantrips can be learned by level 1+ characters based on INT/WIS scores.'
+        : `Level ${spell.level} spells require character level ${Math.max(2, spell.level + 1)} and sufficient ability scores.`;
+      
+      alert(`✨ ${spell.name} saved!\n\nThis ${spellType} is now available for character assignment.\n\n${usageNote}`);
+    } else {
+      alert('This spell is already saved!');
     }
   };
 
@@ -432,6 +602,35 @@ export default function SpellGenerator({ onBack }: SpellGeneratorProps) {
               </button>
             )}
           </div>
+          
+          {/* Spell Count Overview */}
+          {savedSpells.length > 0 && (
+            <div style={{ 
+              marginBottom: "1.5rem", 
+              padding: "1rem", 
+              background: "rgba(59, 130, 246, 0.1)", 
+              border: "1px solid #3b82f6", 
+              borderRadius: "8px" 
+            }}>
+              <h4 style={{ margin: "0 0 0.5rem", color: "#3b82f6" }}>Spell Library Overview:</h4>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: "8px", fontSize: "0.9rem" }}>
+                <div>
+                  <strong>Cantrips:</strong> {savedSpells.filter(s => s.level === 0).length}
+                </div>
+                {[1,2,3,4,5,6,7,8,9].map(level => {
+                  const count = savedSpells.filter(s => s.level === level).length;
+                  return count > 0 ? (
+                    <div key={level}>
+                      <strong>Level {level}:</strong> {count}
+                    </div>
+                  ) : null;
+                })}
+              </div>
+              <div style={{ marginTop: "8px", fontSize: "0.8rem", color: "#94a3b8" }}>
+                Total: {savedSpells.length} spells available for character assignment
+              </div>
+            </div>
+          )}
 
           {savedSpells.length === 0 ? (
             <div style={{
