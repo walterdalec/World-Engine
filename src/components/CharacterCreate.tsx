@@ -175,7 +175,8 @@ function generateBackground(): string {
 }
 
 function abilityMod(score: number) {
-  return Math.floor((score - 10) / 2);
+  // Modified calculation: 8-9 = +0, 10-11 = +1, 12-13 = +2, etc.
+  return Math.floor((score - 8) / 2);
 }
 
 // Updated point buy calculation - costs 1 for 8-13, 2 for 14-15, 3 for 16-20
