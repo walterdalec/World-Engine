@@ -26,10 +26,11 @@ interface Props {
   onCharacterCreator: () => void;
   onNameGenerator: () => void;
   onSpellGenerator: () => void;
+  onSpellAssignment: () => void;
   onHealingSystem: () => void;
 }
 
-export function MainMenu({ onNewCampaign, onLoadCampaign, onCharacterCreator, onNameGenerator, onSpellGenerator, onHealingSystem }: Props) {
+export function MainMenu({ onNewCampaign, onLoadCampaign, onCharacterCreator, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem }: Props) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [characters, setCharacters] = useState<SavedCharacter[]>([]);
   const [activeTab, setActiveTab] = useState<'campaigns' | 'characters'>('campaigns');
@@ -689,6 +690,12 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onCharacterCreator, on
                 <div style={{ fontSize: '3rem', marginBottom: '10px' }}>✨</div>
                 <h3 style={{ margin: '0 0 5px 0' }}>Spell Generator</h3>
                 <p style={{ margin: 0, opacity: 0.9 }}>Create custom spells</p>
+              </div>
+
+              <div style={newCardStyle} onClick={onSpellAssignment}>
+                <div style={{ fontSize: '3rem', marginBottom: '10px' }}>📜</div>
+                <h3 style={{ margin: '0 0 5px 0' }}>Assign Spells</h3>
+                <p style={{ margin: 0, opacity: 0.9 }}>Give spells to characters</p>
               </div>
 
               <div style={newCardStyle} onClick={onHealingSystem}>

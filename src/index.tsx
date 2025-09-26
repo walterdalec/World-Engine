@@ -7,6 +7,7 @@ import CharacterLibrary from "./components/CharacterLibrary";
 import CharacterCreate from "./components/CharacterCreate";
 import NameGenerator from "./components/NameGenerator";
 import SpellGenerator from "./components/SpellGenerator";
+import SpellAssignment from "./components/SpellAssignment";
 import HealingSystem from "./components/HealingSystem";
 import WorldMap from "./components/SimpleWorldMap";
 import { Engine } from "./engine.d";
@@ -33,7 +34,7 @@ function randomSeed(): string {
 }
 
 function App() {
-  const [step, setStep] = React.useState<"menu" | "world" | "party" | "character" | "namegen" | "spellgen" | "healing" | "worldmap">("menu");
+  const [step, setStep] = React.useState<"menu" | "world" | "party" | "character" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap">("menu");
   const [party, setParty] = React.useState<Character[]>([]);
   const [currentCampaign, setCurrentCampaign] = React.useState<any>(null);
   const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0); // Force re-render hook
@@ -265,6 +266,11 @@ function App() {
     setStep("spellgen");
   };
 
+  const handleSpellAssignment = () => {
+    // Spell assignment tool
+    setStep("spellassign");
+  };
+
   const handleHealingSystem = () => {
     // Standalone healing system
     setStep("healing");
@@ -362,6 +368,7 @@ function App() {
           onCharacterCreator={handleCharacterCreator}
           onNameGenerator={handleNameGenerator}
           onSpellGenerator={handleSpellGenerator}
+          onSpellAssignment={handleSpellAssignment}
           onHealingSystem={handleHealingSystem}
         />
       )}
@@ -455,6 +462,9 @@ function App() {
       )}
       {step === "spellgen" && (
         <SpellGenerator onBack={() => setStep("menu")} />
+      )}
+      {step === "spellassign" && (
+        <SpellAssignment onBack={() => setStep("menu")} />
       )}
       {step === "healing" && (
         <HealingSystem onBack={() => setStep("menu")} />

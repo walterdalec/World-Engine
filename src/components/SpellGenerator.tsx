@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { PREMADE_SPELLS, getAllPremadeSpells, getPremadeSpellsBySchool } from './PremadeSpells';
+import CustomSpellCreator from './CustomSpellCreator';
 
 interface SpellGeneratorProps {
   onBack?: () => void;
 }
 
-// Spell component data
+// Simple spell data for the random generator
 const SPELL_DATA = {
   schools: [
     { name: "Abjuration", description: "Protective magic", color: "#3b82f6" },
@@ -12,44 +14,11 @@ const SPELL_DATA = {
     { name: "Divination", description: "Information gathering", color: "#f59e0b" },
     { name: "Enchantment", description: "Mind control and charm", color: "#ec4899" },
     { name: "Evocation", description: "Destructive energy", color: "#ef4444" },
+    { name: "Healing", description: "Restoration and recovery", color: "#22c55e" },
     { name: "Illusion", description: "Deception and trickery", color: "#8b5cf6" },
     { name: "Necromancy", description: "Death and undeath", color: "#6b7280" },
     { name: "Transmutation", description: "Transformation", color: "#06b6d4" }
-  ],
-  levels: [
-    { level: 0, name: "Cantrip", description: "Simple magic, unlimited use" },
-    { level: 1, name: "1st Level", description: "Basic spells" },
-    { level: 2, name: "2nd Level", description: "Moderate spells" },
-    { level: 3, name: "3rd Level", description: "Advanced spells" },
-    { level: 4, name: "4th Level", description: "Powerful magic" },
-    { level: 5, name: "5th Level", description: "High-level spells" },
-    { level: 6, name: "6th Level", description: "Master magic" },
-    { level: 7, name: "7th Level", description: "Legendary spells" },
-    { level: 8, name: "8th Level", description: "Epic magic" },
-    { level: 9, name: "9th Level", description: "Reality-altering power" }
-  ],
-  components: {
-    verbal: ["Ancient words", "Mystical chant", "Power word", "Incantation", "Arcane phrase"],
-    somatic: ["Precise gestures", "Complex hand movements", "Ritualistic dance", "Finger patterns", "Sweeping motions"],
-    material: ["Crystal focus", "Rare herbs", "Precious metals", "Ancient runes", "Elemental essence", "Sacred symbols", "Exotic components"]
-  },
-  durations: ["Instantaneous", "1 round", "2 rounds", "3 rounds", "5 rounds", "10 rounds", "1 minute (10 rounds)", "Permanent", "Until dispelled", "Concentration, up to 1 round", "Concentration, up to 3 rounds", "Concentration, up to 10 rounds"],
-  ranges: ["Self", "Touch", "30 feet", "60 feet", "120 feet", "300 feet", "500 feet", "1 mile", "Unlimited", "Sight"],
-  castingTimes: ["1 action", "1 bonus action", "1 reaction", "2 actions", "3 actions", "1 full round", "2 rounds", "3 rounds"],
-  
-  effects: {
-    abjuration: ["Creates protective barrier", "Wards against harm", "Dispels magic", "Banishes creatures", "Prevents effects", "Shields from damage"],
-    conjuration: ["Summons creatures", "Creates objects", "Opens portals", "Teleports beings", "Manifests energy", "Brings forth allies"],
-    divination: ["Reveals information", "Scries distant locations", "Predicts future", "Detects magic", "Unveils secrets", "Grants insight"],
-    enchantment: ["Charms targets", "Controls minds", "Influences emotions", "Compels actions", "Alters memories", "Dominates will"],
-    evocation: ["Deals damage", "Creates energy", "Generates force", "Produces elements", "Unleashes power", "Destroys matter"],
-    illusion: ["Creates false images", "Obscures reality", "Hides objects", "Deceives senses", "Alters appearance", "Confuses perception"],
-    necromancy: ["Animates dead", "Drains life force", "Speaks with dead", "Curses targets", "Manipulates souls", "Controls undeath"],
-    transmutation: ["Changes form", "Alters properties", "Transforms matter", "Enhances abilities", "Modifies structure", "Reshapes reality"]
-  },
-  
-  adjectives: ["Ancient", "Blazing", "Chilling", "Dark", "Ethereal", "Flaming", "Glowing", "Hidden", "Infinite", "Jagged", "Kinetic", "Luminous", "Mystic", "Nebulous", "Obliterating", "Prismatic", "Quickening", "Radiant", "Searing", "Thunderous", "Umbral", "Vivid", "Withering", "Xenolithic", "Yielding", "Zealous"],
-  nouns: ["Blade", "Bolt", "Chain", "Disk", "Eye", "Fist", "Globe", "Hand", "Image", "Javelin", "Key", "Lance", "Missile", "Needle", "Orb", "Prism", "Quill", "Ray", "Shield", "Tentacle", "Umbrella", "Veil", "Wall", "Xerus", "Yoke", "Zone", "Arrow", "Barrier", "Beam", "Bind", "Blast", "Burst", "Cage", "Cloak", "Dart", "Echo", "Flash", "Force", "Guard", "Hammer", "Light", "Lock", "Mark", "Net", "Portal", "Pulse", "Ring", "Seal", "Sight", "Spark", "Spear", "Spike", "Spiral", "Star", "Step", "Strike", "Sword", "Touch", "Trap", "Vision", "Ward", "Wave", "Wind"]
+  ]
 };
 
 interface GeneratedSpell {
@@ -65,315 +34,73 @@ interface GeneratedSpell {
 }
 
 export default function SpellGenerator({ onBack }: SpellGeneratorProps) {
+  const [mode, setMode] = useState<'menu' | 'premade' | 'custom'>('menu');
   const [selectedSchool, setSelectedSchool] = useState<string>('any');
-  const [selectedLevel, setSelectedLevel] = useState<number>(-1); // -1 for any
   const [generatedSpells, setGeneratedSpells] = useState<GeneratedSpell[]>([]);
   const [savedSpells, setSavedSpells] = useState<GeneratedSpell[]>([]);
 
-  const getRandomElement = <T,>(array: T[]): T => {
-    return array[Math.floor(Math.random() * array.length)];
-  };
-
-  const generateSpellName = (): string => {
-    const adjective = getRandomElement(SPELL_DATA.adjectives);
-    const noun = getRandomElement(SPELL_DATA.nouns);
-    
-    // Sometimes add a possessive or "of" phrase
-    const variations = [
-      `${adjective} ${noun}`,
-      `${noun} of ${adjective.toLowerCase()}`,
-      `${adjective} ${noun}'s ${getRandomElement(['Touch', 'Embrace', 'Wrath', 'Blessing', 'Curse'])}`
-    ];
-    
-    return getRandomElement(variations);
-  };
-
-  const generateSpell = (): GeneratedSpell => {
-    // Generate spell name first so we can use it for smart descriptions
-    const spellName = generateSpellName();
-    
-    // Choose school
-    const school = selectedSchool === 'any' 
-      ? getRandomElement(SPELL_DATA.schools)
-      : SPELL_DATA.schools.find(s => s.name.toLowerCase() === selectedSchool) || getRandomElement(SPELL_DATA.schools);
-    
-    // Choose level
-    const level = selectedLevel === -1 
-      ? getRandomElement(SPELL_DATA.levels)
-      : SPELL_DATA.levels.find(l => l.level === selectedLevel) || getRandomElement(SPELL_DATA.levels);
-    
-    // Generate components based on spell level
-    const components: string[] = [];
-    
-    if (level.level === 0) {
-      // Cantrips: Simple components, usually just verbal
-      components.push(`V (${getRandomElement(['Simple word', 'Quick chant', 'Whispered phrase', 'Spoken command'])})`);
-      
-      if (Math.random() > 0.6) {
-        components.push(`S (${getRandomElement(['Quick gesture', 'Simple motion', 'Finger snap', 'Hand wave'])})`);
-      }
-      
-      // Cantrips rarely have material components
-      if (Math.random() > 0.8) {
-        components.push(`M (${getRandomElement(['Small focus', 'Tiny crystal', 'Bit of string', 'Drop of water'])})`);
-      }
-    } else {
-      // Higher level spells: More complex components
-      components.push(`V (${getRandomElement(SPELL_DATA.components.verbal)})`);
-      
-      if (Math.random() > 0.3) {
-        components.push(`S (${getRandomElement(SPELL_DATA.components.somatic)})`);
-      }
-      
-      if (Math.random() > 0.4) {
-        components.push(`M (${getRandomElement(SPELL_DATA.components.material)})`);
-      }
-    }
-    
-    // Generate casting time based on spell level
-    let castingTime: string;
-    if (level.level === 0) {
-      // Cantrips are quick to cast
-      castingTime = getRandomElement(['1 action', '1 action', '1 bonus action', '1 action']); // Heavily weighted toward 1 action
-    } else if (level.level <= 2) {
-      castingTime = getRandomElement(['1 action', '1 action', '1 bonus action', '2 actions']);
-    } else if (level.level <= 5) {
-      castingTime = getRandomElement(['1 action', '2 actions', '3 actions', '1 full round']);
-    } else {
-      castingTime = getRandomElement(['2 actions', '3 actions', '1 full round', '2 rounds', '3 rounds']);
-    }
-    
-    // Generate duration based on spell level
-    let duration: string;
-    if (level.level === 0) {
-      // Cantrips have simple durations
-      duration = getRandomElement(['Instantaneous', 'Instantaneous', '1 round', '2 rounds', 'Instantaneous']); // Heavily weighted toward instantaneous
-    } else if (level.level <= 2) {
-      duration = getRandomElement(['Instantaneous', '1 round', '2 rounds', '3 rounds', 'Concentration, up to 1 round']);
-    } else if (level.level <= 5) {
-      duration = getRandomElement(['1 round', '3 rounds', '5 rounds', '10 rounds', 'Concentration, up to 3 rounds']);
-    } else {
-      duration = getRandomElement(['5 rounds', '10 rounds', '1 minute (10 rounds)', 'Concentration, up to 10 rounds', 'Until dispelled']);
-    }
-    
-    // Generate range based on spell level  
-    let range: string;
-    if (level.level === 0) {
-      // Cantrips have limited range
-      range = getRandomElement(['Self', 'Touch', '30 feet', '60 feet', 'Self']);
-    } else if (level.level <= 2) {
-      range = getRandomElement(['Self', 'Touch', '30 feet', '60 feet', '120 feet']);
-    } else {
-      range = getRandomElement(SPELL_DATA.ranges);
-    }
-    
-    // Generate effect description based on spell name and school
-    const effects = SPELL_DATA.effects[school.name.toLowerCase() as keyof typeof SPELL_DATA.effects] || SPELL_DATA.effects.evocation;
-    let primaryEffect = getRandomElement(effects);
-    
-    // Smart description generation based on spell name keywords
-    const nameLower = spellName.toLowerCase();
-    let smartDescription = "";
-    
-    // Override effect based on spell name components for better coherence
-    if (nameLower.includes('javelin') || nameLower.includes('bolt') || nameLower.includes('missile') || nameLower.includes('ray') || 
-        nameLower.includes('arrow') || nameLower.includes('dart') || nameLower.includes('spear') || nameLower.includes('beam')) {
-      // Projectile spells - usually evocation damage
-      if (school.name.toLowerCase() === 'evocation') {
-        smartDescription = level.level === 0 ? "Projects a small magical projectile that deals minor damage" : "Hurls a powerful magical projectile that deals significant damage";
-      } else if (school.name.toLowerCase() === 'conjuration') {
-        smartDescription = level.level === 0 ? "Conjures a small ethereal projectile" : "Summons a magical projectile from another plane";
-      } else {
-        smartDescription = primaryEffect.replace('Summons creatures', 'Creates a magical projectile').replace('Charms targets', 'Launches an enchanted projectile');
-      }
-    } else if (nameLower.includes('shield') || nameLower.includes('wall') || nameLower.includes('barrier') || 
-               nameLower.includes('ward') || nameLower.includes('guard') || nameLower.includes('cloak')) {
-      // Defensive spells - usually abjuration
-      if (school.name.toLowerCase() === 'abjuration') {
-        smartDescription = level.level === 0 ? "Creates a small protective barrier" : "Manifests a powerful defensive barrier";
-      } else if (school.name.toLowerCase() === 'conjuration') {
-        smartDescription = level.level === 0 ? "Summons a minor protective construct" : "Conjures a substantial defensive barrier";
-      } else {
-        smartDescription = primaryEffect.replace('Deals damage', 'Creates a protective barrier').replace('Charms targets', 'Forms a mental shield');
-      }
-    } else if (nameLower.includes('eye') || nameLower.includes('vision') || nameLower.includes('sight') || 
-               nameLower.includes('echo') || nameLower.includes('mark')) {
-      // Divination spells
-      if (school.name.toLowerCase() === 'divination') {
-        smartDescription = level.level === 0 ? "Grants brief insight or reveals hidden information" : "Provides extensive knowledge or scrying ability";
-      } else {
-        smartDescription = primaryEffect.replace('Summons creatures', 'Creates a magical eye').replace('Deals damage', 'Reveals through mystical sight');
-      }
-    } else if (nameLower.includes('hand') || nameLower.includes('fist') || nameLower.includes('grasp') || 
-               nameLower.includes('touch') || nameLower.includes('force')) {
-      // Force manipulation spells
-      if (school.name.toLowerCase() === 'evocation') {
-        smartDescription = level.level === 0 ? "Creates a small spectral hand that can manipulate objects" : "Manifests a powerful force hand";
-      } else if (school.name.toLowerCase() === 'conjuration') {
-        smartDescription = level.level === 0 ? "Summons a minor helping hand" : "Conjures a substantial spectral appendage";
-      } else {
-        smartDescription = primaryEffect.replace('Reveals information', 'Manipulates objects with magical force');
-      }
-    } else if (nameLower.includes('chain') || nameLower.includes('bind') || nameLower.includes('hold') || 
-               nameLower.includes('cage') || nameLower.includes('net') || nameLower.includes('trap') || nameLower.includes('lock')) {
-      // Restraining/control spells
-      if (school.name.toLowerCase() === 'enchantment') {
-        smartDescription = level.level === 0 ? "Briefly restrains or influences a target" : "Powerfully binds or controls targets";
-      } else if (school.name.toLowerCase() === 'conjuration') {
-        smartDescription = level.level === 0 ? "Conjures ethereal bonds" : "Summons substantial restraining forces";
-      } else {
-        smartDescription = primaryEffect.replace('Deals damage', 'Restrains and binds targets');
-      }
-    } else if (nameLower.includes('image') || nameLower.includes('illusion') || nameLower.includes('phantom') || 
-               nameLower.includes('veil') || nameLower.includes('cloak')) {
-      // Illusion spells
-      if (school.name.toLowerCase() === 'illusion') {
-        smartDescription = level.level === 0 ? "Creates a minor illusion or false image" : "Manifests convincing illusions that can fool multiple senses";
-      } else {
-        smartDescription = primaryEffect.replace('Summons creatures', 'Creates illusory beings').replace('Deals damage', 'Confuses with false images');
-      }
-    } else if (nameLower.includes('heal') || nameLower.includes('cure') || nameLower.includes('restore')) {
-      // Healing spells - usually divine magic
-      smartDescription = level.level === 0 ? "Provides minor healing or restoration" : "Grants significant healing and restoration";
-    } else if (nameLower.includes('blade') || nameLower.includes('sword') || nameLower.includes('hammer') || 
-               nameLower.includes('strike') || nameLower.includes('spike') || nameLower.includes('needle')) {
-      // Weapon spells - usually evocation or conjuration
-      if (school.name.toLowerCase() === 'evocation') {
-        smartDescription = level.level === 0 ? "Creates a small magical weapon that strikes for minor damage" : "Manifests a powerful magical weapon";
-      } else if (school.name.toLowerCase() === 'conjuration') {
-        smartDescription = level.level === 0 ? "Summons a minor spectral weapon" : "Conjures a substantial magical weapon";
-      } else {
-        smartDescription = primaryEffect.replace('Reveals information', 'Creates a magical weapon').replace('Charms targets', 'Strikes with enchanted force');
-      }
-    } else if (nameLower.includes('portal') || nameLower.includes('step') || nameLower.includes('gate')) {
-      // Transportation spells - usually conjuration
-      if (school.name.toLowerCase() === 'conjuration') {
-        smartDescription = level.level === 0 ? "Creates a tiny spatial rift for minor teleportation" : "Opens substantial portals for transportation";
-      } else {
-        smartDescription = primaryEffect.replace('Deals damage', 'Creates dimensional rifts').replace('Charms targets', 'Transports through magical means');
-      }
-    } else if (nameLower.includes('light') || nameLower.includes('flash') || nameLower.includes('star') || 
-               nameLower.includes('spark') || nameLower.includes('burst')) {
-      // Light/energy spells - usually evocation
-      if (school.name.toLowerCase() === 'evocation') {
-        smartDescription = level.level === 0 ? "Produces a small burst of magical light or energy" : "Creates brilliant flashes of devastating energy";
-      } else {
-        smartDescription = primaryEffect.replace('Summons creatures', 'Generates magical illumination').replace('Charms targets', 'Dazzles with brilliant light');
-      }
-    } else {
-      // Use the original effect but make it more coherent
-      smartDescription = primaryEffect;
-      
-      // Scale effect based on level
-      if (level.level === 0) {
-        smartDescription = smartDescription.replace('Deals damage', 'Deals minor damage');
-        smartDescription = smartDescription.replace('Creates powerful', 'Creates small');
-        smartDescription = smartDescription.replace('Unleashes power', 'Produces a small effect');
-        smartDescription = smartDescription.replace('Destroys matter', 'Damages objects slightly');
-        smartDescription = smartDescription.replace('Summons creatures', 'Conjures minor effects');
-        smartDescription = smartDescription.replace('Controls minds', 'Influences thoughts slightly');
-      }
-    }
-    
-    // Create description based on school and level
-    let description = smartDescription;
-    
-    if (level.level === 0) {
-      description += ". This cantrip can be cast at will without expending a spell slot.";
-    } else if (level.level >= 5) {
-      description += ". When cast using a spell slot of 6th level or higher, the effects are enhanced.";
-    }
-    
-    // Add flavor text based on school
-    const flavorTexts = {
-      abjuration: level.level === 0 ? "A faint protective shimmer appears." : "Protective energies swirl around the target.",
-      conjuration: level.level === 0 ? "A small magical effect manifests briefly." : "Reality bends as the magic takes effect.",
-      divination: level.level === 0 ? "You sense a hint of information." : "Knowledge flows into your mind.",
-      enchantment: level.level === 0 ? "The target feels a subtle influence." : "The target's eyes glaze over momentarily.",
-      evocation: level.level === 0 ? "A small spark of energy appears." : "Energy crackles through the air.",
-      illusion: level.level === 0 ? "A minor illusion flickers briefly." : "The air shimmers with deceptive magic.",
-      necromancy: level.level === 0 ? "A faint dark energy stirs." : "Dark energy pulses ominously.",
-      transmutation: level.level === 0 ? "Something shifts slightly." : "The very essence of matter shifts."
-    };
-    
-    const flavor = flavorTexts[school.name.toLowerCase() as keyof typeof flavorTexts];
-    if (flavor) {
-      description += ` ${flavor}`;
-    }
-    
-    return {
-      name: spellName,
-      level: level.level,
-      school: school.name,
-      castingTime,
-      range,
-      components,
-      duration,
-      description,
-      color: school.color
-    };
-  };
-
-  const generateSpells = (count: number = 6) => {
-    const spells: GeneratedSpell[] = [];
-    
-    for (let i = 0; i < count; i++) {
-      const spell = generateSpell();
-      // Avoid duplicate names
-      if (!spells.find(s => s.name === spell.name)) {
-        spells.push(spell);
-      } else {
-        i--; // Try again
-      }
-    }
-    
-    setGeneratedSpells(spells);
-  };
-
-  const saveSpell = (spell: GeneratedSpell) => {
-    if (!savedSpells.find(s => s.name === spell.name)) {
-      const updated = [...savedSpells, spell];
-      setSavedSpells(updated);
-      localStorage.setItem('world-engine-saved-spells', JSON.stringify(updated));
-      
-      // Show informative message about spell usage
-      const spellType = spell.level === 0 ? 'cantrip' : `level ${spell.level} spell`;
-      const usageNote = spell.level === 0 
-        ? 'Cantrips can be learned by level 1+ characters based on INT/WIS scores.'
-        : `Level ${spell.level} spells require character level ${Math.max(2, spell.level + 1)} and sufficient ability scores.`;
-      
-      alert(`✨ ${spell.name} saved!\n\nThis ${spellType} is now available for character assignment.\n\n${usageNote}`);
-    } else {
-      alert('This spell is already saved!');
-    }
-  };
-
-  const removeSavedSpell = (spellName: string) => {
-    const updated = savedSpells.filter(s => s.name !== spellName);
-    setSavedSpells(updated);
-    localStorage.setItem('world-engine-saved-spells', JSON.stringify(updated));
-  };
-
-  const exportSavedSpells = () => {
-    const dataStr = JSON.stringify(savedSpells, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `world-engine-spells-${new Date().toISOString().split('T')[0]}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
-
-  // Load saved spells on component mount
+  // Load saved spells on mount
   React.useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem('world-engine-saved-spells') || '[]');
       setSavedSpells(saved);
     } catch (error) {
       console.error('Error loading saved spells:', error);
+      setSavedSpells([]);
     }
   }, []);
+
+  // Handle custom spell creation
+  const handleCustomSpellCreated = (spell: GeneratedSpell) => {
+    setGeneratedSpells(prev => [spell, ...prev]);
+    console.log(`✨ Created custom spell: ${spell.name}`);
+    setMode('menu');
+  };
+
+  // Load premade spells by school
+  const loadPremadeSpells = (school?: string) => {
+    let spells: GeneratedSpell[] = [];
+    
+    if (school && school !== 'any') {
+      spells = getPremadeSpellsBySchool(school);
+      console.log(`📚 Loaded ${spells.length} premade ${school} spells`);
+    } else {
+      spells = getAllPremadeSpells();
+      console.log(`📚 Loaded ${spells.length} premade spells from all schools`);
+    }
+    
+    setGeneratedSpells(spells);
+  };
+
+  // Save spell to collection
+  const saveSpell = (spell: GeneratedSpell) => {
+    if (savedSpells.find(s => s.name === spell.name)) {
+      alert('Spell already saved!');
+      return;
+    }
+
+    const newSavedSpells = [...savedSpells, spell];
+    setSavedSpells(newSavedSpells);
+    localStorage.setItem('world-engine-saved-spells', JSON.stringify(newSavedSpells));
+    console.log('Spell saved:', spell.name);
+  };
+
+  // Remove saved spell
+  const removeSavedSpell = (spellName: string) => {
+    const updated = savedSpells.filter(s => s.name !== spellName);
+    setSavedSpells(updated);
+    localStorage.setItem('world-engine-saved-spells', JSON.stringify(updated));
+  };
+
+  // Render different modes
+  if (mode === 'custom') {
+    return (
+      <CustomSpellCreator 
+        onBack={() => setMode('menu')}
+        onSpellCreated={handleCustomSpellCreated}
+      />
+    );
+  }
 
   return (
     <div style={{
@@ -391,303 +118,376 @@ export default function SpellGenerator({ onBack }: SpellGeneratorProps) {
         alignItems: "center"
       }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: "2.5rem", fontWeight: "bold" }}>Spell Generator</h1>
+          <h1 style={{ margin: 0, fontSize: "2.5rem", fontWeight: "bold" }}>
+            ⚡ Spell Workshop
+          </h1>
           <p style={{ margin: "0.5rem 0 0", opacity: 0.8 }}>
-            Create custom spells with magical effects and descriptions
+            {mode === 'menu' ? 'Choose your spell creation method' : 
+             mode === 'premade' ? 'Browse curated spell collections' :
+             'Generate random magical spells'}
           </p>
         </div>
-        {onBack && (
-          <button
-            onClick={onBack}
-            style={{
-              padding: "0.75rem 1.5rem",
-              background: "#374151",
-              color: "#f9fafb",
-              border: "none",
-              borderRadius: "6px",
-              cursor: "pointer",
-              fontSize: "1rem"
-            }}
-          >
-            Back to Menu
-          </button>
-        )}
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          {mode !== 'menu' && (
+            <button
+              onClick={() => setMode('menu')}
+              style={{
+                padding: "0.75rem 1.5rem",
+                background: "#6366f1",
+                color: "#f9fafb",
+                border: "none",
+                borderRadius: "6px",
+                cursor: "pointer",
+                fontSize: "1rem"
+              }}
+            >
+              🏠 Main Menu
+            </button>
+          )}
+          {onBack && (
+            <button
+              onClick={onBack}
+              style={{
+                padding: "0.75rem 1.5rem",
+                background: "#374151",
+                color: "#f9fafb",
+                border: "none",
+                borderRadius: "6px",
+                cursor: "pointer",
+                fontSize: "1rem"
+              }}
+            >
+              Back to Game
+            </button>
+          )}
+        </div>
       </div>
 
-      <div style={{ display: "flex", height: "calc(100vh - 120px)" }}>
-        {/* Left Panel - Controls */}
-        <div style={{
-          flex: 1,
-          padding: "2rem",
-          borderRight: "1px solid #334155",
-          overflowY: "auto"
-        }}>
-          <div style={{ marginBottom: "2rem" }}>
-            <h3 style={{ marginBottom: "1rem", color: "#f1f5f9" }}>School of Magic</h3>
-            <select
-              value={selectedSchool}
-              onChange={(e) => setSelectedSchool(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "0.75rem",
-                background: "#1e293b",
-                border: "1px solid #334155",
-                borderRadius: "4px",
-                color: "#e2e8f0",
-                fontSize: "1rem"
-              }}
-            >
-              <option value="any">Any School</option>
-              {SPELL_DATA.schools.map(school => (
-                <option key={school.name} value={school.name.toLowerCase()}>
-                  {school.name} - {school.description}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div style={{ marginBottom: "2rem" }}>
-            <h3 style={{ marginBottom: "1rem", color: "#f1f5f9" }}>Spell Level</h3>
-            <select
-              value={selectedLevel}
-              onChange={(e) => setSelectedLevel(parseInt(e.target.value))}
-              style={{
-                width: "100%",
-                padding: "0.75rem",
-                background: "#1e293b",
-                border: "1px solid #334155",
-                borderRadius: "4px",
-                color: "#e2e8f0",
-                fontSize: "1rem"
-              }}
-            >
-              <option value={-1}>Any Level</option>
-              {SPELL_DATA.levels.map(level => (
-                <option key={level.level} value={level.level}>
-                  {level.name} - {level.description}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <button
-            onClick={() => generateSpells(6)}
-            style={{
-              width: "100%",
-              padding: "1rem",
-              background: "#3b82f6",
-              color: "white",
-              border: "none",
-              borderRadius: "6px",
-              fontSize: "1.1rem",
-              fontWeight: "bold",
-              cursor: "pointer",
-              marginBottom: "1rem"
-            }}
-          >
-            Generate Spells
-          </button>
-
-          <button
-            onClick={() => generateSpells(12)}
-            style={{
-              width: "100%",
-              padding: "0.75rem",
-              background: "#059669",
-              color: "white",
-              border: "none",
-              borderRadius: "6px",
-              fontSize: "1rem",
-              cursor: "pointer"
-            }}
-          >
-            Generate More (12)
-          </button>
-        </div>
-
-        {/* Center Panel - Generated Spells */}
-        <div style={{
-          flex: 2,
-          padding: "2rem",
-          borderRight: "1px solid #334155",
-          overflowY: "auto"
-        }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-            <h3 style={{ margin: 0, color: "#f1f5f9" }}>Generated Spells</h3>
-            {generatedSpells.length > 0 && (
-              <span style={{ color: "#94a3b8", fontSize: "0.9rem" }}>
-                {generatedSpells.length} spells
-              </span>
-            )}
-          </div>
-
-          {generatedSpells.length === 0 ? (
+      {mode === 'menu' && (
+        <div style={{ padding: "3rem 2rem" }}>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))",
+            gap: "2rem",
+            maxWidth: "1200px",
+            margin: "0 auto"
+          }}>
+            {/* Premade Spells */}
             <div style={{
-              textAlign: "center",
-              padding: "3rem",
-              color: "#64748b",
-              fontStyle: "italic"
-            }}>
-              Click "Generate Spells" to create magical effects!
-            </div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              {generatedSpells.map((spell, index) => (
-                <div key={index} style={{
-                  padding: "1.5rem",
-                  background: "rgba(15, 23, 42, 0.5)",
-                  border: `2px solid ${spell.color}`,
-                  borderRadius: "8px"
-                }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
-                    <div>
-                      <h4 style={{ margin: "0 0 0.5rem", fontSize: "1.3rem", color: spell.color }}>
-                        {spell.name}
-                      </h4>
-                      <p style={{ margin: 0, color: "#94a3b8", fontSize: "0.9rem" }}>
-                        {spell.level === 0 ? "Cantrip" : `${spell.level}${spell.level === 1 ? 'st' : spell.level === 2 ? 'nd' : spell.level === 3 ? 'rd' : 'th'} level`} {spell.school.toLowerCase()}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => saveSpell(spell)}
-                      disabled={savedSpells.find(s => s.name === spell.name) !== undefined}
-                      style={{
-                        padding: "0.5rem 1rem",
-                        background: savedSpells.find(s => s.name === spell.name) ? "#374151" : "#059669",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "4px",
-                        fontSize: "0.9rem",
-                        cursor: savedSpells.find(s => s.name === spell.name) ? "not-allowed" : "pointer"
-                      }}
-                    >
-                      {savedSpells.find(s => s.name === spell.name) ? "Saved" : "Save"}
-                    </button>
-                  </div>
-                  
-                  <div style={{ fontSize: "0.9rem", color: "#cbd5e1", lineHeight: "1.4" }}>
-                    <p style={{ margin: "0.5rem 0" }}><strong>Casting Time:</strong> {spell.castingTime}</p>
-                    <p style={{ margin: "0.5rem 0" }}><strong>Range:</strong> {spell.range}</p>
-                    <p style={{ margin: "0.5rem 0" }}><strong>Components:</strong> {spell.components.join(', ')}</p>
-                    <p style={{ margin: "0.5rem 0" }}><strong>Duration:</strong> {spell.duration}</p>
-                    <p style={{ margin: "1rem 0 0", fontStyle: "italic" }}>{spell.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Right Panel - Saved Spells */}
-        <div style={{
-          flex: 1,
-          padding: "2rem"
-        }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-            <h3 style={{ margin: 0, color: "#f1f5f9" }}>Saved Spells</h3>
-            {savedSpells.length > 0 && (
-              <button
-                onClick={exportSavedSpells}
-                style={{
-                  padding: "0.5rem",
-                  background: "#374151",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  fontSize: "0.8rem",
-                  cursor: "pointer"
-                }}
-              >
-                Export
-              </button>
-            )}
-          </div>
-          
-          {/* Spell Count Overview */}
-          {savedSpells.length > 0 && (
-            <div style={{ 
-              marginBottom: "1.5rem", 
-              padding: "1rem", 
-              background: "rgba(59, 130, 246, 0.1)", 
-              border: "1px solid #3b82f6", 
-              borderRadius: "8px" 
-            }}>
-              <h4 style={{ margin: "0 0 0.5rem", color: "#3b82f6" }}>Spell Library Overview:</h4>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: "8px", fontSize: "0.9rem" }}>
-                <div>
-                  <strong>Cantrips:</strong> {savedSpells.filter(s => s.level === 0).length}
-                </div>
-                {[1,2,3,4,5,6,7,8,9].map(level => {
-                  const count = savedSpells.filter(s => s.level === level).length;
-                  return count > 0 ? (
-                    <div key={level}>
-                      <strong>Level {level}:</strong> {count}
-                    </div>
-                  ) : null;
-                })}
-              </div>
-              <div style={{ marginTop: "8px", fontSize: "0.8rem", color: "#94a3b8" }}>
-                Total: {savedSpells.length} spells available for character assignment
-              </div>
-            </div>
-          )}
-
-          {savedSpells.length === 0 ? (
-            <div style={{
-              textAlign: "center",
+              background: "rgba(15, 23, 42, 0.6)",
+              borderRadius: "12px",
               padding: "2rem",
-              color: "#64748b",
-              fontStyle: "italic"
-            }}>
-              Save spells you like here!
+              border: "2px solid #10b981",
+              cursor: "pointer",
+              transition: "all 0.3s ease"
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-4px)"}
+            onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0px)"}
+            onClick={() => setMode('premade')}>
+              <div style={{
+                fontSize: "3rem",
+                textAlign: "center",
+                marginBottom: "1rem"
+              }}>📚</div>
+              <h2 style={{
+                margin: "0 0 1rem",
+                color: "#10b981",
+                textAlign: "center",
+                fontSize: "1.5rem"
+              }}>Premade Spell Collections</h2>
+              <p style={{
+                margin: "0 0 1.5rem",
+                color: "#cbd5e1",
+                textAlign: "center",
+                lineHeight: "1.6"
+              }}>
+                Browse carefully crafted spells for each school of magic. 
+                Perfect for quick gameplay and learning spell mechanics.
+              </p>
+              <div style={{
+                background: "rgba(16, 185, 129, 0.1)",
+                borderRadius: "6px",
+                padding: "1rem",
+                border: "1px solid #10b981"
+              }}>
+                <h4 style={{ margin: "0 0 0.5rem", color: "#6ee7b7" }}>✨ Features:</h4>
+                <ul style={{ margin: 0, paddingLeft: "1.5rem", color: "#d1fae5" }}>
+                  <li>Balanced and tested spells</li>
+                  <li>Organized by school and level</li>
+                  <li>Rich flavor text and descriptions</li>
+                  <li>Ready to use immediately</li>
+                </ul>
+              </div>
             </div>
-          ) : (
+
+            {/* Custom Creator */}
             <div style={{
-              maxHeight: "calc(100vh - 250px)",
-              overflowY: "auto",
-              display: "flex",
-              flexDirection: "column",
-              gap: "0.5rem"
-            }}>
-              {savedSpells.map((spell, index) => (
-                <div key={index} style={{
-                  padding: "1rem",
-                  background: "rgba(15, 23, 42, 0.3)",
-                  border: `1px solid ${spell.color}`,
-                  borderRadius: "6px",
-                  display: "flex",
-                  flexDirection: "column"
-                }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                    <div>
-                      <h5 style={{ margin: "0 0 0.25rem", color: spell.color, fontSize: "1rem" }}>
-                        {spell.name}
-                      </h5>
-                      <p style={{ margin: 0, fontSize: "0.8rem", color: "#94a3b8" }}>
-                        Level {spell.level} {spell.school}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => removeSavedSpell(spell.name)}
-                      style={{
-                        padding: "0.25rem 0.5rem",
-                        background: "#ef4444",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "4px",
-                        fontSize: "0.7rem",
-                        cursor: "pointer"
-                      }}
-                    >
-                      ×
-                    </button>
-                  </div>
+              background: "rgba(15, 23, 42, 0.6)",
+              borderRadius: "12px",
+              padding: "2rem",
+              border: "2px solid #ef4444",
+              cursor: "pointer",
+              transition: "all 0.3s ease"
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-4px)"}
+            onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0px)"}
+            onClick={() => setMode('custom')}>
+              <div style={{
+                fontSize: "3rem",
+                textAlign: "center",
+                marginBottom: "1rem"
+              }}>⚒️</div>
+              <h2 style={{
+                margin: "0 0 1rem",
+                color: "#ef4444",
+                textAlign: "center",
+                fontSize: "1.5rem"
+              }}>Custom Spell Creator</h2>
+              <p style={{
+                margin: "0 0 1.5rem",
+                color: "#cbd5e1",
+                textAlign: "center",
+                lineHeight: "1.6"
+              }}>
+                Design your own spells from scratch with built-in balance guidelines. 
+                Perfect for experienced players who want full creative control.
+              </p>
+              <div style={{
+                background: "rgba(239, 68, 68, 0.1)",
+                borderRadius: "6px",
+                padding: "1rem",
+                border: "1px solid #ef4444"
+              }}>
+                <h4 style={{ margin: "0 0 0.5rem", color: "#fca5a5" }}>🛠️ Features:</h4>
+                <ul style={{ margin: 0, paddingLeft: "1.5rem", color: "#fee2e2" }}>
+                  <li>Complete creative freedom</li>
+                  <li>Balance guidelines and validation</li>
+                  <li>Component customization</li>
+                  <li>Real-time spell preview</li>
+                </ul>
+              </div>
+              
+              <div style={{
+                background: "rgba(245, 158, 11, 0.1)",
+                borderRadius: "6px",
+                padding: "0.75rem",
+                border: "1px solid #f59e0b",
+                marginTop: "1rem"
+              }}>
+                <div style={{ color: "#fbbf24", fontSize: "0.9rem", textAlign: "center" }}>
+                  ⚠️ For Experienced Players
                 </div>
-              ))}
+              </div>
             </div>
-          )}
+          </div>
+
+          {/* Quick Stats */}
+          <div style={{
+            marginTop: "3rem",
+            textAlign: "center",
+            padding: "2rem",
+            background: "rgba(15, 23, 42, 0.4)",
+            borderRadius: "8px",
+            border: "1px solid #334155"
+          }}>
+            <h3 style={{ margin: "0 0 1rem", color: "#f1f5f9" }}>📊 Spell Library Stats</h3>
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+              gap: "1rem",
+              maxWidth: "800px",
+              margin: "0 auto"
+            }}>
+              {SPELL_DATA.schools.map(school => {
+                const count = getPremadeSpellsBySchool(school.name).length;
+                return (
+                  <div key={school.name} style={{
+                    padding: "1rem",
+                    background: "rgba(15, 23, 42, 0.6)",
+                    borderRadius: "6px",
+                    border: `1px solid ${school.color}`
+                  }}>
+                    <div style={{ color: school.color, fontWeight: "bold" }}>{school.name}</div>
+                    <div style={{ color: "#94a3b8", fontSize: "0.9rem" }}>{count} spells</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
-      </div>
+      )}
+
+      {mode === 'premade' && (
+        <div style={{ display: "flex", height: "calc(100vh - 120px)" }}>
+          {/* School Selection */}
+          <div style={{
+            width: "300px",
+            padding: "2rem",
+            borderRight: "1px solid #334155",
+            overflowY: "auto",
+            background: "rgba(15, 23, 42, 0.4)"
+          }}>
+            <h3 style={{ marginBottom: "1rem", color: "#f1f5f9" }}>📚 Browse by School</h3>
+            
+            <button
+              onClick={() => loadPremadeSpells('any')}
+              style={{
+                width: "100%",
+                padding: "1rem",
+                marginBottom: "0.5rem",
+                background: selectedSchool === 'any' ? "#374151" : "rgba(15, 23, 42, 0.6)",
+                border: "1px solid #4b5563",
+                borderRadius: "6px",
+                color: "#f9fafb",
+                cursor: "pointer",
+                textAlign: "left",
+                fontSize: "1rem"
+              }}
+            >
+              🌟 All Schools ({getAllPremadeSpells().length} spells)
+            </button>
+
+            {SPELL_DATA.schools.map(school => {
+              const count = getPremadeSpellsBySchool(school.name).length;
+              return (
+                <button
+                  key={school.name}
+                  onClick={() => {
+                    setSelectedSchool(school.name.toLowerCase());
+                    loadPremadeSpells(school.name);
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "1rem",
+                    marginBottom: "0.5rem",
+                    background: selectedSchool === school.name.toLowerCase() ? school.color : "rgba(15, 23, 42, 0.6)",
+                    border: `1px solid ${school.color}`,
+                    borderRadius: "6px",
+                    color: selectedSchool === school.name.toLowerCase() ? "#ffffff" : school.color,
+                    cursor: "pointer",
+                    textAlign: "left",
+                    fontSize: "0.9rem",
+                    transition: "all 0.2s ease"
+                  }}
+                >
+                  <div style={{ fontWeight: "bold" }}>{school.name}</div>
+                  <div style={{ fontSize: "0.8rem", opacity: 0.8 }}>
+                    {school.description} ({count} spells)
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Spell Display */}
+          <div style={{
+            flex: 1,
+            padding: "2rem",
+            overflowY: "auto"
+          }}>
+            {generatedSpells.length === 0 ? (
+              <div style={{
+                textAlign: "center",
+                padding: "3rem",
+                color: "#94a3b8"
+              }}>
+                <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>📚</div>
+                <h3 style={{ margin: "0 0 1rem", color: "#cbd5e1" }}>Select a School</h3>
+                <p>Choose a school of magic from the left panel to browse curated spells.</p>
+              </div>
+            ) : (
+              <div>
+                <h2 style={{ margin: "0 0 1.5rem", color: "#f1f5f9" }}>
+                  {selectedSchool === 'any' ? 'All Schools' : 
+                   SPELL_DATA.schools.find(s => s.name.toLowerCase() === selectedSchool)?.name || 'Spells'}
+                  <span style={{ color: "#94a3b8", fontSize: "1rem", fontWeight: "normal", marginLeft: "1rem" }}>
+                    ({generatedSpells.length} spells)
+                  </span>
+                </h2>
+                
+                <div style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
+                  gap: "1.5rem"
+                }}>
+                  {generatedSpells.map((spell, index) => (
+                    <div key={index} style={{
+                      background: "rgba(15, 23, 42, 0.8)",
+                      borderRadius: "8px",
+                      padding: "1.5rem",
+                      border: `2px solid ${spell.color}`,
+                      transition: "transform 0.2s ease"
+                    }}>
+                      <div style={{ marginBottom: "1rem" }}>
+                        <h3 style={{ margin: "0 0 0.25rem", color: spell.color, fontSize: "1.3rem" }}>
+                          {spell.name}
+                        </h3>
+                        <p style={{ margin: 0, color: "#94a3b8", fontSize: "0.9rem" }}>
+                          {spell.level === 0 ? "Cantrip" : `Level ${spell.level}`} {spell.school}
+                        </p>
+                      </div>
+
+                      <div style={{ marginBottom: "1rem", fontSize: "0.9rem", color: "#cbd5e1" }}>
+                        <p style={{ margin: "0.25rem 0" }}>
+                          <strong>Casting Time:</strong> {spell.castingTime}
+                        </p>
+                        <p style={{ margin: "0.25rem 0" }}>
+                          <strong>Range:</strong> {spell.range}
+                        </p>
+                        <p style={{ margin: "0.25rem 0" }}>
+                          <strong>Components:</strong> {spell.components.join(", ")}
+                        </p>
+                        <p style={{ margin: "0.25rem 0" }}>
+                          <strong>Duration:</strong> {spell.duration}
+                        </p>
+                      </div>
+
+                      <div style={{ marginBottom: "1.5rem" }}>
+                        <p style={{ margin: 0, color: "#e2e8f0", lineHeight: "1.5" }}>
+                          {spell.description}
+                        </p>
+                      </div>
+
+                      <button
+                        onClick={() => saveSpell(spell)}
+                        style={{
+                          width: "100%",
+                          padding: "0.75rem",
+                          background: "#059669",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "6px",
+                          cursor: "pointer",
+                          fontSize: "1rem",
+                          fontWeight: "bold"
+                        }}
+                      >
+                        💾 Save to Spellbook
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Saved Spells Count */}
+      {savedSpells.length > 0 && (
+        <div style={{
+          position: "fixed",
+          bottom: "2rem",
+          right: "2rem",
+          background: "rgba(15, 23, 42, 0.9)",
+          border: "1px solid #334155",
+          borderRadius: "8px",
+          padding: "1rem",
+          color: "#f1f5f9"
+        }}>
+          💾 {savedSpells.length} spells saved
+        </div>
+      )}
     </div>
   );
 }

@@ -49,13 +49,112 @@ export default function HealingSystem({ onBack }: HealingSystemProps) {
   // Load characters and spells on component mount
   React.useEffect(() => {
     try {
-      const savedCharacters = JSON.parse(localStorage.getItem('world-engine-saved-characters') || '[]');
+      const savedCharacters = JSON.parse(localStorage.getItem('world-engine-characters') || '[]');
       const savedSpells = JSON.parse(localStorage.getItem('world-engine-saved-spells') || '[]');
       
-      setCharacters(savedCharacters);
+      // Debug: Log the raw saved characters
+      console.log('Raw saved characters:', savedCharacters);
+      
+      // Always include test characters for easy testing
+      const testCharacters: Character[] = [
+        {
+          name: "Elara the Cleric",
+          class: "Cleric",
+          baseStats: { strength: 12, constitution: 14, wisdom: 16, intelligence: 10, dexterity: 13, charisma: 15 },
+          finalStats: { strength: 12, constitution: 14, wisdom: 16, intelligence: 10, dexterity: 13, charisma: 15 },
+          hitPoints: 32, // Slightly injured
+          level: 3,
+          knownSpells: ["Cure Light Wounds", "Healing Word", "Prayer of Healing"]
+        },
+        {
+          name: "Thorin Ironbeard",
+          class: "Fighter",
+          baseStats: { strength: 16, constitution: 15, wisdom: 11, intelligence: 9, dexterity: 12, charisma: 10 },
+          finalStats: { strength: 16, constitution: 15, wisdom: 11, intelligence: 9, dexterity: 12, charisma: 10 },
+          hitPoints: 18, // Badly injured
+          level: 2
+        },
+        {
+          name: "Luna Shadowstep",
+          class: "Rogue",
+          baseStats: { strength: 10, constitution: 12, wisdom: 14, intelligence: 13, dexterity: 17, charisma: 11 },
+          finalStats: { strength: 10, constitution: 12, wisdom: 14, intelligence: 13, dexterity: 17, charisma: 11 },
+          hitPoints: 22, // Moderately injured
+          level: 2
+        }
+      ];
+      
+      // Merge test characters with saved characters, avoiding duplicates by name
+      const allCharacters = [...testCharacters];
+      
+      // Add saved characters that aren't already in test characters
+      savedCharacters.forEach((savedChar: any) => {
+        // Check if this is a character from CharacterCreate (has characterClass and data field)
+        if (savedChar.characterClass && savedChar.name && !allCharacters.find(test => test.name === savedChar.name)) {
+          // Get character data from nested structure
+          const charData = savedChar.data || savedChar;
+          
+          // Calculate HP based on constitution and level (more realistic)
+          const constitution = charData.constitution || charData.baseStats?.constitution || 14;
+          const level = savedChar.level || charData.level || 1;
+          const baseHP = 10 + Math.floor((constitution - 10) / 2) * level;
+          const maxHP = Math.max(baseHP + (level * 6), 20); // Minimum 20 HP
+          
+          // Convert saved character format to expected format
+          const normalizedChar: Character = {
+            name: savedChar.name,
+            class: savedChar.characterClass,
+            baseStats: { 
+              strength: charData.strength || 10, 
+              constitution: constitution, 
+              wisdom: charData.wisdom || 12, 
+              intelligence: charData.intelligence || 11, 
+              dexterity: charData.dexterity || 13, 
+              charisma: charData.charisma || 10 
+            },
+            finalStats: { 
+              strength: charData.strength || 10, 
+              constitution: constitution, 
+              wisdom: charData.wisdom || 12, 
+              intelligence: charData.intelligence || 11, 
+              dexterity: charData.dexterity || 13, 
+              charisma: charData.charisma || 10 
+            },
+            hitPoints: maxHP, // Start at full HP
+            level: level,
+            knownSpells: charData.knownSpells || [],
+            knownCantrips: charData.knownCantrips || []
+          };
+          allCharacters.push(normalizedChar);
+        }
+      });
+      
+      setCharacters(allCharacters);
+      addToLog(`Loaded ${allCharacters.length} characters for healing system (${testCharacters.length} test + ${allCharacters.length - testCharacters.length} saved)`);
+      
+      // Debug log for custom characters
+      const customChars = allCharacters.filter(char => !testCharacters.find(test => test.name === char.name));
+      if (customChars.length > 0) {
+        addToLog(`Custom characters loaded: ${customChars.map(c => `${c.name} (${c.hitPoints} HP)`).join(', ')}`);
+      }
+      
       setAvailableSpells(savedSpells);
     } catch (error) {
       console.error('Error loading data:', error);
+      // Fallback to just test characters
+      const testCharacters: Character[] = [
+        {
+          name: "Elara the Cleric",
+          class: "Cleric",
+          baseStats: { strength: 12, constitution: 14, wisdom: 16, intelligence: 10, dexterity: 13, charisma: 15 },
+          finalStats: { strength: 12, constitution: 14, wisdom: 16, intelligence: 10, dexterity: 13, charisma: 15 },
+          hitPoints: 32,
+          level: 3,
+          knownSpells: ["Cure Light Wounds", "Healing Word", "Prayer of Healing"]
+        }
+      ];
+      setCharacters(testCharacters);
+      addToLog("Loaded fallback test characters");
     }
   }, []);
 
@@ -135,6 +234,12 @@ export default function HealingSystem({ onBack }: HealingSystemProps) {
   };
 
   const simulateInjury = (character: Character) => {
+    // Make sure character has valid hitPoints
+    if (isNaN(character.hitPoints) || character.hitPoints === undefined) {
+      addToLog(`❌ Error: ${character.name} has invalid HP data. Cannot simulate injury.`);
+      return;
+    }
+
     const damage = rollDice(20) + rollDice(6); // Random damage for testing
     const oldHP = character.hitPoints;
     const newHP = Math.max(0, character.hitPoints - damage);
