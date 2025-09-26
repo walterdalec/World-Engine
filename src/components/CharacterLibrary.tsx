@@ -85,12 +85,30 @@ export function CharacterLibrary({ eng, party, setParty, onStart, onCreateNew }:
   const [viewingCharacter, setViewingCharacter] = useState<SavedCharacter | null>(null);
 
   useEffect(() => {
-    // Load saved characters from localStorage
+    // Load saved characters from localStorage with backup
     console.log("CharacterLibrary: Loading saved characters...");
     try {
-      const saved = JSON.parse(localStorage.getItem('world-engine-characters') || '[]');
-      console.log("CharacterLibrary: Loaded characters:", saved);
+      // Primary storage
+      let saved = JSON.parse(localStorage.getItem('world-engine-characters') || '[]');
+      
+      // If primary is empty, try backup
+      if (saved.length === 0) {
+        const backup = JSON.parse(localStorage.getItem('world-engine-characters-backup') || '[]');
+        if (backup.length > 0) {
+          console.log("Restoring from backup:", backup.length, "characters");
+          saved = backup;
+          // Restore primary storage
+          localStorage.setItem('world-engine-characters', JSON.stringify(saved));
+        }
+      }
+      
+      console.log("CharacterLibrary: Loaded characters:", saved.length, "total");
       setSavedCharacters(saved);
+      
+      // Create backup if we have data
+      if (saved.length > 0) {
+        localStorage.setItem('world-engine-characters-backup', JSON.stringify(saved));
+      }
     } catch (error) {
       console.error('Error loading saved characters:', error);
       setSavedCharacters([]);
@@ -122,6 +140,47 @@ export function CharacterLibrary({ eng, party, setParty, onStart, onCreateNew }:
     const updated = savedCharacters.filter(c => c.id !== id);
     setSavedCharacters(updated);
     localStorage.setItem('world-engine-characters', JSON.stringify(updated));
+    // Maintain backup
+    localStorage.setItem('world-engine-characters-backup', JSON.stringify(updated));
+    console.log(`Deleted character ${id}, remaining:`, updated.length);
+  };
+
+  // Export/Import functions for manual backup
+  const exportCharacters = () => {
+    const dataStr = JSON.stringify(savedCharacters, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `world-engine-characters-${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importCharacters = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const imported = JSON.parse(e.target?.result as string);
+        if (Array.isArray(imported)) {
+          setSavedCharacters(imported);
+          localStorage.setItem('world-engine-characters', JSON.stringify(imported));
+          localStorage.setItem('world-engine-characters-backup', JSON.stringify(imported));
+          alert(`Successfully imported ${imported.length} characters!`);
+        } else {
+          alert('Invalid file format. Please select a valid character export file.');
+        }
+      } catch (error) {
+        console.error('Import error:', error);
+        alert('Error importing characters. Please check the file format.');
+      }
+    };
+    reader.readAsText(file);
+    // Reset file input
+    event.target.value = '';
   };
 
   const selected = (typeof eng.state.meta.presets.loaded === 'string')
@@ -310,12 +369,51 @@ export function CharacterLibrary({ eng, party, setParty, onStart, onCreateNew }:
       <div style={{ 
         padding: "1.5rem", 
         borderBottom: "1px solid #334155",
-        background: "rgba(15, 23, 42, 0.8)"
+        background: "rgba(15, 23, 42, 0.8)",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center"
       }}>
-        <h1 style={{ margin: 0, fontSize: "2rem", fontWeight: "bold" }}>Character Library</h1>
-        <p style={{ margin: "0.5rem 0 0", opacity: 0.8 }}>
-          Selected World: <span style={{ color: "#60a5fa", fontWeight: "bold" }}>{selected || "None"}</span>
-        </p>
+        <div>
+          <h1 style={{ margin: 0, fontSize: "2rem", fontWeight: "bold" }}>Character Library</h1>
+          <p style={{ margin: "0.5rem 0 0", opacity: 0.8 }}>
+            Selected World: <span style={{ color: "#60a5fa", fontWeight: "bold" }}>{selected || "None"}</span>
+          </p>
+        </div>
+        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+          <button
+            onClick={exportCharacters}
+            disabled={savedCharacters.length === 0}
+            style={{
+              padding: "0.5rem 1rem",
+              background: savedCharacters.length === 0 ? "#374151" : "#059669",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              cursor: savedCharacters.length === 0 ? "not-allowed" : "pointer",
+              fontSize: "0.9rem"
+            }}
+          >
+            Export Characters
+          </button>
+          <label style={{
+            padding: "0.5rem 1rem",
+            background: "#3b82f6",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+            fontSize: "0.9rem"
+          }}>
+            Import Characters
+            <input
+              type="file"
+              accept=".json"
+              onChange={importCharacters}
+              style={{ display: "none" }}
+            />
+          </label>
+        </div>
       </div>
 
       <div style={{ display: "flex", flex: 1 }}>

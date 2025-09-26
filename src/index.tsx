@@ -5,6 +5,8 @@ import { MainMenu } from "./components/MainMenu";
 import { WorldSetupScreen } from "./components/WorldSetupScreen";
 import CharacterLibrary from "./components/CharacterLibrary";
 import CharacterCreate from "./components/CharacterCreate";
+import NameGenerator from "./components/NameGenerator";
+import SpellGenerator from "./components/SpellGenerator";
 import WorldMap from "./components/SimpleWorldMap";
 import { Engine } from "./engine.d";
 import { DEFAULT_WORLDS } from "./defaultWorlds";
@@ -30,7 +32,7 @@ function randomSeed(): string {
 }
 
 function App() {
-  const [step, setStep] = React.useState<"menu" | "world" | "party" | "character" | "worldmap">("menu");
+  const [step, setStep] = React.useState<"menu" | "world" | "party" | "character" | "namegen" | "spellgen" | "worldmap">("menu");
   const [party, setParty] = React.useState<Character[]>([]);
   const [currentCampaign, setCurrentCampaign] = React.useState<any>(null);
   const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0); // Force re-render hook
@@ -86,6 +88,16 @@ function App() {
     // Standalone character creator (not tied to a campaign)
     setCurrentCampaign(null);
     setStep("character");
+  };
+
+  const handleNameGenerator = () => {
+    // Standalone name generator tool
+    setStep("namegen");
+  };
+
+  const handleSpellGenerator = () => {
+    // Standalone spell generator tool
+    setStep("spellgen");
   };
 
   // fake engine stub for now
@@ -178,6 +190,8 @@ function App() {
           onNewCampaign={handleNewCampaign}
           onLoadCampaign={handleLoadCampaign}
           onCharacterCreator={handleCharacterCreator}
+          onNameGenerator={handleNameGenerator}
+          onSpellGenerator={handleSpellGenerator}
         />
       )}
       {step === "world" && (
@@ -265,6 +279,12 @@ function App() {
           <CharacterCreate />
         </div>
       )}
+      {step === "namegen" && (
+        <NameGenerator onBack={() => setStep("menu")} />
+      )}
+      {step === "spellgen" && (
+        <SpellGenerator onBack={() => setStep("menu")} />
+      )}
       {step === "worldmap" && (
         <WorldMap 
           seedStr={eng?.state?.meta?.seed} 
@@ -278,11 +298,28 @@ function App() {
 const root = createRoot(document.getElementById("root")!);
 root.render(<App />);
 
-// Register service worker in production builds
-if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js').catch((err) => {
-      console.warn('SW registration failed:', err);
-    });
-  });
-}
+// Service worker disabled - can cause issues with SPA routing on GitHub Pages
+// if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
+//   window.addEventListener('load', () => {
+//     navigator.serviceWorker.register('/World-Engine/service-worker.js')
+//       .then((registration) => {
+//         console.log('SW registered:', registration);
+//         
+//         // Handle updates
+//         registration.addEventListener('updatefound', () => {
+//           const newWorker = registration.installing;
+//           if (newWorker) {
+//             newWorker.addEventListener('statechange', () => {
+//               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+//                 // New content available, refresh the page
+//                 window.location.reload();
+//               }
+//             });
+//           }
+//         });
+//       })
+//       .catch((err) => {
+//         console.warn('SW registration failed:', err);
+//       });
+//   });
+// }

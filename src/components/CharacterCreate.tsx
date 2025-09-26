@@ -662,6 +662,8 @@ export default function CharacterCreate() {
       // Add to library
       existingCharacters.push(characterData);
       localStorage.setItem('world-engine-characters', JSON.stringify(existingCharacters));
+      // Create backup
+      localStorage.setItem('world-engine-characters-backup', JSON.stringify(existingCharacters));
       console.log("Saved to localStorage, total characters:", existingCharacters.length);
       
       alert(`${char.name} has been saved to your character library!`);

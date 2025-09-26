@@ -1,21 +1,25 @@
 import React, { useEffect, useState } from "react";
+import { SettlementGenerator, QuestGenerator, TreasureGenerator, SeededRandom } from "../seededGenerators";
 
 interface Settlement {
-  type: 'city' | 'town' | 'village' | 'hut' | 'shrine' | 'outpost';
+  type: 'city' | 'town' | 'village' | 'hut' | 'shrine' | 'outpost' | 'trading_post';
   name: string;
   population: number;
-  faction: string;
+  faction?: string;
   description: string;
   emoji: string;
   services?: string[];
+  npcs?: Array<{name: string, occupation: string, personality: string, secret?: string}>;
 }
 
 interface Encounter {
-  type: 'creature' | 'treasure' | 'event' | 'faction' | 'mystery';
+  type: 'creature' | 'treasure' | 'event' | 'faction' | 'mystery' | 'quest';
   name: string;
   description: string;
   emoji: string;
   danger: 'safe' | 'low' | 'medium' | 'high' | 'extreme';
+  quest?: any;
+  treasure?: any;
 }
 
 interface SimpleWorldMapProps {
@@ -263,50 +267,232 @@ export default function SimpleWorldMap({ seedStr = "verdance-seed-001", onBack }
     return road ? road.name : null;
   };
 
-  // Fixed Campaign Settlement Lookup
+  // Seeded Settlement Generation
   const getSettlement = (x: number, y: number): Settlement | null => {
-    const found = verdanceCampaignLocations.settlements.find(s => s.x === x && s.y === y);
-    if (!found) return null;
+    // Check biome - no settlements in ocean
+    const biome = getBiome(x, y);
+    if (biome.name === "Ocean") return null;
+    
+    // Use seeded random to determine if settlement exists
+    const rng = new SeededRandom(`${seedStr}-settlement-check-${x}-${y}-${Math.abs(x*y)}`);
+    
+    // Very low chance for settlements to spawn
+    if (!rng.chance(0.03)) return null;
+    
+    // Generate settlement using seeded generator
+    const generator = new SettlementGenerator(seedStr, x, y);
+    const generated = generator.generate();
+    
+    // Map to our Settlement interface
+    const typeEmojis = {
+      city: '🏰',
+      town: '🏘️',
+      village: '🏡',
+      outpost: '⛺',
+      trading_post: '🏪'
+    };
     
     return {
-      type: found.type as Settlement['type'],
-      name: found.name,
-      population: found.population,
-      faction: found.faction,
-      description: found.description,
-      emoji: found.emoji,
-      services: found.services
+      type: generated.type as Settlement['type'],
+      name: generated.name,
+      population: generated.population,
+      description: generated.description,
+      emoji: typeEmojis[generated.type as keyof typeof typeEmojis] || '🏘️',
+      services: generated.services,
+      npcs: generated.npcs
     };
   };
 
-  // Fixed Campaign Encounter Lookup - chooses based on road vs wilderness
+  // Seeded Encounter Generation - chooses based on road vs wilderness
   const getEncounter = (x: number, y: number): Encounter | null => {
     const settlement = getSettlement(x, y);
     if (settlement) return null; // No encounters where settlements exist
     
-    // Check if on a road - safer, scripted encounters
+    // Check biome - ocean should be almost completely empty
+    const biome = getBiome(x, y);
+    if (biome.name === "Ocean") {
+      // Extremely rare maritime encounters in ocean
+      const rng = new SeededRandom(`${seedStr}-ocean-encounter-${x}-${y}-${Math.abs(x+y*3)}`);
+      if (!rng.chance(0.002)) return null; // 0.2% chance for very rare maritime events
+      
+      return generateMaritimeEncounter(x, y);
+    }
+    
+    const rng = new SeededRandom(`${seedStr}-encounter-check-${x}-${y}-${Math.abs(x+y*3)}`);
+    
+    // Check if on a road - safer, less frequent encounters
     if (isOnRoad(x, y)) {
-      const found = verdanceCampaignLocations.roadEncounters.find(e => e.x === x && e.y === y);
-      if (!found) return null;
+      if (!rng.chance(0.015)) return null; // 1.5% chance on roads
+      
+      return generateRoadEncounter(x, y);
+    } else {
+      // Wilderness - more frequent, varied encounters
+      if (!rng.chance(0.03)) return null; // 3% chance in wilderness
+      
+      return generateWildernessEncounter(x, y);
+    }
+  };
+
+  const generateRoadEncounter = (x: number, y: number): Encounter => {
+    const rng = new SeededRandom(`${seedStr}-road-encounter-${x}-${y}`);
+    const encounterTypes = ['quest', 'mystery', 'creature', 'event'];
+    const type = rng.pick(encounterTypes);
+    
+    if (type === 'quest') {
+      const questGen = new QuestGenerator(seedStr, x, y);
+      const quest = questGen.generate();
       
       return {
-        type: found.type as Encounter['type'],
-        name: found.name,
-        description: found.description,
-        emoji: found.emoji,
-        danger: found.danger as Encounter['danger']
+        type: 'quest',
+        name: quest.title,
+        description: quest.description,
+        emoji: '📜',
+        danger: 'safe',
+        quest
+      };
+    } else if (type === 'mystery') {
+      // Challenge-based treasures - riddles, puzzles, map fragments
+      const challenges = [
+        'Ancient Riddle Stone',
+        'Cryptic Map Fragment', 
+        'Puzzle Box',
+        'Mysterious Inscription',
+        'Locked Chest with Riddle',
+        'Weathered Treasure Map'
+      ];
+      const challenge = rng.pick(challenges);
+      
+      return {
+        type: 'mystery',
+        name: challenge,
+        description: `You find a ${challenge.toLowerCase()}. It seems to hold secrets, but requires wit to unlock.`,
+        emoji: '�️',
+        danger: 'safe'
+      };
+    } else if (type === 'creature') {
+      const creatures = ['Traveling Merchant', 'Lost Pilgrim', 'Wandering Minstrel', 'Road Patrol'];
+      const dangers = ['safe', 'safe', 'safe', 'low'] as const;
+      const idx = rng.nextInt(0, creatures.length);
+      
+      return {
+        type: 'creature',
+        name: creatures[idx],
+        description: `You encounter a ${creatures[idx].toLowerCase()} on the road.`,
+        emoji: '👤',
+        danger: dangers[idx]
       };
     } else {
-      // Wilderness - more dangerous, unpredictable encounters
-      const found = verdanceCampaignLocations.wildernessEncounters.find(e => e.x === x && e.y === y);
-      if (!found) return null;
+      // Event encounters
+      const events = ['Bridge Out', 'Caravan Rest', 'Crossroads Marker', 'Old Shrine'];
+      const event = rng.pick(events);
       
       return {
-        type: found.type as Encounter['type'],
-        name: found.name,
-        description: found.description,
-        emoji: found.emoji,
-        danger: found.danger as Encounter['danger']
+        type: 'event',
+        name: event,
+        description: `You come across: ${event}`,
+        emoji: '🛤️',
+        danger: 'safe'
+      };
+    }
+  };
+
+  const generateWildernessEncounter = (x: number, y: number): Encounter => {
+    const rng = new SeededRandom(`${seedStr}-wild-encounter-${x}-${y}`);
+    const encounterTypes = ['creature', 'mystery', 'quest'];
+    const type = rng.pick(encounterTypes);
+    
+    if (type === 'quest') {
+      const questGen = new QuestGenerator(seedStr, x, y);
+      const quest = questGen.generate();
+      
+      return {
+        type: 'quest',
+        name: quest.title,
+        description: quest.description,
+        emoji: '⚔️',
+        danger: rng.pick(['medium', 'high', 'extreme']),
+        quest
+      };
+    } else if (type === 'creature') {
+      const creatures = ['Wild Beasts', 'Bandits', 'Mysterious Figure', 'Ancient Guardian', 'Lost Spirits'];
+      const dangers = ['medium', 'high', 'medium', 'extreme', 'high'] as const;
+      const idx = rng.nextInt(0, creatures.length);
+      
+      return {
+        type: 'creature',
+        name: creatures[idx],
+        description: `Dangerous encounter: ${creatures[idx]}`,
+        emoji: '🐺',
+        danger: dangers[idx]
+      };
+    } else {
+      // Challenge-based mysteries - ruins, temples, guardians that require problem solving
+      const challenges = [
+        'Ancient Temple with Sealed Door',
+        'Ruined Observatory with Star Puzzle',
+        'Forgotten Shrine with Symbol Lock',
+        'Crystal Cave with Harmonic Puzzle',
+        'Stone Circle with Elemental Trial',
+        'Buried Vault with Riddle Guardian'
+      ];
+      const challenge = rng.pick(challenges);
+      
+      return {
+        type: 'mystery',
+        name: challenge,
+        description: `You discover a ${challenge.toLowerCase()}. Ancient magic protects its secrets - only the clever may claim its treasures.`,
+        emoji: '🏛️',
+        danger: rng.pick(['medium', 'high'])
+      };
+    }
+  };
+
+  const generateMaritimeEncounter = (x: number, y: number): Encounter => {
+    const rng = new SeededRandom(`${seedStr}-maritime-encounter-${x}-${y}`);
+    const encounterTypes = ['creature', 'mystery', 'event'];
+    const type = rng.pick(encounterTypes);
+    
+    if (type === 'creature') {
+      const creatures = ['Sea Serpent', 'Merchant Ship', 'Pirate Vessel', 'Whale Pod', 'Mysterious Fog'];
+      const dangers = ['extreme', 'safe', 'high', 'safe', 'medium'] as const;
+      const idx = rng.nextInt(0, creatures.length);
+      
+      return {
+        type: 'creature',
+        name: creatures[idx],
+        description: `Maritime encounter: ${creatures[idx]}`,
+        emoji: '🚢',
+        danger: dangers[idx]
+      };
+    } else if (type === 'mystery') {
+      // Very rare ocean mysteries - mostly legends and map fragments
+      const mysteries = [
+        'Siren\'s Song Echo',
+        'Ancient Sea Chart Fragment', 
+        'Mysterious Island Mirage',
+        'Floating Witch\'s Bottle',
+        'Ghostly Ship Sighting'
+      ];
+      const mystery = rng.pick(mysteries);
+      
+      return {
+        type: 'mystery',
+        name: mystery,
+        description: `A rare oceanic phenomenon: ${mystery}. The sea holds its secrets well.`,
+        emoji: '🔱',
+        danger: rng.pick(['safe', 'low'])
+      };
+    } else {
+      // Ocean events
+      const events = ['Storm Clouds', 'Calm Waters', 'Dolphin Pod', 'Seabird Flock', 'Coral Reef'];
+      const event = rng.pick(events);
+      
+      return {
+        type: 'event',
+        name: event,
+        description: `The ocean shows: ${event}`,
+        emoji: '🌊',
+        danger: 'safe'
       };
     }
   };

@@ -24,9 +24,11 @@ interface Props {
   onNewCampaign: () => void;
   onLoadCampaign: (campaign: Campaign) => void;
   onCharacterCreator: () => void;
+  onNameGenerator: () => void;
+  onSpellGenerator: () => void;
 }
 
-export function MainMenu({ onNewCampaign, onLoadCampaign, onCharacterCreator }: Props) {
+export function MainMenu({ onNewCampaign, onLoadCampaign, onCharacterCreator, onNameGenerator, onSpellGenerator }: Props) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [characters, setCharacters] = useState<SavedCharacter[]>([]);
   const [activeTab, setActiveTab] = useState<'campaigns' | 'characters'>('campaigns');
@@ -261,6 +263,18 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onCharacterCreator }: 
                 <div style={{ fontSize: '3rem', marginBottom: '10px' }}>⚔️</div>
                 <h3 style={{ margin: '0 0 5px 0' }}>Create Character</h3>
                 <p style={{ margin: 0, opacity: 0.9 }}>Build a new character</p>
+              </div>
+
+              <div style={newCardStyle} onClick={onNameGenerator}>
+                <div style={{ fontSize: '3rem', marginBottom: '10px' }}>📜</div>
+                <h3 style={{ margin: '0 0 5px 0' }}>Name Generator</h3>
+                <p style={{ margin: 0, opacity: 0.9 }}>Generate fantasy names</p>
+              </div>
+
+              <div style={newCardStyle} onClick={onSpellGenerator}>
+                <div style={{ fontSize: '3rem', marginBottom: '10px' }}>✨</div>
+                <h3 style={{ margin: '0 0 5px 0' }}>Spell Generator</h3>
+                <p style={{ margin: 0, opacity: 0.9 }}>Create custom spells</p>
               </div>
 
               {characters.map(character => (
