@@ -3,6 +3,18 @@ import React, { useMemo, useState } from "react";
 
 type Stats = "STR" | "DEX" | "CON" | "INT" | "WIS" | "CHA";
 
+function calculateStatCost(value: number): number {
+  if (value <= 13) return Math.max(0, value - 8); // MIN_STAT is 8
+  if (value === 14) return 5 + 2; // 5 + 2 = 7
+  if (value === 15) return 5 + 2 + 2; // 5 + 2 + 2 = 9
+  if (value === 16) return 5 + 2 + 2 + 3; // 5 + 2 + 2 + 3 = 12
+  if (value === 17) return 5 + 2 + 2 + 3 + 3; // 5 + 2 + 2 + 3 + 3 = 15
+  if (value === 18) return 5 + 2 + 2 + 3 + 3 + 3; // 5 + 2 + 2 + 3 + 3 + 3 = 18
+  if (value === 19) return 5 + 2 + 2 + 3 + 3 + 3 + 3; // 5 + 2 + 2 + 3 + 3 + 3 + 3 = 21
+  if (value === 20) return 5 + 2 + 2 + 3 + 3 + 3 + 3 + 3; // 5 + 2 + 2 + 3 + 3 + 3 + 3 + 3 = 24
+  return 0;
+}
+
 type Character = {
   name: string;
   pronouns: string;
@@ -104,19 +116,11 @@ const PREMADE_CHARACTERS = [
 
 const MAX_TRAITS = 3;
 
-// Updated point buy calculation - costs 2 points for 14-15
-function getStatCost(value: number): number {
-  if (value <= 13) return Math.max(0, value - MIN_STAT);
-  if (value === 14) return (13 - MIN_STAT) + 2; // 5 + 2 = 7
-  if (value === 15) return (13 - MIN_STAT) + 2 + 2; // 5 + 2 + 2 = 9
-  return 0;
-}
-
 function canAffordStatIncrease(currentValue: number, pointsLeft: number): boolean {
   if (currentValue >= MAX_STAT) return false;
   const newValue = currentValue + 1;
-  const currentCost = getStatCost(currentValue);
-  const newCost = getStatCost(newValue);
+  const currentCost = calculateStatCost(currentValue);
+  const newCost = calculateStatCost(newValue);
   return pointsLeft >= (newCost - currentCost);
 }
 
@@ -174,10 +178,10 @@ function abilityMod(score: number) {
   return Math.floor((score - 10) / 2);
 }
 
-// Updated point buy calculation - costs 2 points for 14-15
+// Updated point buy calculation - costs 1 for 8-13, 2 for 14-15, 3 for 16-20
 const POINTS_POOL = 27;
 const MIN_STAT = 8;
-const MAX_STAT = 15;
+const MAX_STAT = 20;
 
 export default function CharacterCreate() {
   const [char, setChar] = useState<Character>({
@@ -195,7 +199,7 @@ export default function CharacterCreate() {
   const pointsSpent = useMemo(() => {
     let spent = 0;
     (Object.keys(char.stats) as Stats[]).forEach((k) => {
-      spent += getStatCost(char.stats[k]);
+      spent += calculateStatCost(char.stats[k]);
     });
     return spent;
   }, [char.stats]);
@@ -342,8 +346,8 @@ export default function CharacterCreate() {
           {char.mode === "POINT_BUY" && (
             <div style={{ marginBottom: 8, opacity: 0.9 }}>
               Points left: <strong>{pointsLeft}</strong> (Pool: {POINTS_POOL}, range {MIN_STAT}–{MAX_STAT})
-              <div style={{ fontSize: 12, marginTop: 4 }}>
-                Cost: 8-13 = 1 point each, 14-15 = 2 points each
+              <div style={{ fontSize: 12, marginTop: 4, opacity: 0.7 }}>
+                Cost: 8-13 = 1 point each, 14-15 = 2 points each, 16-20 = 3 points each
               </div>
             </div>
           )}
