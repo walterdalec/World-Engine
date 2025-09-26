@@ -4,9 +4,10 @@ import React, { useMemo, useState } from "react";
 type Stats = "STR" | "DEX" | "CON" | "INT" | "WIS" | "CHA";
 
 function calculateStatCost(value: number): number {
+  if (value < 8) return 0; // Safety check - minimum stat is 8
   let cost = 0;
   for (let i = 8; i < value; i++) {
-    if (i < 14) cost += 1;      // 8-13: 1 point each
+    if (i < 14) cost += 1;      // 9-14: 1 point each (to go from 8→9, 9→10, etc.)
     else if (i < 16) cost += 2; // 14-15: 2 points each  
     else cost += 3;             // 16+: 3 points each
   }
