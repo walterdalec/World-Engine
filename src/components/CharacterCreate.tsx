@@ -24,7 +24,101 @@ const TRAIT_CATALOG = [
   "Lucky", "Observant", "Silver Tongue", "Iron Will", "Swift",
 ];
 
+const SPECIES_OPTIONS = [
+  "Human", "Sylvanborn", "Alloy", "Draketh", "Voidkin", "Crystalborn", "Stormcaller"
+];
+
+const ARCHETYPE_OPTIONS = [
+  "Ranger", "Artificer", "Mystic", "Guardian", "Scholar", "Rogue", "Warrior", "Healer"
+];
+
+const CLASS_OPTIONS = [
+  "Fighter", "Wizard", "Rogue", "Cleric", "Ranger", "Paladin", "Barbarian", "Sorcerer", "Warlock", "Bard"
+];
+
+const BACKGROUND_TEMPLATES = [
+  "A former {profession} who left their old life behind after {event}. Now they seek {goal} in the wider world.",
+  "Born in {location}, they were raised by {guardian} and learned the ways of {skill}. Their greatest challenge was {challenge}.",
+  "Once served as {role} until {tragedy} changed everything. Now they wander, carrying {burden} and seeking {redemption}.",
+  "Discovered their {talent} at a young age in {homeland}. After {incident}, they must now {quest}.",
+  "A {descriptor} soul from {origin} who {past_action}. Their destiny was forever changed when {turning_point}."
+];
+
+const BACKGROUND_WORDS = {
+  profession: ["merchant", "soldier", "scholar", "artisan", "noble", "farmer", "sailor", "miner"],
+  event: ["a great betrayal", "a mystical awakening", "a terrible loss", "a divine vision", "a forbidden discovery"],
+  goal: ["redemption", "knowledge", "vengeance", "peace", "power", "understanding", "justice"],
+  location: ["the mountains", "the deep forests", "a bustling city", "a remote village", "the desert wastes", "coastal towns"],
+  guardian: ["wise elders", "a mysterious mentor", "ancient spirits", "temple priests", "nomadic tribes"],
+  skill: ["combat", "magic", "diplomacy", "survival", "crafting", "healing"],
+  challenge: ["surviving in the wilderness", "uncovering dark secrets", "protecting their community", "mastering their abilities"],
+  role: ["a royal guard", "a temple acolyte", "a guild member", "a traveling performer", "a court advisor"],
+  tragedy: ["war came to their lands", "a plague struck", "they were falsely accused", "dark forces emerged"],
+  burden: ["ancient knowledge", "a family secret", "a cursed artifact", "the weight of prophecy"],
+  redemption: ["to right past wrongs", "to prove their worth", "to save their people", "to break an ancient curse"],
+  talent: ["gift for magic", "exceptional strength", "keen insight", "natural charisma", "connection to nature"],
+  homeland: ["the crystal caves", "the floating islands", "the shadow realm", "the golden plains"],
+  incident: ["the great storm", "a dragon's attack", "political upheaval", "a mystical convergence"],
+  quest: ["find their true purpose", "restore balance", "uncover their heritage", "save their homeland"],
+  descriptor: ["wandering", "noble", "mysterious", "brave", "cunning", "wise", "fierce"],
+  origin: ["distant lands", "humble beginnings", "royal bloodline", "ancient lineage", "forgotten realms"],
+  past_action: ["fought in great battles", "studied forbidden lore", "communed with spirits", "crafted legendary items"],
+  turning_point: ["they discovered their true nature", "fate intervened", "they made a fateful choice", "destiny called"]
+};
+
+const PREMADE_CHARACTERS = [
+  {
+    name: "Kira Stormwind",
+    pronouns: "she/her",
+    species: "Stormcaller",
+    archetype: "Mystic",
+    background: "A former temple acolyte who left their old life behind after a mystical awakening. Now they seek knowledge in the wider world, wielding storm magic passed down through generations.",
+    stats: { STR: 10, DEX: 14, CON: 12, INT: 15, WIS: 13, CHA: 11 },
+    traits: ["Observant", "Silver Tongue", "Swift"],
+    portraitUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&h=300&fit=crop&crop=face",
+    mode: "POINT_BUY" as const
+  },
+  {
+    name: "Marcus Ironforge",
+    pronouns: "he/him", 
+    species: "Alloy",
+    archetype: "Artificer",
+    background: "Born in the crystal caves, they were raised by wise elders and learned the ways of crafting. Their greatest challenge was mastering the fusion of magic and metal that defines their people.",
+    stats: { STR: 13, DEX: 11, CON: 15, INT: 14, WIS: 12, CHA: 8 },
+    traits: ["Clever", "Iron Will", "Stoic"],
+    portraitUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face",
+    mode: "POINT_BUY" as const
+  },
+  {
+    name: "Zara Nightwhisper",
+    pronouns: "they/them",
+    species: "Voidkin", 
+    archetype: "Rogue",
+    background: "A wandering soul from the shadow realm who fought in great battles against the encroaching darkness. Their destiny was forever changed when they discovered their connection to the void grants them unique abilities.",
+    stats: { STR: 9, DEX: 15, CON: 11, INT: 12, WIS: 14, CHA: 13 },
+    traits: ["Cunning", "Lucky", "Observant"],
+    portraitUrl: "https://images.unsplash.com/photo-1494790108755-2616c4b43e69?w=300&h=300&fit=crop&crop=face",
+    mode: "POINT_BUY" as const
+  }
+];
+
 const MAX_TRAITS = 3;
+
+// Updated point buy calculation - costs 2 points for 14-15
+function getStatCost(value: number): number {
+  if (value <= 13) return Math.max(0, value - MIN_STAT);
+  if (value === 14) return (13 - MIN_STAT) + 2; // 5 + 2 = 7
+  if (value === 15) return (13 - MIN_STAT) + 2 + 2; // 5 + 2 + 2 = 9
+  return 0;
+}
+
+function canAffordStatIncrease(currentValue: number, pointsLeft: number): boolean {
+  if (currentValue >= MAX_STAT) return false;
+  const newValue = currentValue + 1;
+  const currentCost = getStatCost(currentValue);
+  const newCost = getStatCost(newValue);
+  return pointsLeft >= (newCost - currentCost);
+}
 
 const container: React.CSSProperties = {
   display: "grid",
@@ -64,11 +158,23 @@ function download(filename: string, data: object) {
   URL.revokeObjectURL(url);
 }
 
+function generateBackground(): string {
+  const template = BACKGROUND_TEMPLATES[Math.floor(Math.random() * BACKGROUND_TEMPLATES.length)];
+  
+  return template.replace(/\{(\w+)\}/g, (match, key) => {
+    const options = BACKGROUND_WORDS[key as keyof typeof BACKGROUND_WORDS];
+    if (options) {
+      return options[Math.floor(Math.random() * options.length)];
+    }
+    return match;
+  });
+}
+
 function abilityMod(score: number) {
   return Math.floor((score - 10) / 2);
 }
 
-// Simple 27-point buy: 8→15; cost = 1 per point increase.
+// Updated point buy calculation - costs 2 points for 14-15
 const POINTS_POOL = 27;
 const MIN_STAT = 8;
 const MAX_STAT = 15;
@@ -89,7 +195,7 @@ export default function CharacterCreate() {
   const pointsSpent = useMemo(() => {
     let spent = 0;
     (Object.keys(char.stats) as Stats[]).forEach((k) => {
-      spent += Math.max(0, char.stats[k] - MIN_STAT); // linear cost
+      spent += getStatCost(char.stats[k]);
     });
     return spent;
   }, [char.stats]);
@@ -105,7 +211,7 @@ export default function CharacterCreate() {
       const v = c.stats[stat];
       if (c.mode !== "POINT_BUY") return c;
       if (v >= MAX_STAT) return c;
-      if (pointsLeft <= 0) return c;
+      if (!canAffordStatIncrease(v, pointsLeft)) return c;
       return { ...c, stats: { ...c.stats, [stat]: v + 1 } };
     });
   }
@@ -156,6 +262,10 @@ export default function CharacterCreate() {
     }
   }
 
+  function loadPremade(character: Character) {
+    setChar({ ...character });
+  }
+
   function resetAll() {
     setChar({
       name: "",
@@ -186,9 +296,34 @@ export default function CharacterCreate() {
           <div style={{ display: "grid", gap: 8 }}>
             <TextRow label="Name" value={char.name} onChange={(v) => setField("name", v)} />
             <TextRow label="Pronouns" value={char.pronouns} onChange={(v) => setField("pronouns", v)} placeholder="she/her, he/him, they/them…" />
-            <TextRow label="Species" value={char.species} onChange={(v) => setField("species", v)} placeholder="Human, Sylvanborn, Alloy, etc." />
-            <TextRow label="Archetype" value={char.archetype} onChange={(v) => setField("archetype", v)} placeholder="Ranger, Artificer, Mystic…" />
-            <TextAreaRow label="Background" value={char.background} onChange={(v) => setField("background", v)} placeholder="One-paragraph origin." />
+            <SelectRow label="Species" value={char.species} onChange={(v) => setField("species", v)} options={SPECIES_OPTIONS} />
+            <SelectRow label="Archetype" value={char.archetype} onChange={(v) => setField("archetype", v)} options={ARCHETYPE_OPTIONS} />
+            <div style={{ display: "grid", gap: 4 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>Background</span>
+                <button 
+                  onClick={() => setField("background", generateBackground())}
+                  style={{ 
+                    padding: "4px 8px", 
+                    fontSize: "12px", 
+                    background: "#374151", 
+                    color: "#e5e7eb", 
+                    border: "none", 
+                    borderRadius: "4px", 
+                    cursor: "pointer" 
+                  }}
+                >
+                  Generate Random
+                </button>
+              </div>
+              <textarea
+                value={char.background}
+                onChange={(e) => setField("background", e.target.value)}
+                placeholder="One-paragraph origin story..."
+                rows={4}
+                style={{ padding: 8, borderRadius: 8, border: "1px solid #334155", background: "#0f172a", color: "#e5e7eb", resize: "vertical" }}
+              />
+            </div>
             <TextRow label="Portrait URL" value={char.portraitUrl || ""} onChange={(v) => setField("portraitUrl", v)} placeholder="http(s)://…" />
           </div>
         </div>
@@ -207,6 +342,9 @@ export default function CharacterCreate() {
           {char.mode === "POINT_BUY" && (
             <div style={{ marginBottom: 8, opacity: 0.9 }}>
               Points left: <strong>{pointsLeft}</strong> (Pool: {POINTS_POOL}, range {MIN_STAT}–{MAX_STAT})
+              <div style={{ fontSize: 12, marginTop: 4 }}>
+                Cost: 8-13 = 1 point each, 14-15 = 2 points each
+              </div>
             </div>
           )}
 
@@ -218,7 +356,7 @@ export default function CharacterCreate() {
                   {char.mode === "POINT_BUY" && (
                     <span>
                       <button onClick={() => dec(k)} disabled={char.stats[k] <= MIN_STAT}>−</button>
-                      <button onClick={() => inc(k)} disabled={char.stats[k] >= MAX_STAT || pointsLeft <= 0} style={{ marginLeft: 6 }}>＋</button>
+                      <button onClick={() => inc(k)} disabled={char.stats[k] >= MAX_STAT || !canAffordStatIncrease(char.stats[k], pointsLeft)} style={{ marginLeft: 6 }}>＋</button>
                     </span>
                   )}
                 </div>
@@ -250,6 +388,43 @@ export default function CharacterCreate() {
           <button onClick={saveCharacter}>Save (JSON + local)</button>
           <button onClick={loadLast}>Load Last</button>
           <button onClick={resetAll}>Reset</button>
+        </div>
+
+        <div style={card}>
+          <h2 style={sectionTitle}>Premade Characters</h2>
+          <div style={{ display: "grid", gap: 8 }}>
+            {PREMADE_CHARACTERS.map((premade) => (
+              <div key={premade.name} style={{ 
+                border: "1px solid #334155", 
+                borderRadius: 8, 
+                padding: 12,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center"
+              }}>
+                <div>
+                  <div><strong>{premade.name}</strong></div>
+                  <div style={{ fontSize: "12px", opacity: 0.8 }}>
+                    {premade.species} {premade.archetype} • {premade.traits.join(", ")}
+                  </div>
+                </div>
+                <button 
+                  onClick={() => loadPremade(premade)}
+                  style={{ 
+                    padding: "6px 12px", 
+                    background: "#059669", 
+                    color: "#f9fafb", 
+                    border: "none", 
+                    borderRadius: "4px", 
+                    cursor: "pointer",
+                    fontSize: "12px"
+                  }}
+                >
+                  Load
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -324,6 +499,32 @@ function TextAreaRow(props: { label: string; value: string; onChange: (v: string
         rows={4}
         style={{ padding: 8, borderRadius: 8, border: "1px solid #334155", background: "#0f172a", color: "#e5e7eb", resize: "vertical" }}
       />
+    </label>
+  );
+}
+
+function SelectRow(props: { label: string; value: string; onChange: (v: string) => void; options: string[] }) {
+  const { label, value, onChange, options } = props;
+  return (
+    <label style={{ display: "grid", gap: 4 }}>
+      <span>{label}</span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        style={{ 
+          padding: 8, 
+          borderRadius: 8, 
+          border: "1px solid #334155", 
+          background: "#0f172a", 
+          color: "#e5e7eb",
+          cursor: "pointer"
+        }}
+      >
+        <option value="">Select {label}...</option>
+        {options.map((option) => (
+          <option key={option} value={option}>{option}</option>
+        ))}
+      </select>
     </label>
   );
 }
