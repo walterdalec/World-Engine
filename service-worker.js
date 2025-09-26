@@ -1,13 +1,13 @@
 /* Minimal service worker for offline support and SPA fallback */
-const STATIC_CACHE = 'we-static-v1';
-const DYNAMIC_CACHE = 'we-dyn-v1';
+const STATIC_CACHE = 'we-static-v2';
+const DYNAMIC_CACHE = 'we-dyn-v2';
 const APP_SHELL = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/favicon.ico',
-  '/logo192.png',
-  '/logo512.png'
+  '/World-Engine/',
+  '/World-Engine/index.html',
+  '/World-Engine/manifest.json',
+  '/World-Engine/favicon.ico',
+  '/World-Engine/logo192.png',
+  '/World-Engine/logo512.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -32,7 +32,7 @@ self.addEventListener('fetch', (event) => {
   // SPA navigation fallback
   if (req.mode === 'navigate') {
     event.respondWith(
-      fetch(req).catch(() => caches.match('/index.html'))
+      fetch(req).catch(() => caches.match('/World-Engine/index.html'))
     );
     return;
   }
