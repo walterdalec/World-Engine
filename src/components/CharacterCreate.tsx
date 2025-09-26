@@ -48,15 +48,15 @@ const CLASS_OPTIONS = [
   "Fighter", "Wizard", "Rogue", "Cleric", "Ranger", "Paladin", "Barbarian", "Sorcerer", "Warlock", "Bard"
 ];
 
-// Racial stat modifiers
+// Racial stat modifiers - balanced with equal positives and negatives
 const RACIAL_MODIFIERS: Record<string, Partial<Record<Stats, number>>> = {
-  "Human": { STR: 1, CHA: 1 }, // Versatile and social
-  "Sylvanborn": { DEX: 2, WIS: 1 }, // Graceful forest dwellers
-  "Alloy": { CON: 2, INT: 1 }, // Durable constructs with advanced minds
-  "Draketh": { STR: 2, CHA: 1 }, // Dragon-blooded, strong and charismatic
-  "Voidkin": { INT: 2, WIS: 1 }, // Mysterious beings touched by the void
-  "Crystalborn": { CON: 1, INT: 2 }, // Crystal-infused, resilient and bright
-  "Stormcaller": { DEX: 1, CHA: 2 }, // Wind-touched, quick and magnetic
+  "Human": { STR: 1, CHA: 1, CON: -1, WIS: -1 }, // Strong and social, but less hardy and wise
+  "Sylvanborn": { DEX: 2, WIS: 1, STR: -2, CON: -1 }, // Graceful and wise, but frail
+  "Alloy": { CON: 2, INT: 1, DEX: -2, CHA: -1 }, // Durable and smart, but rigid and impersonal
+  "Draketh": { STR: 2, CHA: 1, DEX: -1, WIS: -2 }, // Strong and charismatic, but clumsy and impulsive
+  "Voidkin": { INT: 2, WIS: 1, STR: -1, CHA: -2 }, // Brilliant and perceptive, but weak and unsettling
+  "Crystalborn": { CON: 1, INT: 2, DEX: -1, CHA: -2 }, // Resilient and bright, but inflexible and cold
+  "Stormcaller": { DEX: 1, CHA: 2, CON: -1, STR: -2 }, // Quick and magnetic, but fragile and weak
 };
 
 // Class stat preferences (suggested bonuses, not mandatory)
@@ -208,14 +208,14 @@ function abilityMod(score: number) {
 function getFinalStat(baseStat: number, stat: Stats, species: string, archetype: string): number {
   let final = baseStat;
   
-  // Add racial bonus
+  // Add racial bonus (can be negative)
   const racialBonus = RACIAL_MODIFIERS[species]?.[stat] || 0;
   final += racialBonus;
   
   // Add class bonus (optional - these are suggestions, not automatic)
   // For now, let's make these optional bonuses that players can see but don't auto-apply
   
-  return Math.min(final, 22); // Cap at 22 total with bonuses
+  return Math.max(3, Math.min(final, 22)); // Cap between 3-22 (racial penalties can bring stats low, but not too low)
 }
 
 // Get the display text for bonuses
@@ -225,6 +225,7 @@ function getBonusText(stat: Stats, species: string, archetype: string): string {
   
   let text = "";
   if (racialBonus > 0) text += ` +${racialBonus} racial`;
+  if (racialBonus < 0) text += ` ${racialBonus} racial`;
   if (classBonus > 0) text += ` (+${classBonus} class)`;
   
   return text;
@@ -357,7 +358,9 @@ export default function CharacterCreate() {
             <SelectRow label="Species" value={char.species} onChange={(v) => setField("species", v)} options={SPECIES_OPTIONS} />
             {char.species && RACIAL_MODIFIERS[char.species] && (
               <div style={{ fontSize: 12, opacity: 0.7, marginTop: -4 }}>
-                Racial bonuses: {Object.entries(RACIAL_MODIFIERS[char.species]).map(([stat, bonus]) => `${stat} +${bonus}`).join(", ")}
+                Racial modifiers: {Object.entries(RACIAL_MODIFIERS[char.species]).map(([stat, bonus]) => 
+                  `${stat} ${bonus > 0 ? '+' : ''}${bonus}`
+                ).join(", ")}
               </div>
             )}
             <SelectRow label="Archetype" value={char.archetype} onChange={(v) => setField("archetype", v)} options={ARCHETYPE_OPTIONS} />
@@ -432,7 +435,12 @@ export default function CharacterCreate() {
                     {finalStat !== baseStat ? (
                       <>
                         <span style={{ opacity: 0.6 }}>{baseStat}</span>
-                        <span style={{ color: "#10b981", marginLeft: 4 }}>→{finalStat}</span>
+                        <span style={{ 
+                          color: finalStat > baseStat ? "#10b981" : "#ef4444", 
+                          marginLeft: 4 
+                        }}>
+                          →{finalStat}
+                        </span>
                       </>
                     ) : (
                       finalStat
