@@ -102,7 +102,7 @@ export function WorldSetupScreen({ eng, onNext }: Props) {
         ) : null}
       </div>
       
-      <button onClick={onNext} disabled={!chosen}>Next: Create Party</button>
+      <button onClick={onNext} disabled={!chosen && !seed}>Next: Create Characters</button>
     </div>
   );
 }

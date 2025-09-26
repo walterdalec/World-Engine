@@ -59,18 +59,18 @@ const RACIAL_MODIFIERS: Record<string, Partial<Record<Stats, number>>> = {
   "Stormcaller": { DEX: 1, CHA: 2, CON: -1, STR: -2 }, // Quick and magnetic, but fragile and weak
 };
 
-// Class stat preferences (suggested bonuses, not mandatory)
+// Class stat preferences (balanced with equal positives and negatives)
 const CLASS_MODIFIERS: Record<string, Partial<Record<Stats, number>>> = {
-  "Fighter": { STR: 2, CON: 1 }, // Strength and endurance
-  "Wizard": { INT: 2, WIS: 1 }, // Intelligence and wisdom
-  "Rogue": { DEX: 2, INT: 1 }, // Dexterity and cunning
-  "Cleric": { WIS: 2, CHA: 1 }, // Wisdom and divine presence
-  "Ranger": { DEX: 2, WIS: 1 }, // Dexterity and nature wisdom
-  "Paladin": { STR: 1, CHA: 2 }, // Divine strength and charisma
-  "Barbarian": { STR: 2, CON: 1 }, // Raw strength and toughness
-  "Sorcerer": { CHA: 2, CON: 1 }, // Natural magic and constitution
-  "Warlock": { CHA: 2, INT: 1 }, // Charismatic power and knowledge
-  "Bard": { CHA: 2, DEX: 1 }, // Charisma and agility
+  "Fighter": { STR: 2, CON: 1, INT: -2, CHA: -1 }, // Strong and tough, but not scholarly or charismatic
+  "Wizard": { INT: 2, WIS: 1, STR: -2, CON: -1 }, // Brilliant and wise, but physically weak
+  "Rogue": { DEX: 2, INT: 1, STR: -1, WIS: -2 }, // Quick and cunning, but not strong or wise
+  "Cleric": { WIS: 2, CHA: 1, DEX: -1, INT: -2 }, // Wise and inspiring, but not agile or scholarly
+  "Ranger": { DEX: 2, WIS: 1, CHA: -2, INT: -1 }, // Agile and perceptive, but antisocial and unlearned
+  "Paladin": { STR: 1, CHA: 2, DEX: -1, INT: -2 }, // Strong and charismatic, but inflexible and simple
+  "Barbarian": { STR: 2, CON: 1, INT: -2, CHA: -1 }, // Brutally strong and tough, but crude and dim
+  "Sorcerer": { CHA: 2, CON: 1, WIS: -1, STR: -2 }, // Naturally magical and hardy, but unwise and weak
+  "Warlock": { CHA: 2, INT: 1, WIS: -2, CON: -1 }, // Charismatic and knowledgeable, but unwise and frail
+  "Bard": { CHA: 2, DEX: 1, CON: -1, STR: -2 }, // Charming and agile, but delicate and weak
 };
 
 const BACKGROUND_TEMPLATES = [
@@ -212,10 +212,11 @@ function getFinalStat(baseStat: number, stat: Stats, species: string, archetype:
   const racialBonus = RACIAL_MODIFIERS[species]?.[stat] || 0;
   final += racialBonus;
   
-  // Add class bonus (optional - these are suggestions, not automatic)
-  // For now, let's make these optional bonuses that players can see but don't auto-apply
+  // Add class bonus (can be negative - balanced like racial bonuses)
+  const classBonus = CLASS_MODIFIERS[archetype]?.[stat] || 0;
+  final += classBonus;
   
-  return Math.max(3, Math.min(final, 22)); // Cap between 3-22 (racial penalties can bring stats low, but not too low)
+  return Math.max(3, Math.min(final, 22)); // Cap between 3-22 (penalties can bring stats low, but not too low)
 }
 
 // Get the display text for bonuses
@@ -226,7 +227,8 @@ function getBonusText(stat: Stats, species: string, archetype: string): string {
   let text = "";
   if (racialBonus > 0) text += ` +${racialBonus} racial`;
   if (racialBonus < 0) text += ` ${racialBonus} racial`;
-  if (classBonus > 0) text += ` (+${classBonus} class)`;
+  if (classBonus > 0) text += ` +${classBonus} class`;
+  if (classBonus < 0) text += ` ${classBonus} class`;
   
   return text;
 }

@@ -104,7 +104,7 @@ function App() {
   return (
     <>
       {step === "world" && (
-        <WorldSetupScreen eng={eng} onNext={() => setStep("party")} />
+        <WorldSetupScreen eng={eng} onNext={() => setStep("character")} />
       )}
       {step === "party" && (
         <PartyCreationScreen
@@ -127,7 +127,7 @@ function App() {
             <h1 style={{ margin: 0, color: "#f9fafb" }}>World Engine - Character Creator</h1>
             <div style={{ display: "flex", gap: "12px" }}>
               <button 
-                onClick={() => setStep("party")}
+                onClick={() => setStep("world")}
                 style={{ 
                   padding: "8px 16px", 
                   background: "#374151", 
@@ -137,7 +137,7 @@ function App() {
                   cursor: "pointer" 
                 }}
               >
-                Back to Party
+                Back to World Setup
               </button>
               <button 
                 onClick={() => console.log("Start Adventure!", party)}
