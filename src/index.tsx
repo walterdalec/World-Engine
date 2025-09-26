@@ -37,26 +37,190 @@ function App() {
   const [currentCampaign, setCurrentCampaign] = React.useState<any>(null);
   const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0); // Force re-render hook
 
-  // Campaign management functions
+  // Initialize app and setup periodic saves
+  React.useEffect(() => {
+    // Check for crash recovery on startup
+    const emergencySave = sessionStorage.getItem('world-engine-emergency-save');
+    if (emergencySave) {
+      try {
+        const campaign = JSON.parse(emergencySave);
+        console.log('Found emergency save, attempting recovery...');
+        
+        const campaigns = JSON.parse(localStorage.getItem('world-engine-campaigns') || '[]');
+        const existing = campaigns.findIndex((c: any) => c.id === campaign.id);
+        
+        if (existing >= 0) {
+          campaigns[existing] = campaign;
+        } else {
+          campaigns.push(campaign);
+        }
+        
+        localStorage.setItem('world-engine-campaigns', JSON.stringify(campaigns));
+        sessionStorage.removeItem('world-engine-emergency-save');
+        
+        alert('🚨 Emergency save recovered from previous session!');
+      } catch (error) {
+        console.error('Failed to recover emergency save:', error);
+      }
+    }
+
+    // Setup periodic backup (every 5 minutes)
+    const backupInterval = setInterval(() => {
+      try {
+        const campaigns = JSON.parse(localStorage.getItem('world-engine-campaigns') || '[]');
+        if (campaigns.length > 0) {
+          sessionStorage.setItem('world-engine-campaigns-session', JSON.stringify(campaigns));
+          console.log('Periodic session backup completed');
+        }
+      } catch (error) {
+        console.error('Periodic backup failed:', error);
+      }
+    }, 5 * 60 * 1000); // 5 minutes
+
+    // Cleanup interval on unmount
+    return () => clearInterval(backupInterval);
+  }, []);
+
+  // Enhanced Campaign management functions with multiple backup layers
   const saveCampaign = (campaign: any) => {
     try {
+      const timestamp = new Date().toISOString();
       const campaigns = JSON.parse(localStorage.getItem('world-engine-campaigns') || '[]');
       const existing = campaigns.findIndex((c: any) => c.id === campaign.id);
       
+      const updatedCampaign = {
+        ...campaign,
+        lastPlayed: timestamp,
+        saveVersion: '2.0',
+        ...(existing < 0 && { createdAt: timestamp })
+      };
+      
       if (existing >= 0) {
-        campaigns[existing] = { ...campaign, lastPlayed: new Date().toISOString() };
+        campaigns[existing] = updatedCampaign;
       } else {
-        campaigns.push({
-          ...campaign,
-          createdAt: new Date().toISOString(),
-          lastPlayed: new Date().toISOString()
-        });
+        campaigns.push(updatedCampaign);
       }
       
+      // Multi-layer backup system
+      // Layer 1: Primary localStorage
       localStorage.setItem('world-engine-campaigns', JSON.stringify(campaigns));
+      
+      // Layer 2: Backup localStorage with timestamp
+      localStorage.setItem('world-engine-campaigns-backup', JSON.stringify({
+        campaigns,
+        backupTime: timestamp,
+        version: '2.0'
+      }));
+      
+      // Layer 3: SessionStorage for crash recovery
+      sessionStorage.setItem('world-engine-campaigns-session', JSON.stringify(campaigns));
+      
+      // Layer 4: Individual campaign backup
+      localStorage.setItem(`world-engine-campaign-${campaign.id}`, JSON.stringify(updatedCampaign));
+      
+      // Layer 5: Automatic download backup every 10 saves
+      const saveCount = parseInt(localStorage.getItem('world-engine-save-count') || '0') + 1;
+      localStorage.setItem('world-engine-save-count', saveCount.toString());
+      
+      if (saveCount % 10 === 0) {
+        downloadCampaignBackup(campaigns, `auto-backup-${saveCount}`);
+      }
+      
+      console.log(`Campaign saved with ${campaigns.length} total campaigns (save #${saveCount})`);
     } catch (error) {
       console.error('Error saving campaign:', error);
+      // Attempt emergency save to sessionStorage
+      try {
+        sessionStorage.setItem('world-engine-emergency-save', JSON.stringify(campaign));
+        alert('Primary save failed, but emergency backup created. Please export your campaign manually.');
+      } catch (emergencyError) {
+        console.error('Emergency save also failed:', emergencyError);
+        alert('Critical: All save attempts failed. Please export your campaign data immediately.');
+      }
     }
+  };
+
+  // Campaign recovery functions
+  const recoverCampaigns = () => {
+    try {
+      // Try primary storage first
+      let campaigns = JSON.parse(localStorage.getItem('world-engine-campaigns') || '[]');
+      
+      if (campaigns.length === 0) {
+        // Try backup storage
+        const backup = JSON.parse(localStorage.getItem('world-engine-campaigns-backup') || '{}');
+        if (backup.campaigns && backup.campaigns.length > 0) {
+          campaigns = backup.campaigns;
+          localStorage.setItem('world-engine-campaigns', JSON.stringify(campaigns));
+          console.log('Recovered campaigns from backup storage');
+        }
+      }
+      
+      if (campaigns.length === 0) {
+        // Try session storage
+        const sessionCampaigns = JSON.parse(sessionStorage.getItem('world-engine-campaigns-session') || '[]');
+        if (sessionCampaigns.length > 0) {
+          campaigns = sessionCampaigns;
+          localStorage.setItem('world-engine-campaigns', JSON.stringify(campaigns));
+          console.log('Recovered campaigns from session storage');
+        }
+      }
+      
+      return campaigns;
+    } catch (error) {
+      console.error('Error recovering campaigns:', error);
+      return [];
+    }
+  };
+
+  // Export/Import functions
+  const downloadCampaignBackup = (campaigns: any[], filename = 'world-engine-campaigns-backup') => {
+    try {
+      const backup = {
+        campaigns,
+        exportDate: new Date().toISOString(),
+        version: '2.0',
+        worldEngineVersion: 'v1.0.0'
+      };
+      
+      const dataStr = JSON.stringify(backup, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${filename}-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      URL.revokeObjectURL(url);
+      console.log('Campaign backup downloaded');
+    } catch (error) {
+      console.error('Error downloading backup:', error);
+    }
+  };
+
+  const importCampaignBackup = (file: File) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const backup = JSON.parse(e.target?.result as string);
+          if (backup.campaigns && Array.isArray(backup.campaigns)) {
+            localStorage.setItem('world-engine-campaigns', JSON.stringify(backup.campaigns));
+            localStorage.setItem('world-engine-campaigns-backup', JSON.stringify(backup));
+            console.log(`Imported ${backup.campaigns.length} campaigns`);
+            resolve(backup.campaigns);
+          } else {
+            reject(new Error('Invalid backup file format'));
+          }
+        } catch (error) {
+          reject(error);
+        }
+      };
+      reader.readAsText(file);
+    });
   };
 
   const handleNewCampaign = () => {
