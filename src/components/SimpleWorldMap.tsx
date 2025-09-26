@@ -600,6 +600,22 @@ export default function SimpleWorldMap({ seedStr = "verdance-seed-001", onBack }
         <h1>The Verdance — Campaign Map</h1>
         <p>Position: {playerPos.x}, {playerPos.y} | Current: {getBiome(playerPos.x, playerPos.y).name}</p>
         <p style={{ fontSize: "14px", color: "#94a3b8" }}>Use WASD or arrow keys to explore • Click tiles for encounters</p>
+        <button 
+          onClick={() => setPlayerPos({ x: 0, y: 0 })}
+          style={{ 
+            padding: "6px 12px", 
+            background: "#1e40af", 
+            color: "#f9fafb", 
+            border: "none", 
+            borderRadius: "4px", 
+            cursor: "pointer",
+            marginTop: "8px",
+            marginRight: "10px",
+            fontSize: "12px"
+          }}
+        >
+          📍 Return to Origin (0,0)
+        </button>
         {onBack && (
           <button 
             onClick={onBack}
