@@ -1,10 +1,10 @@
 {
   "files": {
-    "main.js": "/World-Engine/static/js/main.2c4ba074.js",
+    "main.js": "/World-Engine/static/js/main.64d4db8a.js",
     "index.html": "/World-Engine/index.html",
-    "main.2c4ba074.js.map": "/World-Engine/static/js/main.2c4ba074.js.map"
+    "main.64d4db8a.js.map": "/World-Engine/static/js/main.64d4db8a.js.map"
   },
   "entrypoints": [
-    "static/js/main.2c4ba074.js"
+    "static/js/main.64d4db8a.js"
   ]
 }
