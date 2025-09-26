@@ -10,14 +10,29 @@ export function PartyCreationScreen({ eng, party, setParty, onStart }: Props) {
     : eng.state.meta.presets.loaded?.name;
   const seed = eng.state.meta.seed || '';
   return (
-    <div>
+    <div style={{ padding: '24px' }}>
       <h2>Party Creation</h2>
       <div style={{ marginBottom: 12, fontSize: 14, opacity: 0.85 }}>
         <div>World: <strong>{selected || '—'}</strong></div>
         <div>Seed: <code>{seed || '—'}</code></div>
       </div>
-      <p>Party creation screen - coming soon</p>
-      <button onClick={onStart}>Start Adventure</button>
+      <p>Build your adventuring party for the world ahead.</p>
+      <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+        <button 
+          onClick={onStart}
+          style={{ 
+            padding: '12px 24px', 
+            background: '#059669', 
+            color: '#f9fafb', 
+            border: 'none', 
+            borderRadius: '8px', 
+            cursor: 'pointer',
+            fontSize: '16px'
+          }}
+        >
+          Create Character
+        </button>
+      </div>
     </div>
   );
 }

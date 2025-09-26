@@ -2,6 +2,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { WorldSetupScreen } from "./components/WorldSetupScreen";
 import { PartyCreationScreen } from "./components/PartyCreationScreen";
+import CharacterCreate from "./components/CharacterCreate";
 import { Engine } from "./engine.d";
 import { DEFAULT_WORLDS } from "./defaultWorlds";
 
@@ -13,7 +14,7 @@ function randomSeed(): string {
 }
 
 function App() {
-  const [step, setStep] = React.useState<"world" | "party">("world");
+  const [step, setStep] = React.useState<"world" | "party" | "character">("world");
   const [party, setParty] = React.useState<any[]>([]);
   const [, forceUpdate] = React.useReducer(x => x + 1, 0); // Force re-render hook
 
@@ -110,8 +111,51 @@ function App() {
           eng={eng}
           party={party}
           setParty={setParty}
-          onStart={() => console.log("Adventure started", party)}
+          onStart={() => setStep("character")}
         />
+      )}
+      {step === "character" && (
+        <div style={{ background: "#030712", minHeight: "100vh" }}>
+          <nav style={{ 
+            padding: "16px 24px", 
+            borderBottom: "1px solid #374151", 
+            display: "flex", 
+            justifyContent: "space-between", 
+            alignItems: "center",
+            background: "#111827"
+          }}>
+            <h1 style={{ margin: 0, color: "#f9fafb" }}>World Engine - Character Creator</h1>
+            <div style={{ display: "flex", gap: "12px" }}>
+              <button 
+                onClick={() => setStep("party")}
+                style={{ 
+                  padding: "8px 16px", 
+                  background: "#374151", 
+                  color: "#f9fafb", 
+                  border: "none", 
+                  borderRadius: "6px", 
+                  cursor: "pointer" 
+                }}
+              >
+                Back to Party
+              </button>
+              <button 
+                onClick={() => console.log("Start Adventure!", party)}
+                style={{ 
+                  padding: "8px 16px", 
+                  background: "#059669", 
+                  color: "#f9fafb", 
+                  border: "none", 
+                  borderRadius: "6px", 
+                  cursor: "pointer" 
+                }}
+              >
+                Start Adventure
+              </button>
+            </div>
+          </nav>
+          <CharacterCreate />
+        </div>
       )}
     </>
   );
