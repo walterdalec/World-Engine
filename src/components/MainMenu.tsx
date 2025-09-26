@@ -279,11 +279,11 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onCharacterCreator }: 
                     <button
                       style={buttonStyle}
                       onClick={() => {
-                        // TODO: Load character into editor
-                        console.log('Load character:', character);
+                        // TODO: Show character details
+                        console.log('View character:', character);
                       }}
                     >
-                      Edit Character
+                      View Character
                     </button>
                     <button
                       style={deleteButtonStyle}

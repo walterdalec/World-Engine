@@ -32,13 +32,233 @@ const DEFAULT_STATS: Record<Stats, number> = {
   STR: 8, DEX: 8, CON: 8, INT: 8, WIS: 8, CHA: 8,
 };
 
-const TRAIT_CATALOG = [
-  "Brave", "Clever", "Cunning", "Empathic", "Stoic",
-  "Lucky", "Observant", "Silver Tongue", "Iron Will", "Swift",
-];
+// Comprehensive trait system with mechanical benefits
+const TRAIT_DEFINITIONS = {
+  "Brave": {
+    name: "Brave",
+    description: "Resistant to fear and intimidation effects. +2 bonus to courage-based checks.",
+    mechanicalEffect: "fear_resistance",
+    bonus: { type: "courage", value: 2 }
+  },
+  "Clever": {
+    name: "Clever",
+    description: "Quick thinking in complex situations. +2 bonus to puzzle-solving and investigation.",
+    mechanicalEffect: "intelligence_bonus",
+    bonus: { type: "investigation", value: 2 }
+  },
+  "Cunning": {
+    name: "Cunning",
+    description: "Skilled at deception and misdirection. +2 bonus to stealth and deception checks.",
+    mechanicalEffect: "deception_bonus",
+    bonus: { type: "stealth", value: 2 }
+  },
+  "Empathic": {
+    name: "Empathic",
+    description: "Deeply understands others' emotions. +2 bonus to persuasion and healing checks.",
+    mechanicalEffect: "social_bonus",
+    bonus: { type: "persuasion", value: 2 }
+  },
+  "Stoic": {
+    name: "Stoic",
+    description: "Unshaken by pain or hardship. +2 bonus to endurance and resistance checks.",
+    mechanicalEffect: "endurance_bonus",
+    bonus: { type: "endurance", value: 2 }
+  },
+  "Lucky": {
+    name: "Lucky",
+    description: "Fortune favors you. Once per encounter, reroll any failed check.",
+    mechanicalEffect: "reroll_ability",
+    bonus: { type: "reroll", value: 1 }
+  },
+  "Observant": {
+    name: "Observant",
+    description: "Notice details others miss. +2 bonus to perception and awareness checks.",
+    mechanicalEffect: "perception_bonus",
+    bonus: { type: "perception", value: 2 }
+  },
+  "Silver Tongue": {
+    name: "Silver Tongue",
+    description: "Naturally persuasive speaker. +2 bonus to all social interaction checks.",
+    mechanicalEffect: "social_master",
+    bonus: { type: "social", value: 2 }
+  },
+  "Iron Will": {
+    name: "Iron Will",
+    description: "Mental fortitude against magical effects. +2 bonus to resist mental magic.",
+    mechanicalEffect: "mental_resistance",
+    bonus: { type: "mental_defense", value: 2 }
+  },
+  "Swift": {
+    name: "Swift",
+    description: "Faster movement and reflexes. +2 bonus to speed and reaction checks.",
+    mechanicalEffect: "speed_bonus",
+    bonus: { type: "speed", value: 2 }
+  },
+  "Nature's Friend": {
+    name: "Nature's Friend",
+    description: "Animals and plants respond favorably. +2 bonus to nature-based interactions.",
+    mechanicalEffect: "nature_bonus",
+    bonus: { type: "nature", value: 2 }
+  },
+  "Keen Senses": {
+    name: "Keen Senses",
+    description: "Enhanced sensory perception. +2 bonus to detect hidden things or dangers.",
+    mechanicalEffect: "detection_bonus",
+    bonus: { type: "detection", value: 2 }
+  },
+  "Patient": {
+    name: "Patient",
+    description: "Calm and methodical approach. +2 bonus to sustained concentration tasks.",
+    mechanicalEffect: "concentration_bonus",
+    bonus: { type: "concentration", value: 2 }
+  }
+};
+
+const TRAIT_CATALOG = Object.keys(TRAIT_DEFINITIONS);
+
+// Species trait restrictions and bonuses
+const SPECIES_TRAIT_RULES: Record<string, {
+  automatic: string[];
+  forbidden: string[];
+  preferred: string[];
+  description: string;
+}> = {
+  "Human": {
+    automatic: [], // Humans get no automatic traits - they're flexible
+    forbidden: [], // Humans can choose any trait
+    preferred: ["Brave", "Clever", "Silver Tongue"], // But these suit their adaptable nature
+    description: "Adaptable and versatile, humans can develop any traits through experience."
+  },
+  "Sylvanborn": {
+    automatic: ["Nature's Friend"], // Always connected to nature
+    forbidden: ["Cunning"], // Too honest and straightforward for deception
+    preferred: ["Observant", "Keen Senses", "Patient"],
+    description: "Forest dwellers with an innate connection to nature."
+  },
+  "Alloy": {
+    automatic: ["Iron Will"], // Constructed beings have strong mental defenses
+    forbidden: ["Empathic", "Silver Tongue"], // Struggle with emotional connections
+    preferred: ["Stoic", "Patient", "Clever"],
+    description: "Mechanical beings with logical minds but limited emotional range."
+  },
+  "Draketh": {
+    automatic: ["Brave"], // Draconic heritage makes them naturally fearless
+    forbidden: ["Patient"], // Too hot-blooded for patience
+    preferred: ["Swift", "Silver Tongue", "Stoic"],
+    description: "Proud dragon-descendants who rarely back down from challenges."
+  },
+  "Voidkin": {
+    automatic: ["Observant"], // Always aware of hidden truths
+    forbidden: ["Nature's Friend"], // Void energy conflicts with natural forces
+    preferred: ["Clever", "Iron Will", "Cunning"],
+    description: "Shadow-touched beings with enhanced perception but unnatural aura."
+  },
+  "Crystalborn": {
+    automatic: ["Stoic"], // Crystal nature makes them emotionally stable
+    forbidden: ["Swift"], // Crystalline bodies are less agile
+    preferred: ["Iron Will", "Patient", "Keen Senses"],
+    description: "Living crystal beings with incredible mental fortitude."
+  },
+  "Stormcaller": {
+    automatic: ["Swift"], // Storm magic enhances their speed
+    forbidden: ["Patient"], // Storm energy makes them restless
+    preferred: ["Brave", "Observant", "Silver Tongue"],
+    description: "Sky-born people infused with elemental storm energy."
+  }
+};
+
+// Class trait restrictions and bonuses
+const CLASS_TRAIT_RULES: Record<string, {
+  automatic: string[];
+  forbidden: string[];
+  preferred: string[];
+  description: string;
+}> = {
+  "Greenwarden": {
+    automatic: ["Nature's Friend"],
+    forbidden: [],
+    preferred: ["Patient", "Observant", "Empathic"],
+    description: "Nature's guardians with deep environmental connections."
+  },
+  "Thorn Knight": {
+    automatic: ["Brave"],
+    forbidden: ["Cunning"],
+    preferred: ["Stoic", "Iron Will", "Swift"],
+    description: "Honorable warriors who face threats head-on."
+  },
+  "Sapling Adept": {
+    automatic: ["Patient"],
+    forbidden: [],
+    preferred: ["Clever", "Observant", "Nature's Friend"],
+    description: "Scholarly nature mages who study growth and renewal."
+  },
+  "Bloom Caller": {
+    automatic: ["Empathic"],
+    forbidden: [],
+    preferred: ["Silver Tongue", "Nature's Friend", "Patient"],
+    description: "Charismatic druids who inspire growth and healing."
+  },
+  "Dust Warden": {
+    automatic: ["Stoic"],
+    forbidden: ["Empathic"],
+    preferred: ["Brave", "Iron Will", "Observant"],
+    description: "Ash-realm guardians hardened by harsh environments."
+  },
+  "Cindermage": {
+    automatic: ["Clever"],
+    forbidden: [],
+    preferred: ["Iron Will", "Patient", "Observant"],
+    description: "Fire scholars who manipulate destructive forces."
+  },
+  "Ash Walker": {
+    automatic: ["Swift"],
+    forbidden: ["Patient"],
+    preferred: ["Observant", "Cunning", "Keen Senses"],
+    description: "Desert scouts who move quickly through dangerous terrain."
+  },
+  "Ember Knight": {
+    automatic: ["Brave"],
+    forbidden: ["Cunning"],
+    preferred: ["Silver Tongue", "Stoic", "Iron Will"],
+    description: "Noble flame warriors with strong moral codes."
+  },
+  "Storm Herald": {
+    automatic: ["Silver Tongue"],
+    forbidden: [],
+    preferred: ["Swift", "Brave", "Observant"],
+    description: "Sky leaders who command through charisma and storm power."
+  },
+  "Wind Sage": {
+    automatic: ["Keen Senses"],
+    forbidden: [],
+    preferred: ["Clever", "Patient", "Iron Will"],
+    description: "Aerial mystics with enhanced perception and wisdom."
+  },
+  "Cloud Walker": {
+    automatic: ["Swift"],
+    forbidden: ["Stoic"],
+    preferred: ["Observant", "Lucky", "Silver Tongue"],
+    description: "Agile sky dancers who embrace freedom and movement."
+  },
+  "Sky Guardian": {
+    automatic: ["Brave"],
+    forbidden: [],
+    preferred: ["Iron Will", "Stoic", "Observant"],
+    description: "Stalwart defenders of the aerial realms."
+  }
+};
 
 const SPECIES_OPTIONS = [
   "Human", "Sylvanborn", "Alloy", "Draketh", "Voidkin", "Crystalborn", "Stormcaller"
+];
+
+const PRONOUN_OPTIONS = [
+  "she/her",
+  "he/him", 
+  "they/them",
+  "xe/xir",
+  "ze/hir",
+  "fae/faer"
 ];
 
 const ARCHETYPE_OPTIONS = [
@@ -293,6 +513,107 @@ export default function CharacterCreate() {
     setChar((c) => ({ ...c, stats: rolled }));
   }
 
+  // Get trait mechanical benefits for display
+  function getTraitBenefits(character: Character): string[] {
+    return character.traits.map(traitName => {
+      const trait = TRAIT_DEFINITIONS[traitName as keyof typeof TRAIT_DEFINITIONS];
+      if (!trait) return `${traitName}: Unknown effect`;
+      return `${trait.name}: ${trait.description}`;
+    });
+  }
+
+  // Get automatic traits for current species and class
+  function getAutomaticTraits(): string[] {
+    const automatic = new Set<string>();
+    
+    // Add species automatic traits
+    if (char.species) {
+      const speciesRules = SPECIES_TRAIT_RULES[char.species as keyof typeof SPECIES_TRAIT_RULES];
+      if (speciesRules) {
+        speciesRules.automatic.forEach(trait => automatic.add(trait));
+      }
+    }
+    
+    // Add class automatic traits
+    if (char.archetype) {
+      const classRules = CLASS_TRAIT_RULES[char.archetype as keyof typeof CLASS_TRAIT_RULES];
+      if (classRules) {
+        classRules.automatic.forEach(trait => automatic.add(trait));
+      }
+    }
+    
+    return Array.from(automatic);
+  }
+
+  // Check if a trait is forbidden for current species/class
+  function isTraitForbidden(traitName: string): boolean {
+    // Check species restrictions
+    if (char.species) {
+      const speciesRules = SPECIES_TRAIT_RULES[char.species as keyof typeof SPECIES_TRAIT_RULES];
+      if (speciesRules?.forbidden && speciesRules.forbidden.includes(traitName)) {
+        return true;
+      }
+    }
+    
+    // Check class restrictions
+    if (char.archetype) {
+      const classRules = CLASS_TRAIT_RULES[char.archetype as keyof typeof CLASS_TRAIT_RULES];
+      if (classRules?.forbidden && classRules.forbidden.includes(traitName)) {
+        return true;
+      }
+    }
+    
+    return false;
+  }
+
+  // Check if a trait is preferred (helpful for UI hints)
+  function isTraitPreferred(traitName: string): boolean {
+    // Check species preferences
+    if (char.species) {
+      const speciesRules = SPECIES_TRAIT_RULES[char.species as keyof typeof SPECIES_TRAIT_RULES];
+      if (speciesRules?.preferred && speciesRules.preferred.includes(traitName)) {
+        return true;
+      }
+    }
+    
+    // Check class preferences
+    if (char.archetype) {
+      const classRules = CLASS_TRAIT_RULES[char.archetype as keyof typeof CLASS_TRAIT_RULES];
+      if (classRules?.preferred && classRules.preferred.includes(traitName)) {
+        return true;
+      }
+    }
+    
+    return false;
+  }
+
+  // Apply automatic traits when species or class changes
+  React.useEffect(() => {
+    const automaticTraits = getAutomaticTraits();
+    const currentTraits = new Set(char.traits);
+    let needsUpdate = false;
+    
+    // Add missing automatic traits
+    automaticTraits.forEach(trait => {
+      if (!currentTraits.has(trait)) {
+        currentTraits.add(trait);
+        needsUpdate = true;
+      }
+    });
+    
+    // Remove forbidden traits
+    Array.from(currentTraits).forEach(trait => {
+      if (isTraitForbidden(trait)) {
+        currentTraits.delete(trait);
+        needsUpdate = true;
+      }
+    });
+    
+    if (needsUpdate) {
+      setChar(c => ({ ...c, traits: Array.from(currentTraits) }));
+    }
+  }, [char.species, char.archetype]);
+
   function toggleTrait(t: string) {
     setChar((c) => {
       const has = c.traits.includes(t);
@@ -318,9 +639,12 @@ export default function CharacterCreate() {
       return;
     }
     
+    console.log("Saving character to library:", char);
+    
     try {
       // Get existing character library
       const existingCharacters = JSON.parse(localStorage.getItem('world-engine-characters') || '[]');
+      console.log("Existing characters:", existingCharacters);
       
       // Create character data for library
       const characterData = {
@@ -333,9 +657,12 @@ export default function CharacterCreate() {
         data: { ...char, createdAt: new Date().toISOString() }
       };
       
+      console.log("Character data to save:", characterData);
+      
       // Add to library
       existingCharacters.push(characterData);
       localStorage.setItem('world-engine-characters', JSON.stringify(existingCharacters));
+      console.log("Saved to localStorage, total characters:", existingCharacters.length);
       
       alert(`${char.name} has been saved to your character library!`);
     } catch (error) {
@@ -389,7 +716,7 @@ export default function CharacterCreate() {
           <h2 style={sectionTitle}>Identity</h2>
           <div style={{ display: "grid", gap: 8 }}>
             <TextRow label="Name" value={char.name} onChange={(v) => setField("name", v)} />
-            <TextRow label="Pronouns" value={char.pronouns} onChange={(v) => setField("pronouns", v)} placeholder="she/her, he/him, they/them…" />
+            <SelectRow label="Pronouns" value={char.pronouns} onChange={(v) => setField("pronouns", v)} options={PRONOUN_OPTIONS} />
             <SelectRow label="Species" value={char.species} onChange={(v) => setField("species", v)} options={SPECIES_OPTIONS} />
             {char.species && RACIAL_MODIFIERS[char.species] && (
               <div style={{ fontSize: 12, opacity: 0.7, marginTop: -4 }}>
@@ -497,19 +824,127 @@ export default function CharacterCreate() {
 
         <div style={card}>
           <h2 style={sectionTitle}>Traits <small style={{ opacity: 0.7 }}>(choose up to {MAX_TRAITS})</small></h2>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 6 }}>
-            {TRAIT_CATALOG.map((t) => (
-              <label key={t} style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <input
-                  type="checkbox"
-                  checked={char.traits.includes(t)}
-                  onChange={() => toggleTrait(t)}
-                  disabled={!char.traits.includes(t) && char.traits.length >= MAX_TRAITS}
-                />
-                {t}
-              </label>
-            ))}
+          
+          {/* Trait System Explanation */}
+          <div style={{ marginBottom: "16px", padding: "12px", background: "rgba(71, 85, 105, 0.1)", border: "1px solid #475569", borderRadius: "8px" }}>
+            <div style={{ display: "flex", gap: "24px", fontSize: "0.85em", color: "#94a3b8" }}>
+              <div><span style={{ color: "#10b981", fontWeight: "bold" }}>●</span> Automatic - Required by your species/class</div>
+              <div><span style={{ color: "#f59e0b", fontWeight: "bold" }}>●</span> Recommended - Fits your background well</div>
+              <div><span style={{ color: "#ef4444", fontWeight: "bold" }}>●</span> Forbidden - Conflicts with your nature</div>
+            </div>
           </div>
+          
+          {/* Show species/class info if selected */}
+          {(char.species || char.archetype) && (
+            <div style={{ marginBottom: "16px", padding: "12px", background: "rgba(30, 41, 59, 0.5)", border: "1px solid #334155", borderRadius: "8px" }}>
+              {char.species && SPECIES_TRAIT_RULES[char.species] && (
+                <div style={{ marginBottom: char.archetype ? "8px" : "0" }}>
+                  <strong style={{ color: "#e2e8f0" }}>Species - {char.species}:</strong>
+                  <div style={{ color: "#94a3b8", marginLeft: "8px", fontSize: "0.9em", marginTop: "2px" }}>
+                    {SPECIES_TRAIT_RULES[char.species].description}
+                  </div>
+                </div>
+              )}
+              {char.archetype && CLASS_TRAIT_RULES[char.archetype] && (
+                <div>
+                  <strong style={{ color: "#e2e8f0" }}>Class - {char.archetype}:</strong>
+                  <div style={{ color: "#94a3b8", marginLeft: "8px", fontSize: "0.9em", marginTop: "2px" }}>
+                    {CLASS_TRAIT_RULES[char.archetype].description}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          <div style={{ display: "grid", gap: 12 }}>
+            {TRAIT_CATALOG.map((t) => {
+              const traitDef = TRAIT_DEFINITIONS[t as keyof typeof TRAIT_DEFINITIONS];
+              const isSelected = char.traits.includes(t);
+              const isAutomatic = getAutomaticTraits().includes(t);
+              const isForbidden = isTraitForbidden(t);
+              const isPreferred = isTraitPreferred(t);
+              const isDisabled = (!isSelected && char.traits.length >= MAX_TRAITS) || isForbidden;
+              
+              let borderColor = "#374151";
+              let backgroundColor = "rgba(15, 23, 42, 0.5)";
+              let badgeText = "";
+              let badgeColor = "";
+              
+              if (isAutomatic) {
+                borderColor = "#10b981";
+                backgroundColor = "rgba(16, 185, 129, 0.1)";
+                badgeText = "AUTOMATIC";
+                badgeColor = "#10b981";
+              } else if (isForbidden) {
+                borderColor = "#ef4444";
+                backgroundColor = "rgba(239, 68, 68, 0.1)";
+                badgeText = "FORBIDDEN";
+                badgeColor = "#ef4444";
+              } else if (isSelected) {
+                borderColor = "#3b82f6";
+                backgroundColor = "rgba(59, 130, 246, 0.1)";
+              } else if (isPreferred) {
+                borderColor = "#f59e0b";
+                backgroundColor = "rgba(245, 158, 11, 0.05)";
+                badgeText = "RECOMMENDED";
+                badgeColor = "#f59e0b";
+              }
+              
+              return (
+                <label key={t} style={{ 
+                  display: "flex", 
+                  gap: 12, 
+                  alignItems: "flex-start",
+                  padding: "12px",
+                  border: `2px solid ${borderColor}`,
+                  borderRadius: "8px",
+                  background: backgroundColor,
+                  cursor: (isDisabled && !isAutomatic) ? "not-allowed" : "pointer",
+                  opacity: (isDisabled && !isAutomatic) ? 0.5 : 1,
+                  position: "relative"
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => !isAutomatic && !isForbidden && toggleTrait(t)}
+                    disabled={isAutomatic || isForbidden || (!isSelected && char.traits.length >= MAX_TRAITS)}
+                    style={{ marginTop: "2px" }}
+                  />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div style={{ fontWeight: "bold", color: "#f1f5f9" }}>{traitDef.name}</div>
+                      {badgeText && (
+                        <span style={{
+                          fontSize: "0.7em",
+                          padding: "2px 6px",
+                          borderRadius: "4px",
+                          backgroundColor: badgeColor,
+                          color: "white",
+                          fontWeight: "bold"
+                        }}>
+                          {badgeText}
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ fontSize: "0.9em", color: "#94a3b8", marginTop: "4px" }}>
+                      {traitDef.description}
+                    </div>
+                  </div>
+                </label>
+              );
+            })}
+          </div>
+          
+          {/* Show selected trait benefits */}
+          {char.traits.length > 0 && (
+            <div style={{ marginTop: "16px", padding: "12px", background: "rgba(16, 185, 129, 0.1)", border: "1px solid #10b981", borderRadius: "8px" }}>
+              <h3 style={{ margin: "0 0 8px", color: "#10b981", fontSize: "1rem" }}>Active Trait Benefits:</h3>
+              {getTraitBenefits(char).map((benefit, index) => (
+                <div key={index} style={{ fontSize: "0.9em", color: "#e5e7eb", marginBottom: "4px" }}>
+                  • {benefit}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div style={{ display: "flex", gap: 8 }}>
