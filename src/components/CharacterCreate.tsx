@@ -1,6 +1,8 @@
 // src/components/CharacterCreate.tsx
 import React, { useMemo, useState } from "react";
 import { CLASS_DEFINITIONS } from '../defaultWorlds';
+import CharacterPortraitPicker from './CharacterPortraitPicker';
+import PortraitDisplay from './PortraitDisplay';
 
 type Stats = "STR" | "DEX" | "CON" | "INT" | "WIS" | "CHA";
 
@@ -152,6 +154,24 @@ const TRAIT_DEFINITIONS = {
     description: "Calm and methodical approach. +2 bonus to sustained concentration tasks.",
     mechanicalEffect: "concentration_bonus",
     bonus: { type: "concentration", value: 2 }
+  },
+  "Resilient": {
+    name: "Resilient",
+    description: "Exceptionally tough constitution. +2 HP per level beyond normal.",
+    mechanicalEffect: "hp_bonus",
+    bonus: { type: "hp_per_level", value: 2 }
+  },
+  "Hardy": {
+    name: "Hardy",
+    description: "Natural toughness and endurance. +1 HP per level beyond normal.",
+    mechanicalEffect: "hp_bonus_small",
+    bonus: { type: "hp_per_level", value: 1 }
+  },
+  "Frail": {
+    name: "Frail",
+    description: "Delicate constitution, but often comes with other gifts. -2 HP per level.",
+    mechanicalEffect: "hp_penalty",
+    bonus: { type: "hp_per_level", value: -2 }
   }
 };
 
@@ -746,13 +766,111 @@ export default function CharacterCreate() {
   }
 
   const derived = useMemo(() => {
-    const lvl = 1;
+    const lvl = char.level || 1;
     const finalCON = getFinalStat(char.stats.CON, "CON", char.species, char.archetype);
     const finalSTR = getFinalStat(char.stats.STR, "STR", char.species, char.archetype);
-    const hp = 10 + abilityMod(finalCON) * lvl;
+    const finalDEX = getFinalStat(char.stats.DEX, "DEX", char.species, char.archetype);
+    
+    // Calculate HP with class and race modifiers
+    let baseHP = 10; // Starting HP
+    let hpPerLevel = abilityMod(finalCON); // Base CON modifier per level
+    
+    // Class-based HP per level modifiers
+    let classHPBonus = 0;
+    if (char.archetype === "Thorn Knight" || char.archetype === "Crystal Guardian" || char.archetype === "Ironclad") {
+      classHPBonus = 3; // Heavy warriors - lots of HP per level
+    } else if (char.archetype === "Ashblade" || char.archetype === "Stormbreaker" || char.archetype === "Voidhunter") {
+      classHPBonus = 2; // Medium warriors - good HP per level
+    } else if (char.archetype === "Greenwarden" || char.archetype === "Guardian" || char.archetype === "Warrior") {
+      classHPBonus = 2; // Defensive classes - good HP
+    } else if (char.archetype === "Ranger" || char.archetype === "Rogue" || char.archetype === "Artificer" || char.archetype === "Healer") {
+      classHPBonus = 1; // Medium classes - moderate HP
+    } else if (char.archetype === "Bloomcaller" || char.archetype === "Mystic") {
+      classHPBonus = 1; // Support classes - moderate HP
+    } else {
+      classHPBonus = 0; // Magic classes (Sapling Adept, Scholar, Storm Herald) - low HP
+    }
+    
+    // Race-based HP modifiers
+    let raceHPBonus = 0;
+    if (char.species === "Alloy") {
+      raceHPBonus = 2; // Metal-infused - very tough
+    } else if (char.species === "Draketh") {
+      raceHPBonus = 2; // Dragon heritage - naturally tough
+    } else if (char.species === "Crystalborn") {
+      raceHPBonus = 1; // Crystal-hard - somewhat tough
+    } else if (char.species === "Human") {
+      raceHPBonus = 1; // Adaptable - slightly above average
+    } else if (char.species === "Voidkin") {
+      raceHPBonus = 0; // Otherworldly - average toughness
+    } else if (char.species === "Sylvanborn") {
+      raceHPBonus = -1; // Graceful but fragile
+    } else if (char.species === "Stormcaller") {
+      raceHPBonus = 0; // Light and agile - average toughness
+    }
+    
+    // Trait-based HP bonuses
+    let traitHPBonus = 0;
+    if (char.traits.includes("Resilient")) {
+      traitHPBonus += 2; // Tough trait adds HP per level
+    }
+    if (char.traits.includes("Hardy")) {
+      traitHPBonus += 1; // Another toughness trait
+    }
+    if (char.traits.includes("Frail")) {
+      traitHPBonus -= 2; // Negative trait reduces HP
+    }
+    
+    // Calculate total HP per level (minimum 1 per level)
+    const totalHPPerLevel = Math.max(1, hpPerLevel + classHPBonus + raceHPBonus + traitHPBonus);
+    
+    // Calculate final HP
+    const hp = baseHP + (totalHPPerLevel * (lvl - 1)); // Level 1 gets base HP, then add per level
+    
+    // Calculate AC with natural bonus (much more conservative)
+    let naturalACBonus = 0;
+    
+    // Very small level bonus (+1 at level 8, +2 at level 16)
+    if (lvl >= 16) naturalACBonus += 2;
+    else if (lvl >= 8) naturalACBonus += 1;
+    
+    // Class-based bonus (combat training) - using actual class names
+    const archetype = char.archetype;
+    
+    // Heavy combat classes - fighters and warriors (max +2 at level 20)
+    if (archetype === "Thorn Knight" || archetype === "Ashblade" || archetype === "Ironclad" || 
+        archetype === "Stormbreaker" || archetype === "Voidhunter" || archetype === "Crystal Guardian") {
+      if (lvl >= 15) naturalACBonus += 2;
+      else if (lvl >= 7) naturalACBonus += 1;
+    }
+    // Defensive specialists and guardians (max +1 at level 20)
+    else if (archetype === "Greenwarden" || archetype === "Guardian" || archetype === "Warrior") {
+      if (lvl >= 10) naturalACBonus += 1;
+    }
+    // Medium combat classes - some martial training (max +1 at high level)
+    else if (archetype === "Ranger" || archetype === "Rogue" || archetype === "Artificer") {
+      if (lvl >= 15) naturalACBonus += 1;
+    }
+    // Light combat and magic classes get no class bonus
+    
+    // Race-based bonus (natural toughness) - very small bonuses
+    if (char.species === "Alloy") {
+      if (lvl >= 12) naturalACBonus += 1; // Metal-infused body
+    } else if (char.species === "Draketh") {
+      if (lvl >= 15) naturalACBonus += 1; // Dragon heritage - tough scales
+    } else if (char.species === "Crystalborn") {
+      if (lvl >= 15) naturalACBonus += 1; // Crystal-hard skin
+    }
+    // Other races get no racial AC bonus
+    
+    // Hard cap at +5 total natural AC bonus
+    naturalACBonus = Math.min(naturalACBonus, 5);
+    
+    const ac = 10 + abilityMod(finalDEX) + naturalACBonus;
     const carry = 15 * finalSTR;
-    return { level: lvl, hp, carry };
-  }, [char.stats, char.species, char.archetype]);
+    
+    return { level: lvl, hp, ac, carry, naturalACBonus, totalHPPerLevel, classHPBonus, raceHPBonus, traitHPBonus };
+  }, [char.stats, char.species, char.archetype, char.level, char.traits]);
 
   return (
     <div style={container}>
@@ -818,7 +936,41 @@ export default function CharacterCreate() {
                 style={{ padding: 8, borderRadius: 8, border: "1px solid #334155", background: "#0f172a", color: "#e5e7eb", resize: "vertical" }}
               />
             </div>
-            <TextRow label="Portrait URL" value={char.portraitUrl || ""} onChange={(v) => setField("portraitUrl", v)} placeholder="http(s)://…" />
+            
+            {/* Portrait Generator */}
+            <div style={{ display: "grid", gap: 4 }}>
+              <span>Portrait</span>
+              {char.portraitUrl ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: '#0f172a', borderRadius: '8px', border: '1px solid #334155' }}>
+                  <PortraitDisplay portraitData={char.portraitUrl} size={60} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '14px', color: '#e5e7eb', fontWeight: 'bold' }}>Portrait Generated</div>
+                    <div style={{ fontSize: '12px', color: '#94a3b8' }}>Based on {char.name || 'character'} as {char.species} {char.archetype}</div>
+                  </div>
+                  <button
+                    onClick={() => setField("portraitUrl", "")}
+                    style={{
+                      background: '#dc2626',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      padding: '6px 10px',
+                      fontSize: '12px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : null}
+              
+              <CharacterPortraitPicker
+                characterName={char.name}
+                characterRace={char.species}
+                characterClass={char.archetype}
+                onPortraitChange={(portraitData) => setField("portraitUrl", portraitData)}
+              />
+            </div>
           </div>
         </div>
 
@@ -1283,7 +1435,20 @@ export default function CharacterCreate() {
         </div>
 
         <div style={{ marginBottom: 8 }}>
-          <div>HP: <strong>{derived.hp}</strong> • Carry: <strong>{derived.carry}</strong></div>
+          <div>HP: <strong>{derived.hp}</strong> • AC: <strong>{derived.ac}</strong> • Carry: <strong>{derived.carry}</strong></div>
+          {derived.naturalACBonus > 0 && (
+            <div style={{ fontSize: 12, opacity: 0.7, marginTop: 2 }}>
+              Natural AC Bonus: +{derived.naturalACBonus} (from level/class/race)
+            </div>
+          )}
+          {(derived.classHPBonus > 0 || derived.raceHPBonus !== 0 || derived.traitHPBonus !== 0) && (
+            <div style={{ fontSize: 12, opacity: 0.7, marginTop: 2 }}>
+              HP per level: {derived.totalHPPerLevel} = {abilityMod(getFinalStat(char.stats.CON, "CON", char.species, char.archetype))} (CON)
+              {derived.classHPBonus > 0 && ` + ${derived.classHPBonus} (${char.archetype})`}
+              {derived.raceHPBonus !== 0 && ` ${derived.raceHPBonus >= 0 ? '+' : ''}${derived.raceHPBonus} (${char.species})`}
+              {derived.traitHPBonus !== 0 && ` ${derived.traitHPBonus >= 0 ? '+' : ''}${derived.traitHPBonus} (traits)`}
+            </div>
+          )}
           {char.traits.length > 0 && (
             <div style={{ marginTop: 6 }}>Traits: {char.traits.join(", ")}</div>
           )}

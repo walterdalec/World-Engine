@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PortraitDisplay from './PortraitDisplay';
 
 interface Campaign {
   id: string;
@@ -28,9 +29,10 @@ interface Props {
   onSpellGenerator: () => void;
   onSpellAssignment: () => void;
   onHealingSystem: () => void;
+  onPortraitStudio: () => void;
 }
 
-export function MainMenu({ onNewCampaign, onLoadCampaign, onCharacterCreator, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem }: Props) {
+export function MainMenu({ onNewCampaign, onLoadCampaign, onCharacterCreator, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onPortraitStudio }: Props) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [characters, setCharacters] = useState<SavedCharacter[]>([]);
   const [activeTab, setActiveTab] = useState<'campaigns' | 'characters'>('campaigns');
@@ -376,14 +378,21 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onCharacterCreator, on
             </button>
           </div>
 
-          <div style={{ marginBottom: '20px' }}>
-            <p style={{ margin: '5px 0', fontSize: '18px' }}>
-              <strong>{character.race} {character.characterClass}</strong>
-            </p>
-            <p style={{ margin: '5px 0', color: '#94a3b8' }}>Level {character.level}</p>
-            <p style={{ margin: '5px 0', color: '#64748b', fontSize: '14px' }}>
-              Created: {formatDate(character.createdAt)}
-            </p>
+          <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
+            <PortraitDisplay 
+              portraitData={character.data?.portraitUrl || ''} 
+              size={120}
+              style={{ flexShrink: 0 }}
+            />
+            <div style={{ flex: 1 }}>
+              <p style={{ margin: '5px 0', fontSize: '18px' }}>
+                <strong>{character.race} {character.characterClass}</strong>
+              </p>
+              <p style={{ margin: '5px 0', color: '#94a3b8' }}>Level {character.level}</p>
+              <p style={{ margin: '5px 0', color: '#64748b', fontSize: '14px' }}>
+                Created: {formatDate(character.createdAt)}
+              </p>
+            </div>
           </div>
 
           {character.data && (
@@ -704,15 +713,30 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onCharacterCreator, on
                 <p style={{ margin: 0, opacity: 0.9 }}>Manage party health & healing</p>
               </div>
 
+              <div style={newCardStyle} onClick={onPortraitStudio}>
+                <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🎨</div>
+                <h3 style={{ margin: '0 0 5px 0' }}>Portrait Studio</h3>
+                <p style={{ margin: 0, opacity: 0.9 }}>Create character portraits</p>
+              </div>
+
               {characters.map(character => (
                 <div key={character.id} style={cardStyle}>
-                  <h3 style={{ margin: '0 0 10px 0', color: '#f1f5f9' }}>{character.name}</h3>
-                  <p style={{ margin: '0 0 5px 0', color: '#94a3b8', fontSize: '0.9rem' }}>
-                    {character.race} {character.characterClass}
-                  </p>
-                  <p style={{ margin: '0 0 5px 0', color: '#94a3b8', fontSize: '0.9rem' }}>
-                    Level {character.level}
-                  </p>
+                  <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
+                    <PortraitDisplay 
+                      portraitData={character.data?.portraitUrl || ''} 
+                      size={60}
+                      style={{ flexShrink: 0 }}
+                    />
+                    <div style={{ flex: 1 }}>
+                      <h3 style={{ margin: '0 0 8px 0', color: '#f1f5f9' }}>{character.name}</h3>
+                      <p style={{ margin: '0 0 4px 0', color: '#94a3b8', fontSize: '0.9rem' }}>
+                        {character.race} {character.characterClass}
+                      </p>
+                      <p style={{ margin: '0', color: '#94a3b8', fontSize: '0.9rem' }}>
+                        Level {character.level}
+                      </p>
+                    </div>
+                  </div>
                   <p style={{ margin: '0 0 15px 0', color: '#64748b', fontSize: '0.8rem' }}>
                     Created: {formatDate(character.createdAt)}
                   </p>
