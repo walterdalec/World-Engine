@@ -4,15 +4,13 @@ import React, { useMemo, useState } from "react";
 type Stats = "STR" | "DEX" | "CON" | "INT" | "WIS" | "CHA";
 
 function calculateStatCost(value: number): number {
-  if (value <= 13) return Math.max(0, value - 8); // MIN_STAT is 8
-  if (value === 14) return 5 + 2; // 5 + 2 = 7
-  if (value === 15) return 5 + 2 + 2; // 5 + 2 + 2 = 9
-  if (value === 16) return 5 + 2 + 2 + 3; // 5 + 2 + 2 + 3 = 12
-  if (value === 17) return 5 + 2 + 2 + 3 + 3; // 5 + 2 + 2 + 3 + 3 = 15
-  if (value === 18) return 5 + 2 + 2 + 3 + 3 + 3; // 5 + 2 + 2 + 3 + 3 + 3 = 18
-  if (value === 19) return 5 + 2 + 2 + 3 + 3 + 3 + 3; // 5 + 2 + 2 + 3 + 3 + 3 + 3 = 21
-  if (value === 20) return 5 + 2 + 2 + 3 + 3 + 3 + 3 + 3; // 5 + 2 + 2 + 3 + 3 + 3 + 3 + 3 = 24
-  return 0;
+  let cost = 0;
+  for (let i = 8; i < value; i++) {
+    if (i < 14) cost += 1;      // 8-13: 1 point each
+    else if (i < 16) cost += 2; // 14-15: 2 points each  
+    else cost += 3;             // 16+: 3 points each
+  }
+  return cost;
 }
 
 type Character = {
