@@ -1,5 +1,6 @@
 // src/components/CharacterCreate.tsx
 import React, { useMemo, useState } from "react";
+import { CLASS_DEFINITIONS } from '../defaultWorlds';
 
 type Stats = "STR" | "DEX" | "CON" | "INT" | "WIS" | "CHA";
 
@@ -44,9 +45,7 @@ const ARCHETYPE_OPTIONS = [
   "Ranger", "Artificer", "Mystic", "Guardian", "Scholar", "Rogue", "Warrior", "Healer"
 ];
 
-const CLASS_OPTIONS = [
-  "Fighter", "Wizard", "Rogue", "Cleric", "Ranger", "Paladin", "Barbarian", "Sorcerer", "Warlock", "Bard"
-];
+const CLASS_OPTIONS = Object.keys(CLASS_DEFINITIONS);
 
 // Racial stat modifiers - balanced with equal positives and negatives
 const RACIAL_MODIFIERS: Record<string, Partial<Record<Stats, number>>> = {
@@ -59,19 +58,21 @@ const RACIAL_MODIFIERS: Record<string, Partial<Record<Stats, number>>> = {
   "Stormcaller": { DEX: 1, CHA: 2, CON: -1, STR: -2 }, // Quick and magnetic, but fragile and weak
 };
 
-// Class stat preferences (balanced with equal positives and negatives)
-const CLASS_MODIFIERS: Record<string, Partial<Record<Stats, number>>> = {
-  "Fighter": { STR: 2, CON: 1, INT: -2, CHA: -1 }, // Strong and tough, but not scholarly or charismatic
-  "Wizard": { INT: 2, WIS: 1, STR: -2, CON: -1 }, // Brilliant and wise, but physically weak
-  "Rogue": { DEX: 2, INT: 1, STR: -1, WIS: -2 }, // Quick and cunning, but not strong or wise
-  "Cleric": { WIS: 2, CHA: 1, DEX: -1, INT: -2 }, // Wise and inspiring, but not agile or scholarly
-  "Ranger": { DEX: 2, WIS: 1, CHA: -2, INT: -1 }, // Agile and perceptive, but antisocial and unlearned
-  "Paladin": { STR: 1, CHA: 2, DEX: -1, INT: -2 }, // Strong and charismatic, but inflexible and simple
-  "Barbarian": { STR: 2, CON: 1, INT: -2, CHA: -1 }, // Brutally strong and tough, but crude and dim
-  "Sorcerer": { CHA: 2, CON: 1, WIS: -1, STR: -2 }, // Naturally magical and hardy, but unwise and weak
-  "Warlock": { CHA: 2, INT: 1, WIS: -2, CON: -1 }, // Charismatic and knowledgeable, but unwise and frail
-  "Bard": { CHA: 2, DEX: 1, CON: -1, STR: -2 }, // Charming and agile, but delicate and weak
-};
+// Extract class modifiers from our comprehensive class definitions
+const CLASS_MODIFIERS: Record<string, Partial<Record<Stats, number>>> = {};
+
+// Populate class modifiers from CLASS_DEFINITIONS
+Object.entries(CLASS_DEFINITIONS).forEach(([className, classData]) => {
+  // Convert our stat modifier names to the Stats type used here
+  CLASS_MODIFIERS[className] = {
+    STR: classData.statModifiers.strength || 0,
+    DEX: classData.statModifiers.dexterity || 0,
+    CON: classData.statModifiers.constitution || 0,
+    INT: classData.statModifiers.intelligence || 0,
+    WIS: classData.statModifiers.wisdom || 0,
+    CHA: classData.statModifiers.charisma || 0,
+  };
+});
 
 const BACKGROUND_TEMPLATES = [
   "A former {profession} who left their old life behind after {event}. Now they seek {goal} in the wider world.",
@@ -311,6 +312,38 @@ export default function CharacterCreate() {
     download(`${char.name.replace(/\s+/g, "_")}.json`, payload);
   }
 
+  function saveToLibrary() {
+    if (!char.name.trim()) {
+      alert("Give your character a name before saving.");
+      return;
+    }
+    
+    try {
+      // Get existing character library
+      const existingCharacters = JSON.parse(localStorage.getItem('world-engine-characters') || '[]');
+      
+      // Create character data for library
+      const characterData = {
+        id: `char-${Date.now()}`,
+        name: char.name,
+        race: char.species,
+        characterClass: char.archetype,
+        level: 1,
+        createdAt: new Date().toISOString(),
+        data: { ...char, createdAt: new Date().toISOString() }
+      };
+      
+      // Add to library
+      existingCharacters.push(characterData);
+      localStorage.setItem('world-engine-characters', JSON.stringify(existingCharacters));
+      
+      alert(`${char.name} has been saved to your character library!`);
+    } catch (error) {
+      console.error('Error saving to library:', error);
+      alert('Error saving character to library.');
+    }
+  }
+
   function loadLast() {
     const raw = localStorage.getItem("we:lastCharacter");
     if (!raw) return alert("No saved character found.");
@@ -365,7 +398,7 @@ export default function CharacterCreate() {
                 ).join(", ")}
               </div>
             )}
-            <SelectRow label="Archetype" value={char.archetype} onChange={(v) => setField("archetype", v)} options={ARCHETYPE_OPTIONS} />
+            <SelectRow label="Class" value={char.archetype} onChange={(v) => setField("archetype", v)} options={CLASS_OPTIONS} />
             <div style={{ display: "grid", gap: 4 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>Background</span>
@@ -481,6 +514,7 @@ export default function CharacterCreate() {
 
         <div style={{ display: "flex", gap: 8 }}>
           <button onClick={saveCharacter}>Save (JSON + local)</button>
+          <button onClick={saveToLibrary}>Save to Library</button>
           <button onClick={loadLast}>Load Last</button>
           <button onClick={resetAll}>Reset</button>
         </div>

@@ -1,10 +1,26 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
+import "./index.css";
+import { MainMenu } from "./components/MainMenu";
 import { WorldSetupScreen } from "./components/WorldSetupScreen";
-import { PartyCreationScreen } from "./components/PartyCreationScreen";
+import CharacterLibrary from "./components/CharacterLibrary";
 import CharacterCreate from "./components/CharacterCreate";
+import WorldMap from "./components/SimpleWorldMap";
 import { Engine } from "./engine.d";
 import { DEFAULT_WORLDS } from "./defaultWorlds";
+
+// Use the same Character type as CharacterCreate
+type Character = {
+  name: string;
+  pronouns: string;
+  species: string;
+  archetype: string;
+  background: string;
+  stats: Record<string, number>;
+  traits: string[];
+  portraitUrl?: string;
+  mode: "POINT_BUY" | "ROLL";
+};
 
 // Simple seed generator (base36 timestamp + random)
 function randomSeed(): string {
@@ -14,9 +30,63 @@ function randomSeed(): string {
 }
 
 function App() {
-  const [step, setStep] = React.useState<"world" | "party" | "character">("world");
-  const [party, setParty] = React.useState<any[]>([]);
-  const [, forceUpdate] = React.useReducer(x => x + 1, 0); // Force re-render hook
+  const [step, setStep] = React.useState<"menu" | "world" | "party" | "character" | "worldmap">("menu");
+  const [party, setParty] = React.useState<Character[]>([]);
+  const [currentCampaign, setCurrentCampaign] = React.useState<any>(null);
+  const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0); // Force re-render hook
+
+  // Campaign management functions
+  const saveCampaign = (campaign: any) => {
+    try {
+      const campaigns = JSON.parse(localStorage.getItem('world-engine-campaigns') || '[]');
+      const existing = campaigns.findIndex((c: any) => c.id === campaign.id);
+      
+      if (existing >= 0) {
+        campaigns[existing] = { ...campaign, lastPlayed: new Date().toISOString() };
+      } else {
+        campaigns.push({
+          ...campaign,
+          createdAt: new Date().toISOString(),
+          lastPlayed: new Date().toISOString()
+        });
+      }
+      
+      localStorage.setItem('world-engine-campaigns', JSON.stringify(campaigns));
+    } catch (error) {
+      console.error('Error saving campaign:', error);
+    }
+  };
+
+  const handleNewCampaign = () => {
+    // Create a new campaign ID
+    const newCampaign = {
+      id: `campaign-${Date.now()}`,
+      name: `Campaign ${Date.now().toString().slice(-4)}`,
+      worldPreset: '',
+      seed: '',
+      characters: []
+    };
+    setCurrentCampaign(newCampaign);
+    setStep("world");
+  };
+
+  const handleLoadCampaign = (campaign: any) => {
+    setCurrentCampaign(campaign);
+    // Restore campaign settings to engine
+    if (campaign.worldPreset) {
+      eng.applyPresetByName?.(campaign.worldPreset);
+    }
+    if (campaign.seed) {
+      eng.setSeed?.(campaign.seed);
+    }
+    setStep("character"); // Go directly to character creation for existing campaigns
+  };
+
+  const handleCharacterCreator = () => {
+    // Standalone character creator (not tied to a campaign)
+    setCurrentCampaign(null);
+    setStep("character");
+  };
 
   // fake engine stub for now
   // Engine stub - will be replaced with real engine
@@ -103,15 +173,38 @@ function App() {
 
   return (
     <>
+      {step === "menu" && (
+        <MainMenu
+          onNewCampaign={handleNewCampaign}
+          onLoadCampaign={handleLoadCampaign}
+          onCharacterCreator={handleCharacterCreator}
+        />
+      )}
       {step === "world" && (
-        <WorldSetupScreen eng={eng} onNext={() => setStep("character")} />
+        <WorldSetupScreen 
+          eng={eng} 
+          onNext={() => {
+            // Save campaign settings when proceeding from world setup
+            if (currentCampaign) {
+              const updatedCampaign = {
+                ...currentCampaign,
+                worldPreset: eng?.state?.meta?.presets?.loaded || '',
+                seed: eng?.state?.meta?.seed || ''
+              };
+              setCurrentCampaign(updatedCampaign);
+              saveCampaign(updatedCampaign);
+            }
+            setStep("party");
+          }} 
+        />
       )}
       {step === "party" && (
-        <PartyCreationScreen
+        <CharacterLibrary
           eng={eng}
           party={party}
           setParty={setParty}
-          onStart={() => setStep("character")}
+          onStart={() => setStep("worldmap")}
+          onCreateNew={() => setStep("character")}
         />
       )}
       {step === "character" && (
@@ -127,7 +220,7 @@ function App() {
             <h1 style={{ margin: 0, color: "#f9fafb" }}>World Engine - Character Creator</h1>
             <div style={{ display: "flex", gap: "12px" }}>
               <button 
-                onClick={() => setStep("world")}
+                onClick={() => setStep("menu")}
                 style={{ 
                   padding: "8px 16px", 
                   background: "#374151", 
@@ -137,10 +230,25 @@ function App() {
                   cursor: "pointer" 
                 }}
               >
-                Back to World Setup
+                Back to Menu
               </button>
+              {currentCampaign && (
+                <button 
+                  onClick={() => setStep("world")}
+                  style={{ 
+                    padding: "8px 16px", 
+                    background: "#374151", 
+                    color: "#f9fafb", 
+                    border: "none", 
+                    borderRadius: "6px", 
+                    cursor: "pointer" 
+                  }}
+                >
+                  World Setup
+                </button>
+              )}
               <button 
-                onClick={() => console.log("Start Adventure!", party)}
+                onClick={() => setStep("worldmap")}
                 style={{ 
                   padding: "8px 16px", 
                   background: "#059669", 
@@ -150,12 +258,18 @@ function App() {
                   cursor: "pointer" 
                 }}
               >
-                Start Adventure
+                Enter World
               </button>
             </div>
           </nav>
           <CharacterCreate />
         </div>
+      )}
+      {step === "worldmap" && (
+        <WorldMap 
+          seedStr={eng?.state?.meta?.seed} 
+          onBack={() => setStep("menu")} 
+        />
       )}
     </>
   );
