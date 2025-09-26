@@ -24,7 +24,7 @@ const Palettes: Record<string, Palette> = {
   Ashenreach:   { primary: "#9ca3af", secondary: "#374151", metal: "#d1d5db", leather: "#4b5563", cloth: "#111827", accent: "#f87171" },
 };
 
-type Race = "Human" | "Draken" | "Elf" | "Dwarf" | "Orc" | "Halfling" | "Automaton" | "Fae";
+type Race = "Human" | "Draken" | "Elf" | "Dwarf" | "Halfling" | "Automaton" | "Fae";
 type Archetype = "Mage" | "Warrior" | "Ranger" | "Rogue" | "Cleric" | "Paladin" | "Bard" | "Necromancer" | "Elementalist" | "Alchemist" | "Greenwarden" | "Thorn Knight" | "Sapling Adept" | "Bloomcaller" | "Stormsinger" | "Shadowblade" | "Skyspear";
 type BodyType = "slim" | "standard" | "heavy";
 
@@ -50,36 +50,36 @@ export default function CharacterPortraitPicker({ characterName, characterRace, 
 
   // Map character data to portrait options
   const normalizedRace: Race = useMemo(() => {
+    if (!characterRace) return 'Human';
     const race = characterRace.toLowerCase();
-    if (race.includes('human')) return 'Human';
-    if (race.includes('draken')) return 'Draken';
-    if (race.includes('elf')) return 'Elf';
-    if (race.includes('dwarf')) return 'Dwarf';
-    if (race.includes('orc')) return 'Orc';
-    if (race.includes('halfling')) return 'Halfling';
-    if (race.includes('automaton')) return 'Automaton';
-    if (race.includes('fae')) return 'Fae';
-    return 'Human';
+    // Map your actual game races to portrait system races
+    if (race === 'human') return 'Human';
+    if (race === 'draketh') return 'Draken';  // Dragon-like race -> Draken
+    if (race === 'sylvanborn') return 'Elf';  // Forest-dwellers -> Elf features
+    if (race === 'alloy') return 'Automaton'; // Mechanical beings -> Automaton
+    if (race === 'voidkin') return 'Fae';     // Shadow-touched -> Fae (otherworldly)
+    if (race === 'crystalborn') return 'Dwarf'; // Crystal beings -> Dwarf (sturdy)
+    if (race === 'stormcaller') return 'Halfling'; // Sky-born -> Halfling (agile)
+    return 'Human'; // Default fallback
   }, [characterRace]);
 
   const normalizedClass: Archetype = useMemo(() => {
+    if (!characterClass) return 'Warrior';
     const c = characterClass.toLowerCase();
-    if (c.includes('thorn')) return "Thorn Knight";
-    if (c.includes('warden')||c.includes('green')) return "Greenwarden";
-    if (c.includes('sapling')) return "Sapling Adept";
-    if (c.includes('bloom')) return "Bloomcaller";
-    if (c.includes('paladin')) return "Paladin";
-    if (c.includes('cleric')) return "Cleric";
-    if (c.includes('ranger')) return "Ranger";
-    if (c.includes('rogue')||c.includes('shadow')) return "Shadowblade";
-    if (c.includes('necrom')) return "Necromancer";
-    if (c.includes('element')) return "Elementalist";
-    if (c.includes('alchem')) return "Alchemist";
-    if (c.includes('storm')||c.includes('singer')) return "Stormsinger";
-    if (c.includes('sky')||c.includes('spear')) return "Skyspear";
-    if (c.includes('war')) return "Warrior";
-    if (c.includes('mage')||c.includes('wizard')||c.includes('sorcer')) return "Mage";
-    return "Warrior";
+    // Map your actual game classes to portrait system archetypes
+    if (c === 'greenwarden') return "Greenwarden";
+    if (c === 'thorn knight') return "Thorn Knight";
+    if (c === 'sapling adept') return "Sapling Adept";
+    if (c === 'bloomcaller') return "Bloomcaller";
+    if (c === 'ashblade') return "Warrior";        // Ash warrior -> Warrior
+    if (c === 'cinder mystic') return "Mage";      // Fire mage -> Mage
+    if (c === 'dust ranger') return "Ranger";      // Desert scout -> Ranger
+    if (c === 'bonechanter') return "Necromancer"; // Bone magic -> Necromancer
+    if (c === 'stormcaller') return "Stormsinger"; // Storm magic -> Stormsinger
+    if (c === 'voidwing') return "Shadowblade";    // Void warrior -> Shadowblade
+    if (c === 'sky knight') return "Skyspear";     // Sky warrior -> Skyspear
+    if (c === 'wind sage') return "Elementalist";  // Wind magic -> Elementalist
+    return "Warrior"; // Default fallback
   }, [characterClass]);
 
   // Generate seed from character name
@@ -252,12 +252,11 @@ export default function CharacterPortraitPicker({ characterName, characterRace, 
         }}>
           <div style={{ fontSize: '48px', marginBottom: '10px' }}>
             {normalizedRace === 'Elf' ? '🧝' : 
-             normalizedRace === 'Dwarf' ? '🏴‍☠️' :
-             normalizedRace === 'Orc' ? '👹' :
+             normalizedRace === 'Dwarf' ? '💎' :
+             normalizedRace === 'Fae' ? '🌟' :
              normalizedRace === 'Draken' ? '🐲' :
              normalizedRace === 'Automaton' ? '🤖' :
-             normalizedRace === 'Fae' ? '🧚' :
-             normalizedRace === 'Halfling' ? '👤' : '👤'}
+             normalizedRace === 'Halfling' ? '⚡' : '👤'}
           </div>
           <p style={{ margin: '0', color: '#94a3b8' }}>
             Preview: {normalizedRace} {normalizedClass}

@@ -24,7 +24,7 @@ const Palettes: Record<string, Palette> = {
   Ashenreach:   { primary: "#9ca3af", secondary: "#374151", metal: "#d1d5db", leather: "#4b5563", cloth: "#111827", accent: "#f87171" },
 };
 
-type Race = "Human" | "Draken" | "Elf" | "Dwarf" | "Orc" | "Halfling" | "Automaton" | "Fae";
+type Race = "Human" | "Draken" | "Elf" | "Dwarf" | "Halfling" | "Automaton" | "Fae";
 type Archetype = "Mage" | "Warrior" | "Ranger" | "Rogue" | "Cleric" | "Paladin" | "Bard" | "Necromancer" | "Elementalist" | "Alchemist" | "Greenwarden" | "Thorn Knight" | "Sapling Adept" | "Bloomcaller" | "Stormsinger" | "Shadowblade" | "Skyspear";
 type BodyType = "slim" | "standard" | "heavy";
 
@@ -33,7 +33,6 @@ const BodyMetrics: Record<Race, Record<BodyType, { scale: number; shoulder: numb
   Draken:    { slim:{scale:1.00, shoulder:42, waist:26}, standard:{scale:1.06, shoulder:48, waist:32}, heavy:{scale:1.12, shoulder:56, waist:40} },
   Elf:       { slim:{scale:0.96, shoulder:38, waist:22}, standard:{scale:1.0, shoulder:40, waist:26},  heavy:{scale:1.04, shoulder:44, waist:30} },
   Dwarf:     { slim:{scale:0.9, shoulder:46, waist:34},  standard:{scale:0.95, shoulder:50, waist:38}, heavy:{scale:1.0, shoulder:56, waist:44} },
-  Orc:       { slim:{scale:1.0, shoulder:44, waist:30},  standard:{scale:1.06, shoulder:50, waist:36}, heavy:{scale:1.12, shoulder:58, waist:44} },
   Halfling:  { slim:{scale:0.8, shoulder:30, waist:22},  standard:{scale:0.85, shoulder:32, waist:24}, heavy:{scale:0.9, shoulder:36, waist:30} },
   Automaton: { slim:{scale:1.0, shoulder:44, waist:26},  standard:{scale:1.04, shoulder:48, waist:30}, heavy:{scale:1.08, shoulder:54, waist:36} },
   Fae:       { slim:{scale:0.9, shoulder:32, waist:20},  standard:{scale:0.94, shoulder:34, waist:22}, heavy:{scale:0.98, shoulder:36, waist:24} },

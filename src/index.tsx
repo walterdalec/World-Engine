@@ -9,7 +9,7 @@ import NameGenerator from "./components/NameGenerator";
 import SpellGenerator from "./components/SpellGenerator";
 import SpellAssignment from "./components/SpellAssignment";
 import HealingSystem from "./components/HealingSystem";
-import WorldMap from "./components/SimpleWorldMap";
+import WorldMapEngine from "./components/WorldMapEngine";
 import CharacterPortraitStudio from "./components/CharacterPortraitStudio";
 import { Engine } from "./engine.d";
 import { DEFAULT_WORLDS } from "./defaultWorlds";
@@ -472,7 +472,7 @@ function App() {
         <HealingSystem onBack={() => setStep("menu")} />
       )}
       {step === "worldmap" && (
-        <WorldMap 
+        <WorldMapEngine 
           seedStr={eng?.state?.meta?.seed} 
           onBack={() => setStep("menu")} 
         />
