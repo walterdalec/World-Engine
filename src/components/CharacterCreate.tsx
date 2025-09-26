@@ -48,6 +48,31 @@ const CLASS_OPTIONS = [
   "Fighter", "Wizard", "Rogue", "Cleric", "Ranger", "Paladin", "Barbarian", "Sorcerer", "Warlock", "Bard"
 ];
 
+// Racial stat modifiers
+const RACIAL_MODIFIERS: Record<string, Partial<Record<Stats, number>>> = {
+  "Human": { STR: 1, CHA: 1 }, // Versatile and social
+  "Sylvanborn": { DEX: 2, WIS: 1 }, // Graceful forest dwellers
+  "Alloy": { CON: 2, INT: 1 }, // Durable constructs with advanced minds
+  "Draketh": { STR: 2, CHA: 1 }, // Dragon-blooded, strong and charismatic
+  "Voidkin": { INT: 2, WIS: 1 }, // Mysterious beings touched by the void
+  "Crystalborn": { CON: 1, INT: 2 }, // Crystal-infused, resilient and bright
+  "Stormcaller": { DEX: 1, CHA: 2 }, // Wind-touched, quick and magnetic
+};
+
+// Class stat preferences (suggested bonuses, not mandatory)
+const CLASS_MODIFIERS: Record<string, Partial<Record<Stats, number>>> = {
+  "Fighter": { STR: 2, CON: 1 }, // Strength and endurance
+  "Wizard": { INT: 2, WIS: 1 }, // Intelligence and wisdom
+  "Rogue": { DEX: 2, INT: 1 }, // Dexterity and cunning
+  "Cleric": { WIS: 2, CHA: 1 }, // Wisdom and divine presence
+  "Ranger": { DEX: 2, WIS: 1 }, // Dexterity and nature wisdom
+  "Paladin": { STR: 1, CHA: 2 }, // Divine strength and charisma
+  "Barbarian": { STR: 2, CON: 1 }, // Raw strength and toughness
+  "Sorcerer": { CHA: 2, CON: 1 }, // Natural magic and constitution
+  "Warlock": { CHA: 2, INT: 1 }, // Charismatic power and knowledge
+  "Bard": { CHA: 2, DEX: 1 }, // Charisma and agility
+};
+
 const BACKGROUND_TEMPLATES = [
   "A former {profession} who left their old life behind after {event}. Now they seek {goal} in the wider world.",
   "Born in {location}, they were raised by {guardian} and learned the ways of {skill}. Their greatest challenge was {challenge}.",
@@ -176,9 +201,33 @@ function generateBackground(): string {
 
 function abilityMod(score: number) {
   // Modified calculation: 8-9 = +0, 10-11 = +1, 12-13 = +2, etc.
-  const result = Math.floor((score - 8) / 2);
-  console.log(`abilityMod(${score}) = ${result}`);
-  return result;
+  return Math.floor((score - 8) / 2);
+}
+
+// Calculate final stat with racial and class bonuses
+function getFinalStat(baseStat: number, stat: Stats, species: string, archetype: string): number {
+  let final = baseStat;
+  
+  // Add racial bonus
+  const racialBonus = RACIAL_MODIFIERS[species]?.[stat] || 0;
+  final += racialBonus;
+  
+  // Add class bonus (optional - these are suggestions, not automatic)
+  // For now, let's make these optional bonuses that players can see but don't auto-apply
+  
+  return Math.min(final, 22); // Cap at 22 total with bonuses
+}
+
+// Get the display text for bonuses
+function getBonusText(stat: Stats, species: string, archetype: string): string {
+  const racialBonus = RACIAL_MODIFIERS[species]?.[stat] || 0;
+  const classBonus = CLASS_MODIFIERS[archetype]?.[stat] || 0;
+  
+  let text = "";
+  if (racialBonus > 0) text += ` +${racialBonus} racial`;
+  if (classBonus > 0) text += ` (+${classBonus} class)`;
+  
+  return text;
 }
 
 // Updated point buy calculation - costs 1 for 8-13, 2 for 14-15, 3 for 16-20
@@ -289,10 +338,12 @@ export default function CharacterCreate() {
 
   const derived = useMemo(() => {
     const lvl = 1;
-    const hp = 10 + abilityMod(char.stats.CON) * lvl;
-    const carry = 15 * char.stats.STR;
+    const finalCON = getFinalStat(char.stats.CON, "CON", char.species, char.archetype);
+    const finalSTR = getFinalStat(char.stats.STR, "STR", char.species, char.archetype);
+    const hp = 10 + abilityMod(finalCON) * lvl;
+    const carry = 15 * finalSTR;
     return { level: lvl, hp, carry };
-  }, [char.stats]);
+  }, [char.stats, char.species, char.archetype]);
 
   return (
     <div style={container}>
@@ -304,6 +355,11 @@ export default function CharacterCreate() {
             <TextRow label="Name" value={char.name} onChange={(v) => setField("name", v)} />
             <TextRow label="Pronouns" value={char.pronouns} onChange={(v) => setField("pronouns", v)} placeholder="she/her, he/him, they/them…" />
             <SelectRow label="Species" value={char.species} onChange={(v) => setField("species", v)} options={SPECIES_OPTIONS} />
+            {char.species && RACIAL_MODIFIERS[char.species] && (
+              <div style={{ fontSize: 12, opacity: 0.7, marginTop: -4 }}>
+                Racial bonuses: {Object.entries(RACIAL_MODIFIERS[char.species]).map(([stat, bonus]) => `${stat} +${bonus}`).join(", ")}
+              </div>
+            )}
             <SelectRow label="Archetype" value={char.archetype} onChange={(v) => setField("archetype", v)} options={ARCHETYPE_OPTIONS} />
             <div style={{ display: "grid", gap: 4 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -356,21 +412,43 @@ export default function CharacterCreate() {
           )}
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
-            {(Object.keys(char.stats) as Stats[]).map((k) => (
-              <div key={k} style={{ border: "1px solid #334155", borderRadius: 10, padding: 10 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <strong>{k}</strong>
-                  {char.mode === "POINT_BUY" && (
-                    <span>
-                      <button onClick={() => dec(k)} disabled={char.stats[k] <= MIN_STAT}>−</button>
-                      <button onClick={() => inc(k)} disabled={char.stats[k] >= MAX_STAT || !canAffordStatIncrease(char.stats[k], pointsLeft)} style={{ marginLeft: 6 }}>＋</button>
-                    </span>
+            {(Object.keys(char.stats) as Stats[]).map((k) => {
+              const baseStat = char.stats[k];
+              const finalStat = getFinalStat(baseStat, k, char.species, char.archetype);
+              const bonusText = getBonusText(k, char.species, char.archetype);
+              
+              return (
+                <div key={k} style={{ border: "1px solid #334155", borderRadius: 10, padding: 10 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <strong>{k}</strong>
+                    {char.mode === "POINT_BUY" && (
+                      <span>
+                        <button onClick={() => dec(k)} disabled={char.stats[k] <= MIN_STAT}>−</button>
+                        <button onClick={() => inc(k)} disabled={char.stats[k] >= MAX_STAT || !canAffordStatIncrease(char.stats[k], pointsLeft)} style={{ marginLeft: 6 }}>＋</button>
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: 28, textAlign: "center", marginTop: 6 }}>
+                    {finalStat !== baseStat ? (
+                      <>
+                        <span style={{ opacity: 0.6 }}>{baseStat}</span>
+                        <span style={{ color: "#10b981", marginLeft: 4 }}>→{finalStat}</span>
+                      </>
+                    ) : (
+                      finalStat
+                    )}
+                  </div>
+                  <div style={{ fontSize: 12, textAlign: "center", opacity: 0.8 }}>
+                    mod {abilityMod(finalStat) >= 0 ? "+" : ""}{abilityMod(finalStat)}
+                  </div>
+                  {bonusText && (
+                    <div style={{ fontSize: 10, textAlign: "center", opacity: 0.6, marginTop: 2 }}>
+                      {bonusText}
+                    </div>
                   )}
                 </div>
-                <div style={{ fontSize: 28, textAlign: "center", marginTop: 6 }}>{char.stats[k]}</div>
-                <div style={{ fontSize: 12, textAlign: "center", opacity: 0.8 }}>mod {abilityMod(char.stats[k]) >= 0 ? "+" : ""}{abilityMod(char.stats[k])}</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -452,13 +530,16 @@ export default function CharacterCreate() {
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6, marginBottom: 8 }}>
-          {(Object.keys(char.stats) as Stats[]).map((k) => (
-            <div key={k} style={{ background: "#0f172a", border: "1px solid #334155", borderRadius: 8, padding: 8, textAlign: "center" }}>
-              <div style={{ fontSize: 12, opacity: 0.8 }}>{k}</div>
-              <div style={{ fontSize: 20 }}>{char.stats[k]}</div>
-              <div style={{ fontSize: 12, opacity: 0.8 }}>({abilityMod(char.stats[k]) >= 0 ? "+" : ""}{abilityMod(char.stats[k])})</div>
-            </div>
-          ))}
+          {(Object.keys(char.stats) as Stats[]).map((k) => {
+            const finalStat = getFinalStat(char.stats[k], k, char.species, char.archetype);
+            return (
+              <div key={k} style={{ background: "#0f172a", border: "1px solid #334155", borderRadius: 8, padding: 8, textAlign: "center" }}>
+                <div style={{ fontSize: 12, opacity: 0.8 }}>{k}</div>
+                <div style={{ fontSize: 20 }}>{finalStat}</div>
+                <div style={{ fontSize: 12, opacity: 0.8 }}>({abilityMod(finalStat) >= 0 ? "+" : ""}{abilityMod(finalStat)})</div>
+              </div>
+            );
+          })}
         </div>
 
         <div style={{ marginBottom: 8 }}>
