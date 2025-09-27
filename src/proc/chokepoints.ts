@@ -10,6 +10,7 @@
  */
 
 import { WorldNoise, SeededRandom } from './noise';
+import { PhysicalAbilitiesGenerator } from './physicalAbilities';
 import type { Tile, BiomeType } from './chunks';
 
 export interface Chokepoint {
@@ -70,6 +71,7 @@ export interface RegionData {
 export class ChokepointManager {
   private noise: WorldNoise;
   private rng: SeededRandom;
+  private physicalAbilities!: PhysicalAbilitiesGenerator;
   private chokepoints: Map<string, Chokepoint> = new Map();
   private regions: RegionData[] = [];
   private mapWidth: number;
@@ -89,6 +91,7 @@ export class ChokepointManager {
       
       this.noise = new WorldNoise(seed);
       this.rng = new SeededRandom(`${seed}_chokepoints`);
+      this.physicalAbilities = new PhysicalAbilitiesGenerator(`${seed}_abilities`);
       this.mapWidth = mapWidth;
       this.mapHeight = mapHeight;
       this.startX = startX;
@@ -652,6 +655,17 @@ export class ChokepointManager {
         name: this.generateSpellName(difficulty),
         value: difficulty,
         description: 'A powerful spell scroll found in the commander\'s quarters.'
+      });
+    }
+    
+    // Physical ability manuals for mid-to-high difficulty
+    if (difficulty >= 4) {
+      const abilityScroll = this.physicalAbilities.generateAbilityScroll(difficulty);
+      rewards.push({
+        type: 'spell' as const, // Using spell type for now, could create 'ability' type later
+        name: abilityScroll.name,
+        value: difficulty,
+        description: abilityScroll.description
       });
     }
     

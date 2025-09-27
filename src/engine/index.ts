@@ -12,12 +12,15 @@
 import { ChunkManager, Tile, WorldGenConfig, CHUNK_SIZE } from '../proc/chunks';
 import { SeededRandom, WorldNoise, ValueNoise2D } from '../proc/noise';
 import { ChokepointManager, Chokepoint, Fortification, RegionData } from '../proc/chokepoints';
+import { PhysicalAbilitiesGenerator, PhysicalAbility, PhysicalAbilitySchool, PhysicalAbilityTier } from '../proc/physicalAbilities';
 
 export { ChunkManager, CHUNK_SIZE } from '../proc/chunks';
 export { SeededRandom, WorldNoise, ValueNoise2D } from '../proc/noise';
 export { ChokepointManager } from '../proc/chokepoints';
+export { PhysicalAbilitiesGenerator } from '../proc/physicalAbilities';
 export type { Tile, WorldGenConfig } from '../proc/chunks';
 export type { Chokepoint, Fortification, RegionData } from '../proc/chokepoints';
+export type { PhysicalAbility, PhysicalAbilitySchool, PhysicalAbilityTier } from '../proc/physicalAbilities';
 
 export interface Party {
   x: number;
@@ -30,6 +33,23 @@ export interface Party {
   };
   equipment: string[];
   speed: number; // Base movement speed
+  hitPoints: number; // Current HP
+  maxHitPoints: number; // Maximum HP
+  level: number; // Party level for ability requirements
+  experience: number; // Experience points
+  knownAbilities: string[]; // Known physical abilities
+  stats: { // Party stats for ability requirements
+    strength: number;
+    dexterity: number;
+    constitution: number;
+    intelligence: number;
+    wisdom: number;
+    charisma: number;
+  };
+  stamina: number; // Current stamina for physical abilities
+  maxStamina: number; // Maximum stamina
+  ether: number; // Current ether for magical abilities  
+  maxEther: number; // Maximum ether
 }
 
 export interface GameTime {
@@ -53,6 +73,25 @@ export interface EncounterClock {
   encounterChance: number; // base chance per movement
 }
 
+export interface Encounter {
+  id: string;
+  name: string;
+  type: 'combat' | 'event' | 'discovery' | 'trader' | 'quest';
+  danger: 'safe' | 'low' | 'medium' | 'high' | 'extreme';
+  description: string;
+  biome?: string; // If specified, only appears in this biome
+  x?: number; // If specified, fixed location encounter
+  y?: number;
+  isFixed: boolean; // True for set encounters, false for random
+  isActive: boolean; // Whether this encounter has been triggered
+  rewards?: {
+    experience?: number;
+    gold?: number;
+    items?: string[];
+    reputation?: { faction: string; amount: number }[];
+  };
+}
+
 export interface EngineConfig {
   world: WorldGenConfig;
   gameplay: {
@@ -71,6 +110,8 @@ export interface GameState {
   time: GameTime;
   weather: Weather;
   encounterClock: EncounterClock;
+  activeEncounter: Encounter | null; // Current encounter if any
+  completedEncounters: Set<string>; // IDs of completed encounters
   discovered: Set<string>; // "x,y" coordinates
   config: EngineConfig;
   version: string;
@@ -79,6 +120,7 @@ export interface GameState {
 export class WorldEngine {
   private chunkManager: ChunkManager;
   private chokepointManager: ChokepointManager | null = null; // Temporarily nullable for debugging
+  private physicalAbilities: PhysicalAbilitiesGenerator;
   private rng: SeededRandom;
   public state: GameState;
   
@@ -97,7 +139,7 @@ export class WorldEngine {
       },
       gameplay: {
         movementCostPerTile: 15, // 15 minutes per tile
-        encounterBaseChance: 0.05,
+        encounterBaseChance: 0.15, // Increased from 0.05 to 0.15 for better scaling
         weatherChangeDays: 3,
         fogOfWarRadius: 8,
         chunkLoadRadius: 32, // Much smaller radius for performance
@@ -111,6 +153,9 @@ export class WorldEngine {
     };
     
     this.chunkManager = new ChunkManager(actualSeed, mergedConfig.world);
+    
+    // Initialize physical abilities generator
+    this.physicalAbilities = new PhysicalAbilitiesGenerator(actualSeed);
     
     // Initialize chokepoint manager with error handling
     try {
@@ -147,7 +192,24 @@ export class WorldEngine {
         members: [],
         supplies: { food: 100, water: 100, gold: 50 },
         equipment: (actuallyNeedsBoat || spawnLocation.needsBoat) ? ['boat'] : [], // Give boat if spawned in/near water
-        speed: 1.0
+        speed: 1.0,
+        hitPoints: 100, // Start at full health
+        maxHitPoints: 100,
+        level: 1, // Starting level
+        experience: 0,
+        knownAbilities: [], // No abilities at start
+        stats: { // Starting stats
+          strength: 12,
+          dexterity: 12,
+          constitution: 12,
+          intelligence: 12,
+          wisdom: 12,
+          charisma: 12
+        },
+        stamina: 20, // Starting stamina
+        maxStamina: 20,
+        ether: 15, // Starting ether for magic
+        maxEther: 15
       },
       time: {
         minutes: 480, // 8 AM
@@ -161,6 +223,8 @@ export class WorldEngine {
         lastEncounter: 0,
         encounterChance: mergedConfig.gameplay.encounterBaseChance
       },
+      activeEncounter: null,
+      completedEncounters: new Set(),
       discovered: new Set(),
       config: mergedConfig,
       version: '1.0.0'
@@ -168,6 +232,9 @@ export class WorldEngine {
     
     // Discover initial area around party
     this.discoverRadius(this.state.party.x, this.state.party.y, 3);
+    
+    // Create a main city at spawn point
+    this.createMainCity(this.state.party.x, this.state.party.y);
   }
   
   /**
@@ -276,6 +343,9 @@ export class WorldEngine {
     
     // Update encounter risk
     this.updateEncounterRisk(tile, actualCost);
+    
+    // Check for encounters after movement
+    this.checkForEncounter(tile);
     
     // Update weather
     this.updateWeather();
@@ -391,7 +461,7 @@ export class WorldEngine {
    * Update encounter risk based on movement
    */
   updateEncounterRisk(tile: Tile, timeCost: number): void {
-    const baseRiskIncrease = 0.1 * (timeCost / 60); // Risk per hour of travel
+    const baseRiskIncrease = 0.02 * (timeCost / 60); // Risk per hour of travel (reduced from 0.1 to 0.02)
     
     // Terrain modifiers
     const terrainRiskModifiers: Record<string, number> = {
@@ -529,10 +599,52 @@ export class WorldEngine {
     // Resting reduces encounter risk
     this.state.encounterClock.riskLevel = Math.max(0, this.state.encounterClock.riskLevel - 0.3);
     
+    // Heal HP over time (10 HP per hour of rest, up to max)
+    const healingPerHour = 10;
+    const totalHealing = hours * healingPerHour;
+    this.state.party.hitPoints = Math.min(
+      this.state.party.maxHitPoints,
+      this.state.party.hitPoints + totalHealing
+    );
+    
+    // Restore stamina over time (5 stamina per hour of rest)
+    const staminaPerHour = 5;
+    const totalStaminaRestored = hours * staminaPerHour;
+    this.state.party.stamina = Math.min(
+      this.state.party.maxStamina,
+      this.state.party.stamina + totalStaminaRestored
+    );
+    
+    // Restore ether over time (3 ether per hour of rest)
+    const etherPerHour = 3;
+    const totalEtherRestored = hours * etherPerHour;
+    this.state.party.ether = Math.min(
+      this.state.party.maxEther,
+      this.state.party.ether + totalEtherRestored
+    );
+    
     // Update weather during rest
     for (let i = 0; i < hours; i++) {
       this.updateWeather();
     }
+  }
+
+  /**
+   * Deal damage to the party
+   */
+  takeDamage(damage: number): boolean {
+    this.state.party.hitPoints = Math.max(0, this.state.party.hitPoints - damage);
+    return this.state.party.hitPoints > 0; // Return true if party is still alive
+  }
+
+  /**
+   * Heal the party
+   */
+  heal(amount: number): void {
+    this.state.party.hitPoints = Math.min(
+      this.state.party.maxHitPoints,
+      this.state.party.hitPoints + amount
+    );
   }
   
   /**
@@ -784,5 +896,438 @@ export class WorldEngine {
     }
     
     return { canTravel: true, blockedBy: [] };
+  }
+
+  /**
+   * Create a main city at spawn point
+   */
+  private createMainCity(x: number, y: number): void {
+    // Force the spawn tile to be grassland with a city
+    const tile = this.chunkManager.getTile(x, y);
+    if (tile) {
+      tile.settlement = {
+        name: this.generateCityName(),
+        population: this.rng.nextInt(5000, 15000),
+        size: 'city',
+        faction: 'Capital'
+      };
+      
+      // Ensure surrounding area is good for a city
+      for (let dx = -1; dx <= 1; dx++) {
+        for (let dy = -1; dy <= 1; dy++) {
+          const surroundTile = this.chunkManager.getTile(x + dx, y + dy);
+          if (surroundTile && surroundTile.biome === 'Ocean') {
+            surroundTile.biome = 'Coast';
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Generate a random city name
+   */
+  private generateCityName(): string {
+    const prefixes = ['Haven', 'Storm', 'River', 'Gold', 'Stone', 'Iron', 'Silver', 'White', 'Black', 'Red'];
+    const suffixes = ['port', 'hold', 'burg', 'haven', 'ford', 'gate', 'fall', 'ridge', 'vale', 'watch'];
+    
+    const prefix = prefixes[this.rng.nextInt(0, prefixes.length - 1)];
+    const suffix = suffixes[this.rng.nextInt(0, suffixes.length - 1)];
+    
+    return `${prefix}${suffix}`;
+  }
+
+  /**
+   * Check for encounters after movement
+   */
+  private checkForEncounter(tile: Tile): void {
+    // Don't trigger encounters in cities
+    if (tile.settlement?.size === 'city') {
+      return;
+    }
+
+    // Check for fixed encounters at this location first
+    const fixedEncounter = this.getFixedEncounterAt(this.state.party.x, this.state.party.y);
+    if (fixedEncounter && !this.state.completedEncounters.has(fixedEncounter.id)) {
+      this.state.activeEncounter = fixedEncounter;
+      return;
+    }
+
+    // Check for random encounters based on risk level
+    const encounterRoll = this.rng.nextFloat();
+    const encounterThreshold = this.state.encounterClock.riskLevel * this.state.encounterClock.encounterChance;
+    
+    if (encounterRoll <= encounterThreshold) {
+      // Generate random encounter
+      const randomEncounter = this.generateRandomEncounter(tile);
+      if (randomEncounter) {
+        this.state.activeEncounter = randomEncounter;
+        // Reset encounter risk after triggering
+        this.state.encounterClock.riskLevel = Math.max(0, this.state.encounterClock.riskLevel - 0.5);
+        this.state.encounterClock.lastEncounter = this.state.time.minutes;
+      }
+    }
+  }
+
+  /**
+   * Generate a random encounter based on current tile
+   */
+  private generateRandomEncounter(tile: Tile): Encounter | null {
+    const encounters: Omit<Encounter, 'id' | 'x' | 'y' | 'isFixed' | 'isActive'>[] = [];
+    
+    // Biome-specific encounters
+    switch (tile.biome) {
+      case 'Forest':
+        encounters.push(
+          {
+            name: 'Forest Bandits',
+            type: 'combat',
+            danger: 'medium',
+            description: 'A group of bandits emerges from the trees, demanding your coin.',
+            biome: 'Forest',
+            rewards: { gold: 50, experience: 75 }
+          },
+          {
+            name: 'Lost Traveler',
+            type: 'event',
+            danger: 'safe',
+            description: 'A confused traveler asks for directions to the nearest town.',
+            biome: 'Forest',
+            rewards: { experience: 25 }
+          },
+          {
+            name: 'Ancient Grove',
+            type: 'discovery',
+            danger: 'safe',
+            description: 'You discover an ancient grove with mystical properties.',
+            biome: 'Forest',
+            rewards: { experience: 100 }
+          }
+        );
+        break;
+        
+      case 'Grass':
+        encounters.push(
+          {
+            name: 'Wild Wolves',
+            type: 'combat',
+            danger: 'low',
+            description: 'A pack of hungry wolves blocks your path.',
+            biome: 'Grass',
+            rewards: { experience: 50 }
+          },
+          {
+            name: 'Merchant Caravan',
+            type: 'trader',
+            danger: 'safe',
+            description: 'A friendly merchant offers to trade goods.',
+            biome: 'Grass',
+            rewards: { experience: 25 }
+          }
+        );
+        break;
+        
+      case 'Mountain':
+        encounters.push(
+          {
+            name: 'Mountain Trolls',
+            type: 'combat',
+            danger: 'high',
+            description: 'Massive trolls emerge from rocky caves, brandishing crude weapons.',
+            biome: 'Mountain',
+            rewards: { gold: 100, experience: 150 }
+          },
+          {
+            name: 'Hidden Cave',
+            type: 'discovery',
+            danger: 'medium',
+            description: 'You discover a cave that might contain treasure... or danger.',
+            biome: 'Mountain',
+            rewards: { gold: 75, experience: 100 }
+          }
+        );
+        break;
+        
+      case 'Desert':
+        encounters.push(
+          {
+            name: 'Desert Nomads',
+            type: 'event',
+            danger: 'safe',
+            description: 'Desert nomads offer to share their water and knowledge.',
+            biome: 'Desert',
+            rewards: { experience: 50 }
+          },
+          {
+            name: 'Sandstorm Mirage',
+            type: 'discovery',
+            danger: 'low',
+            description: 'A mirage reveals the location of an oasis.',
+            biome: 'Desert',
+            rewards: { experience: 75 }
+          }
+        );
+        break;
+        
+      case 'Swamp':
+        encounters.push(
+          {
+            name: 'Swamp Wraiths',
+            type: 'combat',
+            danger: 'high',
+            description: 'Ghostly figures rise from the murky waters.',
+            biome: 'Swamp',
+            rewards: { experience: 125, items: ['Spirit Essence'] }
+          }
+        );
+        break;
+        
+      default:
+        // Generic encounters for other biomes
+        encounters.push(
+          {
+            name: 'Strange Weather',
+            type: 'event',
+            danger: 'safe',
+            description: 'Unusual weather patterns create an interesting phenomenon.',
+            rewards: { experience: 30 }
+          }
+        );
+    }
+    
+    if (encounters.length === 0) return null;
+    
+    const selectedEncounter = encounters[this.rng.nextInt(0, encounters.length - 1)];
+    
+    return {
+      id: `random_${this.state.party.x}_${this.state.party.y}_${this.state.time.day}_${Date.now()}`,
+      x: this.state.party.x,
+      y: this.state.party.y,
+      isFixed: false,
+      isActive: true,
+      ...selectedEncounter
+    };
+  }
+
+  /**
+   * Get fixed encounter at specific location
+   */
+  private getFixedEncounterAt(x: number, y: number): Encounter | null {
+    // This could be expanded to load from a data file or generate based on world features
+    const fixedEncounters: Encounter[] = [
+      // Example fixed encounters - these would be loaded from world data
+      {
+        id: 'dragon_lair_1000_1000',
+        name: 'Ancient Dragon Lair',
+        type: 'combat',
+        danger: 'extreme',
+        description: 'An ancient red dragon guards a massive hoard in this mountain cave.',
+        x: 1000,
+        y: 1000,
+        isFixed: true,
+        isActive: true,
+        rewards: { 
+          gold: 5000, 
+          experience: 1000, 
+          items: ['Dragon Scale Armor', 'Flame Sword'],
+          reputation: [{ faction: 'Dragon Slayers', amount: 100 }]
+        }
+      }
+      // Add more fixed encounters here
+    ];
+    
+    return fixedEncounters.find(enc => enc.x === x && enc.y === y) || null;
+  }
+
+  /**
+   * Get current active encounter
+   */
+  getActiveEncounter(): Encounter | null {
+    return this.state.activeEncounter;
+  }
+
+  /**
+   * Complete the current encounter
+   */
+  completeEncounter(success: boolean, rewards?: any): void {
+    if (!this.state.activeEncounter) return;
+    
+    const encounter = this.state.activeEncounter;
+    
+    // Handle combat encounters - deal damage based on success/failure
+    if (encounter.type === 'combat') {
+      if (!success) {
+        // Failed combat - take significant damage based on danger level
+        let damage = 0;
+        switch (encounter.danger) {
+          case 'low': damage = 10 + Math.floor(Math.random() * 10); break;    // 10-20 damage
+          case 'medium': damage = 20 + Math.floor(Math.random() * 15); break; // 20-35 damage  
+          case 'high': damage = 30 + Math.floor(Math.random() * 20); break;   // 30-50 damage
+          default: damage = 15 + Math.floor(Math.random() * 10); break;       // 15-25 damage
+        }
+        this.takeDamage(damage);
+        console.log(`Combat failed! Party takes ${damage} damage. HP: ${this.state.party.hitPoints}/${this.state.party.maxHitPoints}`);
+      } else {
+        // Successful combat - minimal damage
+        const damage = Math.floor(Math.random() * 5); // 0-5 damage
+        if (damage > 0) {
+          this.takeDamage(damage);
+          console.log(`Combat won with minor injuries: ${damage} damage taken.`);
+        }
+      }
+    }
+    
+    if (success) {
+      // Mark as completed
+      this.state.completedEncounters.add(encounter.id);
+      
+      // Apply rewards
+      if (encounter.rewards) {
+        const reward = encounter.rewards;
+        if (reward.gold) {
+          this.state.party.supplies.gold += reward.gold;
+        }
+        if (reward.items) {
+          this.state.party.equipment.push(...reward.items);
+        }
+        if (reward.experience) {
+          const leveledUp = this.gainExperience(reward.experience);
+          if (leveledUp) {
+            console.log(`Party gained ${reward.experience} XP and leveled up! Now level ${this.state.party.level}`);
+          } else {
+            console.log(`Party gained ${reward.experience} XP`);
+          }
+        }
+      }
+    }
+    
+    // Clear active encounter
+    this.state.activeEncounter = null;
+  }
+
+  /**
+   * Dismiss current encounter without completing
+   */
+  dismissEncounter(): void {
+    this.state.activeEncounter = null;
+  }
+
+  /**
+   * Get available physical abilities for the party
+   */
+  getAvailablePhysicalAbilities(): PhysicalAbility[] {
+    return this.physicalAbilities.getAvailableAbilities(
+      this.state.party.level,
+      this.state.party.stats,
+      this.state.party.equipment,
+      this.state.party.knownAbilities
+    );
+  }
+
+  /**
+   * Learn a new physical ability
+   */
+  learnPhysicalAbility(abilityName: string): boolean {
+    const available = this.getAvailablePhysicalAbilities();
+    const ability = available.find(a => a.name === abilityName);
+    
+    if (ability && !this.state.party.knownAbilities.includes(abilityName)) {
+      this.state.party.knownAbilities.push(abilityName);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Use a physical ability (if known and have stamina)
+   */
+  usePhysicalAbility(abilityName: string): { success: boolean; message: string } {
+    if (!this.state.party.knownAbilities.includes(abilityName)) {
+      return { success: false, message: 'Ability not known' };
+    }
+
+    const available = this.getAvailablePhysicalAbilities();
+    const ability = available.find(a => a.name === abilityName);
+    
+    if (!ability) {
+      return { success: false, message: 'Ability no longer available (requirements not met)' };
+    }
+
+    if (this.state.party.stamina < ability.staminaCost) {
+      return { success: false, message: 'Not enough stamina' };
+    }
+
+    // Use the ability
+    this.state.party.stamina -= ability.staminaCost;
+    
+    // Apply effects (basic implementation)
+    let message = `Used ${abilityName}!`;
+    
+    if (ability.effects.healing) {
+      const healing = Math.floor(Math.random() * (ability.effects.healing.max - ability.effects.healing.min + 1)) + ability.effects.healing.min;
+      this.heal(healing);
+      message += ` Healed ${healing} HP.`;
+    }
+    
+    if (ability.effects.damage) {
+      const damage = Math.floor(Math.random() * (ability.effects.damage.max - ability.effects.damage.min + 1)) + ability.effects.damage.min;
+      message += ` Dealt ${damage} ${ability.effects.damage.type || 'damage'}.`;
+    }
+
+    return { success: true, message };
+  }
+
+  /**
+   * Rest to recover stamina
+   */
+  restoreStamina(amount: number): void {
+    this.state.party.stamina = Math.min(this.state.party.maxStamina, this.state.party.stamina + amount);
+  }
+
+  /**
+   * Rest to recover ether
+   */
+  restoreEther(amount: number): void {
+    this.state.party.ether = Math.min(this.state.party.maxEther, this.state.party.ether + amount);
+  }
+
+  /**
+   * Use ether for magical abilities
+   */
+  useEther(amount: number): boolean {
+    if (this.state.party.ether >= amount) {
+      this.state.party.ether -= amount;
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Gain experience and potentially level up
+   */
+  gainExperience(amount: number): boolean {
+    this.state.party.experience += amount;
+    
+    // Simple leveling: 100 XP per level
+    const requiredXP = this.state.party.level * 100;
+    if (this.state.party.experience >= requiredXP) {
+      this.state.party.level++;
+      this.state.party.experience -= requiredXP;
+      
+      // Increase stats slightly on level up
+      const statKeys = Object.keys(this.state.party.stats) as (keyof typeof this.state.party.stats)[];
+      const randomStat = this.rng.pick(statKeys);
+      this.state.party.stats[randomStat]++;
+      
+      // Increase stamina and ether
+      this.state.party.maxStamina += 2;
+      this.state.party.stamina = this.state.party.maxStamina;
+      this.state.party.maxEther += 1;
+      this.state.party.ether = this.state.party.maxEther;
+      
+      return true; // Leveled up
+    }
+    
+    return false; // No level up
   }
 }

@@ -101,12 +101,17 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
     chokepoint: any;
     result?: any;
   } | null>(null);
+  const [activeEncounter, setActiveEncounter] = useState<any>(null);
+  const [showAbilities, setShowAbilities] = useState(false);
 
   // Update stats periodically
   useEffect(() => {
     const interval = setInterval(() => {
       try {
         setStats(engine.getStats());
+        // Check for new encounters
+        const encounter = engine.getActiveEncounter();
+        setActiveEncounter(encounter);
       } catch (error) {
         console.error('Error updating stats:', error);
       }
@@ -279,6 +284,10 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
         case 'c':
         case 'C':
           setCameraLocked(true);
+          break;
+        case 'v':
+        case 'V':
+          setShowAbilities(prev => !prev);
           break;
       }
 
@@ -681,6 +690,10 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
             case 'C':
               setCameraLocked(true);
               break;
+            case 'v':
+            case 'V':
+              setShowAbilities(prev => !prev);
+              break;
           }
 
           if (moved && cameraLocked) {
@@ -754,10 +767,42 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
         <div><strong>View:</strong> Mouse drag, scroll to zoom</div>
         <div><strong>Grid:</strong> G key</div>
         <div><strong>Center:</strong> C key</div>
+        <div><strong>Abilities:</strong> V key</div>
         <div style={{ marginTop: '8px' }}>
           <div>Position: ({engine.state.party.x}, {engine.state.party.y})</div>
+          <div>
+            Health: 
+            <span style={{ 
+              color: engine.state.party.hitPoints / engine.state.party.maxHitPoints > 0.7 ? '#4ade80' : 
+                     engine.state.party.hitPoints / engine.state.party.maxHitPoints > 0.3 ? '#eab308' : '#ef4444',
+              fontWeight: 'bold'
+            }}>
+              {engine.state.party.hitPoints}/{engine.state.party.maxHitPoints}
+            </span>
+          </div>
+          <div>
+            Stamina: 
+            <span style={{ 
+              color: engine.state.party.stamina / engine.state.party.maxStamina > 0.7 ? '#4ade80' : 
+                     engine.state.party.stamina / engine.state.party.maxStamina > 0.3 ? '#eab308' : '#ef4444',
+              fontWeight: 'bold'
+            }}>
+              {engine.state.party.stamina}/{engine.state.party.maxStamina}
+            </span>
+          </div>
+          <div>Level: {engine.state.party.level} (XP: {engine.state.party.experience})</div>
           <div>Weather: {engine.state.weather.type} ({Math.round(engine.state.weather.intensity * 100)}%)</div>
           <div>Time: {stats.gameTime}</div>
+          <div>
+            Encounter Risk: 
+            <span style={{ 
+              color: engine.state.encounterClock.riskLevel > 0.7 ? '#ef4444' : 
+                     engine.state.encounterClock.riskLevel > 0.4 ? '#eab308' : '#4ade80',
+              fontWeight: 'bold'
+            }}>
+              {Math.round(engine.state.encounterClock.riskLevel * 100)}%
+            </span>
+          </div>
         </div>
       </div>
 
@@ -915,6 +960,343 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
               </button>
             </div>
           )}
+        </div>
+      )}
+      
+      {/* Encounter Modal */}
+      {activeEncounter && (
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          background: 'rgba(0, 0, 0, 0.95)',
+          color: '#f9fafb',
+          padding: '20px',
+          borderRadius: '8px',
+          border: '2px solid #374151',
+          maxWidth: '500px',
+          zIndex: 250,
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6)'
+        }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '16px'
+          }}>
+            <h3 style={{ margin: 0, color: '#f1f5f9' }}>
+              {activeEncounter.name}
+            </h3>
+            <div style={{
+              padding: '4px 8px',
+              borderRadius: '4px',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              background: 
+                activeEncounter.danger === 'extreme' ? '#dc2626' :
+                activeEncounter.danger === 'high' ? '#ea580c' :
+                activeEncounter.danger === 'medium' ? '#eab308' :
+                activeEncounter.danger === 'low' ? '#65a30d' : '#6b7280',
+              color: 'white'
+            }}>
+              {activeEncounter.danger.toUpperCase()}
+            </div>
+          </div>
+          
+          <div style={{ marginBottom: '20px' }}>
+            <p style={{ margin: '0 0 16px 0', color: '#e2e8f0', fontSize: '14px', lineHeight: '1.5' }}>
+              {activeEncounter.description}
+            </p>
+            
+            <div style={{ fontSize: '13px', lineHeight: '1.5', color: '#cbd5e1' }}>
+              <div><strong>Type:</strong> {activeEncounter.type}</div>
+              <div><strong>Location:</strong> ({activeEncounter.x}, {activeEncounter.y})</div>
+              
+              {activeEncounter.rewards && (
+                <div style={{ marginTop: '12px' }}>
+                  <strong>Potential Rewards:</strong>
+                  <ul style={{ margin: '4px 0 0 0', paddingLeft: '16px', color: '#4ade80' }}>
+                    {activeEncounter.rewards.experience && (
+                      <li>{activeEncounter.rewards.experience} Experience</li>
+                    )}
+                    {activeEncounter.rewards.gold && (
+                      <li>{activeEncounter.rewards.gold} Gold</li>
+                    )}
+                    {activeEncounter.rewards.items && activeEncounter.rewards.items.map((item: string) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {activeEncounter.type === 'combat' && (
+              <button
+                onClick={() => {
+                  // TODO: Start combat encounter
+                  engine.completeEncounter(true);
+                  setActiveEncounter(null);
+                }}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  background: '#dc2626',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: 'bold'
+                }}
+              >
+                ⚔️ Fight
+              </button>
+            )}
+            
+            {activeEncounter.type === 'event' && (
+              <button
+                onClick={() => {
+                  engine.completeEncounter(true);
+                  setActiveEncounter(null);
+                }}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  background: '#059669',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: 'bold'
+                }}
+              >
+                🗨️ Interact
+              </button>
+            )}
+            
+            {activeEncounter.type === 'discovery' && (
+              <button
+                onClick={() => {
+                  engine.completeEncounter(true);
+                  setActiveEncounter(null);
+                }}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  background: '#7c3aed',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: 'bold'
+                }}
+              >
+                🔍 Explore
+              </button>
+            )}
+            
+            {activeEncounter.type === 'trader' && (
+              <button
+                onClick={() => {
+                  engine.completeEncounter(true);
+                  setActiveEncounter(null);
+                }}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  background: '#ea580c',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: 'bold'
+                }}
+              >
+                💰 Trade
+              </button>
+            )}
+            
+            <button
+              onClick={() => {
+                engine.dismissEncounter();
+                setActiveEncounter(null);
+              }}
+              style={{
+                flex: activeEncounter.type === 'combat' ? 1 : 0.5,
+                padding: '12px',
+                background: '#374151',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '14px'
+              }}
+            >
+              {activeEncounter.type === 'combat' ? '🏃 Flee' : '❌ Ignore'}
+            </button>
+          </div>
+        </div>
+      )}
+      
+      {/* Physical Abilities Panel */}
+      {showAbilities && (
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          right: '20px',
+          transform: 'translateY(-50%)',
+          background: 'rgba(0, 0, 0, 0.9)',
+          color: '#f9fafb',
+          padding: '20px',
+          borderRadius: '8px',
+          border: '2px solid #374151',
+          maxWidth: '350px',
+          maxHeight: '70vh',
+          overflowY: 'auto',
+          zIndex: 200,
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6)'
+        }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '16px'
+          }}>
+            <h3 style={{ margin: 0, color: '#f1f5f9' }}>Physical Abilities</h3>
+            <button
+              onClick={() => setShowAbilities(false)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#94a3b8',
+                fontSize: '20px',
+                cursor: 'pointer',
+                padding: '0',
+                width: '24px',
+                height: '24px'
+              }}
+            >
+              ×
+            </button>
+          </div>
+          
+          <div style={{ marginBottom: '16px', fontSize: '13px' }}>
+            <div><strong>Level:</strong> {engine.state.party.level}</div>
+            <div><strong>Experience:</strong> {engine.state.party.experience}/{engine.state.party.level * 100}</div>
+            <div style={{ marginTop: '8px' }}>
+              <strong>Stats:</strong>
+              <div style={{ fontSize: '12px', marginLeft: '8px' }}>
+                <div>STR: {engine.state.party.stats.strength} | DEX: {engine.state.party.stats.dexterity}</div>
+                <div>CON: {engine.state.party.stats.constitution} | INT: {engine.state.party.stats.intelligence}</div>
+                <div>WIS: {engine.state.party.stats.wisdom} | CHA: {engine.state.party.stats.charisma}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Known Abilities */}
+          <div style={{ marginBottom: '16px' }}>
+            <h4 style={{ margin: '0 0 8px 0', color: '#4ade80' }}>Known Abilities</h4>
+            {engine.state.party.knownAbilities.length > 0 ? (
+              <div style={{ fontSize: '12px' }}>
+                {engine.state.party.knownAbilities.map((ability, i) => (
+                  <div key={i} style={{ 
+                    padding: '4px 8px', 
+                    margin: '2px 0',
+                    background: 'rgba(34, 197, 94, 0.2)',
+                    borderRadius: '4px',
+                    border: '1px solid #22c55e'
+                  }}>
+                    {ability}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic' }}>
+                No abilities learned yet. Gain experience to unlock abilities!
+              </div>
+            )}
+          </div>
+
+          {/* Available Abilities */}
+          <div>
+            <h4 style={{ margin: '0 0 8px 0', color: '#eab308' }}>Available to Learn</h4>
+            {(() => {
+              try {
+                const available = engine.getAvailablePhysicalAbilities().filter(
+                  ability => !engine.state.party.knownAbilities.includes(ability.name)
+                );
+                
+                return available.length > 0 ? (
+                  <div style={{ fontSize: '12px' }}>
+                    {available.slice(0, 5).map((ability, i) => (
+                      <div key={i} style={{ 
+                        padding: '8px', 
+                        margin: '4px 0',
+                        background: 'rgba(234, 179, 8, 0.2)',
+                        borderRadius: '4px',
+                        border: '1px solid #eab308'
+                      }}>
+                        <div style={{ fontWeight: 'bold', color: '#fbbf24' }}>{ability.name}</div>
+                        <div style={{ fontSize: '11px', color: '#e2e8f0', marginTop: '2px' }}>
+                          {ability.school} • {ability.tier}
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#cbd5e1', marginTop: '4px' }}>
+                          {ability.description}
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>
+                          Stamina Cost: {ability.staminaCost} | Level: {ability.requirements.minLevel}
+                        </div>
+                        <button
+                          onClick={() => {
+                            const success = engine.learnPhysicalAbility(ability.name);
+                            if (success) {
+                              console.log(`Learned ${ability.name}!`);
+                              // Force re-render by updating a state value
+                              setStats(prev => ({ ...prev }));
+                            }
+                          }}
+                          style={{
+                            marginTop: '4px',
+                            padding: '2px 6px',
+                            background: '#059669',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '3px',
+                            cursor: 'pointer',
+                            fontSize: '10px'
+                          }}
+                        >
+                          Learn
+                        </button>
+                      </div>
+                    ))}
+                    {available.length > 5 && (
+                      <div style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic', marginTop: '8px' }}>
+                        ... and {available.length - 5} more abilities available
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic' }}>
+                    No new abilities available. Level up or get better equipment!
+                  </div>
+                );
+              } catch (error) {
+                console.error('Error getting abilities:', error);
+                return (
+                  <div style={{ fontSize: '12px', color: '#ef4444' }}>
+                    Error loading abilities
+                  </div>
+                );
+              }
+            })()}
+          </div>
         </div>
       )}
     </div>
