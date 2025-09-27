@@ -1,5 +1,5 @@
 # Simple workflow for deploying static content to GitHub Pages
-name: Deploy static content to Pages
+name: Deploy React app to Pages
 
 on:
   # Runs on pushes targeting the default branch
@@ -28,35 +28,33 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      - name: Debug - List files
-        run: |
-          echo "Current directory contents:"
-          ls -la
-          echo "Package.json contents:"
-          cat package.json
+      
       - name: Install dependencies
-        run: |
-          echo "Installing dependencies..."
-          npm install --verbose
+        run: npm ci
+      
       - name: Build React app
+        run: CI=false npm run build
+        
+      - name: List build contents
         run: |
-          echo "Building React app..."
-          CI=false npm run build
-      - name: Debug - Check build output
-        run: |
-          echo "Build directory contents:"
-          ls -la build/ || echo "Build directory not found"
+          echo "Build directory structure:"
+          find build -type f | head -20
+          echo "Index.html exists:"
+          ls -la build/index.html
+      
       - name: Setup Pages
         uses: actions/configure-pages@v5
+        
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './build'
+          path: build
 
   # Deploy job
   deploy:
