@@ -294,7 +294,7 @@ export async function bindPortraitToCharacter(
         if (result.success && result.data) {
             // For SVG, we can convert to data URL if needed
             let portraitUrl = result.data as string;
-            
+
             if (typeof result.data === 'string' && result.data.startsWith('<svg')) {
                 // Convert SVG to data URL
                 const svgBlob = new Blob([result.data], { type: 'image/svg+xml' });
@@ -303,7 +303,7 @@ export async function bindPortraitToCharacter(
 
             // Bind to character object
             character.portraitUrl = portraitUrl;
-            
+
             console.log(`Portrait bound to ${character.name}: ${portraitUrl.substring(0, 50)}...`);
         } else {
             console.warn(`Failed to generate portrait for ${character.name}:`, result.error);

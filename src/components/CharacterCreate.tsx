@@ -722,7 +722,7 @@ export default function CharacterCreate() {
     try {
       // Finalize character with auto-generated portrait (following patch example)
       const finalizedCharacter = await finalizeCharacter({ ...char });
-      
+
       // Get existing character library
       const existingCharacters = JSON.parse(localStorage.getItem('world-engine-characters') || '[]');
       console.log("Existing characters:", existingCharacters);
