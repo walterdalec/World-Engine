@@ -1,9 +1,10 @@
-name: Build and Deploy
+name: Build and Deploy (DISABLED)
 
+# Temporarily disabled to avoid conflicts with pages.yml
 on:
-  push:
-    branches:
-      - main
+  # push:
+  #   branches:
+  #     - main
   workflow_dispatch:
 
 jobs:
