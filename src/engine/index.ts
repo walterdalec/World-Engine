@@ -25,6 +25,37 @@ export type { Chokepoint, Fortification, RegionData } from '../proc/chokepoints'
 export type { PhysicalAbility, PhysicalAbilitySchool, PhysicalAbilityTier } from '../proc/physicalAbilities';
 export type { MagicalSpell, MagicalSchool, SpellTier } from '../proc/magicalSpells';
 
+export interface Character {
+  id: string;
+  name: string;
+  pronouns: string;
+  species: string;
+  archetype: string;
+  background: string;
+  level: number;
+  experience: number;
+  stats: {
+    strength: number;
+    dexterity: number;
+    constitution: number;
+    intelligence: number;
+    wisdom: number;
+    charisma: number;
+  };
+  traits: string[];
+  portraitUrl?: string;
+  hitPoints: number;
+  maxHitPoints: number;
+  stamina: number;
+  maxStamina: number;
+  ether: number;
+  maxEther: number;
+  knownAbilities: string[];
+  knownSpells: string[];
+  knownCantrips: string[];
+  equipment: string[];
+}
+
 export interface Party {
   x: number;
   y: number;
@@ -111,6 +142,7 @@ export interface EngineConfig {
 export interface GameState {
   seed: string;
   party: Party;
+  characters: Character[]; // Individual character data
   time: GameTime;
   weather: Weather;
   encounterClock: EncounterClock;
@@ -220,6 +252,7 @@ export class WorldEngine {
         ether: 15, // Starting ether for magic
         maxEther: 15
       },
+      characters: [], // Individual character data - initially empty
       time: {
         minutes: 480, // 8 AM
         day: 1,
@@ -244,6 +277,9 @@ export class WorldEngine {
     
     // Create a main city at spawn point
     this.createMainCity(this.state.party.x, this.state.party.y);
+
+    // Create default test characters
+    this.createDefaultCharacters();
   }
   
   /**
@@ -1399,5 +1435,209 @@ export class WorldEngine {
     }
     
     return false; // No level up
+  }
+
+  /**
+   * Character Management Methods
+   */
+
+  /**
+   * Add a character to the party
+   */
+  addCharacter(characterData: Omit<Character, 'id' | 'hitPoints' | 'maxHitPoints' | 'stamina' | 'maxStamina' | 'ether' | 'maxEther' | 'knownAbilities' | 'knownSpells' | 'knownCantrips' | 'equipment'>): Character {
+    const character: Character = {
+      ...characterData,
+      id: `char_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      hitPoints: this.calculateMaxHitPoints(characterData.stats.constitution, characterData.level),
+      maxHitPoints: this.calculateMaxHitPoints(characterData.stats.constitution, characterData.level),
+      stamina: this.calculateMaxStamina(characterData.stats.constitution, characterData.level),
+      maxStamina: this.calculateMaxStamina(characterData.stats.constitution, characterData.level),
+      ether: this.calculateMaxEther(characterData.stats.intelligence, characterData.stats.wisdom, characterData.level),
+      maxEther: this.calculateMaxEther(characterData.stats.intelligence, characterData.stats.wisdom, characterData.level),
+      knownAbilities: [],
+      knownSpells: [],
+      knownCantrips: [],
+      equipment: []
+    };
+
+    this.state.characters.push(character);
+    this.state.party.members.push(character.id);
+
+    return character;
+  }
+
+  /**
+   * Get a character by ID
+   */
+  getCharacter(id: string): Character | undefined {
+    return this.state.characters.find(char => char.id === id);
+  }
+
+  /**
+   * Get all party member characters
+   */
+  getPartyCharacters(): Character[] {
+    return this.state.party.members
+      .map(id => this.getCharacter(id))
+      .filter((char): char is Character => char !== undefined);
+  }
+
+  /**
+   * Learn a physical ability for a specific character
+   */
+  learnPhysicalAbilityForCharacter(characterId: string, abilityName: string): boolean {
+    const character = this.getCharacter(characterId);
+    if (!character) return false;
+
+    const available = this.getAvailablePhysicalAbilitiesForCharacter(characterId);
+    const ability = available.find(a => a.name === abilityName);
+    
+    if (ability && !character.knownAbilities.includes(abilityName)) {
+      character.knownAbilities.push(abilityName);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Learn a magical spell for a specific character
+   */
+  learnMagicalSpellForCharacter(characterId: string, spellName: string): boolean {
+    const character = this.getCharacter(characterId);
+    if (!character) return false;
+
+    const available = this.getAvailableMagicalSpellsForCharacter(characterId);
+    const spell = available.find(s => s.name === spellName);
+    
+    if (spell && !character.knownSpells.includes(spellName)) {
+      character.knownSpells.push(spellName);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Get available physical abilities for a specific character
+   */
+  getAvailablePhysicalAbilitiesForCharacter(characterId: string): PhysicalAbility[] {
+    const character = this.getCharacter(characterId);
+    if (!character) return [];
+
+    return this.physicalAbilities.getAvailableAbilities(
+      character.level,
+      character.stats,
+      character.equipment,
+      character.knownAbilities
+    );
+  }
+
+  /**
+   * Get available magical spells for a specific character
+   */
+  getAvailableMagicalSpellsForCharacter(characterId: string): MagicalSpell[] {
+    const character = this.getCharacter(characterId);
+    if (!character) return [];
+
+    return this.magicalSpells.getAvailableSpells(
+      character.level,
+      character.stats,
+      character.equipment,
+      character.knownSpells
+    );
+  }
+
+  /**
+   * Helper methods for calculating character resources
+   */
+  private calculateMaxHitPoints(constitution: number, level: number): number {
+    const baseHP = 20;
+    const conBonus = Math.floor((constitution - 10) / 2);
+    const levelBonus = (level - 1) * 5;
+    return Math.max(1, baseHP + conBonus + levelBonus);
+  }
+
+  private calculateMaxStamina(constitution: number, level: number): number {
+    const baseStamina = 10;
+    const conBonus = Math.floor((constitution - 10) / 2);
+    const levelBonus = (level - 1) * 3;
+    return Math.max(1, baseStamina + conBonus + levelBonus);
+  }
+
+  private calculateMaxEther(intelligence: number, wisdom: number, level: number): number {
+    const baseEther = 5;
+    const intBonus = Math.floor((intelligence - 10) / 2);
+    const wisBonus = Math.floor((wisdom - 10) / 2);
+    const levelBonus = (level - 1) * 2;
+    return Math.max(0, baseEther + intBonus + wisBonus + levelBonus);
+  }
+
+  /**
+   * Create default test characters for demonstration
+   */
+  createDefaultCharacters(): void {
+    // Only create if no characters exist
+    if (this.state.characters.length > 0) return;
+
+    // Fighter character
+    this.addCharacter({
+      name: "Aria the Bold",
+      pronouns: "she/her",
+      species: "Human",
+      archetype: "Fighter",
+      background: "Soldier",
+      level: 2,
+      experience: 150,
+      stats: {
+        strength: 16,
+        dexterity: 12,
+        constitution: 15,
+        intelligence: 10,
+        wisdom: 12,
+        charisma: 11
+      },
+      traits: ["Brave", "Disciplined"]
+    });
+
+    // Wizard character
+    this.addCharacter({
+      name: "Eldon Starweaver",
+      pronouns: "he/him",
+      species: "Elf",
+      archetype: "Wizard",
+      background: "Scholar",
+      level: 2,
+      experience: 180,
+      stats: {
+        strength: 8,
+        dexterity: 14,
+        constitution: 12,
+        intelligence: 17,
+        wisdom: 13,
+        charisma: 10
+      },
+      traits: ["Studious", "Perceptive"]
+    });
+
+    // Rogue character
+    this.addCharacter({
+      name: "Kira Shadowstep",
+      pronouns: "they/them",
+      species: "Halfling",
+      archetype: "Rogue",
+      background: "Criminal",
+      level: 1,
+      experience: 75,
+      stats: {
+        strength: 10,
+        dexterity: 18,
+        constitution: 13,
+        intelligence: 12,
+        wisdom: 14,
+        charisma: 15
+      },
+      traits: ["Sneaky", "Lucky"]
+    });
+
+    console.log(`Created ${this.state.characters.length} default characters for testing`);
   }
 }

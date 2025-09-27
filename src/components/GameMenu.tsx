@@ -2,7 +2,7 @@
  * Game Menu - Tabbed in-game menu system
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { WorldEngine } from '../engine/index';
 
 interface GameMenuProps {
@@ -26,18 +26,17 @@ type MenuTab = 'stats' | 'abilities' | 'spells' | 'creation' | 'settings';
 export default function GameMenu({ 
   engine, 
   isVisible, 
-  onClose, 
-  showGrid, 
-  onToggleGrid, 
-  cameraLocked, 
-  onToggleCameraLock, 
-  stats 
+  onClose,
+  showGrid,
+  onToggleGrid,
+  cameraLocked,
+  onToggleCameraLock,
+  stats
 }: GameMenuProps) {
   const [activeTab, setActiveTab] = useState<MenuTab>('stats');
+  const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
 
-  if (!isVisible) return null;
-
-  return (
+  if (!isVisible) return null;  return (
     <div style={{
       position: 'absolute',
       top: '50%',
@@ -257,78 +256,11 @@ export default function GameMenu({
               )}
             </div>
 
-            {/* Available Abilities */}
+            {/* Available Abilities by School */}
             <div>
-              <h4 style={{ margin: '0 0 12px 0', color: '#eab308' }}>Available to Learn</h4>
-              {(() => {
-                try {
-                  const available = engine.getAvailablePhysicalAbilities().filter(
-                    ability => !engine.state.party.knownAbilities.includes(ability.name)
-                  );
-                  
-                  return available.length > 0 ? (
-                    <div style={{ display: 'grid', gap: '12px' }}>
-                      {available.slice(0, 6).map((ability, i) => (
-                        <div key={i} style={{ 
-                          padding: '16px', 
-                          background: 'rgba(234, 179, 8, 0.2)',
-                          borderRadius: '8px',
-                          border: '1px solid #eab308'
-                        }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <div style={{ flex: 1 }}>
-                              <div style={{ fontWeight: 'bold', color: '#fbbf24', fontSize: '16px' }}>{ability.name}</div>
-                              <div style={{ fontSize: '12px', color: '#e2e8f0', marginTop: '4px' }}>
-                                {ability.school} • {ability.tier} • Stamina: {ability.staminaCost}
-                              </div>
-                              <div style={{ fontSize: '13px', color: '#cbd5e1', marginTop: '8px' }}>
-                                {ability.description}
-                              </div>
-                            </div>
-                            <button
-                              onClick={() => {
-                                const success = engine.learnPhysicalAbility(ability.name);
-                                if (success) {
-                                  console.log(`Learned ${ability.name}!`);
-                                }
-                              }}
-                              style={{
-                                marginLeft: '12px',
-                                padding: '8px 16px',
-                                background: '#059669',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                fontSize: '12px',
-                                fontWeight: 'bold'
-                              }}
-                            >
-                              Learn
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                      {available.length > 6 && (
-                        <div style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic', textAlign: 'center', marginTop: '12px' }}>
-                          ... and {available.length - 6} more abilities available
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div style={{ fontSize: '14px', color: '#94a3b8', fontStyle: 'italic' }}>
-                      No new physical abilities available.
-                    </div>
-                  );
-                } catch (error) {
-                  console.error('Error getting physical abilities:', error);
-                  return (
-                    <div style={{ fontSize: '14px', color: '#ef4444' }}>
-                      Error loading physical abilities
-                    </div>
-                  );
-                }
-              })()}
+              <h4 style={{ margin: '0 0 12px 0', color: '#eab308' }}>Available to Learn by School</h4>
+              <CharacterSelector engine={engine} selectedCharacterId={selectedCharacterId} onSelectCharacter={setSelectedCharacterId} />
+              {selectedCharacterId && <AbilitiesBySchool engine={engine} characterId={selectedCharacterId} />}
             </div>
           </div>
         )}
@@ -361,79 +293,11 @@ export default function GameMenu({
               )}
             </div>
 
-            {/* Available Spells */}
+            {/* Available Spells by School */}
             <div>
-              <h4 style={{ margin: '0 0 12px 0', color: '#06b6d4' }}>Available to Learn</h4>
-              {(() => {
-                try {
-                  const available = engine.getAvailableMagicalSpells().filter(
-                    spell => !engine.state.party.knownSpells.includes(spell.name)
-                  );
-                  
-                  return available.length > 0 ? (
-                    <div style={{ display: 'grid', gap: '12px' }}>
-                      {available.slice(0, 6).map((spell, i) => (
-                        <div key={i} style={{ 
-                          padding: '16px', 
-                          background: 'rgba(6, 182, 212, 0.2)',
-                          borderRadius: '8px',
-                          border: '1px solid #06b6d4'
-                        }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <div style={{ flex: 1 }}>
-                              <div style={{ fontWeight: 'bold', color: '#22d3ee', fontSize: '16px' }}>{spell.name}</div>
-                              <div style={{ fontSize: '12px', color: '#e2e8f0', marginTop: '4px' }}>
-                                {spell.school} • {spell.tier} • Ether: {spell.etherCost}
-                                {spell.range && ` • Range: ${spell.range}`}
-                              </div>
-                              <div style={{ fontSize: '13px', color: '#cbd5e1', marginTop: '8px' }}>
-                                {spell.description}
-                              </div>
-                            </div>
-                            <button
-                              onClick={() => {
-                                const success = engine.learnMagicalSpell(spell.name);
-                                if (success) {
-                                  console.log(`Learned ${spell.name}!`);
-                                }
-                              }}
-                              style={{
-                                marginLeft: '12px',
-                                padding: '8px 16px',
-                                background: '#0891b2',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                fontSize: '12px',
-                                fontWeight: 'bold'
-                              }}
-                            >
-                              Learn
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                      {available.length > 6 && (
-                        <div style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic', textAlign: 'center', marginTop: '12px' }}>
-                          ... and {available.length - 6} more spells available
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div style={{ fontSize: '14px', color: '#94a3b8', fontStyle: 'italic' }}>
-                      No new magical spells available.
-                    </div>
-                  );
-                } catch (error) {
-                  console.error('Error getting magical spells:', error);
-                  return (
-                    <div style={{ fontSize: '14px', color: '#ef4444' }}>
-                      Error loading magical spells
-                    </div>
-                  );
-                }
-              })()}
+              <h4 style={{ margin: '0 0 12px 0', color: '#06b6d4' }}>Available to Learn by School</h4>
+              <CharacterSelector engine={engine} selectedCharacterId={selectedCharacterId} onSelectCharacter={setSelectedCharacterId} />
+              {selectedCharacterId && <SpellsBySchool engine={engine} characterId={selectedCharacterId} />}
             </div>
           </div>
         )}
@@ -661,6 +525,345 @@ export default function GameMenu({
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+// Character selector component
+function CharacterSelector({ 
+  engine, 
+  selectedCharacterId, 
+  onSelectCharacter 
+}: { 
+  engine: WorldEngine; 
+  selectedCharacterId: string | null; 
+  onSelectCharacter: (id: string | null) => void; 
+}) {
+  const characters = engine.getPartyCharacters();
+
+  if (characters.length === 0) {
+    return (
+      <div style={{
+        padding: '16px',
+        background: 'rgba(239, 68, 68, 0.1)',
+        border: '1px solid rgba(239, 68, 68, 0.3)',
+        borderRadius: '8px',
+        marginBottom: '16px',
+        fontSize: '14px',
+        color: '#fca5a5'
+      }}>
+        ⚠️ No characters in party. Add characters to assign abilities and spells.
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ marginBottom: '16px' }}>
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        {characters.map(char => (
+          <button
+            key={char.id}
+            onClick={() => onSelectCharacter(selectedCharacterId === char.id ? null : char.id)}
+            style={{
+              padding: '8px 16px',
+              background: selectedCharacterId === char.id ? '#3b82f6' : 'rgba(59, 130, 246, 0.2)',
+              border: selectedCharacterId === char.id ? '2px solid #60a5fa' : '1px solid rgba(59, 130, 246, 0.3)',
+              borderRadius: '6px',
+              color: selectedCharacterId === char.id ? '#f9fafb' : '#94a3b8',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: selectedCharacterId === char.id ? 'bold' : 'normal',
+              transition: 'all 0.2s'
+            }}
+          >
+            👤 {char.name} (Lv.{char.level})
+          </button>
+        ))}
+      </div>
+      {selectedCharacterId && (
+        <div style={{
+          marginTop: '12px',
+          padding: '12px',
+          background: 'rgba(59, 130, 246, 0.1)',
+          border: '1px solid rgba(59, 130, 246, 0.3)',
+          borderRadius: '6px',
+          fontSize: '13px',
+          color: '#cbd5e1'
+        }}>
+          Selected: <strong>{characters.find(c => c.id === selectedCharacterId)?.name}</strong>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Abilities organized by school dropdown component
+function AbilitiesBySchool({ engine, characterId }: { engine: WorldEngine; characterId: string }) {
+  const [openSchools, setOpenSchools] = useState<Set<string>>(new Set());
+  
+  const character = engine.getCharacter(characterId);
+  const abilitiesBySchool = useMemo(() => {
+    if (!character) return {};
+    
+    try {
+      const available = engine.getAvailablePhysicalAbilitiesForCharacter(characterId).filter(
+        ability => !character.knownAbilities.includes(ability.name)
+      );
+      
+      const grouped: Record<string, any[]> = {};
+      available.forEach(ability => {
+        if (!grouped[ability.school]) {
+          grouped[ability.school] = [];
+        }
+        grouped[ability.school].push(ability);
+      });
+      
+      return grouped;
+    } catch (error) {
+      console.error('Error loading abilities:', error);
+      return {};
+    }
+  }, [character?.level, JSON.stringify(character?.stats), JSON.stringify(character?.knownAbilities), characterId]);
+
+  if (!character) {
+    return (
+      <div style={{ fontSize: '14px', color: '#ef4444' }}>
+        Character not found.
+      </div>
+    );
+  }
+
+  const toggleSchool = (school: string) => {
+    const newOpen = new Set(openSchools);
+    if (newOpen.has(school)) {
+      newOpen.delete(school);
+    } else {
+      newOpen.add(school);
+    }
+    setOpenSchools(newOpen);
+  };
+
+  const schools = Object.keys(abilitiesBySchool).sort();
+
+  if (schools.length === 0) {
+    return (
+      <div style={{ fontSize: '14px', color: '#94a3b8', fontStyle: 'italic' }}>
+        No new physical abilities available.
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'grid', gap: '8px' }}>
+      {schools.map(school => (
+        <div key={school} style={{
+          border: '1px solid rgba(34, 197, 94, 0.3)',
+          borderRadius: '8px',
+          background: 'rgba(34, 197, 94, 0.1)'
+        }}>
+          <button
+            onClick={() => toggleSchool(school)}
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              background: 'transparent',
+              border: 'none',
+              color: '#4ade80',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}
+          >
+            <span>⚔️ {school} ({abilitiesBySchool[school].length})</span>
+            <span style={{ fontSize: '18px' }}>{openSchools.has(school) ? '▼' : '▶'}</span>
+          </button>
+          
+          {openSchools.has(school) && (
+            <div style={{ padding: '0 16px 16px 16px', display: 'grid', gap: '12px' }}>
+              {abilitiesBySchool[school].map((ability: any, i: number) => (
+                <div key={i} style={{ 
+                  padding: '16px', 
+                  background: 'rgba(234, 179, 8, 0.2)',
+                  borderRadius: '8px',
+                  border: '1px solid #eab308'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 'bold', color: '#fbbf24', fontSize: '16px' }}>{ability.name}</div>
+                      <div style={{ fontSize: '12px', color: '#e2e8f0', marginTop: '4px' }}>
+                        {ability.school} • {ability.tier} • Stamina: {ability.staminaCost}
+                      </div>
+                      <div style={{ fontSize: '13px', color: '#cbd5e1', marginTop: '8px' }}>
+                        {ability.description}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const success = engine.learnPhysicalAbilityForCharacter(characterId, ability.name);
+                        if (success) {
+                          console.log(`${character.name} learned ${ability.name}!`);
+                        }
+                      }}
+                      style={{
+                        marginLeft: '12px',
+                        padding: '8px 16px',
+                        background: '#059669',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      Learn
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Spells organized by school dropdown component
+function SpellsBySchool({ engine, characterId }: { engine: WorldEngine; characterId: string }) {
+  const [openSchools, setOpenSchools] = useState<Set<string>>(new Set());
+  
+  const character = engine.getCharacter(characterId);
+  const spellsBySchool = useMemo(() => {
+    if (!character) return {};
+    
+    try {
+      const available = engine.getAvailableMagicalSpellsForCharacter(characterId).filter(
+        spell => !character.knownSpells.includes(spell.name)
+      );
+      
+      const grouped: Record<string, any[]> = {};
+      available.forEach(spell => {
+        if (!grouped[spell.school]) {
+          grouped[spell.school] = [];
+        }
+        grouped[spell.school].push(spell);
+      });
+      
+      return grouped;
+    } catch (error) {
+      console.error('Error loading spells:', error);
+      return {};
+    }
+  }, [character?.level, JSON.stringify(character?.stats), JSON.stringify(character?.knownSpells), characterId]);
+
+  if (!character) {
+    return (
+      <div style={{ fontSize: '14px', color: '#ef4444' }}>
+        Character not found.
+      </div>
+    );
+  }
+
+  const toggleSchool = (school: string) => {
+    const newOpen = new Set(openSchools);
+    if (newOpen.has(school)) {
+      newOpen.delete(school);
+    } else {
+      newOpen.add(school);
+    }
+    setOpenSchools(newOpen);
+  };
+
+  const schools = Object.keys(spellsBySchool).sort();
+
+  if (schools.length === 0) {
+    return (
+      <div style={{ fontSize: '14px', color: '#94a3b8', fontStyle: 'italic' }}>
+        No new magical spells available.
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'grid', gap: '8px' }}>
+      {schools.map(school => (
+        <div key={school} style={{
+          border: '1px solid rgba(139, 92, 246, 0.3)',
+          borderRadius: '8px',
+          background: 'rgba(139, 92, 246, 0.1)'
+        }}>
+          <button
+            onClick={() => toggleSchool(school)}
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              background: 'transparent',
+              border: 'none',
+              color: '#a855f7',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}
+          >
+            <span>✨ {school} ({spellsBySchool[school].length})</span>
+            <span style={{ fontSize: '18px' }}>{openSchools.has(school) ? '▼' : '▶'}</span>
+          </button>
+          
+          {openSchools.has(school) && (
+            <div style={{ padding: '0 16px 16px 16px', display: 'grid', gap: '12px' }}>
+              {spellsBySchool[school].map((spell: any, i: number) => (
+                <div key={i} style={{ 
+                  padding: '16px', 
+                  background: 'rgba(6, 182, 212, 0.2)',
+                  borderRadius: '8px',
+                  border: '1px solid #06b6d4'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 'bold', color: '#22d3ee', fontSize: '16px' }}>{spell.name}</div>
+                      <div style={{ fontSize: '12px', color: '#e2e8f0', marginTop: '4px' }}>
+                        {spell.school} • {spell.tier} • Ether: {spell.etherCost}
+                        {spell.range && ` • Range: ${spell.range}`}
+                      </div>
+                      <div style={{ fontSize: '13px', color: '#cbd5e1', marginTop: '8px' }}>
+                        {spell.description}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const success = engine.learnMagicalSpellForCharacter(characterId, spell.name);
+                        if (success) {
+                          console.log(`${character.name} learned ${spell.name}!`);
+                        }
+                      }}
+                      style={{
+                        marginLeft: '12px',
+                        padding: '8px 16px',
+                        background: '#0891b2',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      Learn
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   );
 }

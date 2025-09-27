@@ -403,13 +403,13 @@ export default function GameModals({
             padding: '32px',
             borderRadius: '12px',
             border: '2px solid #374151',
-            maxWidth: '800px',
-            width: '90%',
-            maxHeight: '80vh',
+            maxWidth: '900px',
+            width: '95%',
+            maxHeight: '85vh',
             overflowY: 'auto'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <h2 style={{ margin: 0, color: '#3b82f6' }}>👤 Character Information</h2>
+              <h2 style={{ margin: 0, color: '#3b82f6' }}>� Party Characters</h2>
               <button
                 onClick={onCloseCharacterModal}
                 style={{
@@ -424,140 +424,166 @@ export default function GameModals({
               </button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-              {/* Basic Stats */}
-              <div style={{
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                border: '1px solid rgba(59, 130, 246, 0.3)',
-                borderRadius: '8px',
-                padding: '20px'
-              }}>
-                <h3 style={{ margin: '0 0 16px 0', color: '#60a5fa' }}>Character Stats</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', fontSize: '14px' }}>
-                  <div><strong>Level:</strong> {engine.state.party.level}</div>
-                  <div><strong>Experience:</strong> {engine.state.party.experience}/{engine.state.party.level * 100}</div>
-                  <div><strong>HP:</strong> {engine.state.party.hitPoints}/{engine.state.party.maxHitPoints}</div>
-                  <div><strong>Stamina:</strong> {engine.state.party.stamina}/{engine.state.party.maxStamina}</div>
-                  <div><strong>Ether:</strong> {engine.state.party.ether}/{engine.state.party.maxEther}</div>
-                  <div><strong>Gold:</strong> {engine.state.party.supplies.gold}</div>
-                </div>
-              </div>
-
-              {/* Attributes */}
-              <div style={{
-                backgroundColor: 'rgba(168, 85, 247, 0.1)',
-                border: '1px solid rgba(168, 85, 247, 0.3)',
-                borderRadius: '8px',
-                padding: '20px'
-              }}>
-                <h3 style={{ margin: '0 0 16px 0', color: '#a855f7' }}>Attributes</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', fontSize: '14px' }}>
-                  <div><strong>STR:</strong> {engine.state.party.stats.strength}</div>
-                  <div><strong>DEX:</strong> {engine.state.party.stats.dexterity}</div>
-                  <div><strong>CON:</strong> {engine.state.party.stats.constitution}</div>
-                  <div><strong>INT:</strong> {engine.state.party.stats.intelligence}</div>
-                  <div><strong>WIS:</strong> {engine.state.party.stats.wisdom}</div>
-                  <div><strong>CHA:</strong> {engine.state.party.stats.charisma}</div>
-                </div>
-              </div>
-
-              {/* Abilities & Spells */}
-              <div style={{
-                backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                border: '1px solid rgba(34, 197, 94, 0.3)',
-                borderRadius: '8px',
-                padding: '20px'
-              }}>
-                <h3 style={{ margin: '0 0 16px 0', color: '#4ade80' }}>Known Abilities</h3>
-                <div style={{ fontSize: '13px' }}>
-                  {engine.state.party.knownAbilities.length > 0 ? (
-                    engine.state.party.knownAbilities.map((ability, i) => (
-                      <div key={i} style={{ 
-                        padding: '4px 8px', 
-                        margin: '2px',
-                        backgroundColor: 'rgba(34, 197, 94, 0.2)',
-                        borderRadius: '4px',
-                        display: 'inline-block'
-                      }}>
-                        {ability}
-                      </div>
-                    ))
-                  ) : (
-                    <div style={{ color: '#9ca3af', fontStyle: 'italic' }}>No abilities learned</div>
-                  )}
-                </div>
-              </div>
-
-              <div style={{
-                backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                border: '1px solid rgba(139, 92, 246, 0.3)',
-                borderRadius: '8px',
-                padding: '20px'
-              }}>
-                <h3 style={{ margin: '0 0 16px 0', color: '#8b5cf6' }}>Known Spells</h3>
-                <div style={{ fontSize: '13px' }}>
-                  {engine.state.party.knownSpells.length > 0 ? (
-                    engine.state.party.knownSpells.map((spell, i) => (
-                      <div key={i} style={{ 
-                        padding: '4px 8px', 
-                        margin: '2px',
-                        backgroundColor: 'rgba(139, 92, 246, 0.2)',
-                        borderRadius: '4px',
-                        display: 'inline-block'
-                      }}>
-                        {spell}
-                      </div>
-                    ))
-                  ) : (
-                    <div style={{ color: '#9ca3af', fontStyle: 'italic' }}>No spells learned</div>
-                  )}
-                </div>
-              </div>
-
-              {/* Equipment */}
-              <div style={{
-                backgroundColor: 'rgba(234, 179, 8, 0.1)',
-                border: '1px solid rgba(234, 179, 8, 0.3)',
-                borderRadius: '8px',
-                padding: '20px',
-                gridColumn: 'span 2'
-              }}>
-                <h3 style={{ margin: '0 0 16px 0', color: '#eab308' }}>Equipment & Supplies</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', fontSize: '14px' }}>
-                  <div>
-                    <strong>Equipment:</strong>
-                    <div style={{ marginTop: '8px' }}>
-                      {engine.state.party.equipment.length > 0 ? (
-                        engine.state.party.equipment.map((item, i) => (
-                          <div key={i} style={{ 
-                            padding: '4px 8px', 
-                            margin: '2px',
-                            backgroundColor: 'rgba(234, 179, 8, 0.2)',
-                            borderRadius: '4px',
-                            display: 'inline-block'
-                          }}>
-                            {item.replace(/_/g, ' ')}
-                          </div>
-                        ))
-                      ) : (
-                        <div style={{ color: '#9ca3af', fontStyle: 'italic' }}>No equipment</div>
-                      )}
-                    </div>
-                  </div>
-                  <div>
-                    <strong>Supplies:</strong>
-                    <div style={{ marginTop: '8px' }}>
-                      <div>Food: {engine.state.party.supplies.food}</div>
-                      <div>Water: {engine.state.party.supplies.water}</div>
-                      <div>Gold: {engine.state.party.supplies.gold}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <CharacterList engine={engine} />
           </div>
         </div>
       )}
     </>
+  );
+}
+
+// Character List Component
+function CharacterList({ engine }: { engine: { getPartyCharacters: () => any[] } }) {
+  const characters = engine.getPartyCharacters();
+
+  if (characters.length === 0) {
+    return (
+      <div style={{
+        padding: '32px',
+        textAlign: 'center',
+        background: 'rgba(239, 68, 68, 0.1)',
+        border: '1px solid rgba(239, 68, 68, 0.3)',
+        borderRadius: '8px',
+        color: '#fca5a5'
+      }}>
+        <h3 style={{ margin: '0 0 16px 0' }}>⚠️ No Characters in Party</h3>
+        <p style={{ margin: 0, fontSize: '14px' }}>
+          Add characters to your party to view their information and manage their abilities.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'grid', gap: '20px' }}>
+      {characters.map((char, index) => (
+        <div key={char.id} style={{
+          background: 'rgba(59, 130, 246, 0.1)',
+          border: '1px solid rgba(59, 130, 246, 0.3)',
+          borderRadius: '8px',
+          padding: '20px'
+        }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '20px', alignItems: 'start' }}>
+            {/* Character Portrait */}
+            <div style={{
+              width: '64px',
+              height: '64px',
+              background: 'rgba(99, 102, 241, 0.2)',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '32px'
+            }}>
+              👤
+            </div>
+
+            {/* Character Info */}
+            <div>
+              <h3 style={{ margin: '0 0 8px 0', color: '#60a5fa' }}>{char.name}</h3>
+              <div style={{ fontSize: '14px', color: '#cbd5e1', marginBottom: '12px' }}>
+                Level {char.level} {char.species} {char.archetype} • {char.pronouns}
+              </div>
+              
+              {/* Stats Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
+                <div style={{ fontSize: '12px' }}>
+                  <div style={{ color: '#94a3b8' }}>Health</div>
+                  <div style={{ color: '#4ade80', fontWeight: 'bold' }}>{char.hitPoints}/{char.maxHitPoints}</div>
+                </div>
+                <div style={{ fontSize: '12px' }}>
+                  <div style={{ color: '#94a3b8' }}>Stamina</div>
+                  <div style={{ color: '#facc15', fontWeight: 'bold' }}>{char.stamina}/{char.maxStamina}</div>
+                </div>
+                <div style={{ fontSize: '12px' }}>
+                  <div style={{ color: '#94a3b8' }}>Ether</div>
+                  <div style={{ color: '#8b5cf6', fontWeight: 'bold' }}>{char.ether}/{char.maxEther}</div>
+                </div>
+              </div>
+
+              {/* Attributes */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '8px', fontSize: '11px' }}>
+                <div><span style={{ color: '#94a3b8' }}>STR:</span> {char.stats.strength}</div>
+                <div><span style={{ color: '#94a3b8' }}>DEX:</span> {char.stats.dexterity}</div>
+                <div><span style={{ color: '#94a3b8' }}>CON:</span> {char.stats.constitution}</div>
+                <div><span style={{ color: '#94a3b8' }}>INT:</span> {char.stats.intelligence}</div>
+                <div><span style={{ color: '#94a3b8' }}>WIS:</span> {char.stats.wisdom}</div>
+                <div><span style={{ color: '#94a3b8' }}>CHA:</span> {char.stats.charisma}</div>
+              </div>
+            </div>
+
+            {/* Experience Bar */}
+            <div style={{ minWidth: '120px' }}>
+              <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>
+                XP: {char.experience}
+              </div>
+              <div style={{
+                width: '100%',
+                height: '8px',
+                background: 'rgba(75, 85, 99, 0.5)',
+                borderRadius: '4px',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  width: `${(char.experience % 100)}%`,
+                  height: '100%',
+                  background: 'linear-gradient(90deg, #3b82f6, #60a5fa)',
+                  borderRadius: '4px'
+                }} />
+              </div>
+            </div>
+          </div>
+
+          {/* Abilities and Spells */}
+          <div style={{ marginTop: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div>
+              <h4 style={{ margin: '0 0 8px 0', color: '#4ade80', fontSize: '14px' }}>⚔️ Abilities ({char.knownAbilities.length})</h4>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                {char.knownAbilities.length > 0 ? 
+                  char.knownAbilities.slice(0, 3).map((ability: string, i: number) => (
+                    <div key={i} style={{
+                      padding: '2px 6px',
+                      background: 'rgba(34, 197, 94, 0.2)',
+                      borderRadius: '4px',
+                      fontSize: '10px',
+                      color: '#4ade80'
+                    }}>
+                      {ability}
+                    </div>
+                  )) : 
+                  <div style={{ fontSize: '10px', color: '#6b7280', fontStyle: 'italic' }}>None learned</div>
+                }
+                {char.knownAbilities.length > 3 && (
+                  <div style={{ fontSize: '10px', color: '#6b7280' }}>+{char.knownAbilities.length - 3} more</div>
+                )}
+              </div>
+            </div>
+            
+            <div>
+              <h4 style={{ margin: '0 0 8px 0', color: '#8b5cf6', fontSize: '14px' }}>✨ Spells ({char.knownSpells.length})</h4>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                {char.knownSpells.length > 0 ? 
+                  char.knownSpells.slice(0, 3).map((spell: string, i: number) => (
+                    <div key={i} style={{
+                      padding: '2px 6px',
+                      background: 'rgba(139, 92, 246, 0.2)',
+                      borderRadius: '4px',
+                      fontSize: '10px',
+                      color: '#8b5cf6'
+                    }}>
+                      {spell}
+                    </div>
+                  )) : 
+                  <div style={{ fontSize: '10px', color: '#6b7280', fontStyle: 'italic' }}>None learned</div>
+                }
+                {char.knownSpells.length > 3 && (
+                  <div style={{ fontSize: '10px', color: '#6b7280' }}>+{char.knownSpells.length - 3} more</div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
