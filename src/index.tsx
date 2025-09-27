@@ -47,19 +47,19 @@ function App() {
       try {
         const campaign = JSON.parse(emergencySave);
         console.log('Found emergency save, attempting recovery...');
-        
+
         const campaigns = JSON.parse(localStorage.getItem('world-engine-campaigns') || '[]');
         const existing = campaigns.findIndex((c: any) => c.id === campaign.id);
-        
+
         if (existing >= 0) {
           campaigns[existing] = campaign;
         } else {
           campaigns.push(campaign);
         }
-        
+
         localStorage.setItem('world-engine-campaigns', JSON.stringify(campaigns));
         sessionStorage.removeItem('world-engine-emergency-save');
-        
+
         alert('🚨 Emergency save recovered from previous session!');
       } catch (error) {
         console.error('Failed to recover emergency save:', error);
@@ -89,45 +89,45 @@ function App() {
       const timestamp = new Date().toISOString();
       const campaigns = JSON.parse(localStorage.getItem('world-engine-campaigns') || '[]');
       const existing = campaigns.findIndex((c: any) => c.id === campaign.id);
-      
+
       const updatedCampaign = {
         ...campaign,
         lastPlayed: timestamp,
         saveVersion: '2.0',
         ...(existing < 0 && { createdAt: timestamp })
       };
-      
+
       if (existing >= 0) {
         campaigns[existing] = updatedCampaign;
       } else {
         campaigns.push(updatedCampaign);
       }
-      
+
       // Multi-layer backup system
       // Layer 1: Primary localStorage
       localStorage.setItem('world-engine-campaigns', JSON.stringify(campaigns));
-      
+
       // Layer 2: Backup localStorage with timestamp
       localStorage.setItem('world-engine-campaigns-backup', JSON.stringify({
         campaigns,
         backupTime: timestamp,
         version: '2.0'
       }));
-      
+
       // Layer 3: SessionStorage for crash recovery
       sessionStorage.setItem('world-engine-campaigns-session', JSON.stringify(campaigns));
-      
+
       // Layer 4: Individual campaign backup
       localStorage.setItem(`world-engine-campaign-${campaign.id}`, JSON.stringify(updatedCampaign));
-      
+
       // Layer 5: Automatic download backup every 10 saves
       const saveCount = parseInt(localStorage.getItem('world-engine-save-count') || '0') + 1;
       localStorage.setItem('world-engine-save-count', saveCount.toString());
-      
+
       if (saveCount % 10 === 0) {
         downloadCampaignBackup(campaigns, `auto-backup-${saveCount}`);
       }
-      
+
       console.log(`Campaign saved with ${campaigns.length} total campaigns (save #${saveCount})`);
     } catch (error) {
       console.error('Error saving campaign:', error);
@@ -147,7 +147,7 @@ function App() {
     try {
       // Try primary storage first
       let campaigns = JSON.parse(localStorage.getItem('world-engine-campaigns') || '[]');
-      
+
       if (campaigns.length === 0) {
         // Try backup storage
         const backup = JSON.parse(localStorage.getItem('world-engine-campaigns-backup') || '{}');
@@ -157,7 +157,7 @@ function App() {
           console.log('Recovered campaigns from backup storage');
         }
       }
-      
+
       if (campaigns.length === 0) {
         // Try session storage
         const sessionCampaigns = JSON.parse(sessionStorage.getItem('world-engine-campaigns-session') || '[]');
@@ -167,7 +167,7 @@ function App() {
           console.log('Recovered campaigns from session storage');
         }
       }
-      
+
       return campaigns;
     } catch (error) {
       console.error('Error recovering campaigns:', error);
@@ -184,18 +184,18 @@ function App() {
         version: '2.0',
         worldEngineVersion: 'v1.0.0'
       };
-      
+
       const dataStr = JSON.stringify(backup, null, 2);
       const dataBlob = new Blob([dataStr], { type: 'application/json' });
       const url = URL.createObjectURL(dataBlob);
-      
+
       const link = document.createElement('a');
       link.href = url;
       link.download = `${filename}-${new Date().toISOString().split('T')[0]}.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       URL.revokeObjectURL(url);
       console.log('Campaign backup downloaded');
     } catch (error) {
@@ -295,7 +295,7 @@ function App() {
           }
         }
       };
-      try { window.localStorage.setItem('world-preset', name); } catch {}
+      try { window.localStorage.setItem('world-preset', name); } catch { }
       forceUpdate(); // Force React to re-render when preset changes
     },
     setSeed: (seed: string) => {
@@ -307,7 +307,7 @@ function App() {
           seed,
         },
       };
-      try { window.localStorage.setItem('world-seed', seed); } catch {}
+      try { window.localStorage.setItem('world-seed', seed); } catch { }
       forceUpdate();
     },
     loadWorldPresets: async function () {
@@ -367,8 +367,8 @@ function App() {
         />
       )}
       {step === "world" && (
-        <WorldSetupScreen 
-          eng={eng} 
+        <WorldSetupScreen
+          eng={eng}
           onNext={() => {
             // Save campaign settings when proceeding from world setup
             if (currentCampaign) {
@@ -381,7 +381,7 @@ function App() {
               saveCampaign(updatedCampaign);
             }
             setStep("party");
-          }} 
+          }}
         />
       )}
       {step === "party" && (
@@ -406,14 +406,14 @@ function App() {
         <HealingSystem onBack={() => setStep("menu")} />
       )}
       {step === "worldmap" && (
-        <WorldMapEngine 
-          seedStr={eng?.state?.meta?.seed} 
-          onBack={() => setStep("menu")} 
+        <WorldMapEngine
+          seedStr={eng?.state?.meta?.seed}
+          onBack={() => setStep("menu")}
         />
       )}
       {step === "portrait" && (
         <div style={{ position: 'relative' }}>
-          <button 
+          <button
             onClick={() => setStep("menu")}
             style={{
               position: 'absolute',
@@ -448,7 +448,7 @@ root.render(<App />);
 //     navigator.serviceWorker.register('/World-Engine/service-worker.js')
 //       .then((registration) => {
 //         console.log('SW registered:', registration);
-//         
+//
 //         // Handle updates
 //         registration.addEventListener('updatefound', () => {
 //           const newWorker = registration.installing;

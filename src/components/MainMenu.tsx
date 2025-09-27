@@ -48,11 +48,11 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
       // Try to recover campaigns using the enhanced recovery system
       let campaigns = recoverCampaigns();
       setCampaigns(campaigns);
-      
+
       // Show recovery message if campaigns were recovered from backup
       const primarySaved = localStorage.getItem('world-engine-campaigns');
       const backupSaved = localStorage.getItem('world-engine-campaigns-backup');
-      
+
       if (!primarySaved && backupSaved && campaigns.length > 0) {
         alert('⚠️ Primary save was missing, but your campaigns were recovered from backup!');
       }
@@ -67,7 +67,7 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
     try {
       // Try primary storage first
       let campaigns = JSON.parse(localStorage.getItem('world-engine-campaigns') || '[]');
-      
+
       if (campaigns.length === 0) {
         // Try backup storage
         const backup = JSON.parse(localStorage.getItem('world-engine-campaigns-backup') || '{}');
@@ -77,7 +77,7 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
           console.log('Recovered campaigns from backup storage');
         }
       }
-      
+
       if (campaigns.length === 0) {
         // Try session storage
         const sessionCampaigns = JSON.parse(sessionStorage.getItem('world-engine-campaigns-session') || '[]');
@@ -87,7 +87,7 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
           console.log('Recovered campaigns from session storage');
         }
       }
-      
+
       return campaigns;
     } catch (error) {
       console.error('Error recovering campaigns:', error);
@@ -138,18 +138,18 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
         version: '2.0',
         worldEngineVersion: 'v1.0.0'
       };
-      
+
       const dataStr = JSON.stringify(backup, null, 2);
       const dataBlob = new Blob([dataStr], { type: 'application/json' });
       const url = URL.createObjectURL(dataBlob);
-      
+
       const link = document.createElement('a');
       link.href = url;
       link.download = `world-engine-backup-${new Date().toISOString().split('T')[0]}.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       URL.revokeObjectURL(url);
       alert('✅ Backup downloaded successfully!');
     } catch (error) {
@@ -166,21 +166,21 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
     reader.onload = (e) => {
       try {
         const backup = JSON.parse(e.target?.result as string);
-        
+
         if (backup.campaigns && Array.isArray(backup.campaigns)) {
           // Save campaigns
           localStorage.setItem('world-engine-campaigns', JSON.stringify(backup.campaigns));
           localStorage.setItem('world-engine-campaigns-backup', JSON.stringify(backup));
           setCampaigns(backup.campaigns);
         }
-        
+
         if (backup.characters && Array.isArray(backup.characters)) {
           // Save characters
           localStorage.setItem('world-engine-characters', JSON.stringify(backup.characters));
           localStorage.setItem('world-engine-characters-backup', JSON.stringify(backup.characters));
           setCharacters(backup.characters);
         }
-        
+
         alert(`✅ Backup imported successfully!\nCampaigns: ${backup.campaigns?.length || 0}\nCharacters: ${backup.characters?.length || 0}`);
       } catch (error) {
         console.error('Error importing backup:', error);
@@ -188,7 +188,7 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
       }
     };
     reader.readAsText(file);
-    
+
     // Reset input value so same file can be selected again
     event.target.value = '';
   };
@@ -197,7 +197,7 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
     try {
       const recovered = recoverCampaigns();
       setCampaigns(recovered);
-      
+
       // Try to recover characters too
       const backupChars = localStorage.getItem('world-engine-characters-backup');
       if (backupChars) {
@@ -207,7 +207,7 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
           setCharacters(chars);
         }
       }
-      
+
       alert(`🔄 Recovery attempt completed!\nRecovered ${recovered.length} campaigns`);
     } catch (error) {
       console.error('Error during recovery:', error);
@@ -361,7 +361,7 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
         <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <h2 style={{ margin: 0, color: '#3b82f6' }}>{character.name}</h2>
-            <button 
+            <button
               onClick={onClose}
               style={{
                 background: '#374151',
@@ -378,8 +378,8 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
           </div>
 
           <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
-            <PortraitDisplay 
-              portraitData={character.data?.portraitUrl || ''} 
+            <PortraitDisplay
+              portraitData={character.data?.portraitUrl || ''}
               size={120}
               style={{ flexShrink: 0 }}
             />
@@ -455,64 +455,64 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
                 </div>
               )}
 
-              {((character.data.knownCantrips && character.data.knownCantrips.length > 0) || 
+              {((character.data.knownCantrips && character.data.knownCantrips.length > 0) ||
                 (character.data.knownSpells && character.data.knownSpells.length > 0)) && (
-                <div style={{ marginBottom: '20px' }}>
-                  <h4 style={{ margin: '0 0 12px 0', color: '#8b5cf6' }}>Spells & Magic</h4>
-                  
-                  {character.data.level && (
-                    <p style={{ margin: '0 0 8px 0', color: '#94a3b8', fontSize: '14px' }}>
-                      Level {character.data.level} Character
-                    </p>
-                  )}
-                  
-                  {character.data.knownCantrips && character.data.knownCantrips.length > 0 && (
-                    <div style={{ marginBottom: '12px' }}>
-                      <h5 style={{ margin: '0 0 6px 0', color: '#ec4899' }}>Known Cantrips:</h5>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                        {character.data.knownCantrips.map((cantrip: string, index: number) => (
-                          <span
-                            key={index}
-                            style={{
-                              background: '#ec4899',
-                              color: 'white',
-                              padding: '3px 8px',
-                              borderRadius: '4px',
-                              fontSize: '11px',
-                              fontWeight: 'bold'
-                            }}
-                          >
-                            {cantrip}
-                          </span>
-                        ))}
+                  <div style={{ marginBottom: '20px' }}>
+                    <h4 style={{ margin: '0 0 12px 0', color: '#8b5cf6' }}>Spells & Magic</h4>
+
+                    {character.data.level && (
+                      <p style={{ margin: '0 0 8px 0', color: '#94a3b8', fontSize: '14px' }}>
+                        Level {character.data.level} Character
+                      </p>
+                    )}
+
+                    {character.data.knownCantrips && character.data.knownCantrips.length > 0 && (
+                      <div style={{ marginBottom: '12px' }}>
+                        <h5 style={{ margin: '0 0 6px 0', color: '#ec4899' }}>Known Cantrips:</h5>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                          {character.data.knownCantrips.map((cantrip: string, index: number) => (
+                            <span
+                              key={index}
+                              style={{
+                                background: '#ec4899',
+                                color: 'white',
+                                padding: '3px 8px',
+                                borderRadius: '4px',
+                                fontSize: '11px',
+                                fontWeight: 'bold'
+                              }}
+                            >
+                              {cantrip}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                  
-                  {character.data.knownSpells && character.data.knownSpells.length > 0 && (
-                    <div>
-                      <h5 style={{ margin: '0 0 6px 0', color: '#3b82f6' }}>Known Spells:</h5>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                        {character.data.knownSpells.map((spell: string, index: number) => (
-                          <span
-                            key={index}
-                            style={{
-                              background: '#3b82f6',
-                              color: 'white',
-                              padding: '3px 8px',
-                              borderRadius: '4px',
-                              fontSize: '11px',
-                              fontWeight: 'bold'
-                            }}
-                          >
-                            {spell}
-                          </span>
-                        ))}
+                    )}
+
+                    {character.data.knownSpells && character.data.knownSpells.length > 0 && (
+                      <div>
+                        <h5 style={{ margin: '0 0 6px 0', color: '#3b82f6' }}>Known Spells:</h5>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                          {character.data.knownSpells.map((spell: string, index: number) => (
+                            <span
+                              key={index}
+                              style={{
+                                background: '#3b82f6',
+                                color: 'white',
+                                padding: '3px 8px',
+                                borderRadius: '4px',
+                                fontSize: '11px',
+                                fontWeight: 'bold'
+                              }}
+                            >
+                              {spell}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-              )}
+                    )}
+                  </div>
+                )}
 
               {character.data.mode && (
                 <div style={{ marginBottom: '15px' }}>
@@ -548,12 +548,12 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
       <div style={headerStyle}>
         <h1 style={titleStyle}>World Engine</h1>
         <p style={subtitleStyle}>Campaign & Character Management</p>
-        
+
         {/* Backup and Recovery Controls */}
-        <div style={{ 
-          marginTop: '20px', 
-          display: 'flex', 
-          gap: '12px', 
+        <div style={{
+          marginTop: '20px',
+          display: 'flex',
+          gap: '12px',
           justifyContent: 'center',
           flexWrap: 'wrap'
         }}>
@@ -569,7 +569,7 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
           >
             💾 Download Backup
           </button>
-          
+
           <label style={{
             ...buttonStyle,
             background: '#7c3aed',
@@ -586,7 +586,7 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
               style={{ display: 'none' }}
             />
           </label>
-          
+
           <button
             onClick={forceRecovery}
             style={{
@@ -600,10 +600,10 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
             🔄 Force Recovery
           </button>
         </div>
-        
-        <p style={{ 
-          fontSize: '0.85rem', 
-          color: '#64748b', 
+
+        <p style={{
+          fontSize: '0.85rem',
+          color: '#64748b',
           marginTop: '12px',
           fontStyle: 'italic'
         }}>
@@ -715,8 +715,8 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
               {characters.map(character => (
                 <div key={character.id} style={cardStyle}>
                   <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
-                    <PortraitDisplay 
-                      portraitData={character.data?.portraitUrl || ''} 
+                    <PortraitDisplay
+                      portraitData={character.data?.portraitUrl || ''}
                       size={60}
                       style={{ flexShrink: 0 }}
                     />
