@@ -4,6 +4,195 @@
 
 import React, { useState, useMemo } from 'react';
 import { WorldEngine } from '../engine/index';
+import { CLASS_DEFINITIONS } from '../defaultWorlds';
+import CharacterPortraitPicker from './CharacterPortraitPicker';
+import PortraitDisplay from './PortraitDisplay';
+
+type Stats = "STR" | "DEX" | "CON" | "INT" | "WIS" | "CHA";
+
+function calculateStatCost(value: number): number {
+  // Base cost is 0 for stat value 8
+  // Each point above 8 costs: 1 point for 9-14, 2 points for 15-16, 3 points for 17+
+  let cost = 0;
+  for (let statValue = 9; statValue <= value; statValue++) {
+    if (statValue <= 14) cost += 1;      // Values 9-14: 1 point each
+    else if (statValue <= 16) cost += 2; // Values 15-16: 2 points each  
+    else cost += 3;                      // Values 17+: 3 points each
+  }
+  return cost;
+}
+
+// Comprehensive trait system with mechanical benefits
+const TRAIT_DEFINITIONS = {
+  "Brave": {
+    name: "Brave",
+    description: "Resistant to fear and intimidation effects. +2 bonus to courage-based checks.",
+    mechanicalEffect: "fear_resistance",
+    bonus: { type: "courage", value: 2 }
+  },
+  "Clever": {
+    name: "Clever",
+    description: "Quick thinking in complex situations. +2 bonus to puzzle-solving and investigation.",
+    mechanicalEffect: "intelligence_bonus",
+    bonus: { type: "investigation", value: 2 }
+  },
+  "Cunning": {
+    name: "Cunning",
+    description: "Skilled at deception and misdirection. +2 bonus to stealth and deception checks.",
+    mechanicalEffect: "deception_bonus",
+    bonus: { type: "stealth", value: 2 }
+  },
+  "Empathic": {
+    name: "Empathic",
+    description: "Deeply understands others' emotions. +2 bonus to persuasion and healing checks.",
+    mechanicalEffect: "social_bonus",
+    bonus: { type: "persuasion", value: 2 }
+  },
+  "Stoic": {
+    name: "Stoic",
+    description: "Unshaken by pain or hardship. +2 bonus to endurance and resistance checks.",
+    mechanicalEffect: "endurance_bonus",
+    bonus: { type: "endurance", value: 2 }
+  },
+  "Lucky": {
+    name: "Lucky",
+    description: "Fortune favors you. Once per encounter, reroll any failed check.",
+    mechanicalEffect: "reroll_ability",
+    bonus: { type: "reroll", value: 1 }
+  },
+  "Observant": {
+    name: "Observant",
+    description: "Notice details others miss. +2 bonus to perception and awareness checks.",
+    mechanicalEffect: "perception_bonus",
+    bonus: { type: "perception", value: 2 }
+  },
+  "Silver Tongue": {
+    name: "Silver Tongue",
+    description: "Naturally persuasive speaker. +2 bonus to all social interaction checks.",
+    mechanicalEffect: "social_master",
+    bonus: { type: "social", value: 2 }
+  },
+  "Iron Will": {
+    name: "Iron Will",
+    description: "Mental fortitude against magical effects. +2 bonus to resist mental magic.",
+    mechanicalEffect: "mental_resistance",
+    bonus: { type: "mental_defense", value: 2 }
+  },
+  "Swift": {
+    name: "Swift",
+    description: "Faster movement and reflexes. +2 bonus to speed and reaction checks.",
+    mechanicalEffect: "speed_bonus",
+    bonus: { type: "speed", value: 2 }
+  },
+  "Nature's Friend": {
+    name: "Nature's Friend",
+    description: "Animals and plants respond favorably. +2 bonus to nature-based interactions.",
+    mechanicalEffect: "nature_bonus",
+    bonus: { type: "nature", value: 2 }
+  },
+  "Keen Senses": {
+    name: "Keen Senses",
+    description: "Enhanced sensory perception. +2 bonus to detect hidden things or dangers.",
+    mechanicalEffect: "detection_bonus",
+    bonus: { type: "detection", value: 2 }
+  },
+  "Patient": {
+    name: "Patient",
+    description: "Calm and methodical approach. +2 bonus to sustained concentration tasks.",
+    mechanicalEffect: "concentration_bonus",
+    bonus: { type: "concentration", value: 2 }
+  },
+  "Resilient": {
+    name: "Resilient",
+    description: "Exceptionally tough constitution. +2 HP per level beyond normal.",
+    mechanicalEffect: "hp_bonus",
+    bonus: { type: "hp_per_level", value: 2 }
+  },
+  "Hardy": {
+    name: "Hardy",
+    description: "Natural toughness and endurance. +1 HP per level beyond normal.",
+    mechanicalEffect: "hp_bonus_small",
+    bonus: { type: "hp_per_level", value: 1 }
+  },
+  "Frail": {
+    name: "Frail",
+    description: "Delicate constitution, but often comes with other gifts. -2 HP per level.",
+    mechanicalEffect: "hp_penalty",
+    bonus: { type: "hp_per_level", value: -2 }
+  }
+};
+
+const TRAIT_CATALOG = Object.keys(TRAIT_DEFINITIONS);
+
+// Species definitions with trait rules
+const SPECIES_DEFINITIONS = {
+  "Human": {
+    name: "Human",
+    description: "Adaptable and versatile, humans can develop any traits through experience.",
+    statModifiers: { STR: 1, CHA: 1, CON: -1, WIS: -1 },
+    automaticTraits: [],
+    forbiddenTraits: [],
+    preferredTraits: ["Brave", "Clever", "Silver Tongue"]
+  },
+  "Sylvanborn": {
+    name: "Sylvanborn",
+    description: "Forest dwellers with an innate connection to nature.",
+    statModifiers: { DEX: 2, WIS: 1, STR: -2, CON: -1 },
+    automaticTraits: ["Nature's Friend"],
+    forbiddenTraits: ["Cunning"],
+    preferredTraits: ["Observant", "Keen Senses", "Patient"]
+  },
+  "Alloy": {
+    name: "Alloy",
+    description: "Mechanical beings with logical minds but limited emotional range.",
+    statModifiers: { CON: 2, INT: 1, DEX: -2, CHA: -1 },
+    automaticTraits: ["Iron Will"],
+    forbiddenTraits: ["Empathic", "Silver Tongue"],
+    preferredTraits: ["Stoic", "Patient", "Clever"]
+  },
+  "Draketh": {
+    name: "Draketh",
+    description: "Proud dragon-descendants who rarely back down from challenges.",
+    statModifiers: { STR: 2, CHA: 1, DEX: -1, WIS: -2 },
+    automaticTraits: ["Brave"],
+    forbiddenTraits: ["Patient"],
+    preferredTraits: ["Swift", "Silver Tongue", "Stoic"]
+  },
+  "Voidkin": {
+    name: "Voidkin",
+    description: "Shadow-touched beings with enhanced perception but unnatural aura.",
+    statModifiers: { INT: 2, WIS: 1, STR: -1, CHA: -2 },
+    automaticTraits: ["Observant"],
+    forbiddenTraits: ["Nature's Friend"],
+    preferredTraits: ["Clever", "Iron Will", "Cunning"]
+  },
+  "Crystalborn": {
+    name: "Crystalborn",
+    description: "Living crystal beings with incredible mental fortitude.",
+    statModifiers: { CON: 1, INT: 2, DEX: -1, CHA: -2 },
+    automaticTraits: ["Stoic"],
+    forbiddenTraits: ["Swift"],
+    preferredTraits: ["Iron Will", "Patient", "Keen Senses"]
+  },
+  "Stormcaller": {
+    name: "Stormcaller",
+    description: "Sky-born people infused with elemental storm energy.",
+    statModifiers: { DEX: 1, CHA: 2, CON: -1, STR: -2 },
+    automaticTraits: ["Swift"],
+    forbiddenTraits: ["Patient"],
+    preferredTraits: ["Brave", "Observant", "Silver Tongue"]
+  }
+};
+
+const SPECIES_OPTIONS = Object.keys(SPECIES_DEFINITIONS);
+const PRONOUN_OPTIONS = ["they/them", "she/her", "he/him", "xe/xir", "ze/hir", "fae/faer"];
+const ARCHETYPE_OPTIONS = ["Fighter", "Wizard", "Rogue", "Cleric", "Ranger", "Barbarian", "Bard", "Paladin", "Sorcerer", "Warlock"];
+const BACKGROUND_OPTIONS = ["Commoner", "Noble", "Soldier", "Scholar", "Merchant", "Artisan", "Criminal", "Folk Hero", "Hermit", "Entertainer"];
+const CLASS_OPTIONS = Object.keys(CLASS_DEFINITIONS);
+
+const DEFAULT_STATS: Record<Stats, number> = {
+  STR: 8, DEX: 8, CON: 8, INT: 8, WIS: 8, CHA: 8,
+};
 
 interface GameMenuProps {
   engine: WorldEngine;

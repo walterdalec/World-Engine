@@ -306,9 +306,6 @@ export class WorldEngine {
     // Create a main city at spawn point
     this.createMainCity(this.state.party.x, this.state.party.y);
 
-    // Create default test characters
-    this.createDefaultCharacters();
-
     // Auto-save the new game
     this.autoSave();
   }
@@ -1679,75 +1676,5 @@ export class WorldEngine {
     const wisBonus = Math.floor((wisdom - 10) / 2);
     const levelBonus = (level - 1) * 2;
     return Math.max(0, baseEther + intBonus + wisBonus + levelBonus);
-  }
-
-  /**
-   * Create default test characters for demonstration
-   */
-  createDefaultCharacters(): void {
-    // Only create if no characters exist
-    if (this.state.characters.length > 0) return;
-
-    // Fighter character
-    this.addCharacter({
-      name: "Aria the Bold",
-      pronouns: "she/her",
-      species: "Human",
-      archetype: "Fighter",
-      background: "Soldier",
-      level: 2,
-      experience: 150,
-      stats: {
-        strength: 16,
-        dexterity: 12,
-        constitution: 15,
-        intelligence: 10,
-        wisdom: 12,
-        charisma: 11
-      },
-      traits: ["Brave", "Disciplined"]
-    });
-
-    // Wizard character
-    this.addCharacter({
-      name: "Eldon Starweaver",
-      pronouns: "he/him",
-      species: "Elf",
-      archetype: "Wizard",
-      background: "Scholar",
-      level: 2,
-      experience: 180,
-      stats: {
-        strength: 8,
-        dexterity: 14,
-        constitution: 12,
-        intelligence: 17,
-        wisdom: 13,
-        charisma: 10
-      },
-      traits: ["Studious", "Perceptive"]
-    });
-
-    // Rogue character
-    this.addCharacter({
-      name: "Kira Shadowstep",
-      pronouns: "they/them",
-      species: "Halfling",
-      archetype: "Rogue",
-      background: "Criminal",
-      level: 1,
-      experience: 75,
-      stats: {
-        strength: 10,
-        dexterity: 18,
-        constitution: 13,
-        intelligence: 12,
-        wisdom: 14,
-        charisma: 15
-      },
-      traits: ["Sneaky", "Lucky"]
-    });
-
-    console.log(`Created ${this.state.characters.length} default characters for testing`);
   }
 }
