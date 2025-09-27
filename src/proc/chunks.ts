@@ -68,7 +68,7 @@ export class ChunkManager {
   ) {
     this.noise = new WorldNoise(seed);
     this.config = {
-      seaLevel: 0.38,
+      seaLevel: 0.0, // Almost no ocean, everything should be land
       continentFreq: 1/1024,
       featureFreq: 1/128,
       warpStrength: 700,

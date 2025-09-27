@@ -88,7 +88,7 @@ export class WorldEngine {
     
     const defaultConfig: EngineConfig = {
       world: {
-        seaLevel: 0.38,
+        seaLevel: 0.0, // Almost no ocean, everything should be land
         continentFreq: 1/1024,
         featureFreq: 1/128,
         warpStrength: 700,
@@ -100,8 +100,8 @@ export class WorldEngine {
         encounterBaseChance: 0.05,
         weatherChangeDays: 3,
         fogOfWarRadius: 8,
-        chunkLoadRadius: 128,
-        chunkUnloadRadius: 256
+        chunkLoadRadius: 32, // Much smaller radius for performance
+        chunkUnloadRadius: 64
       }
     };
     
@@ -111,23 +111,42 @@ export class WorldEngine {
     };
     
     this.chunkManager = new ChunkManager(actualSeed, mergedConfig.world);
-    // Temporarily disable chokepointManager to debug
-    // this.chokepointManager = new ChokepointManager(
-    //   actualSeed,
-    //   mergedConfig.world.mapWidth,
-    //   mergedConfig.world.mapHeight,
-    //   mergedConfig.world.mapWidth / 2,
-    //   mergedConfig.world.mapHeight / 2
-    // );
+    
+    // Initialize chokepoint manager with error handling
+    try {
+      console.log('Initializing chokepoint system...');
+      this.chokepointManager = new ChokepointManager(
+        actualSeed,
+        mergedConfig.world.mapWidth,
+        mergedConfig.world.mapHeight,
+        mergedConfig.world.mapWidth / 2,
+        mergedConfig.world.mapHeight / 2
+      );
+      console.log('Chokepoint system initialized successfully');
+    } catch (error) {
+      console.error('Failed to initialize chokepoint system:', error);
+      this.chokepointManager = null;
+    }
+    
+    // Find a suitable spawn location on land
+    const spawnLocation = this.findLandSpawnLocation(mergedConfig.world.mapWidth, mergedConfig.world.mapHeight);
+    
+    // Double-check spawn tile and force boat if needed
+    const spawnTile = this.chunkManager.getTile(spawnLocation.x, spawnLocation.y);
+    const actuallyNeedsBoat = !spawnTile || spawnTile.biome === 'Ocean';
+    
+    console.log('Final spawn location:', spawnLocation.x, spawnLocation.y);
+    console.log('Spawn tile biome:', spawnTile?.biome || 'null');
+    console.log('Needs boat:', actuallyNeedsBoat || spawnLocation.needsBoat);
     
     this.state = {
       seed: actualSeed,
       party: {
-        x: mergedConfig.world.mapWidth / 2,
-        y: mergedConfig.world.mapHeight / 2,
+        x: spawnLocation.x,
+        y: spawnLocation.y,
         members: [],
         supplies: { food: 100, water: 100, gold: 50 },
-        equipment: [],
+        equipment: (actuallyNeedsBoat || spawnLocation.needsBoat) ? ['boat'] : [], // Give boat if spawned in/near water
         speed: 1.0
       },
       time: {
@@ -136,7 +155,7 @@ export class WorldEngine {
         season: 'Spring',
         year: 1
       },
-      weather: this.generateWeather(),
+      weather: this.generateWeather(spawnLocation.x, spawnLocation.y, actualSeed, 1),
       encounterClock: {
         riskLevel: 0,
         lastEncounter: 0,
@@ -151,6 +170,59 @@ export class WorldEngine {
     this.discoverRadius(this.state.party.x, this.state.party.y, 3);
   }
   
+  /**
+   * Find a suitable land spawn location
+   */
+  private findLandSpawnLocation(mapWidth: number, mapHeight: number): { x: number; y: number; needsBoat: boolean } {
+    console.log('Finding suitable spawn location...');
+    
+    // Use multiple strategic positions that should be inland based on continental generation
+    const landCandidates = [
+      // Continental centers (should be high elevation)
+      { x: Math.floor(mapWidth * 0.25), y: Math.floor(mapHeight * 0.25) },
+      { x: Math.floor(mapWidth * 0.75), y: Math.floor(mapHeight * 0.75) },
+      { x: Math.floor(mapWidth * 0.25), y: Math.floor(mapHeight * 0.75) },
+      { x: Math.floor(mapWidth * 0.75), y: Math.floor(mapHeight * 0.25) },
+      
+      // Off-center positions
+      { x: Math.floor(mapWidth * 0.4), y: Math.floor(mapHeight * 0.3) },
+      { x: Math.floor(mapWidth * 0.6), y: Math.floor(mapHeight * 0.7) },
+      { x: Math.floor(mapWidth * 0.3), y: Math.floor(mapWidth * 0.6) },
+      { x: Math.floor(mapWidth * 0.7), y: Math.floor(mapWidth * 0.4) },
+      
+      // Fallback positions
+      { x: Math.floor(mapWidth * 0.5), y: Math.floor(mapHeight * 0.3) },
+      { x: Math.floor(mapWidth * 0.3), y: Math.floor(mapHeight * 0.5) }
+    ];
+    
+    console.log('Trying strategic land candidates with sea level 0.0...');
+    for (const candidate of landCandidates) {
+      console.log('Testing candidate:', candidate.x, candidate.y);
+      
+      // Pre-load area around candidate
+      this.chunkManager.ensureRadius(candidate.x, candidate.y, 3);
+      
+      const tile = this.chunkManager.getTile(candidate.x, candidate.y);
+      console.log('Candidate tile details:');
+      console.log('  Position:', candidate.x, candidate.y);
+      console.log('  Biome:', tile?.biome || 'null');
+      console.log('  Elevation:', tile?.elevation || 'null');
+      console.log('  Temperature:', tile?.temperature || 'null');
+      console.log('  Moisture:', tile?.moisture || 'null');
+      console.log('  Sea level config:', this.state.config.world.seaLevel);
+      
+      if (tile && tile.biome !== 'Ocean') {
+        console.log('✓ Found land spawn at:', candidate.x, candidate.y, 'Biome:', tile.biome);
+        return { x: candidate.x, y: candidate.y, needsBoat: false };
+      }
+    }
+    
+    // Emergency fallback: spawn at first candidate with boat
+    const fallback = landCandidates[0];
+    console.log('All land searches failed, spawning with boat at:', fallback.x, fallback.y);
+    return { x: fallback.x, y: fallback.y, needsBoat: true };
+  }
+
   /**
    * Generate a random seed
    */
@@ -174,7 +246,9 @@ export class WorldEngine {
     
     // Get destination tile
     const tile = this.chunkManager.getTile(newX, newY);
-    if (!tile) return false;
+    if (!tile) {
+      return false;
+    }
     
     // Check if movement is possible
     if (tile.biome === 'Ocean' && !this.hasBoat()) {
@@ -349,8 +423,14 @@ export class WorldEngine {
   /**
    * Generate weather for current conditions
    */
-  generateWeather(): Weather {
-    const tile = this.chunkManager.getTile(this.state.party.x, this.state.party.y);
+  generateWeather(partyX?: number, partyY?: number, seed?: string, day?: number): Weather {
+    // Use provided parameters or fall back to current state
+    const x = partyX ?? this.state?.party?.x ?? 1024;
+    const y = partyY ?? this.state?.party?.y ?? 1024;
+    const currentSeed = seed ?? this.state?.seed ?? 'default';
+    const currentDay = day ?? this.state?.time?.day ?? 1;
+    
+    const tile = this.chunkManager.getTile(x, y);
     if (!tile) {
       return {
         type: 'Clear',
@@ -361,7 +441,7 @@ export class WorldEngine {
       };
     }
     
-    const weatherRng = new SeededRandom(`${this.state.seed}_weather_${this.state.time.day}`);
+    const weatherRng = new SeededRandom(`${currentSeed}_weather_${currentDay}`);
     const biomeWeatherChances = this.getBiomeWeatherChances(tile.biome);
     
     const roll = weatherRng.nextFloat();
@@ -514,15 +594,22 @@ export class WorldEngine {
     try {
       const data = JSON.parse(saveData);
       
-      // Recreate chunk manager with loaded seed
+      // Recreate chunk manager and chokepoint manager with loaded seed
       this.chunkManager = new ChunkManager(data.seed, data.config.world);
-      // this.chokepointManager = new ChokepointManager(
-      //   data.seed,
-      //   data.config.world.mapWidth,
-      //   data.config.world.mapHeight,
-      //   data.config.world.mapWidth / 2,
-      //   data.config.world.mapHeight / 2
-      // );
+      
+      try {
+        this.chokepointManager = new ChokepointManager(
+          data.seed,
+          data.config.world.mapWidth,
+          data.config.world.mapHeight,
+          data.config.world.mapWidth / 2,
+          data.config.world.mapHeight / 2
+        );
+      } catch (error) {
+        console.error('Failed to recreate chokepoint manager during load:', error);
+        this.chokepointManager = null;
+      }
+      
       this.rng = new SeededRandom(`${data.seed}_engine`);
       
       // Restore state
@@ -549,14 +636,19 @@ export class WorldEngine {
     this.chunkManager.updateConfig(this.state.config.world);
     this.chunkManager.invalidateAll();
     
-    // Recreate chokepoint manager with new config (if enabled)
-    // this.chokepointManager = new ChokepointManager(
-    //   this.state.seed,
-    //   this.state.config.world.mapWidth,
-    //   this.state.config.world.mapHeight,
-    //   this.state.config.world.mapWidth / 2,
-    //   this.state.config.world.mapHeight / 2
-    // );
+    // Recreate chokepoint manager with new config
+    try {
+      this.chokepointManager = new ChokepointManager(
+        this.state.seed,
+        this.state.config.world.mapWidth,
+        this.state.config.world.mapHeight,
+        this.state.config.world.mapWidth / 2,
+        this.state.config.world.mapHeight / 2
+      );
+    } catch (error) {
+      console.error('Failed to recreate chokepoint manager:', error);
+      this.chokepointManager = null;
+    }
     
     // Clear discoveries since world changed
     this.state.discovered.clear();

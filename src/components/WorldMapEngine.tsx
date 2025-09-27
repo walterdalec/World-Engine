@@ -134,6 +134,12 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
     window.addEventListener('resize', handleResize);
     handleResize(); // Initial size
     
+    // Auto-focus canvas for keyboard input
+    if (canvasRef.current) {
+      canvasRef.current.focus();
+      console.log('Canvas focused for keyboard input');
+    }
+    
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
@@ -224,27 +230,47 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
         case 'ArrowUp':
         case 'w':
         case 'W':
-          if (engine.tickTravel(0, -moveDistance)) moved = true;
+          try {
+            moved = engine.tickTravel(0, -moveDistance);
+          } catch (error) {
+            console.error('Error calling engine.tickTravel:', error);
+          }
           break;
         case 'ArrowDown':
         case 's':
         case 'S':
-          if (engine.tickTravel(0, moveDistance)) moved = true;
+          try {
+            moved = engine.tickTravel(0, moveDistance);
+          } catch (error) {
+            console.error('Error calling engine.tickTravel:', error);
+          }
           break;
         case 'ArrowLeft':
         case 'a':
         case 'A':
-          if (engine.tickTravel(-moveDistance, 0)) moved = true;
+          try {
+            moved = engine.tickTravel(-moveDistance, 0);
+          } catch (error) {
+            console.error('Error calling engine.tickTravel:', error);
+          }
           break;
         case 'ArrowRight':
         case 'd':
         case 'D':
-          if (engine.tickTravel(moveDistance, 0)) moved = true;
+          try {
+            moved = engine.tickTravel(moveDistance, 0);
+          } catch (error) {
+            console.error('Error calling engine.tickTravel:', error);
+          }
           break;
         case ' ':
           e.preventDefault();
-          engine.rest(1); // Rest for 1 hour
-          moved = true;
+          try {
+            engine.rest(1); // Rest for 1 hour
+            moved = true;
+          } catch (error) {
+            console.error('Error calling engine.rest:', error);
+          }
           break;
         case 'g':
         case 'G':
@@ -267,7 +293,7 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [engine, cameraLocked]);
+  }, [engine, cameraLocked, setShowGrid, setCameraLocked, setViewport]);
 
   // Handle world config changes from dev panel
   const handleConfigChange = useCallback((newConfig: Partial<WorldGenConfig>) => {
@@ -299,7 +325,7 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
       const endY = startY + tilesHeight;
 
     // Ensure chunks are loaded for visible area
-    const loadRadius = Math.max(tilesWidth, tilesHeight) / 2 + 32;
+    const loadRadius = Math.min(32, Math.max(tilesWidth, tilesHeight) / 2 + 8); // Much smaller radius
     engine.ensureRadius(Math.ceil(loadRadius));
 
     // Draw tiles
@@ -543,8 +569,15 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
 
   // Render on every frame
   useEffect(() => {
-    const animate = () => {
-      renderWorld();
+    let lastRenderTime = 0;
+    const targetFPS = 30; // Cap at 30 FPS instead of 60
+    const frameInterval = 1000 / targetFPS;
+    
+    const animate = (currentTime: number) => {
+      if (currentTime - lastRenderTime >= frameInterval) {
+        renderWorld();
+        lastRenderTime = currentTime;
+      }
       requestAnimationFrame(animate);
     };
     
@@ -575,13 +608,89 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
         style={{ 
           width: '100%', 
           height: '100%', 
-          cursor: isDragging ? 'grabbing' : 'grab'
+          cursor: isDragging ? 'grabbing' : 'grab',
+          outline: 'none' // Remove focus outline
         }}
+        tabIndex={0} // Make canvas focusable
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
         onWheel={handleWheel}
+        onClick={() => {
+          // Ensure canvas has focus for keyboard events
+          if (canvasRef.current) {
+            canvasRef.current.focus();
+          }
+        }}
+        onKeyDown={(e) => {
+          const moveDistance = 1;
+          let moved = false;
+
+          switch (e.key) {
+            case 'ArrowUp':
+            case 'w':
+            case 'W':
+              try {
+                moved = engine.tickTravel(0, -moveDistance);
+              } catch (error) {
+                console.error('Canvas Error calling engine.tickTravel:', error);
+              }
+              break;
+            case 'ArrowDown':
+            case 's':
+            case 'S':
+              try {
+                moved = engine.tickTravel(0, moveDistance);
+              } catch (error) {
+                console.error('Canvas Error calling engine.tickTravel:', error);
+              }
+              break;
+            case 'ArrowLeft':
+            case 'a':
+            case 'A':
+              try {
+                moved = engine.tickTravel(-moveDistance, 0);
+              } catch (error) {
+                console.error('Canvas Error calling engine.tickTravel:', error);
+              }
+              break;
+            case 'ArrowRight':
+            case 'd':
+            case 'D':
+              try {
+                moved = engine.tickTravel(moveDistance, 0);
+              } catch (error) {
+                console.error('Canvas Error calling engine.tickTravel:', error);
+              }
+              break;
+            case ' ':
+              e.preventDefault();
+              try {
+                engine.rest(1);
+                moved = true;
+              } catch (error) {
+                console.error('Canvas Error calling engine.rest:', error);
+              }
+              break;
+            case 'g':
+            case 'G':
+              setShowGrid(prev => !prev);
+              break;
+            case 'c':
+            case 'C':
+              setCameraLocked(true);
+              break;
+          }
+
+          if (moved && cameraLocked) {
+            setViewport(prev => ({
+              ...prev,
+              centerX: engine.state.party.x,
+              centerY: engine.state.party.y
+            }));
+          }
+        }}
       />
 
       {/* UI Overlay */}

@@ -84,64 +84,109 @@ export class ChokepointManager {
     startX: number,
     startY: number
   ) {
-    this.noise = new WorldNoise(seed);
-    this.rng = new SeededRandom(`${seed}_chokepoints`);
-    this.mapWidth = mapWidth;
-    this.mapHeight = mapHeight;
-    this.startX = startX;
-    this.startY = startY;
+    try {
+      console.log('Initializing ChokepointManager with:', { seed, mapWidth, mapHeight, startX, startY });
+      
+      this.noise = new WorldNoise(seed);
+      this.rng = new SeededRandom(`${seed}_chokepoints`);
+      this.mapWidth = mapWidth;
+      this.mapHeight = mapHeight;
+      this.startX = startX;
+      this.startY = startY;
 
-    this.generateRegions();
-    this.identifyChokepoints();
-    this.placeFortifications();
+      console.log('Generating regions...');
+      this.generateRegions();
+      
+      console.log('Identifying chokepoints...');
+      this.identifyChokepoints();
+      
+      console.log('Placing fortifications...');
+      this.placeFortifications();
+      
+      console.log(`ChokepointManager initialized with ${this.regions.length} regions and ${this.chokepoints.size} chokepoints`);
+    } catch (error) {
+      console.error('Error in ChokepointManager constructor:', error);
+      // Initialize safe defaults
+      this.noise = new WorldNoise(seed);
+      this.rng = new SeededRandom(`${seed}_chokepoints`);
+      this.mapWidth = mapWidth;
+      this.mapHeight = mapHeight;
+      this.startX = startX;
+      this.startY = startY;
+      this.regions = [];
+      this.chokepoints = new Map();
+    }
   }
 
   /**
    * Generate difficulty regions based on distance from start
    */
   private generateRegions(): void {
-    const numRegions = this.rng.nextInt(6, 12);
-    const centerDistance = Math.min(this.mapWidth, this.mapHeight) / 4;
+    try {
+      const numRegions = this.rng.nextInt(6, 12);
+      const centerDistance = Math.min(this.mapWidth, this.mapHeight) / 4;
 
-    // Always create a safe starting region
-    this.regions.push({
-      centerX: this.startX,
-      centerY: this.startY,
-      radius: centerDistance * 0.6,
-      difficultyLevel: 1,
-      biomePreference: ['Grass', 'Forest', 'Coast'],
-      name: 'The Heartlands',
-      description: 'Peaceful starting region with friendly settlements and basic resources.'
-    });
+      // Always create a safe starting region
+      this.regions.push({
+        centerX: this.startX,
+        centerY: this.startY,
+        radius: centerDistance * 0.6,
+        difficultyLevel: 1,
+        biomePreference: ['Grass', 'Forest', 'Coast'],
+        name: 'The Heartlands',
+        description: 'Peaceful starting region with friendly settlements and basic resources.'
+      });
 
-    // Create rings of increasing difficulty
-    const difficultyRings = [
-      { distance: centerDistance * 1.2, level: 2, count: 3 },
-      { distance: centerDistance * 1.8, level: 4, count: 4 },
-      { distance: centerDistance * 2.5, level: 6, count: 3 },
-      { distance: centerDistance * 3.2, level: 8, count: 2 },
-    ];
+      // Create rings of increasing difficulty
+      const difficultyRings = [
+        { distance: centerDistance * 1.2, level: 2, count: 3 },
+        { distance: centerDistance * 1.8, level: 4, count: 4 },
+        { distance: centerDistance * 2.5, level: 6, count: 3 },
+        { distance: centerDistance * 3.2, level: 8, count: 2 },
+      ];
 
-    for (const ring of difficultyRings) {
-      for (let i = 0; i < ring.count; i++) {
-        const angle = (Math.PI * 2 * i) / ring.count + this.rng.nextFloat(-0.3, 0.3);
-        const distance = ring.distance * this.rng.nextFloat(0.8, 1.2);
-        
-        const centerX = this.startX + Math.cos(angle) * distance;
-        const centerY = this.startY + Math.sin(angle) * distance;
+      for (const ring of difficultyRings) {
+        for (let i = 0; i < ring.count; i++) {
+          try {
+            const angle = (Math.PI * 2 * i) / ring.count + this.rng.nextFloat(-0.3, 0.3);
+            const distance = ring.distance * this.rng.nextFloat(0.8, 1.2);
+            
+            const centerX = this.startX + Math.cos(angle) * distance;
+            const centerY = this.startY + Math.sin(angle) * distance;
 
-        // Keep within map bounds
-        const clampedX = Math.max(100, Math.min(this.mapWidth - 100, centerX));
-        const clampedY = Math.max(100, Math.min(this.mapHeight - 100, centerY));
+            // Keep within map bounds with safety margin
+            const margin = 100;
+            const clampedX = Math.max(margin, Math.min(this.mapWidth - margin, centerX));
+            const clampedY = Math.max(margin, Math.min(this.mapHeight - margin, centerY));
 
+            this.regions.push({
+              centerX: clampedX,
+              centerY: clampedY,
+              radius: centerDistance * 0.4,
+              difficultyLevel: ring.level,
+              biomePreference: this.getBiomesForDifficulty(ring.level),
+              name: this.generateRegionName(ring.level),
+              description: this.generateRegionDescription(ring.level)
+            });
+          } catch (error) {
+            console.warn('Error generating region in ring:', ring, error);
+          }
+        }
+      }
+      
+      console.log(`Generated ${this.regions.length} regions`);
+    } catch (error) {
+      console.error('Error in generateRegions:', error);
+      // Ensure at least one region exists
+      if (this.regions.length === 0) {
         this.regions.push({
-          centerX: clampedX,
-          centerY: clampedY,
-          radius: centerDistance * 0.4,
-          difficultyLevel: ring.level,
-          biomePreference: this.getBiomesForDifficulty(ring.level),
-          name: this.generateRegionName(ring.level),
-          description: this.generateRegionDescription(ring.level)
+          centerX: this.startX,
+          centerY: this.startY,
+          radius: 500,
+          difficultyLevel: 1,
+          biomePreference: ['Grass', 'Forest'],
+          name: 'The Starting Lands',
+          description: 'A safe region for new adventurers.'
         });
       }
     }
@@ -192,53 +237,83 @@ export class ChokepointManager {
    * Identify natural chokepoints between regions
    */
   private identifyChokepoints(): void {
-    // For each region pair, find potential chokepoints
-    for (let i = 0; i < this.regions.length; i++) {
-      for (let j = i + 1; j < this.regions.length; j++) {
-        const regionA = this.regions[i];
-        const regionB = this.regions[j];
-        
-        // Only create chokepoints between adjacent difficulty levels
-        const levelDiff = Math.abs(regionA.difficultyLevel - regionB.difficultyLevel);
-        if (levelDiff <= 1 && levelDiff > 0) {
-          this.findChokepointsBetweenRegions(regionA, regionB);
+    try {
+      console.log('Starting chokepoint identification...');
+      let chokepointsFound = 0;
+      
+      // For each region pair, find potential chokepoints
+      for (let i = 0; i < this.regions.length; i++) {
+        for (let j = i + 1; j < this.regions.length; j++) {
+          try {
+            const regionA = this.regions[i];
+            const regionB = this.regions[j];
+            
+            // Only create chokepoints between adjacent difficulty levels
+            const levelDiff = Math.abs(regionA.difficultyLevel - regionB.difficultyLevel);
+            if (levelDiff <= 1 && levelDiff > 0) {
+              const found = this.findChokepointsBetweenRegions(regionA, regionB);
+              chokepointsFound += found;
+            }
+          } catch (error) {
+            console.warn('Error finding chokepoints between regions:', i, j, error);
+          }
         }
       }
+      
+      console.log(`Found ${chokepointsFound} chokepoints between ${this.regions.length} regions`);
+    } catch (error) {
+      console.error('Error in identifyChokepoints:', error);
     }
   }
 
   /**
    * Find natural chokepoints between two regions
    */
-  private findChokepointsBetweenRegions(regionA: RegionData, regionB: RegionData): void {
-    const dx = regionB.centerX - regionA.centerX;
-    const dy = regionB.centerY - regionA.centerY;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    
-    // Sample points along the line between regions
-    const samples = Math.floor(distance / 20); // Every 20 tiles
-    
-    for (let i = 1; i < samples; i++) {
-      const t = i / samples;
-      const x = Math.floor(regionA.centerX + dx * t);
-      const y = Math.floor(regionA.centerY + dy * t);
+  private findChokepointsBetweenRegions(regionA: RegionData, regionB: RegionData): number {
+    try {
+      const dx = regionB.centerX - regionA.centerX;
+      const dy = regionB.centerY - regionA.centerY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
       
-      if (this.isNaturalChokepoint(x, y)) {
-        const type = this.determineChokepointType(x, y);
-        const width = this.calculateChokepointWidth(x, y, type);
-        
-        const chokepoint: Chokepoint = {
-          x,
-          y,
-          type,
-          width,
-          fortified: false,
-          controlsAccess: [regionB.name],
-          fortification: undefined
-        };
-        
-        this.chokepoints.set(`${x},${y}`, chokepoint);
+      // Sample points along the line between regions
+      const samples = Math.max(5, Math.min(20, Math.floor(distance / 20))); // Limit samples
+      let chokepointsFound = 0;
+      
+      for (let i = 1; i < samples; i++) {
+        try {
+          const t = i / samples;
+          const x = Math.floor(regionA.centerX + dx * t);
+          const y = Math.floor(regionA.centerY + dy * t);
+          
+          // Bounds check
+          if (x >= 0 && x < this.mapWidth && y >= 0 && y < this.mapHeight) {
+            if (this.isNaturalChokepoint(x, y)) {
+              const type = this.determineChokepointType(x, y);
+              const width = this.calculateChokepointWidth(x, y, type);
+              
+              const chokepoint: Chokepoint = {
+                x,
+                y,
+                type,
+                width,
+                fortified: false,
+                controlsAccess: [regionB.name],
+                fortification: undefined
+              };
+              
+              this.chokepoints.set(`${x},${y}`, chokepoint);
+              chokepointsFound++;
+            }
+          }
+        } catch (error) {
+          console.warn('Error processing chokepoint sample:', i, error);
+        }
       }
+      
+      return chokepointsFound;
+    } catch (error) {
+      console.error('Error in findChokepointsBetweenRegions:', error);
+      return 0;
     }
   }
 
@@ -246,53 +321,95 @@ export class ChokepointManager {
    * Check if a location is a natural chokepoint
    */
   private isNaturalChokepoint(x: number, y: number): boolean {
-    const elevation = this.noise.getElevation(x, y);
-    const moisture = this.noise.getMoisture(x, y, elevation);
-    
-    // Check for narrow land bridges (elevation drops on both sides)
-    const surroundingElevations = [];
-    for (let dx = -3; dx <= 3; dx++) {
-      for (let dy = -3; dy <= 3; dy++) {
-        if (dx === 0 && dy === 0) continue;
-        surroundingElevations.push(this.noise.getElevation(x + dx, y + dy));
-      }
-    }
-    
-    const avgSurrounding = surroundingElevations.reduce((a, b) => a + b, 0) / surroundingElevations.length;
-    
-    // Mountain passes (high elevation with lower surroundings)
-    if (elevation > 0.6 && avgSurrounding < elevation - 0.2) {
-      return true;
-    }
-    
-    // River crossings (specific moisture/elevation patterns)
-    if (elevation > 0.35 && elevation < 0.5 && moisture > 0.7) {
-      // Check if this looks like a river valley
-      const eastWest = Math.abs(this.noise.getElevation(x - 2, y) - this.noise.getElevation(x + 2, y));
-      const northSouth = Math.abs(this.noise.getElevation(x, y - 2) - this.noise.getElevation(x, y + 2));
+    try {
+      const elevation = this.noise.getElevation(x, y);
+      const moisture = this.noise.getMoisture(x, y, elevation);
       
-      if (Math.max(eastWest, northSouth) > 0.1) {
-        return true;
+      // Basic validation
+      if (isNaN(elevation) || isNaN(moisture)) {
+        return false;
       }
-    }
-    
-    // Narrow straits (almost sea level with water nearby)
-    if (elevation > 0.32 && elevation < 0.42) {
-      let nearbyWater = 0;
-      for (let dx = -2; dx <= 2; dx++) {
-        for (let dy = -2; dy <= 2; dy++) {
-          if (this.noise.getElevation(x + dx, y + dy) < 0.35) {
-            nearbyWater++;
+      
+      // Check for narrow land bridges (elevation drops on both sides)
+      const surroundingElevations = [];
+      for (let dx = -3; dx <= 3; dx++) {
+        for (let dy = -3; dy <= 3; dy++) {
+          if (dx === 0 && dy === 0) continue;
+          
+          const checkX = x + dx;
+          const checkY = y + dy;
+          
+          // Bounds check
+          if (checkX >= 0 && checkX < this.mapWidth && checkY >= 0 && checkY < this.mapHeight) {
+            const checkElevation = this.noise.getElevation(checkX, checkY);
+            if (!isNaN(checkElevation)) {
+              surroundingElevations.push(checkElevation);
+            }
           }
         }
       }
       
-      if (nearbyWater > 15) { // Surrounded by water
+      if (surroundingElevations.length === 0) {
+        return false;
+      }
+      
+      const avgSurrounding = surroundingElevations.reduce((a, b) => a + b, 0) / surroundingElevations.length;
+      
+      // Mountain passes (high elevation with lower surroundings)
+      if (elevation > 0.6 && avgSurrounding < elevation - 0.2) {
         return true;
       }
+      
+      // River crossings (specific moisture/elevation patterns)
+      if (elevation > 0.35 && elevation < 0.5 && moisture > 0.7) {
+        // Check if this looks like a river valley
+        const eastWestDiff = Math.abs(
+          this.getElevationSafe(x - 2, y) - this.getElevationSafe(x + 2, y)
+        );
+        const northSouthDiff = Math.abs(
+          this.getElevationSafe(x, y - 2) - this.getElevationSafe(x, y + 2)
+        );
+        
+        if (Math.max(eastWestDiff, northSouthDiff) > 0.1) {
+          return true;
+        }
+      }
+      
+      // Narrow straits (almost sea level with water nearby)
+      if (elevation > 0.32 && elevation < 0.42) {
+        let nearbyWater = 0;
+        for (let dx = -2; dx <= 2; dx++) {
+          for (let dy = -2; dy <= 2; dy++) {
+            if (this.getElevationSafe(x + dx, y + dy) < 0.35) {
+              nearbyWater++;
+            }
+          }
+        }
+        
+        if (nearbyWater > 15) { // Surrounded by water
+          return true;
+        }
+      }
+      
+      return false;
+    } catch (error) {
+      console.warn('Error checking natural chokepoint at', x, y, ':', error);
+      return false;
     }
-    
-    return false;
+  }
+  
+  /**
+   * Safe elevation getter with bounds checking
+   */
+  private getElevationSafe(x: number, y: number): number {
+    if (x < 0 || x >= this.mapWidth || y < 0 || y >= this.mapHeight) {
+      return 0.5; // Default elevation for out-of-bounds
+    }
+    try {
+      return this.noise.getElevation(x, y);
+    } catch (error) {
+      return 0.5;
+    }
   }
 
   /**
@@ -331,29 +448,41 @@ export class ChokepointManager {
    * Place fortifications at strategic chokepoints
    */
   private placeFortifications(): void {
-    const sortedChokepoints = Array.from(this.chokepoints.values())
-      .sort((a, b) => {
-        const distA = this.getDistanceFromStart(a.x, a.y);
-        const distB = this.getDistanceFromStart(b.x, b.y);
-        return distA - distB;
-      });
-
-    // Fortify key chokepoints based on distance and strategic value
-    let fortificationCount = 0;
-    const maxFortifications = Math.min(8, sortedChokepoints.length);
-
-    for (const chokepoint of sortedChokepoints) {
-      if (fortificationCount >= maxFortifications) break;
+    try {
+      console.log('Starting fortification placement...');
       
-      const distance = this.getDistanceFromStart(chokepoint.x, chokepoint.y);
-      const shouldFortify = this.shouldPlaceFortification(chokepoint, distance);
-      
-      if (shouldFortify) {
-        const difficulty = this.calculateFortificationDifficulty(distance);
-        chokepoint.fortified = true;
-        chokepoint.fortification = this.createFortification(chokepoint, difficulty);
-        fortificationCount++;
+      const sortedChokepoints = Array.from(this.chokepoints.values())
+        .sort((a, b) => {
+          const distA = this.getDistanceFromStart(a.x, a.y);
+          const distB = this.getDistanceFromStart(b.x, b.y);
+          return distA - distB;
+        });
+
+      // Fortify key chokepoints based on distance and strategic value
+      let fortificationCount = 0;
+      const maxFortifications = Math.min(8, sortedChokepoints.length);
+
+      for (const chokepoint of sortedChokepoints) {
+        if (fortificationCount >= maxFortifications) break;
+        
+        try {
+          const distance = this.getDistanceFromStart(chokepoint.x, chokepoint.y);
+          const shouldFortify = this.shouldPlaceFortification(chokepoint, distance);
+          
+          if (shouldFortify) {
+            const difficulty = this.calculateFortificationDifficulty(distance);
+            chokepoint.fortified = true;
+            chokepoint.fortification = this.createFortification(chokepoint, difficulty);
+            fortificationCount++;
+          }
+        } catch (error) {
+          console.warn('Error placing fortification at chokepoint:', chokepoint, error);
+        }
       }
+      
+      console.log(`Placed ${fortificationCount} fortifications out of ${sortedChokepoints.length} chokepoints`);
+    } catch (error) {
+      console.error('Error in placeFortifications:', error);
     }
   }
 
