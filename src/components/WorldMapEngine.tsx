@@ -103,7 +103,7 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
   } | null>(null);
   const [activeEncounter, setActiveEncounter] = useState<any>(null);
   const [showAbilities, setShowAbilities] = useState(false);
-  const [showSpells, setShowSpells] = useState(false);
+  const [showCreation, setShowCreation] = useState(false);
 
   // Update stats periodically
   useEffect(() => {
@@ -292,7 +292,7 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
           break;
         case 'b':
         case 'B':
-          setShowSpells(prev => !prev);
+          setShowCreation(prev => !prev);
           break;
       }
 
@@ -701,7 +701,7 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
               break;
             case 'b':
             case 'B':
-              setShowSpells(prev => !prev);
+              setShowCreation(prev => !prev);
               break;
           }
 
@@ -776,8 +776,8 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
         <div><strong>View:</strong> Mouse drag, scroll to zoom</div>
         <div><strong>Grid:</strong> G key</div>
         <div><strong>Center:</strong> C key</div>
-        <div><strong>Abilities:</strong> V key</div>
-        <div><strong>Spells:</strong> B key</div>
+        <div><strong>Abilities/Spells:</strong> V key</div>
+        <div><strong>Creation:</strong> B key</div>
         <div style={{ marginTop: '8px' }}>
           <div>Position: ({engine.state.party.x}, {engine.state.party.y})</div>
           <div>
@@ -1164,7 +1164,7 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
         </div>
       )}
       
-      {/* Physical Abilities Panel */}
+      {/* Combined Abilities & Spells Panel */}
       {showAbilities && (
         <div style={{
           position: 'absolute',
@@ -1176,8 +1176,8 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
           padding: '20px',
           borderRadius: '8px',
           border: '2px solid #374151',
-          maxWidth: '350px',
-          maxHeight: '70vh',
+          maxWidth: '400px',
+          maxHeight: '75vh',
           overflowY: 'auto',
           zIndex: 200,
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6)'
@@ -1188,7 +1188,7 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
             alignItems: 'center',
             marginBottom: '16px'
           }}>
-            <h3 style={{ margin: 0, color: '#f1f5f9' }}>Physical Abilities</h3>
+            <h3 style={{ margin: 0, color: '#f1f5f9' }}>Abilities & Spells</h3>
             <button
               onClick={() => setShowAbilities(false)}
               style={{
@@ -1219,9 +1219,9 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
             </div>
           </div>
 
-          {/* Known Abilities */}
+          {/* Known Physical Abilities */}
           <div style={{ marginBottom: '16px' }}>
-            <h4 style={{ margin: '0 0 8px 0', color: '#4ade80' }}>Known Abilities</h4>
+            <h4 style={{ margin: '0 0 8px 0', color: '#4ade80' }}>⚔️ Physical Abilities</h4>
             {engine.state.party.knownAbilities.length > 0 ? (
               <div style={{ fontSize: '12px' }}>
                 {engine.state.party.knownAbilities.map((ability, i) => (
@@ -1238,14 +1238,38 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
               </div>
             ) : (
               <div style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic' }}>
-                No abilities learned yet. Gain experience to unlock abilities!
+                No physical abilities learned yet.
               </div>
             )}
           </div>
 
-          {/* Available Abilities */}
-          <div>
-            <h4 style={{ margin: '0 0 8px 0', color: '#eab308' }}>Available to Learn</h4>
+          {/* Known Magical Spells */}
+          <div style={{ marginBottom: '16px' }}>
+            <h4 style={{ margin: '0 0 8px 0', color: '#8b5cf6' }}>✨ Magical Spells</h4>
+            {engine.state.party.knownSpells.length > 0 ? (
+              <div style={{ fontSize: '12px' }}>
+                {engine.state.party.knownSpells.map((spell, i) => (
+                  <div key={i} style={{ 
+                    padding: '4px 8px', 
+                    margin: '2px 0',
+                    background: 'rgba(139, 92, 246, 0.2)',
+                    borderRadius: '4px',
+                    border: '1px solid #8b5cf6'
+                  }}>
+                    {spell}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic' }}>
+                No spells learned yet.
+              </div>
+            )}
+          </div>
+
+          {/* Available Physical Abilities */}
+          <div style={{ marginBottom: '16px' }}>
+            <h4 style={{ margin: '0 0 8px 0', color: '#eab308' }}>⚡ Available Physical Abilities</h4>
             {(() => {
               try {
                 const available = engine.getAvailablePhysicalAbilities().filter(
@@ -1254,7 +1278,7 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
                 
                 return available.length > 0 ? (
                   <div style={{ fontSize: '12px' }}>
-                    {available.slice(0, 5).map((ability, i) => (
+                    {available.slice(0, 3).map((ability, i) => (
                       <div key={i} style={{ 
                         padding: '8px', 
                         margin: '4px 0',
@@ -1264,20 +1288,16 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
                       }}>
                         <div style={{ fontWeight: 'bold', color: '#fbbf24' }}>{ability.name}</div>
                         <div style={{ fontSize: '11px', color: '#e2e8f0', marginTop: '2px' }}>
-                          {ability.school} • {ability.tier}
+                          {ability.school} • {ability.tier} • Stamina: {ability.staminaCost}
                         </div>
                         <div style={{ fontSize: '11px', color: '#cbd5e1', marginTop: '4px' }}>
                           {ability.description}
-                        </div>
-                        <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>
-                          Stamina Cost: {ability.staminaCost} | Level: {ability.requirements.minLevel}
                         </div>
                         <button
                           onClick={() => {
                             const success = engine.learnPhysicalAbility(ability.name);
                             if (success) {
                               console.log(`Learned ${ability.name}!`);
-                              // Force re-render by updating a state value
                               setStats(prev => ({ ...prev }));
                             }
                           }}
@@ -1296,112 +1316,31 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
                         </button>
                       </div>
                     ))}
-                    {available.length > 5 && (
+                    {available.length > 3 && (
                       <div style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic', marginTop: '8px' }}>
-                        ... and {available.length - 5} more abilities available
+                        ... and {available.length - 3} more physical abilities
                       </div>
                     )}
                   </div>
                 ) : (
                   <div style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic' }}>
-                    No new abilities available. Level up or get better equipment!
+                    No new physical abilities available.
                   </div>
                 );
               } catch (error) {
-                console.error('Error getting abilities:', error);
+                console.error('Error getting physical abilities:', error);
                 return (
                   <div style={{ fontSize: '12px', color: '#ef4444' }}>
-                    Error loading abilities
+                    Error loading physical abilities
                   </div>
                 );
               }
             })()}
           </div>
-        </div>
-      )}
-      
-      {/* Magical Spells Panel */}
-      {showSpells && (
-        <div style={{
-          position: 'absolute',
-          top: '50%',
-          left: '20px',
-          transform: 'translateY(-50%)',
-          background: 'rgba(0, 0, 0, 0.9)',
-          color: '#f9fafb',
-          padding: '20px',
-          borderRadius: '8px',
-          border: '2px solid #374151',
-          maxWidth: '350px',
-          maxHeight: '70vh',
-          overflowY: 'auto',
-          zIndex: 200,
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6)'
-        }}>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '16px'
-          }}>
-            <h3 style={{ margin: 0, color: '#f1f5f9' }}>Magical Spells</h3>
-            <button
-              onClick={() => setShowSpells(false)}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: '#94a3b8',
-                fontSize: '20px',
-                cursor: 'pointer',
-                padding: '0',
-                width: '24px',
-                height: '24px'
-              }}
-            >
-              ×
-            </button>
-          </div>
-          
-          <div style={{ marginBottom: '16px', fontSize: '13px' }}>
-            <div><strong>Level:</strong> {engine.state.party.level}</div>
-            <div><strong>Experience:</strong> {engine.state.party.experience}/{engine.state.party.level * 100}</div>
-            <div style={{ marginTop: '8px' }}>
-              <strong>Stats:</strong>
-              <div style={{ fontSize: '12px', marginLeft: '8px' }}>
-                <div>STR: {engine.state.party.stats.strength} | DEX: {engine.state.party.stats.dexterity}</div>
-                <div>CON: {engine.state.party.stats.constitution} | INT: {engine.state.party.stats.intelligence}</div>
-                <div>WIS: {engine.state.party.stats.wisdom} | CHA: {engine.state.party.stats.charisma}</div>
-              </div>
-            </div>
-          </div>
 
-          {/* Known Spells */}
-          <div style={{ marginBottom: '16px' }}>
-            <h4 style={{ margin: '0 0 8px 0', color: '#8b5cf6' }}>Known Spells</h4>
-            {engine.state.party.knownSpells.length > 0 ? (
-              <div style={{ fontSize: '12px' }}>
-                {engine.state.party.knownSpells.map((spell, i) => (
-                  <div key={i} style={{ 
-                    padding: '4px 8px', 
-                    margin: '2px 0',
-                    background: 'rgba(139, 92, 246, 0.2)',
-                    borderRadius: '4px',
-                    border: '1px solid #8b5cf6'
-                  }}>
-                    {spell}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic' }}>
-                No spells learned yet. Gain experience to unlock spells!
-              </div>
-            )}
-          </div>
-
-          {/* Available Spells */}
+          {/* Available Magical Spells */}
           <div>
-            <h4 style={{ margin: '0 0 8px 0', color: '#06b6d4' }}>Available to Learn</h4>
+            <h4 style={{ margin: '0 0 8px 0', color: '#06b6d4' }}>🌟 Available Magical Spells</h4>
             {(() => {
               try {
                 const available = engine.getAvailableMagicalSpells().filter(
@@ -1410,7 +1349,7 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
                 
                 return available.length > 0 ? (
                   <div style={{ fontSize: '12px' }}>
-                    {available.slice(0, 5).map((spell, i) => (
+                    {available.slice(0, 3).map((spell, i) => (
                       <div key={i} style={{ 
                         padding: '8px', 
                         margin: '4px 0',
@@ -1420,21 +1359,17 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
                       }}>
                         <div style={{ fontWeight: 'bold', color: '#22d3ee' }}>{spell.name}</div>
                         <div style={{ fontSize: '11px', color: '#e2e8f0', marginTop: '2px' }}>
-                          {spell.school} • {spell.tier}
+                          {spell.school} • {spell.tier} • Ether: {spell.etherCost}
+                          {spell.range && ` • Range: ${spell.range}`}
                         </div>
                         <div style={{ fontSize: '11px', color: '#cbd5e1', marginTop: '4px' }}>
                           {spell.description}
-                        </div>
-                        <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>
-                          Ether Cost: {spell.etherCost} | Level: {spell.requirements.minLevel}
-                          {spell.range && ` | Range: ${spell.range}`}
                         </div>
                         <button
                           onClick={() => {
                             const success = engine.learnMagicalSpell(spell.name);
                             if (success) {
                               console.log(`Learned ${spell.name}!`);
-                              // Force re-render by updating a state value
                               setStats(prev => ({ ...prev }));
                             }
                           }}
@@ -1453,26 +1388,210 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
                         </button>
                       </div>
                     ))}
-                    {available.length > 5 && (
+                    {available.length > 3 && (
                       <div style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic', marginTop: '8px' }}>
-                        ... and {available.length - 5} more spells available
+                        ... and {available.length - 3} more magical spells
                       </div>
                     )}
                   </div>
                 ) : (
                   <div style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic' }}>
-                    No new spells available. Level up or increase your stats!
+                    No new magical spells available.
                   </div>
                 );
               } catch (error) {
-                console.error('Error getting spells:', error);
+                console.error('Error getting magical spells:', error);
                 return (
                   <div style={{ fontSize: '12px', color: '#ef4444' }}>
-                    Error loading spells
+                    Error loading magical spells
                   </div>
                 );
               }
             })()}
+          </div>
+        </div>
+      )}
+      
+      {/* Creation Panel - Spell/Ability Creation */}
+      {showCreation && (
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '20px',
+          transform: 'translateY(-50%)',
+          background: 'rgba(0, 0, 0, 0.9)',
+          color: '#f9fafb',
+          padding: '20px',
+          borderRadius: '8px',
+          border: '2px solid #374151',
+          maxWidth: '400px',
+          maxHeight: '75vh',
+          overflowY: 'auto',
+          zIndex: 200,
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6)'
+        }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '16px'
+          }}>
+            <h3 style={{ margin: 0, color: '#f1f5f9' }}>🔨 Creation Workshop</h3>
+            <button
+              onClick={() => setShowCreation(false)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#94a3b8',
+                fontSize: '20px',
+                cursor: 'pointer',
+                padding: '0',
+                width: '24px',
+                height: '24px'
+              }}
+            >
+              ×
+            </button>
+          </div>
+          
+          <div style={{ marginBottom: '20px', fontSize: '13px', color: '#e2e8f0' }}>
+            <p style={{ margin: '0 0 12px 0', fontStyle: 'italic' }}>
+              Design your own custom abilities and spells! Combine different elements, effects, and properties 
+              to create unique powers tailored to your playstyle.
+            </p>
+          </div>
+
+          {/* Physical Ability Creation */}
+          <div style={{ marginBottom: '24px' }}>
+            <h4 style={{ 
+              margin: '0 0 12px 0', 
+              color: '#4ade80',
+              borderBottom: '2px solid #4ade80',
+              paddingBottom: '4px'
+            }}>
+              ⚔️ Physical Ability Designer
+            </h4>
+            
+            <div style={{ 
+              padding: '12px', 
+              background: 'rgba(34, 197, 94, 0.1)',
+              borderRadius: '6px',
+              border: '1px solid rgba(34, 197, 94, 0.3)'
+            }}>
+              <div style={{ fontSize: '12px', color: '#cbd5e1', marginBottom: '8px' }}>
+                <strong>Available Schools:</strong>
+              </div>
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(2, 1fr)', 
+                gap: '4px',
+                fontSize: '11px'
+              }}>
+                {['Weaponmastery', 'Combat', 'Athletics', 'Tactics', 'Survival', 'Stealth', 'Defense', 'Berserker'].map(school => (
+                  <div key={school} style={{
+                    padding: '4px 6px',
+                    background: 'rgba(34, 197, 94, 0.2)',
+                    borderRadius: '3px',
+                    border: '1px solid #22c55e',
+                    textAlign: 'center',
+                    color: '#4ade80'
+                  }}>
+                    {school}
+                  </div>
+                ))}
+              </div>
+              
+              <div style={{ 
+                marginTop: '12px',
+                padding: '8px',
+                background: 'rgba(0, 0, 0, 0.3)',
+                borderRadius: '4px',
+                fontSize: '11px',
+                color: '#94a3b8'
+              }}>
+                <div><strong>📋 Coming Soon:</strong></div>
+                <div>• Drag & drop ability components</div>
+                <div>• Custom stamina costs & requirements</div>
+                <div>• Multi-effect combinations</div>
+                <div>• Save/share custom abilities</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Magical Spell Creation */}
+          <div>
+            <h4 style={{ 
+              margin: '0 0 12px 0', 
+              color: '#8b5cf6',
+              borderBottom: '2px solid #8b5cf6',
+              paddingBottom: '4px'
+            }}>
+              ✨ Spell Forge
+            </h4>
+            
+            <div style={{ 
+              padding: '12px', 
+              background: 'rgba(139, 92, 246, 0.1)',
+              borderRadius: '6px',
+              border: '1px solid rgba(139, 92, 246, 0.3)'
+            }}>
+              <div style={{ fontSize: '12px', color: '#cbd5e1', marginBottom: '8px' }}>
+                <strong>Available Schools:</strong>
+              </div>
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(2, 1fr)', 
+                gap: '4px',
+                fontSize: '11px'
+              }}>
+                {['Evocation', 'Enchantment', 'Transmutation', 'Divination', 'Conjuration', 'Necromancy', 'Illusion', 'Abjuration'].map(school => (
+                  <div key={school} style={{
+                    padding: '4px 6px',
+                    background: 'rgba(139, 92, 246, 0.2)',
+                    borderRadius: '3px',
+                    border: '1px solid #8b5cf6',
+                    textAlign: 'center',
+                    color: '#a78bfa'
+                  }}>
+                    {school}
+                  </div>
+                ))}
+              </div>
+              
+              <div style={{ 
+                marginTop: '12px',
+                padding: '8px',
+                background: 'rgba(0, 0, 0, 0.3)',
+                borderRadius: '4px',
+                fontSize: '11px',
+                color: '#94a3b8'
+              }}>
+                <div><strong>🧪 Coming Soon:</strong></div>
+                <div>• Elemental spell weaving</div>
+                <div>• Custom ether costs & casting times</div>
+                <div>• Area of effect designer</div>
+                <div>• Spell component requirements</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Workshop Status */}
+          <div style={{
+            marginTop: '20px',
+            padding: '12px',
+            background: 'rgba(234, 179, 8, 0.1)',
+            borderRadius: '6px',
+            border: '1px solid rgba(234, 179, 8, 0.3)',
+            fontSize: '12px',
+            textAlign: 'center'
+          }}>
+            <div style={{ color: '#fbbf24', fontWeight: 'bold', marginBottom: '4px' }}>
+              🚧 Workshop Under Construction
+            </div>
+            <div style={{ color: '#cbd5e1' }}>
+              The creation system is being built! For now, discover abilities and spells 
+              through exploration and leveling up.
+            </div>
           </div>
         </div>
       )}
