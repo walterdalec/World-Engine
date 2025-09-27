@@ -39,6 +39,9 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
     return new WorldEngine(seedStr);
   });
 
+  // Force re-render hook to trigger when engine state changes
+  const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0);
+
   // Game state
   const [showGrid, setShowGrid] = useState(false);
   const [cameraLocked, setCameraLocked] = useState(true);
@@ -59,6 +62,15 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
       setStats(normalizeStats(engine.getStats()));
     }, 1000);
     return () => clearInterval(interval);
+  }, [engine, normalizeStats]);
+
+  // Check if engine was loaded from save on startup and force update
+  useEffect(() => {
+    if (engine.wasLoadedFromSave()) {
+      console.log('Engine was loaded from save, updating React state...');
+      setStats(normalizeStats(engine.getStats()));
+      forceUpdate();
+    }
   }, [engine, normalizeStats]);
 
   // Check for encounters
@@ -214,6 +226,11 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
         onToggleGrid={() => setShowGrid(!showGrid)}
         cameraLocked={cameraLocked}
         onToggleCameraLock={() => setCameraLocked(!cameraLocked)}
+        onRefresh={() => {
+          // Force re-render and update stats after loading
+          forceUpdate();
+          setStats(normalizeStats(engine.getStats()));
+        }}
         stats={stats}
       />
 

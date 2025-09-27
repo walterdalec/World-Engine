@@ -160,6 +160,7 @@ export class WorldEngine {
   private magicalSpells!: MagicalSpellsGenerator;
   private rng!: SeededRandom;
   public state!: GameState;
+  private loadedFromSave: boolean = false; // Track if loaded from localStorage
   
   constructor(seed?: string, config?: Partial<EngineConfig>) {
     // Try to load existing game from localStorage first
@@ -170,6 +171,7 @@ export class WorldEngine {
         const success = this.loadFromStorage(existingSave);
         if (success) {
           console.log('Successfully loaded existing game!');
+          this.loadedFromSave = true;
           return; // Exit early if load was successful
         }
       } catch (error) {
@@ -180,6 +182,7 @@ export class WorldEngine {
 
     // Create new game if no save exists or load failed
     console.log('Creating new game...');
+    this.loadedFromSave = false;
     this.createNewGame(seed, config);
   }
 
@@ -822,6 +825,13 @@ export class WorldEngine {
       gameTime: `Day ${this.state.time.day}, ${this.state.time.season} Year ${this.state.time.year} - ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
     };
   }
+
+  /**
+   * Check if the engine was loaded from a saved game
+   */
+  wasLoadedFromSave(): boolean {
+    return this.loadedFromSave;
+  }
   
   /**
    * Save game state to JSON
@@ -867,6 +877,9 @@ export class WorldEngine {
       
       // Ensure current area is loaded
       this.ensureRadius(this.state.config.gameplay.chunkLoadRadius);
+      
+      // Set flag to indicate this was loaded from a save
+      this.loadedFromSave = true;
       
       return true;
     } catch (error) {

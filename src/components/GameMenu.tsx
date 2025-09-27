@@ -13,6 +13,7 @@ interface GameMenuProps {
   onToggleGrid: () => void;
   cameraLocked: boolean;
   onToggleCameraLock: () => void;
+  onRefresh?: () => void; // Callback to force parent component refresh
   stats: {
     chunks: { loaded?: number; total?: number } | any;
     discovered: number;
@@ -31,6 +32,7 @@ export default function GameMenu({
   onToggleGrid,
   cameraLocked,
   onToggleCameraLock,
+  onRefresh,
   stats
 }: GameMenuProps) {
   const [activeTab, setActiveTab] = useState<MenuTab>('stats');
@@ -443,7 +445,9 @@ export default function GameMenu({
                                 const saveData = e.target?.result as string;
                                 const success = engine.load(saveData);
                                 if (success) {
-                                  alert('Game loaded successfully! Refresh the page to see changes.');
+                                  // Force a refresh of the parent component to show loaded data
+                                  onRefresh?.();
+                                  alert('Game loaded successfully! Your characters and progress have been restored.');
                                 } else {
                                   alert('Failed to load save file. Please check the file format.');
                                 }
