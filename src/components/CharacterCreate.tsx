@@ -4,7 +4,7 @@ import { CLASS_DEFINITIONS } from '../defaultWorlds';
 import CharacterPortraitPicker from './CharacterPortraitPicker';
 import PortraitDisplay from './PortraitDisplay';
 // Visual System Integration
-import { PortraitPreview, VisualUtils } from '../visuals';
+import { PortraitPreview, VisualUtils, bindPortraitToCharacter } from '../visuals';
 import type { CharacterVisualData } from '../visuals';
 
 type Stats = "STR" | "DEX" | "CON" | "INT" | "WIS" | "CHA";
@@ -700,7 +700,18 @@ export default function CharacterCreate() {
     download(`${char.name.replace(/\s+/g, "_")}.json`, payload);
   }
 
-  function saveToLibrary() {
+  // Finalize character with portrait binding (from patch example)
+  async function finalizeCharacter(character: any) {
+    await bindPortraitToCharacter(character, {
+      body: "standard",
+      palette: "Rootspeakers", // Could be mapped from species/archetype
+      size: { width: 300, height: 380 }
+    });
+    // now character.portraitUrl contains the generated portrait PNG data URL
+    return character;
+  }
+
+  async function saveToLibrary() {
     if (!char.name.trim()) {
       alert("Give your character a name before saving.");
       return;
@@ -709,6 +720,9 @@ export default function CharacterCreate() {
     console.log("Saving character to library:", char);
 
     try {
+      // Finalize character with auto-generated portrait (following patch example)
+      const finalizedCharacter = await finalizeCharacter({ ...char });
+      
       // Get existing character library
       const existingCharacters = JSON.parse(localStorage.getItem('world-engine-characters') || '[]');
       console.log("Existing characters:", existingCharacters);
@@ -716,12 +730,12 @@ export default function CharacterCreate() {
       // Create character data for library
       const characterData = {
         id: `char-${Date.now()}`,
-        name: char.name,
-        race: char.species,
-        characterClass: char.archetype,
-        level: char.level || 1,
+        name: finalizedCharacter.name,
+        race: finalizedCharacter.species,
+        characterClass: finalizedCharacter.archetype,
+        level: finalizedCharacter.level || 1,
         createdAt: new Date().toISOString(),
-        data: { ...char, createdAt: new Date().toISOString() }
+        data: { ...finalizedCharacter, createdAt: new Date().toISOString() }
       };
 
       console.log("Character data to save:", characterData);
@@ -973,7 +987,7 @@ export default function CharacterCreate() {
                 characterClass={char.archetype}
                 onPortraitChange={(portraitData) => setField("portraitUrl", portraitData)}
               />
-              
+
               {/* New Visual System Preview */}
               {char.name && char.species && char.archetype && (
                 <div style={{ marginTop: '12px', padding: '12px', background: '#1e293b', borderRadius: '8px', border: '1px solid #475569' }}>
