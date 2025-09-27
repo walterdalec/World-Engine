@@ -1,0 +1,56 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2025-09-27T00:00:00.000Z",
+  "description": "Character portrait asset manifest for World Engine",
+  "assets": [
+    {
+      "id": "sample-portrait",
+      "category": "base",
+      "subcategory": "sample",
+      "species": ["Human"],
+      "archetype": ["Warrior"],
+      "tags": ["placeholder", "sample"],
+      "path": "samples/sample.svg",
+      "metadata": {
+        "author": "World Engine",
+        "description": "Sample portrait for testing"
+      }
+    }
+  ],
+  "categories": [
+    "base",
+    "hair",
+    "eyes",
+    "clothing",
+    "accessories",
+    "armor",
+    "weapons",
+    "effects"
+  ],
+  "species": [
+    "Human",
+    "Sylvanborn", 
+    "Nightborn",
+    "Stormcaller",
+    "Crystalborn",
+    "Draketh",
+    "Alloy",
+    "Voidkin"
+  ],
+  "archetypes": [
+    "Warrior",
+    "Scout", 
+    "Mage",
+    "Guardian",
+    "Ranger",
+    "Rogue",
+    "Artificer",
+    "Thorn Knight",
+    "Ashblade",
+    "Ironclad",
+    "Stormbreaker",
+    "Voidhunter",
+    "Crystal Guardian",
+    "Greenwarden"
+  ]
+}

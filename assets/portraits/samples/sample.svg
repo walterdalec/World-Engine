@@ -1,0 +1,28 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="128" height="128" fill="#8B4513" opacity="0.1"/>
+  
+  <!-- Body -->
+  <rect x="48" y="64" width="32" height="48" fill="#C68642"/>
+  
+  <!-- Head -->
+  <circle cx="64" cy="42" r="20" fill="#C68642"/>
+  
+  <!-- Hair -->
+  <path d="M 44 32 Q 64 20 84 32 Q 80 38 64 38 Q 48 38 44 32" fill="#8B4513"/>
+  
+  <!-- Eyes -->
+  <circle cx="58" cy="38" r="2" fill="#8B4513"/>
+  <circle cx="70" cy="38" r="2" fill="#8B4513"/>
+  
+  <!-- Mouth -->
+  <path d="M 60 46 Q 64 48 68 46" stroke="#333" stroke-width="1" fill="none"/>
+  
+  <!-- Clothing -->
+  <rect x="44" y="70" width="40" height="42" fill="#8B4513"/>
+  
+  <!-- Sample label -->
+  <text x="64" y="120" text-anchor="middle" font-family="Arial" font-size="8" fill="#666">
+    Sample Portrait
+  </text>
+</svg>
