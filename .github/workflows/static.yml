@@ -33,10 +33,24 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+      - name: Debug - List files
+        run: |
+          echo "Current directory contents:"
+          ls -la
+          echo "Package.json contents:"
+          cat package.json
       - name: Install dependencies
-        run: npm ci
+        run: |
+          echo "Installing dependencies..."
+          npm install --verbose
       - name: Build React app
-        run: npm run build
+        run: |
+          echo "Building React app..."
+          CI=false npm run build
+      - name: Debug - Check build output
+        run: |
+          echo "Build directory contents:"
+          ls -la build/ || echo "Build directory not found"
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
