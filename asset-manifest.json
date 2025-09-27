@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/World-Engine/static/css/main.e6c13ad2.css",
+    "main.js": "/World-Engine/static/js/main.3459eedf.js",
+    "index.html": "/World-Engine/index.html",
+    "main.e6c13ad2.css.map": "/World-Engine/static/css/main.e6c13ad2.css.map",
+    "main.3459eedf.js.map": "/World-Engine/static/js/main.3459eedf.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.e6c13ad2.css",
+    "static/js/main.3459eedf.js"
+  ]
+}
