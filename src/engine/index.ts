@@ -154,14 +154,39 @@ export interface GameState {
 }
 
 export class WorldEngine {
-  private chunkManager: ChunkManager;
+  private chunkManager!: ChunkManager;
   private chokepointManager: ChokepointManager | null = null; // Temporarily nullable for debugging
-  private physicalAbilities: PhysicalAbilitiesGenerator;
+  private physicalAbilities!: PhysicalAbilitiesGenerator;
   private magicalSpells!: MagicalSpellsGenerator;
-  private rng: SeededRandom;
-  public state: GameState;
+  private rng!: SeededRandom;
+  public state!: GameState;
   
   constructor(seed?: string, config?: Partial<EngineConfig>) {
+    // Try to load existing game from localStorage first
+    const existingSave = localStorage.getItem('world-engine-save');
+    if (existingSave) {
+      try {
+        console.log('Found existing save, loading from localStorage...');
+        const success = this.loadFromStorage(existingSave);
+        if (success) {
+          console.log('Successfully loaded existing game!');
+          return; // Exit early if load was successful
+        }
+      } catch (error) {
+        console.warn('Failed to load existing save, creating new game:', error);
+        localStorage.removeItem('world-engine-save'); // Clear corrupted save
+      }
+    }
+
+    // Create new game if no save exists or load failed
+    console.log('Creating new game...');
+    this.createNewGame(seed, config);
+  }
+
+  /**
+   * Create a completely new game
+   */
+  private createNewGame(seed?: string, config?: Partial<EngineConfig>) {
     const actualSeed = seed || this.generateSeed();
     this.rng = new SeededRandom(`${actualSeed}_engine`);
     
@@ -280,6 +305,68 @@ export class WorldEngine {
 
     // Create default test characters
     this.createDefaultCharacters();
+    
+    // Auto-save the new game
+    this.autoSave();
+  }
+
+  /**
+   * Load game state from localStorage
+   */
+  private loadFromStorage(saveData: string): boolean {
+    try {
+      const data = JSON.parse(saveData);
+      
+      // Recreate chunk manager and chokepoint manager with loaded seed
+      this.chunkManager = new ChunkManager(data.seed, data.config.world);
+      
+      // Initialize physical abilities generator
+      this.physicalAbilities = new PhysicalAbilitiesGenerator(data.seed);
+      
+      // Initialize magical spells generator
+      this.magicalSpells = new MagicalSpellsGenerator(data.seed);
+      
+      // Initialize RNG
+      this.rng = new SeededRandom(`${data.seed}_engine`);
+      
+      try {
+        this.chokepointManager = new ChokepointManager(
+          data.seed,
+          data.config.world.mapWidth,
+          data.config.world.mapHeight,
+          data.config.world.mapWidth / 2,
+          data.config.world.mapHeight / 2
+        );
+      } catch (error) {
+        console.error('Failed to recreate chokepoint manager during load:', error);
+        this.chokepointManager = null;
+      }
+      
+      // Restore game state
+      this.state = {
+        ...data,
+        discovered: new Set(data.discovered) // Convert Array back to Set
+      };
+      
+      console.log(`Game loaded successfully! Seed: ${this.state.seed}, Characters: ${this.state.characters.length}`);
+      return true;
+    } catch (error) {
+      console.error('Failed to load game state:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Auto-save to localStorage
+   */
+  private autoSave(): void {
+    try {
+      const saveData = this.save();
+      localStorage.setItem('world-engine-save', saveData);
+      console.log('Game auto-saved to localStorage');
+    } catch (error) {
+      console.error('Failed to auto-save game:', error);
+    }
   }
   
   /**
@@ -394,6 +481,9 @@ export class WorldEngine {
     
     // Update weather
     this.updateWeather();
+
+    // Auto-save after movement
+    this.autoSave();
     
     return true;
   }
@@ -1463,6 +1553,9 @@ export class WorldEngine {
     this.state.characters.push(character);
     this.state.party.members.push(character.id);
 
+    // Auto-save after creating character
+    this.autoSave();
+
     return character;
   }
 
@@ -1494,6 +1587,8 @@ export class WorldEngine {
     
     if (ability && !character.knownAbilities.includes(abilityName)) {
       character.knownAbilities.push(abilityName);
+      // Auto-save after learning ability
+      this.autoSave();
       return true;
     }
     return false;
@@ -1511,6 +1606,8 @@ export class WorldEngine {
     
     if (spell && !character.knownSpells.includes(spellName)) {
       character.knownSpells.push(spellName);
+      // Auto-save after learning spell
+      this.autoSave();
       return true;
     }
     return false;

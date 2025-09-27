@@ -92,7 +92,7 @@ export default function GameMenu({
           { id: 'stats', label: '📊 Character Stats', icon: '📊' },
           { id: 'abilities', label: '⚔️ Physical Abilities', icon: '⚔️' },
           { id: 'spells', label: '✨ Magical Spells', icon: '✨' },
-          { id: 'creation', label: '🔨 Creation Workshop', icon: '🔨' },
+          { id: 'creation', label: '� Create Character', icon: '�' },
           { id: 'settings', label: '⚙️ Game Settings', icon: '⚙️' }
         ].map(tab => (
           <button
@@ -304,145 +304,9 @@ export default function GameMenu({
 
         {activeTab === 'creation' && (
           <div>
-            <h3 style={{ margin: '0 0 20px 0', color: '#f59e0b' }}>🔨 Creation Workshop</h3>
+            <h3 style={{ margin: '0 0 20px 0', color: '#f59e0b' }}>� Character Creation</h3>
             
-            <div style={{ marginBottom: '20px', fontSize: '14px', color: '#e2e8f0' }}>
-              <p style={{ margin: '0 0 12px 0', fontStyle: 'italic' }}>
-                Design your own custom abilities and spells! Combine different elements, effects, and properties 
-                to create unique powers tailored to your playstyle.
-              </p>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
-              {/* Physical Ability Creation */}
-              <div style={{
-                background: 'rgba(34, 197, 94, 0.1)',
-                border: '1px solid rgba(34, 197, 94, 0.3)',
-                borderRadius: '8px',
-                padding: '20px'
-              }}>
-                <h4 style={{ 
-                  margin: '0 0 16px 0', 
-                  color: '#4ade80',
-                  borderBottom: '2px solid #4ade80',
-                  paddingBottom: '8px'
-                }}>
-                  ⚔️ Physical Ability Designer
-                </h4>
-                
-                <div style={{ fontSize: '12px', color: '#cbd5e1', marginBottom: '12px' }}>
-                  <strong>Available Schools:</strong>
-                </div>
-                <div style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: 'repeat(2, 1fr)', 
-                  gap: '6px',
-                  fontSize: '11px',
-                  marginBottom: '16px'
-                }}>
-                  {['Weaponmastery', 'Combat', 'Athletics', 'Tactics', 'Survival', 'Stealth', 'Defense', 'Berserker'].map(school => (
-                    <div key={school} style={{
-                      padding: '6px 8px',
-                      background: 'rgba(34, 197, 94, 0.2)',
-                      borderRadius: '4px',
-                      border: '1px solid #22c55e',
-                      textAlign: 'center',
-                      color: '#4ade80'
-                    }}>
-                      {school}
-                    </div>
-                  ))}
-                </div>
-                
-                <div style={{ 
-                  padding: '12px',
-                  background: 'rgba(0, 0, 0, 0.3)',
-                  borderRadius: '6px',
-                  fontSize: '11px',
-                  color: '#94a3b8'
-                }}>
-                  <div><strong>📋 Coming Soon:</strong></div>
-                  <div>• Drag & drop ability components</div>
-                  <div>• Custom stamina costs & requirements</div>
-                  <div>• Multi-effect combinations</div>
-                  <div>• Save/share custom abilities</div>
-                </div>
-              </div>
-
-              {/* Magical Spell Creation */}
-              <div style={{
-                background: 'rgba(139, 92, 246, 0.1)',
-                border: '1px solid rgba(139, 92, 246, 0.3)',
-                borderRadius: '8px',
-                padding: '20px'
-              }}>
-                <h4 style={{ 
-                  margin: '0 0 16px 0', 
-                  color: '#8b5cf6',
-                  borderBottom: '2px solid #8b5cf6',
-                  paddingBottom: '8px'
-                }}>
-                  ✨ Spell Forge
-                </h4>
-                
-                <div style={{ fontSize: '12px', color: '#cbd5e1', marginBottom: '12px' }}>
-                  <strong>Available Schools:</strong>
-                </div>
-                <div style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: 'repeat(2, 1fr)', 
-                  gap: '6px',
-                  fontSize: '11px',
-                  marginBottom: '16px'
-                }}>
-                  {['Evocation', 'Enchantment', 'Transmutation', 'Divination', 'Conjuration', 'Necromancy', 'Illusion', 'Abjuration'].map(school => (
-                    <div key={school} style={{
-                      padding: '6px 8px',
-                      background: 'rgba(139, 92, 246, 0.2)',
-                      borderRadius: '4px',
-                      border: '1px solid #8b5cf6',
-                      textAlign: 'center',
-                      color: '#a78bfa'
-                    }}>
-                      {school}
-                    </div>
-                  ))}
-                </div>
-                
-                <div style={{ 
-                  padding: '12px',
-                  background: 'rgba(0, 0, 0, 0.3)',
-                  borderRadius: '6px',
-                  fontSize: '11px',
-                  color: '#94a3b8'
-                }}>
-                  <div><strong>🧪 Coming Soon:</strong></div>
-                  <div>• Elemental spell weaving</div>
-                  <div>• Custom ether costs & casting times</div>
-                  <div>• Area of effect designer</div>
-                  <div>• Spell component requirements</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Workshop Status */}
-            <div style={{
-              marginTop: '24px',
-              padding: '16px',
-              background: 'rgba(234, 179, 8, 0.1)',
-              borderRadius: '8px',
-              border: '1px solid rgba(234, 179, 8, 0.3)',
-              fontSize: '14px',
-              textAlign: 'center'
-            }}>
-              <div style={{ color: '#fbbf24', fontWeight: 'bold', marginBottom: '8px' }}>
-                🚧 Workshop Under Construction
-              </div>
-              <div style={{ color: '#cbd5e1' }}>
-                The creation system is being built! For now, discover abilities and spells 
-                through exploration and leveling up.
-              </div>
-            </div>
+            <CharacterCreationForm engine={engine} />
           </div>
         )}
 
@@ -518,6 +382,120 @@ export default function GameMenu({
                     }}>
                       {Math.round(engine.state.encounterClock.riskLevel * 100)}%
                     </span>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{
+                background: 'rgba(59, 130, 246, 0.1)',
+                border: '1px solid rgba(59, 130, 246, 0.3)',
+                borderRadius: '8px',
+                padding: '20px'
+              }}>
+                <h4 style={{ margin: '0 0 16px 0', color: '#60a5fa' }}>💾 Save & Load</h4>
+                <div style={{ display: 'grid', gap: '12px' }}>
+                  <div style={{ fontSize: '12px', color: '#cbd5e1', marginBottom: '8px' }}>
+                    Your game is automatically saved when you move, create characters, or learn abilities.
+                  </div>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px' }}>
+                    <button
+                      onClick={() => {
+                        try {
+                          const saveData = engine.save();
+                          const blob = new Blob([saveData], { type: 'application/json' });
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = `world-engine-save-${new Date().toISOString().split('T')[0]}.json`;
+                          a.click();
+                          URL.revokeObjectURL(url);
+                          alert('Game saved to file!');
+                        } catch (error) {
+                          alert('Failed to save game: ' + error);
+                        }
+                      }}
+                      style={{
+                        padding: '8px 12px',
+                        background: '#3b82f6',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      📥 Export Save
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = '.json';
+                        input.onchange = (e) => {
+                          const file = (e.target as HTMLInputElement).files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                              try {
+                                const saveData = e.target?.result as string;
+                                const success = engine.load(saveData);
+                                if (success) {
+                                  alert('Game loaded successfully! Refresh the page to see changes.');
+                                } else {
+                                  alert('Failed to load save file. Please check the file format.');
+                                }
+                              } catch (error) {
+                                alert('Failed to load game: ' + error);
+                              }
+                            };
+                            reader.readAsText(file);
+                          }
+                        };
+                        input.click();
+                      }}
+                      style={{
+                        padding: '8px 12px',
+                        background: '#059669',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      📤 Import Save
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        if (confirm('Are you sure you want to start a new game? This will delete your current progress.')) {
+                          localStorage.removeItem('world-engine-save');
+                          alert('Save data cleared! Refresh the page to start a new game.');
+                        }
+                      }}
+                      style={{
+                        padding: '8px 12px',
+                        background: '#dc2626',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      🗑️ New Game
+                    </button>
+                  </div>
+                  
+                  <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '8px' }}>
+                    <div><strong>Seed:</strong> {engine.state.seed}</div>
+                    <div><strong>Characters:</strong> {engine.state.characters.length}</div>
+                    <div><strong>Last Save:</strong> Auto-saved to browser</div>
                   </div>
                 </div>
               </div>
@@ -790,80 +768,466 @@ function SpellsBySchool({ engine, characterId }: { engine: WorldEngine; characte
 
   return (
     <div style={{ display: 'grid', gap: '8px' }}>
-      {schools.map(school => (
-        <div key={school} style={{
-          border: '1px solid rgba(139, 92, 246, 0.3)',
-          borderRadius: '8px',
-          background: 'rgba(139, 92, 246, 0.1)'
+    </div>
+  );
+}
+
+// Character Creation Form Component
+function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
+  const [formData, setFormData] = useState({
+    name: '',
+    pronouns: 'they/them',
+    species: 'Human',
+    archetype: 'Fighter',
+    background: 'Commoner',
+    level: 1,
+    stats: {
+      strength: 10,
+      dexterity: 10,
+      constitution: 10,
+      intelligence: 10,
+      wisdom: 10,
+      charisma: 10
+    },
+    traits: [] as string[]
+  });
+
+  const [availablePoints, setAvailablePoints] = useState(27); // Point-buy system
+  const [newTrait, setNewTrait] = useState('');
+
+  const species = ['Human', 'Elf', 'Dwarf', 'Halfling', 'Dragonborn', 'Tiefling', 'Gnome', 'Half-Elf', 'Half-Orc'];
+  const archetypes = ['Fighter', 'Wizard', 'Rogue', 'Cleric', 'Ranger', 'Barbarian', 'Bard', 'Paladin', 'Sorcerer', 'Warlock'];
+  const backgrounds = ['Commoner', 'Noble', 'Soldier', 'Scholar', 'Merchant', 'Artisan', 'Criminal', 'Folk Hero', 'Hermit', 'Entertainer'];
+  const pronounOptions = ['they/them', 'she/her', 'he/him', 'xe/xir', 'ze/zir'];
+
+  const handleStatChange = (stat: keyof typeof formData.stats, value: number) => {
+    const oldValue = formData.stats[stat];
+    const cost = getStatCost(value) - getStatCost(oldValue);
+    
+    if (availablePoints - cost >= 0 && value >= 8 && value <= 15) {
+      setFormData(prev => ({
+        ...prev,
+        stats: { ...prev.stats, [stat]: value }
+      }));
+      setAvailablePoints(prev => prev - cost);
+    }
+  };
+
+  const getStatCost = (value: number): number => {
+    if (value <= 13) return value - 8;
+    if (value === 14) return 7;
+    if (value === 15) return 9;
+    return 0;
+  };
+
+  const handleAddTrait = () => {
+    if (newTrait.trim() && !formData.traits.includes(newTrait.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        traits: [...prev.traits, newTrait.trim()]
+      }));
+      setNewTrait('');
+    }
+  };
+
+  const handleRemoveTrait = (trait: string) => {
+    setFormData(prev => ({
+      ...prev,
+      traits: prev.traits.filter(t => t !== trait)
+    }));
+  };
+
+  const handleSubmit = () => {
+    if (!formData.name.trim()) {
+      alert('Please enter a character name.');
+      return;
+    }
+
+    const character = engine.addCharacter({
+      name: formData.name.trim(),
+      pronouns: formData.pronouns,
+      species: formData.species,
+      archetype: formData.archetype,
+      background: formData.background,
+      level: formData.level,
+      experience: 0,
+      stats: formData.stats,
+      traits: formData.traits
+    });
+
+    alert(`${character.name} has been added to your party!`);
+    
+    // Reset form
+    setFormData({
+      name: '',
+      pronouns: 'they/them',
+      species: 'Human',
+      archetype: 'Fighter',
+      background: 'Commoner',
+      level: 1,
+      stats: {
+        strength: 10,
+        dexterity: 10,
+        constitution: 10,
+        intelligence: 10,
+        wisdom: 10,
+        charisma: 10
+      },
+      traits: []
+    });
+    setAvailablePoints(27);
+  };
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
+      {/* Basic Information */}
+      <div style={{
+        background: 'rgba(59, 130, 246, 0.1)',
+        border: '1px solid rgba(59, 130, 246, 0.3)',
+        borderRadius: '8px',
+        padding: '20px'
+      }}>
+        <h4 style={{ 
+          margin: '0 0 16px 0', 
+          color: '#60a5fa',
+          borderBottom: '2px solid #60a5fa',
+          paddingBottom: '8px'
         }}>
-          <button
-            onClick={() => toggleSchool(school)}
+          📋 Basic Information
+        </h4>
+
+        <div style={{ display: 'grid', gap: '12px' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '12px', color: '#cbd5e1', marginBottom: '4px' }}>
+              Character Name *
+            </label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+              placeholder="Enter character name..."
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                background: 'rgba(0, 0, 0, 0.3)',
+                border: '1px solid #374151',
+                borderRadius: '6px',
+                color: '#f9fafb',
+                fontSize: '14px'
+              }}
+            />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '12px', color: '#cbd5e1', marginBottom: '4px' }}>
+                Pronouns
+              </label>
+              <select
+                value={formData.pronouns}
+                onChange={(e) => setFormData(prev => ({ ...prev, pronouns: e.target.value }))}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  background: 'rgba(0, 0, 0, 0.3)',
+                  border: '1px solid #374151',
+                  borderRadius: '6px',
+                  color: '#f9fafb',
+                  fontSize: '14px'
+                }}
+              >
+                {pronounOptions.map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '12px', color: '#cbd5e1', marginBottom: '4px' }}>
+                Level
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="20"
+                value={formData.level}
+                onChange={(e) => setFormData(prev => ({ ...prev, level: parseInt(e.target.value) || 1 }))}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  background: 'rgba(0, 0, 0, 0.3)',
+                  border: '1px solid #374151',
+                  borderRadius: '6px',
+                  color: '#f9fafb',
+                  fontSize: '14px'
+                }}
+              />
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '12px', color: '#cbd5e1', marginBottom: '4px' }}>
+                Species
+              </label>
+              <select
+                value={formData.species}
+                onChange={(e) => setFormData(prev => ({ ...prev, species: e.target.value }))}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  background: 'rgba(0, 0, 0, 0.3)',
+                  border: '1px solid #374151',
+                  borderRadius: '6px',
+                  color: '#f9fafb',
+                  fontSize: '14px'
+                }}
+              >
+                {species.map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '12px', color: '#cbd5e1', marginBottom: '4px' }}>
+                Class
+              </label>
+              <select
+                value={formData.archetype}
+                onChange={(e) => setFormData(prev => ({ ...prev, archetype: e.target.value }))}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  background: 'rgba(0, 0, 0, 0.3)',
+                  border: '1px solid #374151',
+                  borderRadius: '6px',
+                  color: '#f9fafb',
+                  fontSize: '14px'
+                }}
+              >
+                {archetypes.map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '12px', color: '#cbd5e1', marginBottom: '4px' }}>
+                Background
+              </label>
+              <select
+                value={formData.background}
+                onChange={(e) => setFormData(prev => ({ ...prev, background: e.target.value }))}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  background: 'rgba(0, 0, 0, 0.3)',
+                  border: '1px solid #374151',
+                  borderRadius: '6px',
+                  color: '#f9fafb',
+                  fontSize: '14px'
+                }}
+              >
+                {backgrounds.map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Ability Scores */}
+      <div style={{
+        background: 'rgba(34, 197, 94, 0.1)',
+        border: '1px solid rgba(34, 197, 94, 0.3)',
+        borderRadius: '8px',
+        padding: '20px'
+      }}>
+        <h4 style={{ 
+          margin: '0 0 16px 0', 
+          color: '#4ade80',
+          borderBottom: '2px solid #4ade80',
+          paddingBottom: '8px'
+        }}>
+          ⚡ Ability Scores
+        </h4>
+
+        <div style={{ marginBottom: '16px', fontSize: '12px', color: '#cbd5e1' }}>
+          Points Available: <strong style={{ color: availablePoints > 0 ? '#4ade80' : '#ef4444' }}>
+            {availablePoints}
+          </strong>
+        </div>
+
+        <div style={{ display: 'grid', gap: '8px' }}>
+          {Object.entries(formData.stats).map(([stat, value]) => (
+            <div key={stat} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ width: '80px', fontSize: '13px', color: '#e2e8f0', textTransform: 'capitalize' }}>
+                {stat.slice(0, 3).toUpperCase()}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button
+                  onClick={() => handleStatChange(stat as keyof typeof formData.stats, value - 1)}
+                  disabled={value <= 8}
+                  style={{
+                    width: '24px',
+                    height: '24px',
+                    background: value > 8 ? '#374151' : '#1f2937',
+                    color: value > 8 ? '#f9fafb' : '#6b7280',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: value > 8 ? 'pointer' : 'not-allowed',
+                    fontSize: '14px'
+                  }}
+                >
+                  −
+                </button>
+                <div style={{ 
+                  width: '40px', 
+                  textAlign: 'center', 
+                  fontSize: '16px', 
+                  fontWeight: 'bold',
+                  color: '#f9fafb'
+                }}>
+                  {value}
+                </div>
+                <button
+                  onClick={() => handleStatChange(stat as keyof typeof formData.stats, value + 1)}
+                  disabled={value >= 15 || availablePoints - (getStatCost(value + 1) - getStatCost(value)) < 0}
+                  style={{
+                    width: '24px',
+                    height: '24px',
+                    background: (value < 15 && availablePoints - (getStatCost(value + 1) - getStatCost(value)) >= 0) ? '#374151' : '#1f2937',
+                    color: (value < 15 && availablePoints - (getStatCost(value + 1) - getStatCost(value)) >= 0) ? '#f9fafb' : '#6b7280',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: (value < 15 && availablePoints - (getStatCost(value + 1) - getStatCost(value)) >= 0) ? 'pointer' : 'not-allowed',
+                    fontSize: '14px'
+                  }}
+                >
+                  +
+                </button>
+              </div>
+              <div style={{ fontSize: '11px', color: '#94a3b8' }}>
+                Cost: {getStatCost(value)}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Traits */}
+      <div style={{
+        background: 'rgba(168, 85, 247, 0.1)',
+        border: '1px solid rgba(168, 85, 247, 0.3)',
+        borderRadius: '8px',
+        padding: '20px'
+      }}>
+        <h4 style={{ 
+          margin: '0 0 16px 0', 
+          color: '#a855f7',
+          borderBottom: '2px solid #a855f7',
+          paddingBottom: '8px'
+        }}>
+          ✨ Personality Traits
+        </h4>
+
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+          <input
+            type="text"
+            value={newTrait}
+            onChange={(e) => setNewTrait(e.target.value)}
+            placeholder="Enter a trait..."
             style={{
-              width: '100%',
-              padding: '12px 16px',
-              background: 'transparent',
+              flex: 1,
+              padding: '8px 12px',
+              background: 'rgba(0, 0, 0, 0.3)',
+              border: '1px solid #374151',
+              borderRadius: '6px',
+              color: '#f9fafb',
+              fontSize: '14px'
+            }}
+          />
+          <button
+            onClick={handleAddTrait}
+            disabled={!newTrait.trim()}
+            style={{
+              padding: '8px 16px',
+              background: newTrait.trim() ? '#7c3aed' : '#374151',
+              color: '#f9fafb',
               border: 'none',
-              color: '#a855f7',
-              fontSize: '14px',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
+              borderRadius: '6px',
+              cursor: newTrait.trim() ? 'pointer' : 'not-allowed',
+              fontSize: '14px'
             }}
           >
-            <span>✨ {school} ({spellsBySchool[school].length})</span>
-            <span style={{ fontSize: '18px' }}>{openSchools.has(school) ? '▼' : '▶'}</span>
+            Add
           </button>
-          
-          {openSchools.has(school) && (
-            <div style={{ padding: '0 16px 16px 16px', display: 'grid', gap: '12px' }}>
-              {spellsBySchool[school].map((spell: any, i: number) => (
-                <div key={i} style={{ 
-                  padding: '16px', 
-                  background: 'rgba(6, 182, 212, 0.2)',
-                  borderRadius: '8px',
-                  border: '1px solid #06b6d4'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 'bold', color: '#22d3ee', fontSize: '16px' }}>{spell.name}</div>
-                      <div style={{ fontSize: '12px', color: '#e2e8f0', marginTop: '4px' }}>
-                        {spell.school} • {spell.tier} • Ether: {spell.etherCost}
-                        {spell.range && ` • Range: ${spell.range}`}
-                      </div>
-                      <div style={{ fontSize: '13px', color: '#cbd5e1', marginTop: '8px' }}>
-                        {spell.description}
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => {
-                        const success = engine.learnMagicalSpellForCharacter(characterId, spell.name);
-                        if (success) {
-                          console.log(`${character.name} learned ${spell.name}!`);
-                        }
-                      }}
-                      style={{
-                        marginLeft: '12px',
-                        padding: '8px 16px',
-                        background: '#0891b2',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        fontSize: '12px',
-                        fontWeight: 'bold'
-                      }}
-                    >
-                      Learn
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
-      ))}
+
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+          {formData.traits.map(trait => (
+            <div
+              key={trait}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '4px 8px',
+                background: 'rgba(168, 85, 247, 0.2)',
+                borderRadius: '4px',
+                border: '1px solid #a855f7',
+                fontSize: '12px',
+                color: '#c4b5fd'
+              }}
+            >
+              {trait}
+              <button
+                onClick={() => handleRemoveTrait(trait)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#c4b5fd',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  padding: '0',
+                  width: '16px',
+                  height: '16px'
+                }}
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Create Button */}
+      <div style={{
+        gridColumn: '1 / -1',
+        display: 'flex',
+        justifyContent: 'center',
+        marginTop: '20px'
+      }}>
+        <button
+          onClick={handleSubmit}
+          disabled={!formData.name.trim() || availablePoints !== 0}
+          style={{
+            padding: '16px 32px',
+            background: (!formData.name.trim() || availablePoints !== 0) ? '#374151' : '#059669',
+            color: '#f9fafb',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: (!formData.name.trim() || availablePoints !== 0) ? 'not-allowed' : 'pointer',
+            fontSize: '16px',
+            fontWeight: 'bold',
+            transition: 'all 0.2s'
+          }}
+        >
+          {availablePoints !== 0 ? `Spend ${availablePoints} More Points` : '🎉 Create Character'}
+        </button>
+      </div>
     </div>
   );
 }
