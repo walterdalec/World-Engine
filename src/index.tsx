@@ -4,7 +4,6 @@ import "./index.css";
 import { MainMenu } from "./components/MainMenu";
 import { WorldSetupScreen } from "./components/WorldSetupScreen";
 import CharacterLibrary from "./components/CharacterLibrary";
-import CharacterCreate from "./components/CharacterCreate";
 import NameGenerator from "./components/NameGenerator";
 import SpellGenerator from "./components/SpellGenerator";
 import SpellAssignment from "./components/SpellAssignment";
@@ -14,7 +13,7 @@ import CharacterPortraitStudio from "./components/CharacterPortraitStudio";
 import { Engine } from "./engine.d";
 import { DEFAULT_WORLDS } from "./defaultWorlds";
 
-// Use the same Character type as CharacterCreate
+// Character type definition
 type Character = {
   name: string;
   pronouns: string;
@@ -35,7 +34,7 @@ function randomSeed(): string {
 }
 
 function App() {
-  const [step, setStep] = React.useState<"menu" | "world" | "party" | "character" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "portrait">("menu");
+  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "portrait">("menu");
   const [party, setParty] = React.useState<Character[]>([]);
   const [currentCampaign, setCurrentCampaign] = React.useState<any>(null);
   const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0); // Force re-render hook
@@ -248,13 +247,7 @@ function App() {
     if (campaign.seed) {
       eng.setSeed?.(campaign.seed);
     }
-    setStep("character"); // Go directly to character creation for existing campaigns
-  };
-
-  const handleCharacterCreator = () => {
-    // Standalone character creator (not tied to a campaign)
-    setCurrentCampaign(null);
-    setStep("character");
+    setStep("worldmap"); // Go directly to the game world for existing campaigns
   };
 
   const handleNameGenerator = () => {
@@ -366,7 +359,6 @@ function App() {
         <MainMenu
           onNewCampaign={handleNewCampaign}
           onLoadCampaign={handleLoadCampaign}
-          onCharacterCreator={handleCharacterCreator}
           onNameGenerator={handleNameGenerator}
           onSpellGenerator={handleSpellGenerator}
           onSpellAssignment={handleSpellAssignment}
@@ -398,66 +390,8 @@ function App() {
           party={party}
           setParty={setParty}
           onStart={() => setStep("worldmap")}
-          onCreateNew={() => setStep("character")}
+          onCreateNew={() => setStep("worldmap")}
         />
-      )}
-      {step === "character" && (
-        <div style={{ background: "#030712", minHeight: "100vh" }}>
-          <nav style={{ 
-            padding: "16px 24px", 
-            borderBottom: "1px solid #374151", 
-            display: "flex", 
-            justifyContent: "space-between", 
-            alignItems: "center",
-            background: "#111827"
-          }}>
-            <h1 style={{ margin: 0, color: "#f9fafb" }}>World Engine - Character Creator</h1>
-            <div style={{ display: "flex", gap: "12px" }}>
-              <button 
-                onClick={() => setStep("menu")}
-                style={{ 
-                  padding: "8px 16px", 
-                  background: "#374151", 
-                  color: "#f9fafb", 
-                  border: "none", 
-                  borderRadius: "6px", 
-                  cursor: "pointer" 
-                }}
-              >
-                Back to Menu
-              </button>
-              {currentCampaign && (
-                <button 
-                  onClick={() => setStep("world")}
-                  style={{ 
-                    padding: "8px 16px", 
-                    background: "#374151", 
-                    color: "#f9fafb", 
-                    border: "none", 
-                    borderRadius: "6px", 
-                    cursor: "pointer" 
-                  }}
-                >
-                  World Setup
-                </button>
-              )}
-              <button 
-                onClick={() => setStep("worldmap")}
-                style={{ 
-                  padding: "8px 16px", 
-                  background: "#059669", 
-                  color: "#f9fafb", 
-                  border: "none", 
-                  borderRadius: "6px", 
-                  cursor: "pointer" 
-                }}
-              >
-                Enter World
-              </button>
-            </div>
-          </nav>
-          <CharacterCreate />
-        </div>
       )}
       {step === "namegen" && (
         <NameGenerator onBack={() => setStep("menu")} />

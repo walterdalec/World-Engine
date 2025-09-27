@@ -24,7 +24,6 @@ interface SavedCharacter {
 interface Props {
   onNewCampaign: () => void;
   onLoadCampaign: (campaign: Campaign) => void;
-  onCharacterCreator: () => void;
   onNameGenerator: () => void;
   onSpellGenerator: () => void;
   onSpellAssignment: () => void;
@@ -32,7 +31,7 @@ interface Props {
   onPortraitStudio: () => void;
 }
 
-export function MainMenu({ onNewCampaign, onLoadCampaign, onCharacterCreator, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onPortraitStudio }: Props) {
+export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onPortraitStudio }: Props) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [characters, setCharacters] = useState<SavedCharacter[]>([]);
   const [activeTab, setActiveTab] = useState<'campaigns' | 'characters'>('campaigns');
@@ -683,12 +682,6 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onCharacterCreator, on
         {activeTab === 'characters' && (
           <div>
             <div style={gridStyle}>
-              <div style={newCardStyle} onClick={onCharacterCreator}>
-                <div style={{ fontSize: '3rem', marginBottom: '10px' }}>⚔️</div>
-                <h3 style={{ margin: '0 0 5px 0' }}>Create Character</h3>
-                <p style={{ margin: 0, opacity: 0.9 }}>Build a new character</p>
-              </div>
-
               <div style={newCardStyle} onClick={onNameGenerator}>
                 <div style={{ fontSize: '3rem', marginBottom: '10px' }}>📜</div>
                 <h3 style={{ margin: '0 0 5px 0' }}>Name Generator</h3>
