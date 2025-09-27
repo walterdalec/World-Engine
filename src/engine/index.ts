@@ -11,10 +11,13 @@
 
 import { ChunkManager, Tile, WorldGenConfig, CHUNK_SIZE } from '../proc/chunks';
 import { SeededRandom, WorldNoise, ValueNoise2D } from '../proc/noise';
+import { ChokepointManager, Chokepoint, Fortification, RegionData } from '../proc/chokepoints';
 
 export { ChunkManager, CHUNK_SIZE } from '../proc/chunks';
 export { SeededRandom, WorldNoise, ValueNoise2D } from '../proc/noise';
+export { ChokepointManager } from '../proc/chokepoints';
 export type { Tile, WorldGenConfig } from '../proc/chunks';
+export type { Chokepoint, Fortification, RegionData } from '../proc/chokepoints';
 
 export interface Party {
   x: number;
@@ -75,6 +78,7 @@ export interface GameState {
 
 export class WorldEngine {
   private chunkManager: ChunkManager;
+  private chokepointManager: ChokepointManager | null = null; // Temporarily nullable for debugging
   private rng: SeededRandom;
   public state: GameState;
   
@@ -107,6 +111,14 @@ export class WorldEngine {
     };
     
     this.chunkManager = new ChunkManager(actualSeed, mergedConfig.world);
+    // Temporarily disable chokepointManager to debug
+    // this.chokepointManager = new ChokepointManager(
+    //   actualSeed,
+    //   mergedConfig.world.mapWidth,
+    //   mergedConfig.world.mapHeight,
+    //   mergedConfig.world.mapWidth / 2,
+    //   mergedConfig.world.mapHeight / 2
+    // );
     
     this.state = {
       seed: actualSeed,
@@ -504,6 +516,13 @@ export class WorldEngine {
       
       // Recreate chunk manager with loaded seed
       this.chunkManager = new ChunkManager(data.seed, data.config.world);
+      // this.chokepointManager = new ChokepointManager(
+      //   data.seed,
+      //   data.config.world.mapWidth,
+      //   data.config.world.mapHeight,
+      //   data.config.world.mapWidth / 2,
+      //   data.config.world.mapHeight / 2
+      // );
       this.rng = new SeededRandom(`${data.seed}_engine`);
       
       // Restore state
@@ -530,8 +549,148 @@ export class WorldEngine {
     this.chunkManager.updateConfig(this.state.config.world);
     this.chunkManager.invalidateAll();
     
+    // Recreate chokepoint manager with new config (if enabled)
+    // this.chokepointManager = new ChokepointManager(
+    //   this.state.seed,
+    //   this.state.config.world.mapWidth,
+    //   this.state.config.world.mapHeight,
+    //   this.state.config.world.mapWidth / 2,
+    //   this.state.config.world.mapHeight / 2
+    // );
+    
     // Clear discoveries since world changed
     this.state.discovered.clear();
     this.discoverRadius(this.state.party.x, this.state.party.y, this.state.config.gameplay.fogOfWarRadius);
+  }
+  
+  // ===== CHOKEPOINT & REGION METHODS =====
+  
+  /**
+   * Get all chokepoints in the world
+   */
+  getChokepoints(): Chokepoint[] {
+    return this.chokepointManager?.getChokepoints() || [];
+  }
+  
+  /**
+   * Get chokepoint at specific location
+   */
+  getChokepointAt(x: number, y: number): Chokepoint | undefined {
+    return this.chokepointManager?.getChokepointAt(x, y);
+  }
+  
+  /**
+   * Get all regions in the world
+   */
+  getRegions(): RegionData[] {
+    return this.chokepointManager?.getRegions() || [];
+  }
+  
+  /**
+   * Get region containing a point
+   */
+  getRegionAt(x: number, y: number): RegionData | undefined {
+    return this.chokepointManager?.getRegionAt(x, y);
+  }
+  
+  /**
+   * Check if travel to a location is blocked by fortifications
+   */
+  checkTravelBlockage(toX: number, toY: number): Chokepoint[] {
+    return this.chokepointManager?.isRouteBlocked(
+      this.state.party.x,
+      this.state.party.y,
+      toX,
+      toY
+    ) || [];
+  }
+  
+  /**
+   * Attempt to clear a fortification
+   * Returns true if successful, false if failed or not present
+   */
+  attemptFortificationClear(x: number, y: number): {
+    success: boolean;
+    fortification?: Fortification;
+    rewards?: any[];
+  } {
+    const chokepoint = this.getChokepointAt(x, y);
+    
+    if (!chokepoint?.fortification || chokepoint.fortification.cleared) {
+      return { success: false };
+    }
+    
+    const fort = chokepoint.fortification;
+    
+    // Simple success check (can be expanded with party stats)
+    const partyLevel = Math.max(1, Math.floor(this.state.time.day / 30)); // Rough level estimate
+    const hasRequiredGear = fort.requiredGear.every(gear => 
+      this.state.party.equipment.includes(gear)
+    );
+    
+    if (partyLevel >= fort.requiredLevel && hasRequiredGear) {
+      const success = this.chokepointManager?.clearFortification(x, y);
+      
+      if (success) {
+        // Apply rewards
+        for (const reward of fort.rewards) {
+          if (reward.type === 'gold') {
+            this.state.party.supplies.gold += reward.value;
+          } else if (reward.type === 'equipment') {
+            this.state.party.equipment.push(reward.name);
+          }
+          // TODO: Handle spell and key rewards
+        }
+        
+        return {
+          success: true,
+          fortification: fort,
+          rewards: fort.rewards
+        };
+      }
+    }
+    
+    return { success: false, fortification: fort };
+  }
+  
+  /**
+   * Get current region info for the party
+   */
+  getCurrentRegion(): RegionData | undefined {
+    return this.getRegionAt(this.state.party.x, this.state.party.y);
+  }
+  
+  /**
+   * Check if party can travel to a specific location
+   */
+  canTravelTo(x: number, y: number): {
+    canTravel: boolean;
+    blockedBy: Chokepoint[];
+    reason?: string;
+  } {
+    const blockedBy = this.checkTravelBlockage(x, y);
+    
+    if (blockedBy.length === 0) {
+      return { canTravel: true, blockedBy: [] };
+    }
+    
+    const unclearedForts = blockedBy.filter(cp => 
+      cp.fortified && cp.fortification && !cp.fortification.cleared
+    );
+    
+    if (unclearedForts.length > 0) {
+      const fortNames = unclearedForts
+        .map(cp => cp.fortification?.name)
+        .filter(Boolean)
+        .join(', ');
+      
+      return {
+        canTravel: false,
+        blockedBy: unclearedForts,
+        reason: `Path blocked by fortification(s): ${fortNames}`
+      };
+    }
+    
+    return { canTravel: true, blockedBy: [] };
   }
 }

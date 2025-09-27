@@ -40,6 +40,10 @@ export class SeededRandom {
   nextInt(min: number, max: number): number {
     return Math.floor(this.nextFloat(min, max + 1));
   }
+  
+  pick<T>(array: readonly T[]): T {
+    return array[this.nextInt(0, array.length - 1)];
+  }
 }
 
 /**

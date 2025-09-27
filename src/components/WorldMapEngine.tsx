@@ -44,24 +44,72 @@ const BIOME_COLORS: Record<string, string> = {
 
 export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldMapEngineProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [engine] = useState(() => new WorldEngine(seedStr));
-  const [viewport, setViewport] = useState<ViewportState>({
-    centerX: engine.state.party.x,
-    centerY: engine.state.party.y,
-    scale: 1.0,
-    width: 800,
-    height: 600
+  const [engine] = useState(() => {
+    try {
+      console.log('Creating WorldEngine with seed:', seedStr);
+      const engine = new WorldEngine(seedStr);
+      console.log('WorldEngine created successfully');
+      return engine;
+    } catch (error) {
+      console.error('Error creating WorldEngine:', error);
+      if (error instanceof Error) {
+        console.error('Stack trace:', error.stack);
+      }
+      throw error; // Re-throw so we can see the error in browser console
+    }
+  });
+  const [viewport, setViewport] = useState<ViewportState>(() => {
+    try {
+      return {
+        centerX: engine.state.party.x,
+        centerY: engine.state.party.y,
+        scale: 1.0,
+        width: 800,
+        height: 600
+      };
+    } catch (error) {
+      console.error('Error initializing viewport:', error);
+      // Return safe defaults
+      return {
+        centerX: 1024,
+        centerY: 1024,
+        scale: 1.0,
+        width: 800,
+        height: 600
+      };
+    }
   });
   const [isDragging, setIsDragging] = useState(false);
   const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
+  const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
   const [showGrid, setShowGrid] = useState(false);
   const [cameraLocked, setCameraLocked] = useState(true);
-  const [stats, setStats] = useState(engine.getStats());
+  const [stats, setStats] = useState(() => {
+    try {
+      return engine.getStats();
+    } catch (error) {
+      console.error('Error getting initial stats:', error);
+      return {
+        chunks: { loaded: 0, total: 0 },
+        discovered: 0,
+        timeOfDay: 'Dawn',
+        gameTime: 'Day 1, Spring Year 1 - 08:00'
+      };
+    }
+  });
+  const [selectedFortification, setSelectedFortification] = useState<{
+    chokepoint: any;
+    result?: any;
+  } | null>(null);
 
   // Update stats periodically
   useEffect(() => {
     const interval = setInterval(() => {
-      setStats(engine.getStats());
+      try {
+        setStats(engine.getStats());
+      } catch (error) {
+        console.error('Error updating stats:', error);
+      }
     }, 1000);
     return () => clearInterval(interval);
   }, [engine]);
@@ -108,6 +156,7 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
     if (e.button === 0) { // Left mouse button
       setIsDragging(true);
       setLastMousePos({ x: e.clientX, y: e.clientY });
+      setDragStartPos({ x: e.clientX, y: e.clientY });
       setCameraLocked(false);
     }
   }, []);
@@ -127,9 +176,34 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
     }
   }, [isDragging, lastMousePos]);
 
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-  }, []);
+  const handleMouseUp = useCallback((e: React.MouseEvent) => {
+    if (isDragging) {
+      const deltaX = Math.abs(e.clientX - dragStartPos.x);
+      const deltaY = Math.abs(e.clientY - dragStartPos.y);
+      
+      // If mouse didn't move much, treat as a click
+      if (deltaX < 5 && deltaY < 5) {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        
+        const rect = canvas.getBoundingClientRect();
+        const screenX = e.clientX - rect.left;
+        const screenY = e.clientY - rect.top;
+        const worldPos = screenToWorld(screenX, screenY);
+        
+        // Check if clicked on a fortification
+        const chokepoint = engine.getChokepointAt(worldPos.x, worldPos.y);
+        if (chokepoint?.fortified && chokepoint.fortification && !chokepoint.fortification.cleared) {
+          const result = engine.attemptFortificationClear(worldPos.x, worldPos.y);
+          setSelectedFortification({ chokepoint, result });
+        } else {
+          setSelectedFortification(null);
+        }
+      }
+      
+      setIsDragging(false);
+    }
+  }, [isDragging, dragStartPos, screenToWorld, engine]);
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
@@ -215,14 +289,14 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Calculate visible tile bounds
-    const margin = 2; // Extra tiles for smooth scrolling
-    const tilesWidth = Math.ceil(canvas.width / (TILE_SIZE * viewport.scale)) + margin * 2;
-    const tilesHeight = Math.ceil(canvas.height / (TILE_SIZE * viewport.scale)) + margin * 2;
-    
-    const startX = Math.floor(viewport.centerX - tilesWidth / 2);
-    const startY = Math.floor(viewport.centerY - tilesHeight / 2);
-    const endX = startX + tilesWidth;
-    const endY = startY + tilesHeight;
+      const margin = 2; // Extra tiles for smooth scrolling
+      const tilesWidth = Math.ceil(canvas.width / (TILE_SIZE * viewport.scale)) + margin * 2;
+      const tilesHeight = Math.ceil(canvas.height / (TILE_SIZE * viewport.scale)) + margin * 2;
+      
+      const startX = Math.floor(viewport.centerX - tilesWidth / 2);
+      const startY = Math.floor(viewport.centerY - tilesHeight / 2);
+      const endX = startX + tilesWidth;
+      const endY = startY + tilesHeight;
 
     // Ensure chunks are loaded for visible area
     const loadRadius = Math.max(tilesWidth, tilesHeight) / 2 + 32;
@@ -320,6 +394,151 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
     );
     ctx.fill();
     ctx.stroke();
+
+    // Draw chokepoints and fortifications
+    const chokepoints = engine.getChokepoints();
+    for (const chokepoint of chokepoints) {
+      // Only draw if in visible area
+      if (chokepoint.x >= startX && chokepoint.x <= endX && 
+          chokepoint.y >= startY && chokepoint.y <= endY &&
+          engine.isDiscovered(chokepoint.x, chokepoint.y)) {
+        
+        const chokepointScreen = worldToScreen(chokepoint.x, chokepoint.y);
+        const tileSize = TILE_SIZE * viewport.scale;
+        
+        if (chokepoint.fortified && chokepoint.fortification) {
+          const fort = chokepoint.fortification;
+          
+          // Choose color based on cleared status and difficulty
+          let fortColor: string;
+          if (fort.cleared) {
+            fortColor = '#4ade80'; // Green for cleared
+          } else if (fort.level >= 8) {
+            fortColor = '#dc2626'; // Red for very dangerous
+          } else if (fort.level >= 6) {
+            fortColor = '#ea580c'; // Orange for dangerous
+          } else if (fort.level >= 4) {
+            fortColor = '#eab308'; // Yellow for moderate
+          } else {
+            fortColor = '#64748b'; // Gray for easy
+          }
+          
+          // Draw fortification based on type
+          ctx.fillStyle = fortColor;
+          ctx.strokeStyle = '#000000';
+          ctx.lineWidth = Math.max(1, viewport.scale);
+          
+          const centerX = chokepointScreen.x + tileSize / 2;
+          const centerY = chokepointScreen.y + tileSize / 2;
+          const fortSize = Math.max(3, tileSize * 0.7);
+          
+          if (fort.type === 'citadel' || fort.type === 'keep') {
+            // Draw castle/keep as rectangle with corner towers
+            const rectSize = fortSize * 0.8;
+            ctx.fillRect(
+              centerX - rectSize / 2,
+              centerY - rectSize / 2,
+              rectSize,
+              rectSize
+            );
+            ctx.strokeRect(
+              centerX - rectSize / 2,
+              centerY - rectSize / 2,
+              rectSize,
+              rectSize
+            );
+            
+            // Corner towers
+            const towerSize = rectSize * 0.3;
+            const corners = [
+              [-rectSize/2, -rectSize/2],
+              [rectSize/2 - towerSize, -rectSize/2],
+              [-rectSize/2, rectSize/2 - towerSize],
+              [rectSize/2 - towerSize, rectSize/2 - towerSize]
+            ];
+            
+            for (const [dx, dy] of corners) {
+              ctx.fillRect(centerX + dx, centerY + dy, towerSize, towerSize);
+              ctx.strokeRect(centerX + dx, centerY + dy, towerSize, towerSize);
+            }
+          } else if (fort.type === 'watchtower') {
+            // Draw tower as circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, fortSize / 2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+          } else if (fort.type === 'wall') {
+            // Draw wall as thick line
+            const wallThickness = fortSize * 0.3;
+            ctx.fillRect(
+              centerX - fortSize / 2,
+              centerY - wallThickness / 2,
+              fortSize,
+              wallThickness
+            );
+            ctx.strokeRect(
+              centerX - fortSize / 2,
+              centerY - wallThickness / 2,
+              fortSize,
+              wallThickness
+            );
+          } else {
+            // Default: draw as diamond
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY - fortSize / 2);
+            ctx.lineTo(centerX + fortSize / 2, centerY);
+            ctx.lineTo(centerX, centerY + fortSize / 2);
+            ctx.lineTo(centerX - fortSize / 2, centerY);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+          }
+          
+          // Draw difficulty level if scale is large enough
+          if (viewport.scale >= 1.0 && tileSize >= 20) {
+            ctx.fillStyle = '#ffffff';
+            ctx.font = `${Math.max(8, tileSize * 0.2)}px monospace`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(
+              fort.level.toString(),
+              centerX,
+              centerY
+            );
+          }
+        } else {
+          // Draw natural chokepoint (no fortification)
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+          ctx.strokeStyle = '#666666';
+          ctx.lineWidth = Math.max(1, viewport.scale * 0.5);
+          
+          const centerX = chokepointScreen.x + tileSize / 2;
+          const centerY = chokepointScreen.y + tileSize / 2;
+          const chokepointSize = Math.max(2, tileSize * 0.4);
+          
+          // Draw based on chokepoint type
+          if (chokepoint.type === 'bridge') {
+            // Draw as horizontal line
+            ctx.beginPath();
+            ctx.moveTo(centerX - chokepointSize, centerY);
+            ctx.lineTo(centerX + chokepointSize, centerY);
+            ctx.stroke();
+          } else if (chokepoint.type === 'pass') {
+            // Draw as gap between mountains
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY - chokepointSize);
+            ctx.lineTo(centerX, centerY + chokepointSize);
+            ctx.stroke();
+          } else {
+            // Draw as small circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, chokepointSize / 2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+          }
+        }
+      }
+    }
   }, [engine, viewport, showGrid, worldToScreen]);
 
   // Render on every frame
@@ -438,6 +657,157 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
         engine={engine} 
         onConfigChange={handleConfigChange}
       />
+      
+      {/* Fortification Modal */}
+      {selectedFortification && (
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          background: 'rgba(0, 0, 0, 0.95)',
+          color: '#f9fafb',
+          padding: '20px',
+          borderRadius: '8px',
+          border: '2px solid #374151',
+          maxWidth: '400px',
+          zIndex: 200,
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6)'
+        }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '16px'
+          }}>
+            <h3 style={{ margin: 0, color: '#f1f5f9' }}>
+              {selectedFortification.chokepoint.fortification.name}
+            </h3>
+            <button
+              onClick={() => setSelectedFortification(null)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#94a3b8',
+                fontSize: '20px',
+                cursor: 'pointer',
+                padding: '0',
+                width: '24px',
+                height: '24px'
+              }}
+            >
+              ×
+            </button>
+          </div>
+          
+          <div style={{ marginBottom: '16px' }}>
+            <p style={{ margin: '0 0 12px 0', color: '#e2e8f0', fontSize: '14px' }}>
+              {selectedFortification.chokepoint.fortification.description}
+            </p>
+            
+            <div style={{ fontSize: '13px', lineHeight: '1.5' }}>
+              <div><strong>Type:</strong> {selectedFortification.chokepoint.fortification.type}</div>
+              <div><strong>Difficulty Level:</strong> {selectedFortification.chokepoint.fortification.level}</div>
+              <div><strong>Garrison:</strong> {selectedFortification.chokepoint.fortification.garrison} soldiers</div>
+              <div><strong>Required Level:</strong> {selectedFortification.chokepoint.fortification.requiredLevel}</div>
+              
+              {selectedFortification.chokepoint.fortification.requiredGear.length > 0 && (
+                <div style={{ marginTop: '8px' }}>
+                  <strong>Required Equipment:</strong>
+                  <ul style={{ margin: '4px 0 0 0', paddingLeft: '16px' }}>
+                    {selectedFortification.chokepoint.fortification.requiredGear.map((gear: string) => (
+                      <li key={gear} style={{ 
+                        color: engine.state.party.equipment.includes(gear) ? '#4ade80' : '#ef4444' 
+                      }}>
+                        {gear.replace(/_/g, ' ')} {engine.state.party.equipment.includes(gear) ? '✓' : '✗'}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {selectedFortification.result ? (
+            <div style={{
+              padding: '12px',
+              borderRadius: '4px',
+              background: selectedFortification.result.success ? 
+                'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+              border: `1px solid ${selectedFortification.result.success ? '#22c55e' : '#ef4444'}`
+            }}>
+              <h4 style={{ margin: '0 0 8px 0' }}>
+                {selectedFortification.result.success ? 'Victory!' : 'Cannot Attack'}
+              </h4>
+              
+              {selectedFortification.result.success ? (
+                <>
+                  <p style={{ margin: '0 0 8px 0', fontSize: '13px' }}>
+                    The fortification has been cleared! The route is now open.
+                  </p>
+                  
+                  {selectedFortification.result.rewards && selectedFortification.result.rewards.length > 0 && (
+                    <div>
+                      <strong>Rewards:</strong>
+                      <ul style={{ margin: '4px 0 0 0', paddingLeft: '16px', fontSize: '12px' }}>
+                        {selectedFortification.result.rewards.map((reward: any, i: number) => (
+                          <li key={i} style={{ color: '#4ade80' }}>
+                            {reward.name} - {reward.description}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p style={{ margin: 0, fontSize: '13px', color: '#fca5a5' }}>
+                  You need to meet the level and equipment requirements to challenge this fortification.
+                </p>
+              )}
+            </div>
+          ) : (
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={() => {
+                  const result = engine.attemptFortificationClear(
+                    selectedFortification.chokepoint.x,
+                    selectedFortification.chokepoint.y
+                  );
+                  setSelectedFortification({ ...selectedFortification, result });
+                }}
+                style={{
+                  flex: 1,
+                  padding: '10px',
+                  background: '#dc2626',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: 'bold'
+                }}
+              >
+                Attack Fortification
+              </button>
+              <button
+                onClick={() => setSelectedFortification(null)}
+                style={{
+                  flex: 1,
+                  padding: '10px',
+                  background: '#374151',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '14px'
+                }}
+              >
+                Retreat
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

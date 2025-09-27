@@ -344,6 +344,100 @@ export default function DevPanel({ engine, onConfigChange }: DevPanelProps) {
           <div>Party: ({engine.state.party.x}, {engine.state.party.y})</div>
         </div>
       </div>
+      
+      {/* Region & Chokepoint Info */}
+      <div style={{ marginTop: '16px', padding: '8px', background: '#0f172a', borderRadius: '4px' }}>
+        <h4 style={{ margin: '0 0 8px 0' }}>Region & Fortifications</h4>
+        <div style={{ fontSize: '12px', lineHeight: '1.4' }}>
+          {(() => {
+            const currentRegion = engine.getCurrentRegion();
+            const partyX = engine.state.party.x;
+            const partyY = engine.state.party.y;
+            
+            // Find nearby chokepoints within 50 tiles
+            const nearbyChokepoints = engine.getChokepoints().filter(cp => {
+              const dx = cp.x - partyX;
+              const dy = cp.y - partyY;
+              const distance = Math.sqrt(dx * dx + dy * dy);
+              return distance <= 50 && engine.isDiscovered(cp.x, cp.y);
+            }).sort((a, b) => {
+              const distA = Math.sqrt((a.x - partyX) ** 2 + (a.y - partyY) ** 2);
+              const distB = Math.sqrt((b.x - partyX) ** 2 + (b.y - partyY) ** 2);
+              return distA - distB;
+            });
+            
+            return (
+              <>
+                {currentRegion ? (
+                  <>
+                    <div><strong>{currentRegion.name}</strong> (Danger Level: {currentRegion.difficultyLevel})</div>
+                    <div style={{ color: '#94a3b8', fontSize: '11px', marginBottom: '8px' }}>
+                      {currentRegion.description}
+                    </div>
+                  </>
+                ) : (
+                  <div style={{ color: '#64748b' }}>Unknown Region</div>
+                )}
+                
+                {nearbyChokepoints.length > 0 && (
+                  <>
+                    <div style={{ marginTop: '8px', marginBottom: '4px', color: '#f1f5f9' }}>
+                      <strong>Nearby Fortifications:</strong>
+                    </div>
+                    {nearbyChokepoints.slice(0, 3).map((cp, index) => {
+                      const distance = Math.sqrt((cp.x - partyX) ** 2 + (cp.y - partyY) ** 2);
+                      const fortification = cp.fortification;
+                      
+                      return (
+                        <div key={`${cp.x},${cp.y}`} style={{ 
+                          marginBottom: '4px', 
+                          padding: '4px', 
+                          background: 'rgba(0,0,0,0.3)', 
+                          borderRadius: '2px' 
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ 
+                              color: fortification ? 
+                                (fortification.cleared ? '#4ade80' : 
+                                 fortification.level >= 6 ? '#dc2626' : '#eab308') :
+                                '#94a3b8' 
+                            }}>
+                              {fortification ? fortification.name : `${cp.type} chokepoint`}
+                            </span>
+                            <span style={{ color: '#64748b' }}>
+                              {distance.toFixed(1)} tiles
+                            </span>
+                          </div>
+                          {fortification && (
+                            <div style={{ fontSize: '10px', color: '#94a3b8' }}>
+                              Level {fortification.level} {fortification.type}
+                              {fortification.cleared ? ' (CLEARED)' : ` (Req: Lv${fortification.requiredLevel})`}
+                              {!fortification.cleared && fortification.requiredGear.length > 0 && (
+                                <div>Gear needed: {fortification.requiredGear.join(', ')}</div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                    {nearbyChokepoints.length > 3 && (
+                      <div style={{ fontSize: '10px', color: '#64748b', fontStyle: 'italic' }}>
+                        ...and {nearbyChokepoints.length - 3} more
+                      </div>
+                    )}
+                  </>
+                )}
+                
+                {nearbyChokepoints.length === 0 && (
+                  <div style={{ color: '#64748b', fontStyle: 'italic', marginTop: '8px' }}>
+                    No fortifications discovered nearby
+                  </div>
+                )}
+              </>
+            );
+          })()}
+        </div>
+      </div>
     </div>
   );
 }
