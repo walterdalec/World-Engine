@@ -8,21 +8,65 @@ import { CLASS_DEFINITIONS } from '../defaultWorlds';
 import CharacterPortraitPicker from './CharacterPortraitPicker';
 import PortraitDisplay from './PortraitDisplay';
 
-type Stats = "STR" | "DEX" | "CON" | "INT" | "WIS" | "CHA";
+// Species and trait definitions for character creation
+const SPECIES_OPTIONS = [
+  "Human", "Sylvanborn", "Alloy", "Draketh", "Voidkin", "Crystalborn", "Stormcaller"
+];
 
-function calculateStatCost(value: number): number {
-  // Base cost is 0 for stat value 8
-  // Each point above 8 costs: 1 point for 9-14, 2 points for 15-16, 3 points for 17+
-  let cost = 0;
-  for (let statValue = 9; statValue <= value; statValue++) {
-    if (statValue <= 14) cost += 1;      // Values 9-14: 1 point each
-    else if (statValue <= 16) cost += 2; // Values 15-16: 2 points each  
-    else cost += 3;                      // Values 17+: 3 points each
+const PRONOUN_OPTIONS = [
+  "she/her", "he/him", "they/them", "xe/xir", "ze/hir", "fae/faer"
+];
+
+const SPECIES_TRAIT_RULES: Record<string, {
+  automatic: string[];
+  forbidden: string[];
+  preferred: string[];
+  description: string;
+}> = {
+  "Human": {
+    automatic: [],
+    forbidden: [],
+    preferred: ["Brave", "Clever", "Silver Tongue"],
+    description: "Adaptable and versatile, humans can develop any traits through experience."
+  },
+  "Sylvanborn": {
+    automatic: ["Nature's Friend"],
+    forbidden: ["Cunning"],
+    preferred: ["Observant", "Keen Senses", "Patient"],
+    description: "Forest dwellers with an innate connection to nature."
+  },
+  "Alloy": {
+    automatic: ["Iron Will"],
+    forbidden: ["Empathic", "Silver Tongue"],
+    preferred: ["Stoic", "Patient", "Clever"],
+    description: "Mechanical beings with logical minds but limited emotional range."
+  },
+  "Draketh": {
+    automatic: ["Brave"],
+    forbidden: ["Patient"],
+    preferred: ["Swift", "Silver Tongue", "Stoic"],
+    description: "Proud dragon-descendants who rarely back down from challenges."
+  },
+  "Voidkin": {
+    automatic: ["Observant"],
+    forbidden: ["Nature's Friend"],
+    preferred: ["Clever", "Iron Will", "Cunning"],
+    description: "Shadow-touched beings with enhanced perception but unnatural aura."
+  },
+  "Crystalborn": {
+    automatic: ["Stoic"],
+    forbidden: ["Swift"],
+    preferred: ["Iron Will", "Patient", "Keen Senses"],
+    description: "Living crystal beings with incredible mental fortitude."
+  },
+  "Stormcaller": {
+    automatic: ["Swift"],
+    forbidden: ["Patient"],
+    preferred: ["Brave", "Observant", "Silver Tongue"],
+    description: "Sky-born people infused with elemental storm energy."
   }
-  return cost;
-}
+};
 
-// Comprehensive trait system with mechanical benefits
 const TRAIT_DEFINITIONS = {
   "Brave": {
     name: "Brave",
@@ -124,6 +168,131 @@ const TRAIT_DEFINITIONS = {
 
 const TRAIT_CATALOG = Object.keys(TRAIT_DEFINITIONS);
 
+type Stats = "STR" | "DEX" | "CON" | "INT" | "WIS" | "CHA";
+
+function calculateStatCost(value: number): number {
+  // Base cost is 0 for stat value 8
+  // Each point above 8 costs: 1 point for 9-14, 2 points for 15-16, 3 points for 17+
+  let cost = 0;
+  for (let statValue = 9; statValue <= value; statValue++) {
+    if (statValue <= 14) cost += 1;      // Values 9-14: 1 point each
+    else if (statValue <= 16) cost += 2; // Values 15-16: 2 points each  
+    else cost += 3;                      // Values 17+: 3 points each
+  }
+  return cost;
+}
+
+// Calculate ability modifier from stat value
+function abilityMod(stat: number): number {
+  return Math.floor((stat - 10) / 2);
+}
+
+// Calculate HP and AC with all bonuses
+function calculateHPAndAC(
+  stats: Record<Stats, number>,
+  species: string,
+  archetype: string,
+  level: number,
+  traits: string[]
+): { level: number; hp: number; ac: number; carry: number; naturalACBonus: number; totalHPPerLevel: number; classHPBonus: number; raceHPBonus: number; traitHPBonus: number } {
+  const lvl = level;
+  const finalSTR = stats.STR;
+  const finalCON = stats.CON;
+  const finalDEX = stats.DEX;
+
+  // Base HP calculation
+  const baseHP = 8 + abilityMod(finalCON); // Level 1 HP
+  const hpPerLevel = 1 + Math.max(0, abilityMod(finalCON)); // HP gained per level
+
+  // Class-based HP bonus (based on combat role)
+  let classHPBonus = 0;
+  if (archetype === "Thorn Knight" || archetype === "Ashblade" || archetype === "Ironclad" ||
+    archetype === "Stormbreaker" || archetype === "Voidhunter" || archetype === "Crystal Guardian") {
+    classHPBonus = 3; // Heavy combat classes - high HP
+  } else if (archetype === "Greenwarden" || archetype === "Guardian" || archetype === "Warrior") {
+    classHPBonus = 2; // Medium combat classes - good HP
+  } else if (archetype === "Ranger" || archetype === "Rogue" || archetype === "Artificer") {
+    classHPBonus = 1; // Light combat classes - moderate HP
+  } else {
+    classHPBonus = 0; // Magic classes - low HP
+  }
+
+  // Race-based HP modifiers
+  let raceHPBonus = 0;
+  if (species === "Alloy") {
+    raceHPBonus = 2; // Metal-infused - very tough
+  } else if (species === "Draketh") {
+    raceHPBonus = 2; // Dragon heritage - naturally tough
+  } else if (species === "Crystalborn") {
+    raceHPBonus = 1; // Crystal-hard - somewhat tough
+  } else if (species === "Human") {
+    raceHPBonus = 1; // Adaptable - slightly above average
+  } else if (species === "Voidkin") {
+    raceHPBonus = 0; // Otherworldly - average toughness
+  } else if (species === "Sylvanborn") {
+    raceHPBonus = -1; // Graceful but fragile
+  } else if (species === "Stormcaller") {
+    raceHPBonus = 0; // Light and agile - average toughness
+  }
+
+  // Trait-based HP bonuses
+  let traitHPBonus = 0;
+  if (traits.includes("Resilient")) {
+    traitHPBonus += 2; // Tough trait adds HP per level
+  }
+  if (traits.includes("Hardy")) {
+    traitHPBonus += 1; // Another toughness trait
+  }
+  if (traits.includes("Frail")) {
+    traitHPBonus -= 2; // Negative trait reduces HP
+  }
+
+  // Calculate total HP per level (minimum 1 per level)
+  const totalHPPerLevel = Math.max(1, hpPerLevel + classHPBonus + raceHPBonus + traitHPBonus);
+
+  // Calculate final HP
+  const hp = baseHP + (totalHPPerLevel * (lvl - 1)); // Level 1 gets base HP, then add per level
+
+  // Calculate AC with natural bonus
+  let naturalACBonus = 0;
+
+  // Very small level bonus (+1 at level 8, +2 at level 16)
+  if (lvl >= 16) naturalACBonus += 2;
+  else if (lvl >= 8) naturalACBonus += 1;
+
+  // Class-based bonus (combat training)
+  if (archetype === "Thorn Knight" || archetype === "Ashblade" || archetype === "Ironclad" ||
+    archetype === "Stormbreaker" || archetype === "Voidhunter" || archetype === "Crystal Guardian") {
+    if (lvl >= 15) naturalACBonus += 2;
+    else if (lvl >= 7) naturalACBonus += 1;
+  }
+  else if (archetype === "Greenwarden" || archetype === "Guardian" || archetype === "Warrior") {
+    if (lvl >= 10) naturalACBonus += 1;
+  }
+  else if (archetype === "Ranger" || archetype === "Rogue" || archetype === "Artificer") {
+    if (lvl >= 15) naturalACBonus += 1;
+  }
+
+  // Race-based bonus (natural toughness)
+  if (species === "Alloy") {
+    if (lvl >= 12) naturalACBonus += 1; // Metal-infused body
+  } else if (species === "Draketh") {
+    if (lvl >= 15) naturalACBonus += 1; // Dragon heritage - tough scales
+  } else if (species === "Crystalborn") {
+    if (lvl >= 15) naturalACBonus += 1; // Crystal-hard skin
+  }
+
+  // Hard cap at +5 total natural AC bonus
+  naturalACBonus = Math.min(naturalACBonus, 5);
+
+  const ac = 10 + abilityMod(finalDEX) + naturalACBonus;
+  const carry = 15 * finalSTR;
+
+  return { level: lvl, hp, ac, carry, naturalACBonus, totalHPPerLevel, classHPBonus, raceHPBonus, traitHPBonus };
+}
+
+
+
 // Species definitions with trait rules
 const SPECIES_DEFINITIONS = {
   "Human": {
@@ -184,11 +353,8 @@ const SPECIES_DEFINITIONS = {
   }
 };
 
-const SPECIES_OPTIONS = Object.keys(SPECIES_DEFINITIONS);
-const PRONOUN_OPTIONS = ["they/them", "she/her", "he/him", "xe/xir", "ze/hir", "fae/faer"];
-const ARCHETYPE_OPTIONS = ["Fighter", "Wizard", "Rogue", "Cleric", "Ranger", "Barbarian", "Bard", "Paladin", "Sorcerer", "Warlock"];
-const BACKGROUND_OPTIONS = ["Commoner", "Noble", "Soldier", "Scholar", "Merchant", "Artisan", "Criminal", "Folk Hero", "Hermit", "Entertainer"];
 const CLASS_OPTIONS = Object.keys(CLASS_DEFINITIONS);
+const BACKGROUND_OPTIONS = ["Commoner", "Noble", "Soldier", "Scholar", "Merchant", "Artisan", "Criminal", "Folk Hero", "Hermit", "Entertainer"];
 
 const DEFAULT_STATS: Record<Stats, number> = {
   STR: 8, DEX: 8, CON: 8, INT: 8, WIS: 8, CHA: 8,
@@ -971,7 +1137,7 @@ function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
     name: '',
     pronouns: 'they/them',
     species: 'Human',
-    archetype: 'Fighter',
+    archetype: 'Greenwarden',
     background: 'Commoner',
     level: 1,
     stats: {
@@ -986,18 +1152,16 @@ function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
   });
 
   const [availablePoints, setAvailablePoints] = useState(27); // Point-buy system
-  const [newTrait, setNewTrait] = useState('');
+  const [selectedTraits, setSelectedTraits] = useState<string[]>([]);
 
-  const species = ['Human', 'Elf', 'Dwarf', 'Halfling', 'Dragonborn', 'Tiefling', 'Gnome', 'Half-Elf', 'Half-Orc'];
-  const archetypes = ['Fighter', 'Wizard', 'Rogue', 'Cleric', 'Ranger', 'Barbarian', 'Bard', 'Paladin', 'Sorcerer', 'Warlock'];
-  const backgrounds = ['Commoner', 'Noble', 'Soldier', 'Scholar', 'Merchant', 'Artisan', 'Criminal', 'Folk Hero', 'Hermit', 'Entertainer'];
-  const pronounOptions = ['they/them', 'she/her', 'he/him', 'xe/xir', 'ze/zir'];
+  // Get species information
+  const speciesInfo = SPECIES_TRAIT_RULES[formData.species as keyof typeof SPECIES_TRAIT_RULES];
 
   const handleStatChange = (stat: keyof typeof formData.stats, value: number) => {
     const oldValue = formData.stats[stat];
-    const cost = getStatCost(value) - getStatCost(oldValue);
+    const cost = calculateStatCost(value) - calculateStatCost(oldValue);
 
-    if (availablePoints - cost >= 0 && value >= 8 && value <= 15) {
+    if (availablePoints - cost >= 0 && value >= 8 && value <= 20) {
       setFormData(prev => ({
         ...prev,
         stats: { ...prev.stats, [stat]: value }
@@ -1007,19 +1171,13 @@ function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
   };
 
   const getStatCost = (value: number): number => {
-    if (value <= 13) return value - 8;
-    if (value === 14) return 7;
-    if (value === 15) return 9;
-    return 0;
+    // Use the same cost calculation as calculateStatCost for consistency
+    return calculateStatCost(value);
   };
 
-  const handleAddTrait = () => {
-    if (newTrait.trim() && !formData.traits.includes(newTrait.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        traits: [...prev.traits, newTrait.trim()]
-      }));
-      setNewTrait('');
+  const handleAddTrait = (trait: string) => {
+    if (!selectedTraits.includes(trait)) {
+      setSelectedTraits(prev => [...prev, trait]);
     }
   };
 
@@ -1129,7 +1287,7 @@ function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
                   fontSize: '14px'
                 }}
               >
-                {pronounOptions.map(option => (
+                {PRONOUN_OPTIONS.map(option => (
                   <option key={option} value={option}>{option}</option>
                 ))}
               </select>
@@ -1176,7 +1334,7 @@ function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
                   fontSize: '14px'
                 }}
               >
-                {species.map(option => (
+                {SPECIES_OPTIONS.map(option => (
                   <option key={option} value={option}>{option}</option>
                 ))}
               </select>
@@ -1199,7 +1357,7 @@ function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
                   fontSize: '14px'
                 }}
               >
-                {archetypes.map(option => (
+                {CLASS_OPTIONS.map(option => (
                   <option key={option} value={option}>{option}</option>
                 ))}
               </select>
@@ -1222,7 +1380,7 @@ function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
                   fontSize: '14px'
                 }}
               >
-                {backgrounds.map(option => (
+                {BACKGROUND_OPTIONS.map(option => (
                   <option key={option} value={option}>{option}</option>
                 ))}
               </select>
@@ -1251,6 +1409,10 @@ function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
           Points Available: <strong style={{ color: availablePoints > 0 ? '#4ade80' : '#ef4444' }}>
             {availablePoints}
           </strong>
+        </div>
+
+        <div style={{ marginBottom: '12px', fontSize: '11px', color: '#94a3b8', lineHeight: '1.4' }}>
+          <strong>Point Cost:</strong> 8-14 (1 point each), 15-16 (2 points each), 17-20 (3 points each)
         </div>
 
         <div style={{ display: 'grid', gap: '8px' }}>
@@ -1287,15 +1449,15 @@ function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
                 </div>
                 <button
                   onClick={() => handleStatChange(stat as keyof typeof formData.stats, value + 1)}
-                  disabled={value >= 15 || availablePoints - (getStatCost(value + 1) - getStatCost(value)) < 0}
+                  disabled={value >= 20 || availablePoints - (getStatCost(value + 1) - getStatCost(value)) < 0}
                   style={{
                     width: '24px',
                     height: '24px',
-                    background: (value < 15 && availablePoints - (getStatCost(value + 1) - getStatCost(value)) >= 0) ? '#374151' : '#1f2937',
-                    color: (value < 15 && availablePoints - (getStatCost(value + 1) - getStatCost(value)) >= 0) ? '#f9fafb' : '#6b7280',
+                    background: (value < 20 && availablePoints - (getStatCost(value + 1) - getStatCost(value)) >= 0) ? '#374151' : '#1f2937',
+                    color: (value < 20 && availablePoints - (getStatCost(value + 1) - getStatCost(value)) >= 0) ? '#f9fafb' : '#6b7280',
                     border: 'none',
                     borderRadius: '4px',
-                    cursor: (value < 15 && availablePoints - (getStatCost(value + 1) - getStatCost(value)) >= 0) ? 'pointer' : 'not-allowed',
+                    cursor: (value < 20 && availablePoints - (getStatCost(value + 1) - getStatCost(value)) >= 0) ? 'pointer' : 'not-allowed',
                     fontSize: '14px'
                   }}
                 >
@@ -1323,78 +1485,166 @@ function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
           borderBottom: '2px solid #a855f7',
           paddingBottom: '8px'
         }}>
-          ✨ Personality Traits
+          ✨ Character Traits
         </h4>
 
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-          <input
-            type="text"
-            value={newTrait}
-            onChange={(e) => setNewTrait(e.target.value)}
-            placeholder="Enter a trait..."
-            style={{
-              flex: 1,
-              padding: '8px 12px',
-              background: 'rgba(0, 0, 0, 0.3)',
-              border: '1px solid #374151',
-              borderRadius: '6px',
-              color: '#f9fafb',
-              fontSize: '14px'
-            }}
-          />
-          <button
-            onClick={handleAddTrait}
-            disabled={!newTrait.trim()}
-            style={{
-              padding: '8px 16px',
-              background: newTrait.trim() ? '#7c3aed' : '#374151',
-              color: '#f9fafb',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: newTrait.trim() ? 'pointer' : 'not-allowed',
-              fontSize: '14px'
-            }}
-          >
-            Add
-          </button>
-        </div>
+        {speciesInfo && (
+          <div style={{ marginBottom: '16px' }}>
+            {speciesInfo.automatic.length > 0 && (
+              <div style={{ marginBottom: '8px' }}>
+                <span style={{ fontSize: '12px', color: '#10b981', fontWeight: 'bold' }}>Automatic Traits: </span>
+                {speciesInfo.automatic.join(', ')}
+              </div>
+            )}
+            {speciesInfo.forbidden.length > 0 && (
+              <div style={{ marginBottom: '8px' }}>
+                <span style={{ fontSize: '12px', color: '#ef4444', fontWeight: 'bold' }}>Forbidden Traits: </span>
+                {speciesInfo.forbidden.join(', ')}
+              </div>
+            )}
+          </div>
+        )}
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-          {formData.traits.map(trait => (
-            <div
-              key={trait}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '4px 8px',
-                background: 'rgba(168, 85, 247, 0.2)',
-                borderRadius: '4px',
-                border: '1px solid #a855f7',
-                fontSize: '12px',
-                color: '#c4b5fd'
-              }}
-            >
-              {trait}
-              <button
-                onClick={() => handleRemoveTrait(trait)}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px', maxHeight: '200px', overflowY: 'auto' }}>
+          {TRAIT_CATALOG.map(trait => {
+            const traitInfo = TRAIT_DEFINITIONS[trait as keyof typeof TRAIT_DEFINITIONS];
+            const isSelected = selectedTraits.includes(trait);
+            const isAutomatic = speciesInfo?.automatic.includes(trait);
+            const isForbidden = speciesInfo?.forbidden.includes(trait);
+            const isPreferred = speciesInfo?.preferred.includes(trait);
+
+            return (
+              <div
+                key={trait}
+                onClick={() => {
+                  if (!isAutomatic && !isForbidden) {
+                    if (isSelected) {
+                      setSelectedTraits(prev => prev.filter(t => t !== trait));
+                    } else {
+                      setSelectedTraits(prev => [...prev, trait]);
+                    }
+                  }
+                }}
                 style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#c4b5fd',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  padding: '0',
-                  width: '16px',
-                  height: '16px'
+                  padding: '8px',
+                  borderRadius: '6px',
+                  cursor: (isAutomatic || isForbidden) ? 'not-allowed' : 'pointer',
+                  border: '1px solid',
+                  borderColor: isAutomatic ? '#10b981' : isForbidden ? '#ef4444' : isSelected ? '#a855f7' : isPreferred ? '#06b6d4' : '#4b5563',
+                  background: isAutomatic ? 'rgba(16, 185, 129, 0.2)' : isForbidden ? 'rgba(239, 68, 68, 0.2)' : isSelected ? 'rgba(168, 85, 247, 0.2)' : isPreferred ? 'rgba(6, 182, 212, 0.1)' : 'rgba(75, 85, 99, 0.1)',
+                  opacity: isForbidden ? 0.5 : 1
                 }}
               >
-                ×
-              </button>
-            </div>
-          ))}
+                <div style={{ fontSize: '14px', fontWeight: 'bold', color: isAutomatic ? '#10b981' : isForbidden ? '#ef4444' : isSelected ? '#a855f7' : '#e2e8f0', marginBottom: '4px' }}>
+                  {trait}
+                  {isAutomatic && ' (Auto)'}
+                  {isForbidden && ' (Forbidden)'}
+                  {isPreferred && ' (Preferred)'}
+                </div>
+                <div style={{ fontSize: '12px', color: '#94a3b8', lineHeight: '1.3' }}>
+                  {traitInfo.description}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div style={{ marginTop: '16px' }}>
+          <div style={{ fontSize: '14px', color: '#e2e8f0', marginBottom: '8px' }}>
+            Selected Traits: {[...(speciesInfo?.automatic || []), ...selectedTraits].join(', ') || 'None'}
+          </div>
         </div>
       </div>
+
+      {/* Character Preview */}
+      {formData.name && (
+        <div style={{
+          gridColumn: '1 / -1',
+          background: 'rgba(16, 185, 129, 0.1)',
+          border: '1px solid rgba(16, 185, 129, 0.3)',
+          borderRadius: '8px',
+          padding: '20px'
+        }}>
+          <h4 style={{
+            margin: '0 0 16px 0',
+            color: '#10b981',
+            borderBottom: '2px solid #10b981',
+            paddingBottom: '8px'
+          }}>
+            🌟 Character Preview
+          </h4>
+
+          {(() => {
+            // Convert formData stats to the format expected by calculateHPAndAC
+            const statsForCalc: Record<Stats, number> = {
+              STR: formData.stats.strength,
+              DEX: formData.stats.dexterity,
+              CON: formData.stats.constitution,
+              INT: formData.stats.intelligence,
+              WIS: formData.stats.wisdom,
+              CHA: formData.stats.charisma
+            };
+
+            const allTraits = [...(speciesInfo?.automatic || []), ...selectedTraits];
+            const calculated = calculateHPAndAC(statsForCalc, formData.species, formData.archetype, formData.level, allTraits);
+
+            return (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
+                <div>
+                  <h5 style={{ color: '#e2e8f0', marginBottom: '12px' }}>Basic Info</h5>
+                  <div style={{ fontSize: '14px', color: '#cbd5e1', lineHeight: '1.6' }}>
+                    <div><strong>{formData.name}</strong> ({formData.pronouns})</div>
+                    <div>{formData.species} {formData.archetype}</div>
+                    <div>Level {formData.level} {formData.background}</div>
+                  </div>
+                </div>
+
+                <div>
+                  <h5 style={{ color: '#e2e8f0', marginBottom: '12px' }}>Combat Stats</h5>
+                  <div style={{ fontSize: '14px', color: '#cbd5e1', lineHeight: '1.6' }}>
+                    <div><strong>Hit Points:</strong> {calculated.hp}</div>
+                    <div><strong>Armor Class:</strong> {calculated.ac}</div>
+                    <div><strong>Carrying Capacity:</strong> {calculated.carry} lbs</div>
+                    {calculated.naturalACBonus > 0 && (
+                      <div style={{ fontSize: '12px', opacity: 0.7 }}>
+                        +{calculated.naturalACBonus} natural AC bonus
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <h5 style={{ color: '#e2e8f0', marginBottom: '12px' }}>Ability Scores</h5>
+                  <div style={{ fontSize: '14px', color: '#cbd5e1', lineHeight: '1.6', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '4px' }}>
+                    <div><strong>STR:</strong> {statsForCalc.STR} ({abilityMod(statsForCalc.STR) >= 0 ? '+' : ''}{abilityMod(statsForCalc.STR)})</div>
+                    <div><strong>DEX:</strong> {statsForCalc.DEX} ({abilityMod(statsForCalc.DEX) >= 0 ? '+' : ''}{abilityMod(statsForCalc.DEX)})</div>
+                    <div><strong>CON:</strong> {statsForCalc.CON} ({abilityMod(statsForCalc.CON) >= 0 ? '+' : ''}{abilityMod(statsForCalc.CON)})</div>
+                    <div><strong>INT:</strong> {statsForCalc.INT} ({abilityMod(statsForCalc.INT) >= 0 ? '+' : ''}{abilityMod(statsForCalc.INT)})</div>
+                    <div><strong>WIS:</strong> {statsForCalc.WIS} ({abilityMod(statsForCalc.WIS) >= 0 ? '+' : ''}{abilityMod(statsForCalc.WIS)})</div>
+                    <div><strong>CHA:</strong> {statsForCalc.CHA} ({abilityMod(statsForCalc.CHA) >= 0 ? '+' : ''}{abilityMod(statsForCalc.CHA)})</div>
+                  </div>
+                </div>
+
+                <div>
+                  <h5 style={{ color: '#e2e8f0', marginBottom: '12px' }}>Traits</h5>
+                  <div style={{ fontSize: '14px', color: '#cbd5e1', lineHeight: '1.6' }}>
+                    {allTraits.length > 0 ? allTraits.join(', ') : 'None'}
+                  </div>
+                  <div style={{ fontSize: '12px', marginTop: '8px' }}>
+                    <div style={{ color: '#10b981' }}>HP per level: +{calculated.totalHPPerLevel}</div>
+                    <div style={{ color: '#94a3b8' }}>
+                      (Base: +{1 + Math.max(0, abilityMod(statsForCalc.CON))},
+                      Class: +{calculated.classHPBonus},
+                      Race: {calculated.raceHPBonus >= 0 ? '+' : ''}{calculated.raceHPBonus},
+                      Traits: {calculated.traitHPBonus >= 0 ? '+' : ''}{calculated.traitHPBonus})
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      )}
 
       {/* Create Button */}
       <div style={{
@@ -1405,20 +1655,20 @@ function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
       }}>
         <button
           onClick={handleSubmit}
-          disabled={!formData.name.trim() || availablePoints !== 0}
+          disabled={!formData.name.trim()}
           style={{
             padding: '16px 32px',
-            background: (!formData.name.trim() || availablePoints !== 0) ? '#374151' : '#059669',
+            background: !formData.name.trim() ? '#374151' : '#059669',
             color: '#f9fafb',
             border: 'none',
             borderRadius: '8px',
-            cursor: (!formData.name.trim() || availablePoints !== 0) ? 'not-allowed' : 'pointer',
+            cursor: !formData.name.trim() ? 'not-allowed' : 'pointer',
             fontSize: '16px',
             fontWeight: 'bold',
             transition: 'all 0.2s'
           }}
         >
-          {availablePoints !== 0 ? `Spend ${availablePoints} More Points` : '🎉 Create Character'}
+          🎉 Create Character {availablePoints > 0 ? `(${availablePoints} points remaining)` : ''}
         </button>
       </div>
     </div>
