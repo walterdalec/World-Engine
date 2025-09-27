@@ -11,6 +11,7 @@
 
 import { WorldNoise, SeededRandom } from './noise';
 import { PhysicalAbilitiesGenerator } from './physicalAbilities';
+import { MagicalSpellsGenerator } from './magicalSpells';
 import type { Tile, BiomeType } from './chunks';
 
 export interface Chokepoint {
@@ -72,6 +73,7 @@ export class ChokepointManager {
   private noise: WorldNoise;
   private rng: SeededRandom;
   private physicalAbilities!: PhysicalAbilitiesGenerator;
+  private magicalSpells!: MagicalSpellsGenerator;
   private chokepoints: Map<string, Chokepoint> = new Map();
   private regions: RegionData[] = [];
   private mapWidth: number;
@@ -92,6 +94,7 @@ export class ChokepointManager {
       this.noise = new WorldNoise(seed);
       this.rng = new SeededRandom(`${seed}_chokepoints`);
       this.physicalAbilities = new PhysicalAbilitiesGenerator(`${seed}_abilities`);
+      this.magicalSpells = new MagicalSpellsGenerator(`${seed}_spells`);
       this.mapWidth = mapWidth;
       this.mapHeight = mapHeight;
       this.startX = startX;
@@ -650,11 +653,12 @@ export class ChokepointManager {
     
     // Spell scrolls for higher difficulty
     if (difficulty >= 5) {
+      const spellScroll = this.magicalSpells.generateSpellScroll(difficulty);
       rewards.push({
         type: 'spell' as const,
-        name: this.generateSpellName(difficulty),
+        name: spellScroll.name,
         value: difficulty,
-        description: 'A powerful spell scroll found in the commander\'s quarters.'
+        description: spellScroll.description
       });
     }
     

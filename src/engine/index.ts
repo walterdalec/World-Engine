@@ -13,14 +13,17 @@ import { ChunkManager, Tile, WorldGenConfig, CHUNK_SIZE } from '../proc/chunks';
 import { SeededRandom, WorldNoise, ValueNoise2D } from '../proc/noise';
 import { ChokepointManager, Chokepoint, Fortification, RegionData } from '../proc/chokepoints';
 import { PhysicalAbilitiesGenerator, PhysicalAbility, PhysicalAbilitySchool, PhysicalAbilityTier } from '../proc/physicalAbilities';
+import { MagicalSpellsGenerator, MagicalSpell, MagicalSchool, SpellTier } from '../proc/magicalSpells';
 
 export { ChunkManager, CHUNK_SIZE } from '../proc/chunks';
 export { SeededRandom, WorldNoise, ValueNoise2D } from '../proc/noise';
 export { ChokepointManager } from '../proc/chokepoints';
 export { PhysicalAbilitiesGenerator } from '../proc/physicalAbilities';
+export { MagicalSpellsGenerator } from '../proc/magicalSpells';
 export type { Tile, WorldGenConfig } from '../proc/chunks';
 export type { Chokepoint, Fortification, RegionData } from '../proc/chokepoints';
 export type { PhysicalAbility, PhysicalAbilitySchool, PhysicalAbilityTier } from '../proc/physicalAbilities';
+export type { MagicalSpell, MagicalSchool, SpellTier } from '../proc/magicalSpells';
 
 export interface Party {
   x: number;
@@ -38,6 +41,7 @@ export interface Party {
   level: number; // Party level for ability requirements
   experience: number; // Experience points
   knownAbilities: string[]; // Known physical abilities
+  knownSpells: string[]; // Known magical spells
   stats: { // Party stats for ability requirements
     strength: number;
     dexterity: number;
@@ -121,6 +125,7 @@ export class WorldEngine {
   private chunkManager: ChunkManager;
   private chokepointManager: ChokepointManager | null = null; // Temporarily nullable for debugging
   private physicalAbilities: PhysicalAbilitiesGenerator;
+  private magicalSpells!: MagicalSpellsGenerator;
   private rng: SeededRandom;
   public state: GameState;
   
@@ -156,6 +161,9 @@ export class WorldEngine {
     
     // Initialize physical abilities generator
     this.physicalAbilities = new PhysicalAbilitiesGenerator(actualSeed);
+    
+    // Initialize magical spells generator
+    this.magicalSpells = new MagicalSpellsGenerator(actualSeed);
     
     // Initialize chokepoint manager with error handling
     try {
@@ -198,6 +206,7 @@ export class WorldEngine {
         level: 1, // Starting level
         experience: 0,
         knownAbilities: [], // No abilities at start
+        knownSpells: [], // No spells at start
         stats: { // Starting stats
           strength: 12,
           dexterity: 12,
@@ -1213,8 +1222,69 @@ export class WorldEngine {
   }
 
   /**
-   * Get available physical abilities for the party
+   * Get available magical spells for the party
    */
+  getAvailableMagicalSpells(): MagicalSpell[] {
+    return this.magicalSpells.getAvailableSpells(
+      this.state.party.level,
+      this.state.party.stats,
+      this.state.party.equipment, // Using equipment as components for now
+      this.state.party.knownSpells
+    );
+  }
+
+  /**
+   * Learn a new magical spell
+   */
+  learnMagicalSpell(spellName: string): boolean {
+    const available = this.getAvailableMagicalSpells();
+    const spell = available.find(s => s.name === spellName);
+    
+    if (spell && !this.state.party.knownSpells.includes(spellName)) {
+      this.state.party.knownSpells.push(spellName);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Cast a magical spell (if known and have ether)
+   */
+  castMagicalSpell(spellName: string): { success: boolean; message: string } {
+    if (!this.state.party.knownSpells.includes(spellName)) {
+      return { success: false, message: 'Spell not known' };
+    }
+
+    const available = this.getAvailableMagicalSpells();
+    const spell = available.find(s => s.name === spellName);
+    
+    if (!spell) {
+      return { success: false, message: 'Spell no longer available (requirements not met)' };
+    }
+
+    if (this.state.party.ether < spell.etherCost) {
+      return { success: false, message: 'Not enough ether' };
+    }
+
+    // Cast the spell
+    this.state.party.ether -= spell.etherCost;
+    
+    // Apply effects (basic implementation)
+    let message = `Cast ${spellName}!`;
+    
+    if (spell.effects.healing) {
+      const healing = Math.floor(Math.random() * (spell.effects.healing.max - spell.effects.healing.min + 1)) + spell.effects.healing.min;
+      this.heal(healing);
+      message += ` Healed ${healing} HP.`;
+    }
+    
+    if (spell.effects.damage) {
+      const damage = Math.floor(Math.random() * (spell.effects.damage.max - spell.effects.damage.min + 1)) + spell.effects.damage.min;
+      message += ` Dealt ${damage} ${spell.effects.damage.type || 'magical'} damage.`;
+    }
+
+    return { success: true, message };
+  }
   getAvailablePhysicalAbilities(): PhysicalAbility[] {
     return this.physicalAbilities.getAvailableAbilities(
       this.state.party.level,

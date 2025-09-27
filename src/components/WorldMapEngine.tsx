@@ -103,6 +103,7 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
   } | null>(null);
   const [activeEncounter, setActiveEncounter] = useState<any>(null);
   const [showAbilities, setShowAbilities] = useState(false);
+  const [showSpells, setShowSpells] = useState(false);
 
   // Update stats periodically
   useEffect(() => {
@@ -288,6 +289,10 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
         case 'v':
         case 'V':
           setShowAbilities(prev => !prev);
+          break;
+        case 'b':
+        case 'B':
+          setShowSpells(prev => !prev);
           break;
       }
 
@@ -694,6 +699,10 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
             case 'V':
               setShowAbilities(prev => !prev);
               break;
+            case 'b':
+            case 'B':
+              setShowSpells(prev => !prev);
+              break;
           }
 
           if (moved && cameraLocked) {
@@ -763,11 +772,12 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
         zIndex: 100
       }}>
         <div><strong>Movement:</strong> Arrow keys or WASD</div>
-        <div><strong>Rest:</strong> Space (1 hour)</div>
+        <div><strong>Rest:</strong> Space (1 hour, restores HP/Stamina/Ether)</div>
         <div><strong>View:</strong> Mouse drag, scroll to zoom</div>
         <div><strong>Grid:</strong> G key</div>
         <div><strong>Center:</strong> C key</div>
         <div><strong>Abilities:</strong> V key</div>
+        <div><strong>Spells:</strong> B key</div>
         <div style={{ marginTop: '8px' }}>
           <div>Position: ({engine.state.party.x}, {engine.state.party.y})</div>
           <div>
@@ -788,6 +798,16 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
               fontWeight: 'bold'
             }}>
               {engine.state.party.stamina}/{engine.state.party.maxStamina}
+            </span>
+          </div>
+          <div>
+            Ether: 
+            <span style={{ 
+              color: engine.state.party.ether / engine.state.party.maxEther > 0.7 ? '#4ade80' : 
+                     engine.state.party.ether / engine.state.party.maxEther > 0.3 ? '#eab308' : '#ef4444',
+              fontWeight: 'bold'
+            }}>
+              {engine.state.party.ether}/{engine.state.party.maxEther}
             </span>
           </div>
           <div>Level: {engine.state.party.level} (XP: {engine.state.party.experience})</div>
@@ -1292,6 +1312,163 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
                 return (
                   <div style={{ fontSize: '12px', color: '#ef4444' }}>
                     Error loading abilities
+                  </div>
+                );
+              }
+            })()}
+          </div>
+        </div>
+      )}
+      
+      {/* Magical Spells Panel */}
+      {showSpells && (
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '20px',
+          transform: 'translateY(-50%)',
+          background: 'rgba(0, 0, 0, 0.9)',
+          color: '#f9fafb',
+          padding: '20px',
+          borderRadius: '8px',
+          border: '2px solid #374151',
+          maxWidth: '350px',
+          maxHeight: '70vh',
+          overflowY: 'auto',
+          zIndex: 200,
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6)'
+        }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '16px'
+          }}>
+            <h3 style={{ margin: 0, color: '#f1f5f9' }}>Magical Spells</h3>
+            <button
+              onClick={() => setShowSpells(false)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#94a3b8',
+                fontSize: '20px',
+                cursor: 'pointer',
+                padding: '0',
+                width: '24px',
+                height: '24px'
+              }}
+            >
+              ×
+            </button>
+          </div>
+          
+          <div style={{ marginBottom: '16px', fontSize: '13px' }}>
+            <div><strong>Level:</strong> {engine.state.party.level}</div>
+            <div><strong>Experience:</strong> {engine.state.party.experience}/{engine.state.party.level * 100}</div>
+            <div style={{ marginTop: '8px' }}>
+              <strong>Stats:</strong>
+              <div style={{ fontSize: '12px', marginLeft: '8px' }}>
+                <div>STR: {engine.state.party.stats.strength} | DEX: {engine.state.party.stats.dexterity}</div>
+                <div>CON: {engine.state.party.stats.constitution} | INT: {engine.state.party.stats.intelligence}</div>
+                <div>WIS: {engine.state.party.stats.wisdom} | CHA: {engine.state.party.stats.charisma}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Known Spells */}
+          <div style={{ marginBottom: '16px' }}>
+            <h4 style={{ margin: '0 0 8px 0', color: '#8b5cf6' }}>Known Spells</h4>
+            {engine.state.party.knownSpells.length > 0 ? (
+              <div style={{ fontSize: '12px' }}>
+                {engine.state.party.knownSpells.map((spell, i) => (
+                  <div key={i} style={{ 
+                    padding: '4px 8px', 
+                    margin: '2px 0',
+                    background: 'rgba(139, 92, 246, 0.2)',
+                    borderRadius: '4px',
+                    border: '1px solid #8b5cf6'
+                  }}>
+                    {spell}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic' }}>
+                No spells learned yet. Gain experience to unlock spells!
+              </div>
+            )}
+          </div>
+
+          {/* Available Spells */}
+          <div>
+            <h4 style={{ margin: '0 0 8px 0', color: '#06b6d4' }}>Available to Learn</h4>
+            {(() => {
+              try {
+                const available = engine.getAvailableMagicalSpells().filter(
+                  spell => !engine.state.party.knownSpells.includes(spell.name)
+                );
+                
+                return available.length > 0 ? (
+                  <div style={{ fontSize: '12px' }}>
+                    {available.slice(0, 5).map((spell, i) => (
+                      <div key={i} style={{ 
+                        padding: '8px', 
+                        margin: '4px 0',
+                        background: 'rgba(6, 182, 212, 0.2)',
+                        borderRadius: '4px',
+                        border: '1px solid #06b6d4'
+                      }}>
+                        <div style={{ fontWeight: 'bold', color: '#22d3ee' }}>{spell.name}</div>
+                        <div style={{ fontSize: '11px', color: '#e2e8f0', marginTop: '2px' }}>
+                          {spell.school} • {spell.tier}
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#cbd5e1', marginTop: '4px' }}>
+                          {spell.description}
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>
+                          Ether Cost: {spell.etherCost} | Level: {spell.requirements.minLevel}
+                          {spell.range && ` | Range: ${spell.range}`}
+                        </div>
+                        <button
+                          onClick={() => {
+                            const success = engine.learnMagicalSpell(spell.name);
+                            if (success) {
+                              console.log(`Learned ${spell.name}!`);
+                              // Force re-render by updating a state value
+                              setStats(prev => ({ ...prev }));
+                            }
+                          }}
+                          style={{
+                            marginTop: '4px',
+                            padding: '2px 6px',
+                            background: '#0891b2',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '3px',
+                            cursor: 'pointer',
+                            fontSize: '10px'
+                          }}
+                        >
+                          Learn
+                        </button>
+                      </div>
+                    ))}
+                    {available.length > 5 && (
+                      <div style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic', marginTop: '8px' }}>
+                        ... and {available.length - 5} more spells available
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic' }}>
+                    No new spells available. Level up or increase your stats!
+                  </div>
+                );
+              } catch (error) {
+                console.error('Error getting spells:', error);
+                return (
+                  <div style={{ fontSize: '12px', color: '#ef4444' }}>
+                    Error loading spells
                   </div>
                 );
               }
