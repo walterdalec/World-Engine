@@ -129,7 +129,7 @@ export class WorldEngine {
     }
     
     // Find a suitable spawn location on land
-    const spawnLocation = this.findLandSpawnLocation(mergedConfig.world.mapWidth, mergedConfig.world.mapHeight);
+    const spawnLocation = this.findLandSpawnLocation(mergedConfig.world.mapWidth, mergedConfig.world.mapHeight, mergedConfig.world.seaLevel);
     
     // Double-check spawn tile and force boat if needed
     const spawnTile = this.chunkManager.getTile(spawnLocation.x, spawnLocation.y);
@@ -173,7 +173,7 @@ export class WorldEngine {
   /**
    * Find a suitable land spawn location
    */
-  private findLandSpawnLocation(mapWidth: number, mapHeight: number): { x: number; y: number; needsBoat: boolean } {
+  private findLandSpawnLocation(mapWidth: number, mapHeight: number, seaLevel: number): { x: number; y: number; needsBoat: boolean } {
     console.log('Finding suitable spawn location...');
     
     // Use multiple strategic positions that should be inland based on continental generation
@@ -195,7 +195,7 @@ export class WorldEngine {
       { x: Math.floor(mapWidth * 0.3), y: Math.floor(mapHeight * 0.5) }
     ];
     
-    console.log('Trying strategic land candidates with sea level 0.0...');
+    console.log('Trying strategic land candidates with sea level', seaLevel, '...');
     for (const candidate of landCandidates) {
       console.log('Testing candidate:', candidate.x, candidate.y);
       
@@ -209,7 +209,7 @@ export class WorldEngine {
       console.log('  Elevation:', tile?.elevation || 'null');
       console.log('  Temperature:', tile?.temperature || 'null');
       console.log('  Moisture:', tile?.moisture || 'null');
-      console.log('  Sea level config:', this.state.config.world.seaLevel);
+      console.log('  Sea level config:', seaLevel);
       
       if (tile && tile.biome !== 'Ocean') {
         console.log('✓ Found land spawn at:', candidate.x, candidate.y, 'Biome:', tile.biome);
