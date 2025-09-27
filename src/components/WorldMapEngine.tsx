@@ -288,10 +288,12 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
           break;
         case 'v':
         case 'V':
+          console.log('V key pressed - toggling abilities panel');
           setShowAbilities(prev => !prev);
           break;
         case 'b':
         case 'B':
+          console.log('B key pressed - toggling creation panel');
           setShowCreation(prev => !prev);
           break;
       }
@@ -697,10 +699,12 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
               break;
             case 'v':
             case 'V':
+              console.log('Canvas V key pressed - toggling abilities panel');
               setShowAbilities(prev => !prev);
               break;
             case 'b':
             case 'B':
+              console.log('Canvas B key pressed - toggling creation panel');
               setShowCreation(prev => !prev);
               break;
           }
@@ -776,8 +780,8 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
         <div><strong>View:</strong> Mouse drag, scroll to zoom</div>
         <div><strong>Grid:</strong> G key</div>
         <div><strong>Center:</strong> C key</div>
-        <div><strong>Abilities/Spells:</strong> V key</div>
-        <div><strong>Creation:</strong> B key</div>
+        <div><strong>Manage Abilities/Spells:</strong> V key</div>
+        <div><strong>Creation Workshop:</strong> B key</div>
         <div style={{ marginTop: '8px' }}>
           <div>Position: ({engine.state.party.x}, {engine.state.party.y})</div>
           <div>
@@ -1188,7 +1192,7 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
             alignItems: 'center',
             marginBottom: '16px'
           }}>
-            <h3 style={{ margin: 0, color: '#f1f5f9' }}>Abilities & Spells</h3>
+            <h3 style={{ margin: 0, color: '#f1f5f9' }}>🎯 Abilities & Spells Manager</h3>
             <button
               onClick={() => setShowAbilities(false)}
               style={{
