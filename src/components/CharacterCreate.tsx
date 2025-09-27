@@ -3,6 +3,9 @@ import React, { useMemo, useState } from "react";
 import { CLASS_DEFINITIONS } from '../defaultWorlds';
 import CharacterPortraitPicker from './CharacterPortraitPicker';
 import PortraitDisplay from './PortraitDisplay';
+// Visual System Integration
+import { PortraitPreview, VisualUtils } from '../visuals';
+import type { CharacterVisualData } from '../visuals';
 
 type Stats = "STR" | "DEX" | "CON" | "INT" | "WIS" | "CHA";
 
@@ -970,6 +973,38 @@ export default function CharacterCreate() {
                 characterClass={char.archetype}
                 onPortraitChange={(portraitData) => setField("portraitUrl", portraitData)}
               />
+              
+              {/* New Visual System Preview */}
+              {char.name && char.species && char.archetype && (
+                <div style={{ marginTop: '12px', padding: '12px', background: '#1e293b', borderRadius: '8px', border: '1px solid #475569' }}>
+                  <div style={{ fontSize: '14px', color: '#e5e7eb', fontWeight: 'bold', marginBottom: '8px' }}>
+                    📸 Generated Portrait Preview
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <PortraitPreview
+                      character={VisualUtils.createCharacterData({
+                        name: char.name,
+                        species: char.species,
+                        archetype: char.archetype,
+                        level: char.level || 1
+                      })}
+                      size="medium"
+                      style={{ border: '1px solid #64748b', borderRadius: '4px' }}
+                    />
+                    <div>
+                      <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>
+                        Auto-generated using visual system
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#64748b' }}>
+                        Species: {char.species} • Class: {char.archetype}
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#64748b' }}>
+                        Updates automatically with character changes
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
