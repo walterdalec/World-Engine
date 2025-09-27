@@ -161,7 +161,7 @@ export class WorldEngine {
   private rng!: SeededRandom;
   public state!: GameState;
   private loadedFromSave: boolean = false; // Track if loaded from localStorage
-  
+
   constructor(seed?: string, config?: Partial<EngineConfig>) {
     // Try to load existing game from localStorage first
     const existingSave = localStorage.getItem('world-engine-save');
@@ -192,12 +192,12 @@ export class WorldEngine {
   private createNewGame(seed?: string, config?: Partial<EngineConfig>) {
     const actualSeed = seed || this.generateSeed();
     this.rng = new SeededRandom(`${actualSeed}_engine`);
-    
+
     const defaultConfig: EngineConfig = {
       world: {
         seaLevel: 0.0, // Almost no ocean, everything should be land
-        continentFreq: 1/1024,
-        featureFreq: 1/128,
+        continentFreq: 1 / 1024,
+        featureFreq: 1 / 128,
         warpStrength: 700,
         mapWidth: 2048,
         mapHeight: 2048
@@ -211,20 +211,20 @@ export class WorldEngine {
         chunkUnloadRadius: 64
       }
     };
-    
+
     const mergedConfig: EngineConfig = {
       world: { ...defaultConfig.world, ...config?.world },
       gameplay: { ...defaultConfig.gameplay, ...config?.gameplay }
     };
-    
+
     this.chunkManager = new ChunkManager(actualSeed, mergedConfig.world);
-    
+
     // Initialize physical abilities generator
     this.physicalAbilities = new PhysicalAbilitiesGenerator(actualSeed);
-    
+
     // Initialize magical spells generator
     this.magicalSpells = new MagicalSpellsGenerator(actualSeed);
-    
+
     // Initialize chokepoint manager with error handling
     try {
       console.log('Initializing chokepoint system...');
@@ -240,18 +240,18 @@ export class WorldEngine {
       console.error('Failed to initialize chokepoint system:', error);
       this.chokepointManager = null;
     }
-    
+
     // Find a suitable spawn location on land
     const spawnLocation = this.findLandSpawnLocation(mergedConfig.world.mapWidth, mergedConfig.world.mapHeight, mergedConfig.world.seaLevel);
-    
+
     // Double-check spawn tile and force boat if needed
     const spawnTile = this.chunkManager.getTile(spawnLocation.x, spawnLocation.y);
     const actuallyNeedsBoat = !spawnTile || spawnTile.biome === 'Ocean';
-    
+
     console.log('Final spawn location:', spawnLocation.x, spawnLocation.y);
     console.log('Spawn tile biome:', spawnTile?.biome || 'null');
     console.log('Needs boat:', actuallyNeedsBoat || spawnLocation.needsBoat);
-    
+
     this.state = {
       seed: actualSeed,
       party: {
@@ -299,16 +299,16 @@ export class WorldEngine {
       config: mergedConfig,
       version: '1.0.0'
     };
-    
+
     // Discover initial area around party
     this.discoverRadius(this.state.party.x, this.state.party.y, 3);
-    
+
     // Create a main city at spawn point
     this.createMainCity(this.state.party.x, this.state.party.y);
 
     // Create default test characters
     this.createDefaultCharacters();
-    
+
     // Auto-save the new game
     this.autoSave();
   }
@@ -319,19 +319,19 @@ export class WorldEngine {
   private loadFromStorage(saveData: string): boolean {
     try {
       const data = JSON.parse(saveData);
-      
+
       // Recreate chunk manager and chokepoint manager with loaded seed
       this.chunkManager = new ChunkManager(data.seed, data.config.world);
-      
+
       // Initialize physical abilities generator
       this.physicalAbilities = new PhysicalAbilitiesGenerator(data.seed);
-      
+
       // Initialize magical spells generator
       this.magicalSpells = new MagicalSpellsGenerator(data.seed);
-      
+
       // Initialize RNG
       this.rng = new SeededRandom(`${data.seed}_engine`);
-      
+
       try {
         this.chokepointManager = new ChokepointManager(
           data.seed,
@@ -344,13 +344,13 @@ export class WorldEngine {
         console.error('Failed to recreate chokepoint manager during load:', error);
         this.chokepointManager = null;
       }
-      
+
       // Restore game state
       this.state = {
         ...data,
         discovered: new Set(data.discovered) // Convert Array back to Set
       };
-      
+
       console.log(`Game loaded successfully! Seed: ${this.state.seed}, Characters: ${this.state.characters.length}`);
       return true;
     } catch (error) {
@@ -371,13 +371,13 @@ export class WorldEngine {
       console.error('Failed to auto-save game:', error);
     }
   }
-  
+
   /**
    * Find a suitable land spawn location
    */
   private findLandSpawnLocation(mapWidth: number, mapHeight: number, seaLevel: number): { x: number; y: number; needsBoat: boolean } {
     console.log('Finding suitable spawn location...');
-    
+
     // Use multiple strategic positions that should be inland based on continental generation
     const landCandidates = [
       // Continental centers (should be high elevation)
@@ -385,25 +385,25 @@ export class WorldEngine {
       { x: Math.floor(mapWidth * 0.75), y: Math.floor(mapHeight * 0.75) },
       { x: Math.floor(mapWidth * 0.25), y: Math.floor(mapHeight * 0.75) },
       { x: Math.floor(mapWidth * 0.75), y: Math.floor(mapHeight * 0.25) },
-      
+
       // Off-center positions
       { x: Math.floor(mapWidth * 0.4), y: Math.floor(mapHeight * 0.3) },
       { x: Math.floor(mapWidth * 0.6), y: Math.floor(mapHeight * 0.7) },
       { x: Math.floor(mapWidth * 0.3), y: Math.floor(mapWidth * 0.6) },
       { x: Math.floor(mapWidth * 0.7), y: Math.floor(mapWidth * 0.4) },
-      
+
       // Fallback positions
       { x: Math.floor(mapWidth * 0.5), y: Math.floor(mapHeight * 0.3) },
       { x: Math.floor(mapWidth * 0.3), y: Math.floor(mapHeight * 0.5) }
     ];
-    
+
     console.log('Trying strategic land candidates with sea level', seaLevel, '...');
     for (const candidate of landCandidates) {
       console.log('Testing candidate:', candidate.x, candidate.y);
-      
+
       // Pre-load area around candidate
       this.chunkManager.ensureRadius(candidate.x, candidate.y, 3);
-      
+
       const tile = this.chunkManager.getTile(candidate.x, candidate.y);
       console.log('Candidate tile details:');
       console.log('  Position:', candidate.x, candidate.y);
@@ -412,13 +412,13 @@ export class WorldEngine {
       console.log('  Temperature:', tile?.temperature || 'null');
       console.log('  Moisture:', tile?.moisture || 'null');
       console.log('  Sea level config:', seaLevel);
-      
+
       if (tile && tile.biome !== 'Ocean') {
         console.log('✓ Found land spawn at:', candidate.x, candidate.y, 'Biome:', tile.biome);
         return { x: candidate.x, y: candidate.y, needsBoat: false };
       }
     }
-    
+
     // Emergency fallback: spawn at first candidate with boat
     const fallback = landCandidates[0];
     console.log('All land searches failed, spawning with boat at:', fallback.x, fallback.y);
@@ -431,7 +431,7 @@ export class WorldEngine {
   private generateSeed(): string {
     return Math.random().toString(36).substring(2, 15);
   }
-  
+
   /**
    * Move party by relative distance
    * Returns false if movement is blocked
@@ -439,66 +439,66 @@ export class WorldEngine {
   tickTravel(dx: number, dy: number): boolean {
     const newX = Math.round(this.state.party.x + dx);
     const newY = Math.round(this.state.party.y + dy);
-    
+
     // Check bounds
-    if (newX < 0 || newX >= this.state.config.world.mapWidth || 
-        newY < 0 || newY >= this.state.config.world.mapHeight) {
+    if (newX < 0 || newX >= this.state.config.world.mapWidth ||
+      newY < 0 || newY >= this.state.config.world.mapHeight) {
       return false;
     }
-    
+
     // Get destination tile
     const tile = this.chunkManager.getTile(newX, newY);
     if (!tile) {
       return false;
     }
-    
+
     // Check if movement is possible
     if (tile.biome === 'Ocean' && !this.hasBoat()) {
       return false;
     }
-    
+
     // Calculate movement cost
     const baseCost = this.state.config.gameplay.movementCostPerTile;
     const terrainModifier = this.getTerrainMovementModifier(tile);
     const weatherModifier = this.state.weather.movementModifier;
     const actualCost = Math.round(baseCost * terrainModifier * weatherModifier / this.state.party.speed);
-    
+
     // Move party
     this.state.party.x = newX;
     this.state.party.y = newY;
-    
+
     // Advance time
     this.advanceTime(actualCost);
-    
+
     // Discover new area
     this.discoverRadius(newX, newY, this.state.config.gameplay.fogOfWarRadius);
-    
+
     // Ensure chunks are loaded
     this.ensureRadius(this.state.config.gameplay.chunkLoadRadius);
-    
+
     // Update encounter risk
     this.updateEncounterRisk(tile, actualCost);
-    
+
     // Check for encounters after movement
     this.checkForEncounter(tile);
-    
+
     // Update weather
     this.updateWeather();
 
     // Auto-save after movement
     this.autoSave();
-    
+
     return true;
   }
-  
+
   /**
    * Check if party has water transportation
    */
   private hasBoat(): boolean {
-    return this.state.party.equipment.includes('boat') || 
-           this.state.party.equipment.includes('ship');
+    return this.state.party.equipment.includes('boat') ||
+      this.state.party.equipment.includes('ship');
   }
-  
+
   /**
    * Get movement speed modifier for terrain
    */
@@ -517,29 +517,29 @@ export class WorldEngine {
       'Mountain': 0.3,
       'Snow': 0.5
     };
-    
+
     let modifier = modifiers[tile.biome] || 1.0;
-    
+
     // Roads speed up travel
     if (tile.road) modifier *= 1.5;
-    
+
     // Rivers slow down travel unless there's a bridge/ford
     if (tile.river && !tile.road) modifier *= 0.8;
-    
+
     return modifier;
   }
-  
+
   /**
    * Advance game time
    */
   advanceTime(minutes: number): void {
     this.state.time.minutes += minutes;
-    
+
     // Handle day rollover
     while (this.state.time.minutes >= 1440) { // 24 hours
       this.state.time.minutes -= 1440;
       this.state.time.day++;
-      
+
       // Handle season change (90 days per season)
       if (this.state.time.day > 90) {
         this.state.time.day = 1;
@@ -554,39 +554,39 @@ export class WorldEngine {
       }
     }
   }
-  
+
   /**
    * Discover tiles within radius
    */
   discoverRadius(centerX: number, centerY: number, radius: number): void {
     const weatherVisibility = this.state.weather.visibility;
     const actualRadius = Math.floor(radius * weatherVisibility);
-    
+
     for (let dx = -actualRadius; dx <= actualRadius; dx++) {
       for (let dy = -actualRadius; dy <= actualRadius; dy++) {
         const distance = Math.sqrt(dx * dx + dy * dy);
         if (distance <= actualRadius) {
           const x = centerX + dx;
           const y = centerY + dy;
-          if (x >= 0 && x < this.state.config.world.mapWidth && 
-              y >= 0 && y < this.state.config.world.mapHeight) {
+          if (x >= 0 && x < this.state.config.world.mapWidth &&
+            y >= 0 && y < this.state.config.world.mapHeight) {
             this.state.discovered.add(`${x},${y}`);
           }
         }
       }
     }
   }
-  
+
   /**
    * Ensure chunks are loaded within radius
    */
   ensureRadius(radius: number): void {
     this.chunkManager.ensureRadius(
-      this.state.party.x, 
-      this.state.party.y, 
+      this.state.party.x,
+      this.state.party.y,
       radius
     );
-    
+
     // Unload distant chunks to save memory
     this.chunkManager.unloadBeyond(
       this.state.party.x,
@@ -594,13 +594,13 @@ export class WorldEngine {
       this.state.config.gameplay.chunkUnloadRadius
     );
   }
-  
+
   /**
    * Update encounter risk based on movement
    */
   updateEncounterRisk(tile: Tile, timeCost: number): void {
     const baseRiskIncrease = 0.02 * (timeCost / 60); // Risk per hour of travel (reduced from 0.1 to 0.02)
-    
+
     // Terrain modifiers
     const terrainRiskModifiers: Record<string, number> = {
       'Ocean': 0.2,
@@ -616,18 +616,18 @@ export class WorldEngine {
       'Mountain': 1.6,
       'Snow': 0.6
     };
-    
+
     let riskIncrease = baseRiskIncrease * (terrainRiskModifiers[tile.biome] || 1.0);
-    
+
     // Roads are safer
     if (tile.road) riskIncrease *= 0.5;
-    
+
     // Settlements are safe
     if (tile.settlement) riskIncrease = 0;
-    
+
     this.state.encounterClock.riskLevel = Math.min(1, this.state.encounterClock.riskLevel + riskIncrease);
   }
-  
+
   /**
    * Generate weather for current conditions
    */
@@ -637,7 +637,7 @@ export class WorldEngine {
     const y = partyY ?? this.state?.party?.y ?? 1024;
     const currentSeed = seed ?? this.state?.seed ?? 'default';
     const currentDay = day ?? this.state?.time?.day ?? 1;
-    
+
     const tile = this.chunkManager.getTile(x, y);
     if (!tile) {
       return {
@@ -648,14 +648,14 @@ export class WorldEngine {
         movementModifier: 1.0
       };
     }
-    
+
     const weatherRng = new SeededRandom(`${currentSeed}_weather_${currentDay}`);
     const biomeWeatherChances = this.getBiomeWeatherChances(tile.biome);
-    
+
     const roll = weatherRng.nextFloat();
     let weatherType: Weather['type'] = 'Clear';
     let cumulative = 0;
-    
+
     for (const [type, chance] of Object.entries(biomeWeatherChances)) {
       cumulative += chance;
       if (roll <= cumulative) {
@@ -663,10 +663,10 @@ export class WorldEngine {
         break;
       }
     }
-    
+
     const intensity = weatherRng.nextFloat(0.3, 1.0);
     const duration = weatherRng.nextInt(240, 720); // 4-12 hours
-    
+
     return {
       type: weatherType,
       intensity,
@@ -674,7 +674,7 @@ export class WorldEngine {
       ...this.getWeatherEffects(weatherType, intensity)
     };
   }
-  
+
   /**
    * Get weather chances for different biomes
    */
@@ -693,10 +693,10 @@ export class WorldEngine {
       Swamp: { Clear: 0.4, Rain: 0.3, Fog: 0.3 },
       Savanna: { Clear: 0.7, Rain: 0.2, Wind: 0.1 }
     };
-    
+
     return baseChances[biome] || baseChances.Grass;
   }
-  
+
   /**
    * Get weather effects on gameplay
    */
@@ -709,34 +709,34 @@ export class WorldEngine {
       Wind: { visibility: 1.0, movementModifier: 0.9 },
       Storm: { visibility: 0.4, movementModifier: 0.5 }
     };
-    
+
     const base = effects[type];
     return {
       visibility: Math.max(0.1, base.visibility - (1 - intensity) * 0.2),
       movementModifier: Math.max(0.3, base.movementModifier - (intensity - 0.5) * 0.2)
     };
   }
-  
+
   /**
    * Update weather over time
    */
   updateWeather(): void {
     this.state.weather.duration--;
-    
+
     if (this.state.weather.duration <= 0) {
       this.state.weather = this.generateWeather();
     }
   }
-  
+
   /**
    * Rest at current location
    */
   rest(hours: number): void {
     this.advanceTime(hours * 60);
-    
+
     // Resting reduces encounter risk
     this.state.encounterClock.riskLevel = Math.max(0, this.state.encounterClock.riskLevel - 0.3);
-    
+
     // Heal HP over time (10 HP per hour of rest, up to max)
     const healingPerHour = 10;
     const totalHealing = hours * healingPerHour;
@@ -744,7 +744,7 @@ export class WorldEngine {
       this.state.party.maxHitPoints,
       this.state.party.hitPoints + totalHealing
     );
-    
+
     // Restore stamina over time (5 stamina per hour of rest)
     const staminaPerHour = 5;
     const totalStaminaRestored = hours * staminaPerHour;
@@ -752,7 +752,7 @@ export class WorldEngine {
       this.state.party.maxStamina,
       this.state.party.stamina + totalStaminaRestored
     );
-    
+
     // Restore ether over time (3 ether per hour of rest)
     const etherPerHour = 3;
     const totalEtherRestored = hours * etherPerHour;
@@ -760,7 +760,7 @@ export class WorldEngine {
       this.state.party.maxEther,
       this.state.party.ether + totalEtherRestored
     );
-    
+
     // Update weather during rest
     for (let i = 0; i < hours; i++) {
       this.updateWeather();
@@ -784,28 +784,28 @@ export class WorldEngine {
       this.state.party.hitPoints + amount
     );
   }
-  
+
   /**
    * Get tile at position (generates if needed)
    */
   getTile(x: number, y: number): Tile | undefined {
     return this.chunkManager.getTile(x, y);
   }
-  
+
   /**
    * Check if position is discovered
    */
   isDiscovered(x: number, y: number): boolean {
     return this.state.discovered.has(`${x},${y}`);
   }
-  
+
   /**
    * Get current time of day (0-1, 0=midnight, 0.5=noon)
    */
   getTimeOfDay(): number {
     return (this.state.time.minutes % 1440) / 1440;
   }
-  
+
   /**
    * Get memory and performance statistics
    */
@@ -817,7 +817,7 @@ export class WorldEngine {
   } {
     const hours = Math.floor(this.state.time.minutes / 60) % 24;
     const minutes = this.state.time.minutes % 60;
-    
+
     return {
       chunks: this.chunkManager.getStats(),
       discovered: this.state.discovered.size,
@@ -832,7 +832,7 @@ export class WorldEngine {
   wasLoadedFromSave(): boolean {
     return this.loadedFromSave;
   }
-  
+
   /**
    * Save game state to JSON
    */
@@ -843,17 +843,17 @@ export class WorldEngine {
     };
     return JSON.stringify(saveData, null, 2);
   }
-  
+
   /**
    * Load game state from JSON
    */
   load(saveData: string): boolean {
     try {
       const data = JSON.parse(saveData);
-      
+
       // Recreate chunk manager and chokepoint manager with loaded seed
       this.chunkManager = new ChunkManager(data.seed, data.config.world);
-      
+
       try {
         this.chokepointManager = new ChokepointManager(
           data.seed,
@@ -866,28 +866,28 @@ export class WorldEngine {
         console.error('Failed to recreate chokepoint manager during load:', error);
         this.chokepointManager = null;
       }
-      
+
       this.rng = new SeededRandom(`${data.seed}_engine`);
-      
+
       // Restore state
       this.state = {
         ...data,
         discovered: new Set(data.discovered) // Convert Array back to Set
       };
-      
+
       // Ensure current area is loaded
       this.ensureRadius(this.state.config.gameplay.chunkLoadRadius);
-      
+
       // Set flag to indicate this was loaded from a save
       this.loadedFromSave = true;
-      
+
       return true;
     } catch (error) {
       console.error('Failed to load save data:', error);
       return false;
     }
   }
-  
+
   /**
    * Update world generation config and regenerate world
    */
@@ -895,7 +895,7 @@ export class WorldEngine {
     this.state.config.world = { ...this.state.config.world, ...newConfig };
     this.chunkManager.updateConfig(this.state.config.world);
     this.chunkManager.invalidateAll();
-    
+
     // Recreate chokepoint manager with new config
     try {
       this.chokepointManager = new ChokepointManager(
@@ -909,42 +909,42 @@ export class WorldEngine {
       console.error('Failed to recreate chokepoint manager:', error);
       this.chokepointManager = null;
     }
-    
+
     // Clear discoveries since world changed
     this.state.discovered.clear();
     this.discoverRadius(this.state.party.x, this.state.party.y, this.state.config.gameplay.fogOfWarRadius);
   }
-  
+
   // ===== CHOKEPOINT & REGION METHODS =====
-  
+
   /**
    * Get all chokepoints in the world
    */
   getChokepoints(): Chokepoint[] {
     return this.chokepointManager?.getChokepoints() || [];
   }
-  
+
   /**
    * Get chokepoint at specific location
    */
   getChokepointAt(x: number, y: number): Chokepoint | undefined {
     return this.chokepointManager?.getChokepointAt(x, y);
   }
-  
+
   /**
    * Get all regions in the world
    */
   getRegions(): RegionData[] {
     return this.chokepointManager?.getRegions() || [];
   }
-  
+
   /**
    * Get region containing a point
    */
   getRegionAt(x: number, y: number): RegionData | undefined {
     return this.chokepointManager?.getRegionAt(x, y);
   }
-  
+
   /**
    * Check if travel to a location is blocked by fortifications
    */
@@ -956,7 +956,7 @@ export class WorldEngine {
       toY
     ) || [];
   }
-  
+
   /**
    * Attempt to clear a fortification
    * Returns true if successful, false if failed or not present
@@ -967,22 +967,22 @@ export class WorldEngine {
     rewards?: any[];
   } {
     const chokepoint = this.getChokepointAt(x, y);
-    
+
     if (!chokepoint?.fortification || chokepoint.fortification.cleared) {
       return { success: false };
     }
-    
+
     const fort = chokepoint.fortification;
-    
+
     // Simple success check (can be expanded with party stats)
     const partyLevel = Math.max(1, Math.floor(this.state.time.day / 30)); // Rough level estimate
-    const hasRequiredGear = fort.requiredGear.every(gear => 
+    const hasRequiredGear = fort.requiredGear.every(gear =>
       this.state.party.equipment.includes(gear)
     );
-    
+
     if (partyLevel >= fort.requiredLevel && hasRequiredGear) {
       const success = this.chokepointManager?.clearFortification(x, y);
-      
+
       if (success) {
         // Apply rewards
         for (const reward of fort.rewards) {
@@ -993,7 +993,7 @@ export class WorldEngine {
           }
           // TODO: Handle spell and key rewards
         }
-        
+
         return {
           success: true,
           fortification: fort,
@@ -1001,17 +1001,17 @@ export class WorldEngine {
         };
       }
     }
-    
+
     return { success: false, fortification: fort };
   }
-  
+
   /**
    * Get current region info for the party
    */
   getCurrentRegion(): RegionData | undefined {
     return this.getRegionAt(this.state.party.x, this.state.party.y);
   }
-  
+
   /**
    * Check if party can travel to a specific location
    */
@@ -1021,28 +1021,28 @@ export class WorldEngine {
     reason?: string;
   } {
     const blockedBy = this.checkTravelBlockage(x, y);
-    
+
     if (blockedBy.length === 0) {
       return { canTravel: true, blockedBy: [] };
     }
-    
-    const unclearedForts = blockedBy.filter(cp => 
+
+    const unclearedForts = blockedBy.filter(cp =>
       cp.fortified && cp.fortification && !cp.fortification.cleared
     );
-    
+
     if (unclearedForts.length > 0) {
       const fortNames = unclearedForts
         .map(cp => cp.fortification?.name)
         .filter(Boolean)
         .join(', ');
-      
+
       return {
         canTravel: false,
         blockedBy: unclearedForts,
         reason: `Path blocked by fortification(s): ${fortNames}`
       };
     }
-    
+
     return { canTravel: true, blockedBy: [] };
   }
 
@@ -1059,7 +1059,7 @@ export class WorldEngine {
         size: 'city',
         faction: 'Capital'
       };
-      
+
       // Ensure surrounding area is good for a city
       for (let dx = -1; dx <= 1; dx++) {
         for (let dy = -1; dy <= 1; dy++) {
@@ -1078,10 +1078,10 @@ export class WorldEngine {
   private generateCityName(): string {
     const prefixes = ['Haven', 'Storm', 'River', 'Gold', 'Stone', 'Iron', 'Silver', 'White', 'Black', 'Red'];
     const suffixes = ['port', 'hold', 'burg', 'haven', 'ford', 'gate', 'fall', 'ridge', 'vale', 'watch'];
-    
+
     const prefix = prefixes[this.rng.nextInt(0, prefixes.length - 1)];
     const suffix = suffixes[this.rng.nextInt(0, suffixes.length - 1)];
-    
+
     return `${prefix}${suffix}`;
   }
 
@@ -1104,7 +1104,7 @@ export class WorldEngine {
     // Check for random encounters based on risk level
     const encounterRoll = this.rng.nextFloat();
     const encounterThreshold = this.state.encounterClock.riskLevel * this.state.encounterClock.encounterChance;
-    
+
     if (encounterRoll <= encounterThreshold) {
       // Generate random encounter
       const randomEncounter = this.generateRandomEncounter(tile);
@@ -1122,7 +1122,7 @@ export class WorldEngine {
    */
   private generateRandomEncounter(tile: Tile): Encounter | null {
     const encounters: Omit<Encounter, 'id' | 'x' | 'y' | 'isFixed' | 'isActive'>[] = [];
-    
+
     // Biome-specific encounters
     switch (tile.biome) {
       case 'Forest':
@@ -1153,7 +1153,7 @@ export class WorldEngine {
           }
         );
         break;
-        
+
       case 'Grass':
         encounters.push(
           {
@@ -1174,7 +1174,7 @@ export class WorldEngine {
           }
         );
         break;
-        
+
       case 'Mountain':
         encounters.push(
           {
@@ -1195,7 +1195,7 @@ export class WorldEngine {
           }
         );
         break;
-        
+
       case 'Desert':
         encounters.push(
           {
@@ -1216,7 +1216,7 @@ export class WorldEngine {
           }
         );
         break;
-        
+
       case 'Swamp':
         encounters.push(
           {
@@ -1229,7 +1229,7 @@ export class WorldEngine {
           }
         );
         break;
-        
+
       default:
         // Generic encounters for other biomes
         encounters.push(
@@ -1242,11 +1242,11 @@ export class WorldEngine {
           }
         );
     }
-    
+
     if (encounters.length === 0) return null;
-    
+
     const selectedEncounter = encounters[this.rng.nextInt(0, encounters.length - 1)];
-    
+
     return {
       id: `random_${this.state.party.x}_${this.state.party.y}_${this.state.time.day}_${Date.now()}`,
       x: this.state.party.x,
@@ -1274,16 +1274,16 @@ export class WorldEngine {
         y: 1000,
         isFixed: true,
         isActive: true,
-        rewards: { 
-          gold: 5000, 
-          experience: 1000, 
+        rewards: {
+          gold: 5000,
+          experience: 1000,
           items: ['Dragon Scale Armor', 'Flame Sword'],
           reputation: [{ faction: 'Dragon Slayers', amount: 100 }]
         }
       }
       // Add more fixed encounters here
     ];
-    
+
     return fixedEncounters.find(enc => enc.x === x && enc.y === y) || null;
   }
 
@@ -1299,9 +1299,9 @@ export class WorldEngine {
    */
   completeEncounter(success: boolean, rewards?: any): void {
     if (!this.state.activeEncounter) return;
-    
+
     const encounter = this.state.activeEncounter;
-    
+
     // Handle combat encounters - deal damage based on success/failure
     if (encounter.type === 'combat') {
       if (!success) {
@@ -1324,11 +1324,11 @@ export class WorldEngine {
         }
       }
     }
-    
+
     if (success) {
       // Mark as completed
       this.state.completedEncounters.add(encounter.id);
-      
+
       // Apply rewards
       if (encounter.rewards) {
         const reward = encounter.rewards;
@@ -1348,7 +1348,7 @@ export class WorldEngine {
         }
       }
     }
-    
+
     // Clear active encounter
     this.state.activeEncounter = null;
   }
@@ -1378,7 +1378,7 @@ export class WorldEngine {
   learnMagicalSpell(spellName: string): boolean {
     const available = this.getAvailableMagicalSpells();
     const spell = available.find(s => s.name === spellName);
-    
+
     if (spell && !this.state.party.knownSpells.includes(spellName)) {
       this.state.party.knownSpells.push(spellName);
       return true;
@@ -1396,7 +1396,7 @@ export class WorldEngine {
 
     const available = this.getAvailableMagicalSpells();
     const spell = available.find(s => s.name === spellName);
-    
+
     if (!spell) {
       return { success: false, message: 'Spell no longer available (requirements not met)' };
     }
@@ -1407,16 +1407,16 @@ export class WorldEngine {
 
     // Cast the spell
     this.state.party.ether -= spell.etherCost;
-    
+
     // Apply effects (basic implementation)
     let message = `Cast ${spellName}!`;
-    
+
     if (spell.effects.healing) {
       const healing = Math.floor(Math.random() * (spell.effects.healing.max - spell.effects.healing.min + 1)) + spell.effects.healing.min;
       this.heal(healing);
       message += ` Healed ${healing} HP.`;
     }
-    
+
     if (spell.effects.damage) {
       const damage = Math.floor(Math.random() * (spell.effects.damage.max - spell.effects.damage.min + 1)) + spell.effects.damage.min;
       message += ` Dealt ${damage} ${spell.effects.damage.type || 'magical'} damage.`;
@@ -1439,7 +1439,7 @@ export class WorldEngine {
   learnPhysicalAbility(abilityName: string): boolean {
     const available = this.getAvailablePhysicalAbilities();
     const ability = available.find(a => a.name === abilityName);
-    
+
     if (ability && !this.state.party.knownAbilities.includes(abilityName)) {
       this.state.party.knownAbilities.push(abilityName);
       return true;
@@ -1457,7 +1457,7 @@ export class WorldEngine {
 
     const available = this.getAvailablePhysicalAbilities();
     const ability = available.find(a => a.name === abilityName);
-    
+
     if (!ability) {
       return { success: false, message: 'Ability no longer available (requirements not met)' };
     }
@@ -1468,16 +1468,16 @@ export class WorldEngine {
 
     // Use the ability
     this.state.party.stamina -= ability.staminaCost;
-    
+
     // Apply effects (basic implementation)
     let message = `Used ${abilityName}!`;
-    
+
     if (ability.effects.healing) {
       const healing = Math.floor(Math.random() * (ability.effects.healing.max - ability.effects.healing.min + 1)) + ability.effects.healing.min;
       this.heal(healing);
       message += ` Healed ${healing} HP.`;
     }
-    
+
     if (ability.effects.damage) {
       const damage = Math.floor(Math.random() * (ability.effects.damage.max - ability.effects.damage.min + 1)) + ability.effects.damage.min;
       message += ` Dealt ${damage} ${ability.effects.damage.type || 'damage'}.`;
@@ -1516,27 +1516,27 @@ export class WorldEngine {
    */
   gainExperience(amount: number): boolean {
     this.state.party.experience += amount;
-    
+
     // Simple leveling: 100 XP per level
     const requiredXP = this.state.party.level * 100;
     if (this.state.party.experience >= requiredXP) {
       this.state.party.level++;
       this.state.party.experience -= requiredXP;
-      
+
       // Increase stats slightly on level up
       const statKeys = Object.keys(this.state.party.stats) as (keyof typeof this.state.party.stats)[];
       const randomStat = this.rng.pick(statKeys);
       this.state.party.stats[randomStat]++;
-      
+
       // Increase stamina and ether
       this.state.party.maxStamina += 2;
       this.state.party.stamina = this.state.party.maxStamina;
       this.state.party.maxEther += 1;
       this.state.party.ether = this.state.party.maxEther;
-      
+
       return true; // Leveled up
     }
-    
+
     return false; // No level up
   }
 
@@ -1597,7 +1597,7 @@ export class WorldEngine {
 
     const available = this.getAvailablePhysicalAbilitiesForCharacter(characterId);
     const ability = available.find(a => a.name === abilityName);
-    
+
     if (ability && !character.knownAbilities.includes(abilityName)) {
       character.knownAbilities.push(abilityName);
       // Auto-save after learning ability
@@ -1616,7 +1616,7 @@ export class WorldEngine {
 
     const available = this.getAvailableMagicalSpellsForCharacter(characterId);
     const spell = available.find(s => s.name === spellName);
-    
+
     if (spell && !character.knownSpells.includes(spellName)) {
       character.knownSpells.push(spellName);
       // Auto-save after learning spell

@@ -24,9 +24,9 @@ interface GameMenuProps {
 
 type MenuTab = 'stats' | 'abilities' | 'spells' | 'creation' | 'settings';
 
-export default function GameMenu({ 
-  engine, 
-  isVisible, 
+export default function GameMenu({
+  engine,
+  isVisible,
   onClose,
   showGrid,
   onToggleGrid,
@@ -38,7 +38,7 @@ export default function GameMenu({
   const [activeTab, setActiveTab] = useState<MenuTab>('stats');
   const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
 
-  if (!isVisible) return null;  return (
+  if (!isVisible) return null; return (
     <div style={{
       position: 'absolute',
       top: '50%',
@@ -128,7 +128,7 @@ export default function GameMenu({
         {activeTab === 'stats' && (
           <div>
             <h3 style={{ margin: '0 0 20px 0', color: '#3b82f6' }}>📊 Character Statistics</h3>
-            
+
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
               {/* Basic Info */}
               <div style={{
@@ -156,9 +156,9 @@ export default function GameMenu({
                 <div style={{ fontSize: '14px', lineHeight: '1.6' }}>
                   <div>
                     <strong>Health:</strong>
-                    <span style={{ 
-                      color: engine.state.party.hitPoints / engine.state.party.maxHitPoints > 0.7 ? '#4ade80' : 
-                             engine.state.party.hitPoints / engine.state.party.maxHitPoints > 0.3 ? '#eab308' : '#ef4444',
+                    <span style={{
+                      color: engine.state.party.hitPoints / engine.state.party.maxHitPoints > 0.7 ? '#4ade80' :
+                        engine.state.party.hitPoints / engine.state.party.maxHitPoints > 0.3 ? '#eab308' : '#ef4444',
                       fontWeight: 'bold',
                       marginLeft: '8px'
                     }}>
@@ -167,9 +167,9 @@ export default function GameMenu({
                   </div>
                   <div>
                     <strong>Stamina:</strong>
-                    <span style={{ 
-                      color: engine.state.party.stamina / engine.state.party.maxStamina > 0.7 ? '#4ade80' : 
-                             engine.state.party.stamina / engine.state.party.maxStamina > 0.3 ? '#eab308' : '#ef4444',
+                    <span style={{
+                      color: engine.state.party.stamina / engine.state.party.maxStamina > 0.7 ? '#4ade80' :
+                        engine.state.party.stamina / engine.state.party.maxStamina > 0.3 ? '#eab308' : '#ef4444',
                       fontWeight: 'bold',
                       marginLeft: '8px'
                     }}>
@@ -178,9 +178,9 @@ export default function GameMenu({
                   </div>
                   <div>
                     <strong>Ether:</strong>
-                    <span style={{ 
-                      color: engine.state.party.ether / engine.state.party.maxEther > 0.7 ? '#4ade80' : 
-                             engine.state.party.ether / engine.state.party.maxEther > 0.3 ? '#eab308' : '#ef4444',
+                    <span style={{
+                      color: engine.state.party.ether / engine.state.party.maxEther > 0.7 ? '#4ade80' :
+                        engine.state.party.ether / engine.state.party.maxEther > 0.3 ? '#eab308' : '#ef4444',
                       fontWeight: 'bold',
                       marginLeft: '8px'
                     }}>
@@ -233,15 +233,15 @@ export default function GameMenu({
         {activeTab === 'abilities' && (
           <div>
             <h3 style={{ margin: '0 0 20px 0', color: '#4ade80' }}>⚔️ Physical Abilities</h3>
-            
+
             {/* Known Abilities */}
             <div style={{ marginBottom: '24px' }}>
               <h4 style={{ margin: '0 0 12px 0', color: '#22c55e' }}>Known Abilities</h4>
               {engine.state.party.knownAbilities.length > 0 ? (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '8px' }}>
                   {engine.state.party.knownAbilities.map((ability, i) => (
-                    <div key={i} style={{ 
-                      padding: '8px 12px', 
+                    <div key={i} style={{
+                      padding: '8px 12px',
                       background: 'rgba(34, 197, 94, 0.2)',
                       borderRadius: '6px',
                       border: '1px solid #22c55e',
@@ -270,15 +270,15 @@ export default function GameMenu({
         {activeTab === 'spells' && (
           <div>
             <h3 style={{ margin: '0 0 20px 0', color: '#8b5cf6' }}>✨ Magical Spells</h3>
-            
+
             {/* Known Spells */}
             <div style={{ marginBottom: '24px' }}>
               <h4 style={{ margin: '0 0 12px 0', color: '#a855f7' }}>Known Spells</h4>
               {engine.state.party.knownSpells.length > 0 ? (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '8px' }}>
                   {engine.state.party.knownSpells.map((spell, i) => (
-                    <div key={i} style={{ 
-                      padding: '8px 12px', 
+                    <div key={i} style={{
+                      padding: '8px 12px',
                       background: 'rgba(139, 92, 246, 0.2)',
                       borderRadius: '6px',
                       border: '1px solid #8b5cf6',
@@ -307,7 +307,7 @@ export default function GameMenu({
         {activeTab === 'creation' && (
           <div>
             <h3 style={{ margin: '0 0 20px 0', color: '#f59e0b' }}>� Character Creation</h3>
-            
+
             <CharacterCreationForm engine={engine} />
           </div>
         )}
@@ -315,7 +315,7 @@ export default function GameMenu({
         {activeTab === 'settings' && (
           <div>
             <h3 style={{ margin: '0 0 20px 0', color: '#6b7280' }}>⚙️ Game Settings</h3>
-            
+
             <div style={{ display: 'grid', gap: '20px' }}>
               <div style={{
                 background: 'rgba(107, 114, 128, 0.1)',
@@ -324,7 +324,7 @@ export default function GameMenu({
                 padding: '20px'
               }}>
                 <h4 style={{ margin: '0 0 16px 0', color: '#9ca3af' }}>Display Settings</h4>
-                
+
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                   <label style={{ fontSize: '14px', color: '#e2e8f0' }}>Show Grid</label>
                   <button
@@ -342,7 +342,7 @@ export default function GameMenu({
                     {showGrid ? 'ON' : 'OFF'}
                   </button>
                 </div>
-                
+
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                   <label style={{ fontSize: '14px', color: '#e2e8f0' }}>Camera Lock</label>
                   <button
@@ -376,9 +376,9 @@ export default function GameMenu({
                   <div><strong>Discovered Tiles:</strong> {stats.discovered}</div>
                   <div>
                     <strong>Encounter Risk:</strong>
-                    <span style={{ 
-                      color: engine.state.encounterClock.riskLevel > 0.7 ? '#ef4444' : 
-                             engine.state.encounterClock.riskLevel > 0.4 ? '#eab308' : '#4ade80',
+                    <span style={{
+                      color: engine.state.encounterClock.riskLevel > 0.7 ? '#ef4444' :
+                        engine.state.encounterClock.riskLevel > 0.4 ? '#eab308' : '#4ade80',
                       fontWeight: 'bold',
                       marginLeft: '8px'
                     }}>
@@ -399,7 +399,7 @@ export default function GameMenu({
                   <div style={{ fontSize: '12px', color: '#cbd5e1', marginBottom: '8px' }}>
                     Your game is automatically saved when you move, create characters, or learn abilities.
                   </div>
-                  
+
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px' }}>
                     <button
                       onClick={() => {
@@ -430,7 +430,7 @@ export default function GameMenu({
                     >
                       📥 Export Save
                     </button>
-                    
+
                     <button
                       onClick={() => {
                         const input = document.createElement('input');
@@ -473,7 +473,7 @@ export default function GameMenu({
                     >
                       📤 Import Save
                     </button>
-                    
+
                     <button
                       onClick={() => {
                         if (confirm('Are you sure you want to start a new game? This will delete your current progress.')) {
@@ -495,7 +495,7 @@ export default function GameMenu({
                       🗑️ New Game
                     </button>
                   </div>
-                  
+
                   <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '8px' }}>
                     <div><strong>Seed:</strong> {engine.state.seed}</div>
                     <div><strong>Characters:</strong> {engine.state.characters.length}</div>
@@ -512,14 +512,14 @@ export default function GameMenu({
 }
 
 // Character selector component
-function CharacterSelector({ 
-  engine, 
-  selectedCharacterId, 
-  onSelectCharacter 
-}: { 
-  engine: WorldEngine; 
-  selectedCharacterId: string | null; 
-  onSelectCharacter: (id: string | null) => void; 
+function CharacterSelector({
+  engine,
+  selectedCharacterId,
+  onSelectCharacter
+}: {
+  engine: WorldEngine;
+  selectedCharacterId: string | null;
+  onSelectCharacter: (id: string | null) => void;
 }) {
   const characters = engine.getPartyCharacters();
 
@@ -582,16 +582,16 @@ function CharacterSelector({
 // Abilities organized by school dropdown component
 function AbilitiesBySchool({ engine, characterId }: { engine: WorldEngine; characterId: string }) {
   const [openSchools, setOpenSchools] = useState<Set<string>>(new Set());
-  
+
   const character = engine.getCharacter(characterId);
   const abilitiesBySchool = useMemo(() => {
     if (!character) return {};
-    
+
     try {
       const available = engine.getAvailablePhysicalAbilitiesForCharacter(characterId).filter(
         ability => !character.knownAbilities.includes(ability.name)
       );
-      
+
       const grouped: Record<string, any[]> = {};
       available.forEach(ability => {
         if (!grouped[ability.school]) {
@@ -599,7 +599,7 @@ function AbilitiesBySchool({ engine, characterId }: { engine: WorldEngine; chara
         }
         grouped[ability.school].push(ability);
       });
-      
+
       return grouped;
     } catch (error) {
       console.error('Error loading abilities:', error);
@@ -662,12 +662,12 @@ function AbilitiesBySchool({ engine, characterId }: { engine: WorldEngine; chara
             <span>⚔️ {school} ({abilitiesBySchool[school].length})</span>
             <span style={{ fontSize: '18px' }}>{openSchools.has(school) ? '▼' : '▶'}</span>
           </button>
-          
+
           {openSchools.has(school) && (
             <div style={{ padding: '0 16px 16px 16px', display: 'grid', gap: '12px' }}>
               {abilitiesBySchool[school].map((ability: any, i: number) => (
-                <div key={i} style={{ 
-                  padding: '16px', 
+                <div key={i} style={{
+                  padding: '16px',
                   background: 'rgba(234, 179, 8, 0.2)',
                   borderRadius: '8px',
                   border: '1px solid #eab308'
@@ -717,16 +717,16 @@ function AbilitiesBySchool({ engine, characterId }: { engine: WorldEngine; chara
 // Spells organized by school dropdown component
 function SpellsBySchool({ engine, characterId }: { engine: WorldEngine; characterId: string }) {
   const [openSchools, setOpenSchools] = useState<Set<string>>(new Set());
-  
+
   const character = engine.getCharacter(characterId);
   const spellsBySchool = useMemo(() => {
     if (!character) return {};
-    
+
     try {
       const available = engine.getAvailableMagicalSpellsForCharacter(characterId).filter(
         spell => !character.knownSpells.includes(spell.name)
       );
-      
+
       const grouped: Record<string, any[]> = {};
       available.forEach(spell => {
         if (!grouped[spell.school]) {
@@ -734,7 +734,7 @@ function SpellsBySchool({ engine, characterId }: { engine: WorldEngine; characte
         }
         grouped[spell.school].push(spell);
       });
-      
+
       return grouped;
     } catch (error) {
       console.error('Error loading spells:', error);
@@ -807,7 +807,7 @@ function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
   const handleStatChange = (stat: keyof typeof formData.stats, value: number) => {
     const oldValue = formData.stats[stat];
     const cost = getStatCost(value) - getStatCost(oldValue);
-    
+
     if (availablePoints - cost >= 0 && value >= 8 && value <= 15) {
       setFormData(prev => ({
         ...prev,
@@ -860,7 +860,7 @@ function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
     });
 
     alert(`${character.name} has been added to your party!`);
-    
+
     // Reset form
     setFormData({
       name: '',
@@ -891,8 +891,8 @@ function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
         borderRadius: '8px',
         padding: '20px'
       }}>
-        <h4 style={{ 
-          margin: '0 0 16px 0', 
+        <h4 style={{
+          margin: '0 0 16px 0',
           color: '#60a5fa',
           borderBottom: '2px solid #60a5fa',
           paddingBottom: '8px'
@@ -1049,8 +1049,8 @@ function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
         borderRadius: '8px',
         padding: '20px'
       }}>
-        <h4 style={{ 
-          margin: '0 0 16px 0', 
+        <h4 style={{
+          margin: '0 0 16px 0',
           color: '#4ade80',
           borderBottom: '2px solid #4ade80',
           paddingBottom: '8px'
@@ -1087,10 +1087,10 @@ function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
                 >
                   −
                 </button>
-                <div style={{ 
-                  width: '40px', 
-                  textAlign: 'center', 
-                  fontSize: '16px', 
+                <div style={{
+                  width: '40px',
+                  textAlign: 'center',
+                  fontSize: '16px',
                   fontWeight: 'bold',
                   color: '#f9fafb'
                 }}>
@@ -1128,8 +1128,8 @@ function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
         borderRadius: '8px',
         padding: '20px'
       }}>
-        <h4 style={{ 
-          margin: '0 0 16px 0', 
+        <h4 style={{
+          margin: '0 0 16px 0',
           color: '#a855f7',
           borderBottom: '2px solid #a855f7',
           paddingBottom: '8px'
