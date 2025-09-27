@@ -1,5 +1,7 @@
 # World Engine
 
+*Character Management System - Updated September 26, 2025*
+
 Production-ready preview and deployment options without relying on the dev server.
 
 ## Local preview (stable)
