@@ -196,9 +196,11 @@ function calculateHPAndAC(
   traits: string[]
 ): { level: number; hp: number; ac: number; carry: number; naturalACBonus: number; totalHPPerLevel: number; classHPBonus: number; raceHPBonus: number; traitHPBonus: number } {
   const lvl = level;
-  const finalSTR = stats.STR;
-  const finalCON = stats.CON;
-  const finalDEX = stats.DEX;
+
+  // Get final stats after applying racial and class bonuses
+  const finalSTR = getFinalStat(stats.STR, "STR", species, archetype);
+  const finalCON = getFinalStat(stats.CON, "CON", species, archetype);
+  const finalDEX = getFinalStat(stats.DEX, "DEX", species, archetype);
 
   // Base HP calculation
   const baseHP = 8 + abilityMod(finalCON); // Level 1 HP
@@ -353,8 +355,66 @@ const SPECIES_DEFINITIONS = {
   }
 };
 
+// Racial stat modifiers - balanced with equal positives and negatives
+const RACIAL_MODIFIERS: Record<string, Partial<Record<Stats, number>>> = {
+  "Human": { STR: 1, CHA: 1, CON: -1, WIS: -1 }, // Strong and social, but less hardy and wise
+  "Sylvanborn": { DEX: 2, WIS: 1, STR: -2, CON: -1 }, // Graceful and wise, but frail
+  "Alloy": { CON: 2, INT: 1, DEX: -2, CHA: -1 }, // Durable and smart, but rigid and impersonal
+  "Draketh": { STR: 2, CHA: 1, DEX: -1, WIS: -2 }, // Strong and charismatic, but clumsy and impulsive
+  "Voidkin": { INT: 2, WIS: 1, STR: -1, CHA: -2 }, // Brilliant and perceptive, but weak and unsettling
+  "Crystalborn": { CON: 1, INT: 2, DEX: -1, CHA: -2 }, // Resilient and bright, but inflexible and cold
+  "Stormcaller": { DEX: 1, CHA: 2, CON: -1, STR: -2 }, // Quick and magnetic, but fragile and weak
+};
+
+// Extract class modifiers from our comprehensive class definitions
+const CLASS_MODIFIERS: Record<string, Partial<Record<Stats, number>>> = {};
+
+// Populate class modifiers from CLASS_DEFINITIONS
+Object.entries(CLASS_DEFINITIONS).forEach(([className, classData]) => {
+  // Convert our stat modifier names to the Stats type used here
+  CLASS_MODIFIERS[className] = {
+    STR: classData.statModifiers.strength || 0,
+    DEX: classData.statModifiers.dexterity || 0,
+    CON: classData.statModifiers.constitution || 0,
+    INT: classData.statModifiers.intelligence || 0,
+    WIS: classData.statModifiers.wisdom || 0,
+    CHA: classData.statModifiers.charisma || 0,
+  };
+});
+
+// Get final stat after applying racial and class modifiers
+function getFinalStat(baseStat: number, stat: Stats, species: string, archetype: string): number {
+  let final = baseStat;
+
+  // Add racial bonus (can be negative)
+  const racialBonus = RACIAL_MODIFIERS[species]?.[stat] || 0;
+  final += racialBonus;
+
+  // Add class bonus (can be negative - balanced like racial bonuses)
+  const classBonus = CLASS_MODIFIERS[archetype]?.[stat] || 0;
+  final += classBonus;
+
+  return Math.max(3, Math.min(final, 22)); // Cap between 3-22 (penalties can bring stats low, but not too low)
+}
+
+// Get the display text for bonuses
+function getBonusText(stat: Stats, species: string, archetype: string): string {
+  const racialBonus = RACIAL_MODIFIERS[species]?.[stat] || 0;
+  const classBonus = CLASS_MODIFIERS[archetype]?.[stat] || 0;
+
+  let text = "";
+  if (racialBonus > 0) text += ` +${racialBonus} racial`;
+  else if (racialBonus < 0) text += ` ${racialBonus} racial`;
+
+  if (classBonus > 0) text += ` +${classBonus} class`;
+  else if (classBonus < 0) text += ` ${classBonus} class`;
+
+  return text.trim();
+}
+
 const CLASS_OPTIONS = Object.keys(CLASS_DEFINITIONS);
 const BACKGROUND_OPTIONS = ["Commoner", "Noble", "Soldier", "Scholar", "Merchant", "Artisan", "Criminal", "Folk Hero", "Hermit", "Entertainer"];
+const MAX_TRAITS = 2; // Maximum number of selectable traits (excluding automatic traits)
 
 const DEFAULT_STATS: Record<Stats, number> = {
   STR: 8, DEX: 8, CON: 8, INT: 8, WIS: 8, CHA: 8,
@@ -1338,6 +1398,14 @@ function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
                   <option key={option} value={option}>{option}</option>
                 ))}
               </select>
+              {/* Display racial modifiers */}
+              {formData.species && RACIAL_MODIFIERS[formData.species] && (
+                <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>
+                  Racial modifiers: {Object.entries(RACIAL_MODIFIERS[formData.species]).map(([stat, bonus]) =>
+                    `${stat} ${bonus! > 0 ? '+' : ''}${bonus}`
+                  ).join(", ")}
+                </div>
+              )}
             </div>
 
             <div>
@@ -1361,6 +1429,14 @@ function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
                   <option key={option} value={option}>{option}</option>
                 ))}
               </select>
+              {/* Display class modifiers */}
+              {formData.archetype && CLASS_MODIFIERS[formData.archetype] && (
+                <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>
+                  Class modifiers: {Object.entries(CLASS_MODIFIERS[formData.archetype]).map(([stat, bonus]) =>
+                    `${stat} ${bonus! > 0 ? '+' : ''}${bonus}`
+                  ).filter(str => !str.includes(' 0')).join(", ") || 'None'}
+                </div>
+              )}
             </div>
 
             <div>
@@ -1438,14 +1514,27 @@ function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
                 >
                   −
                 </button>
-                <div style={{
-                  width: '40px',
-                  textAlign: 'center',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  color: '#f9fafb'
-                }}>
-                  {value}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '60px' }}>
+                  <div style={{
+                    fontSize: '16px',
+                    fontWeight: 'bold',
+                    color: '#f9fafb'
+                  }}>
+                    {value}
+                  </div>
+                  {(() => {
+                    const finalStat = getFinalStat(value, stat as Stats, formData.species, formData.archetype);
+                    const modifier = abilityMod(finalStat);
+                    return finalStat !== value ? (
+                      <div style={{ fontSize: '12px', color: finalStat > value ? '#4ade80' : '#f87171' }}>
+                        {finalStat} ({modifier >= 0 ? '+' : ''}{modifier})
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: '12px', color: '#94a3b8' }}>
+                        ({modifier >= 0 ? '+' : ''}{modifier})
+                      </div>
+                    );
+                  })()}
                 </div>
                 <button
                   onClick={() => handleStatChange(stat as keyof typeof formData.stats, value + 1)}
@@ -1464,11 +1553,179 @@ function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
                   +
                 </button>
               </div>
-              <div style={{ fontSize: '11px', color: '#94a3b8' }}>
-                Cost: {getStatCost(value)}
+              <div style={{ fontSize: '11px', color: '#94a3b8', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                <div>Cost: {getStatCost(value)}</div>
+                {(() => {
+                  // Map long form to short form
+                  const statMap: Record<string, Stats> = {
+                    'strength': 'STR',
+                    'dexterity': 'DEX',
+                    'constitution': 'CON',
+                    'intelligence': 'INT',
+                    'wisdom': 'WIS',
+                    'charisma': 'CHA'
+                  };
+                  const statKey = statMap[stat];
+                  const bonusText = getBonusText(statKey, formData.species, formData.archetype);
+                  return bonusText ? <div style={{ fontSize: '10px', color: '#6b7280' }}>{bonusText}</div> : null;
+                })()}
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Character Preview Section */}
+      <div style={{
+        marginBottom: '20px',
+        padding: '15px',
+        background: 'rgba(55, 65, 81, 0.3)',
+        borderRadius: '8px',
+        border: '1px solid #374151'
+      }}>
+        <h4 style={{
+          margin: '0 0 15px 0',
+          color: '#f9fafb',
+          fontSize: '16px',
+          borderBottom: '2px solid #374151',
+          paddingBottom: '8px'
+        }}>
+          🎭 Character Preview
+        </h4>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '15px' }}>
+          {/* Final Stats */}
+          <div>
+            <h5 style={{ margin: '0 0 10px 0', color: '#d1d5db', fontSize: '14px', fontWeight: 'bold' }}>Final Stats</h5>
+            {Object.entries(formData.stats).map(([stat, value]) => {
+              // Map long form to short form
+              const statMap: Record<string, Stats> = {
+                'strength': 'STR',
+                'dexterity': 'DEX',
+                'constitution': 'CON',
+                'intelligence': 'INT',
+                'wisdom': 'WIS',
+                'charisma': 'CHA'
+              };
+
+              const statKey = statMap[stat];
+              const finalStat = getFinalStat(value, statKey, formData.species, formData.archetype);
+              const modifier = abilityMod(finalStat);
+              return (
+                <div key={stat} style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  fontSize: '12px',
+                  color: '#d1d5db',
+                  marginBottom: '2px'
+                }}>
+                  <span>{statKey}</span>
+                  <span style={{ color: finalStat !== value ? '#4ade80' : '#f9fafb' }}>
+                    {finalStat} ({modifier >= 0 ? '+' : ''}{modifier})
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* HP and AC */}
+          <div>
+            <h5 style={{ margin: '0 0 10px 0', color: '#d1d5db', fontSize: '14px', fontWeight: 'bold' }}>Combat Stats</h5>
+            {(() => {
+              // Convert formData.stats to Stats format
+              const statsForCalc: Record<Stats, number> = {
+                STR: formData.stats.strength,
+                DEX: formData.stats.dexterity,
+                CON: formData.stats.constitution,
+                INT: formData.stats.intelligence,
+                WIS: formData.stats.wisdom,
+                CHA: formData.stats.charisma
+              };
+
+              // Get all traits (automatic + selected)
+              const allTraits = [...(speciesInfo?.automatic || []), ...selectedTraits];
+
+              const { hp, ac } = calculateHPAndAC(statsForCalc, formData.species, formData.archetype, formData.level, allTraits);
+              const conMod = abilityMod(getFinalStat(formData.stats.constitution, 'CON', formData.species, formData.archetype));
+              const dexMod = abilityMod(getFinalStat(formData.stats.dexterity, 'DEX', formData.species, formData.archetype));
+
+              return (
+                <>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontSize: '12px',
+                    color: '#d1d5db',
+                    marginBottom: '2px'
+                  }}>
+                    <span>HP</span>
+                    <span style={{ color: '#ef4444' }}>{hp}</span>
+                  </div>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontSize: '10px',
+                    color: '#9ca3af',
+                    marginLeft: '10px',
+                    marginBottom: '4px'
+                  }}>
+                    <span>Base: 10 + CON mod</span>
+                    <span>10 + {conMod >= 0 ? '+' : ''}{conMod}</span>
+                  </div>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontSize: '12px',
+                    color: '#d1d5db',
+                    marginBottom: '2px'
+                  }}>
+                    <span>AC</span>
+                    <span style={{ color: '#3b82f6' }}>{ac}</span>
+                  </div>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontSize: '10px',
+                    color: '#9ca3af',
+                    marginLeft: '10px'
+                  }}>
+                    <span>Base: 10 + DEX mod</span>
+                    <span>10 + {dexMod >= 0 ? '+' : ''}{dexMod}</span>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+
+          {/* Point Summary */}
+          <div>
+            <h5 style={{ margin: '0 0 10px 0', color: '#d1d5db', fontSize: '14px', fontWeight: 'bold' }}>Point Buy</h5>
+            {(() => {
+              const totalPointsUsed = Object.values(formData.stats).reduce((sum, value) => sum + getStatCost(value), 0);
+              return (
+                <>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontSize: '12px',
+                    color: availablePoints === 0 ? '#4ade80' : availablePoints > 0 ? '#fbbf24' : '#ef4444',
+                    marginBottom: '2px'
+                  }}>
+                    <span>Available</span>
+                    <span>{availablePoints}</span>
+                  </div>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontSize: '12px',
+                    color: '#d1d5db'
+                  }}>
+                    <span>Used</span>
+                    <span>{totalPointsUsed}</span>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
         </div>
       </div>
 
@@ -1485,7 +1742,7 @@ function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
           borderBottom: '2px solid #a855f7',
           paddingBottom: '8px'
         }}>
-          ✨ Character Traits
+          ✨ Character Traits <small style={{ opacity: 0.7, fontSize: '12px' }}>(choose up to {MAX_TRAITS})</small>
         </h4>
 
         {speciesInfo && (
@@ -1512,15 +1769,16 @@ function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
             const isAutomatic = speciesInfo?.automatic.includes(trait);
             const isForbidden = speciesInfo?.forbidden.includes(trait);
             const isPreferred = speciesInfo?.preferred.includes(trait);
+            const isDisabled = (!isSelected && selectedTraits.length >= MAX_TRAITS) || isForbidden;
 
             return (
               <div
                 key={trait}
                 onClick={() => {
-                  if (!isAutomatic && !isForbidden) {
+                  if (!isAutomatic && !isForbidden && !isDisabled) {
                     if (isSelected) {
                       setSelectedTraits(prev => prev.filter(t => t !== trait));
-                    } else {
+                    } else if (selectedTraits.length < MAX_TRAITS) {
                       setSelectedTraits(prev => [...prev, trait]);
                     }
                   }
@@ -1528,11 +1786,11 @@ function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
                 style={{
                   padding: '8px',
                   borderRadius: '6px',
-                  cursor: (isAutomatic || isForbidden) ? 'not-allowed' : 'pointer',
+                  cursor: (isAutomatic || isForbidden || isDisabled) ? 'not-allowed' : 'pointer',
                   border: '1px solid',
                   borderColor: isAutomatic ? '#10b981' : isForbidden ? '#ef4444' : isSelected ? '#a855f7' : isPreferred ? '#06b6d4' : '#4b5563',
                   background: isAutomatic ? 'rgba(16, 185, 129, 0.2)' : isForbidden ? 'rgba(239, 68, 68, 0.2)' : isSelected ? 'rgba(168, 85, 247, 0.2)' : isPreferred ? 'rgba(6, 182, 212, 0.1)' : 'rgba(75, 85, 99, 0.1)',
-                  opacity: isForbidden ? 0.5 : 1
+                  opacity: (isForbidden || isDisabled) ? 0.5 : 1
                 }}
               >
                 <div style={{ fontSize: '14px', fontWeight: 'bold', color: isAutomatic ? '#10b981' : isForbidden ? '#ef4444' : isSelected ? '#a855f7' : '#e2e8f0', marginBottom: '4px' }}>
@@ -1551,7 +1809,7 @@ function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
 
         <div style={{ marginTop: '16px' }}>
           <div style={{ fontSize: '14px', color: '#e2e8f0', marginBottom: '8px' }}>
-            Selected Traits: {[...(speciesInfo?.automatic || []), ...selectedTraits].join(', ') || 'None'}
+            Selected Traits ({selectedTraits.length}/{MAX_TRAITS}): {[...(speciesInfo?.automatic || []), ...selectedTraits].join(', ') || 'None'}
           </div>
         </div>
       </div>

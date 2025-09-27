@@ -46,7 +46,7 @@ function calculateMaxCantrips(level: number, intScore: number, wisScore: number)
 
 function calculateMaxSpells(level: number, intScore: number, wisScore: number): number {
   if (level < 2) return 0; // No spells until level 2
-  
+
   const baseSpells = Math.max(0, level - 1); // 1 at level 2, 2 at level 3, etc.
   const abilityBonus = Math.floor((Math.max(intScore, wisScore) - 12) / 2); // Bonus starts at 13+ ability score
   return Math.max(0, baseSpells + Math.max(0, abilityBonus));
@@ -68,7 +68,7 @@ function calculateMaxSpellLevel(level: number): number {
 function getSpellcastingClass(archetype: string): 'wizard' | 'cleric' | 'mixed' | 'none' {
   const wizardTypes = ['wizard', 'sorcerer', 'warlock'];
   const clericTypes = ['cleric', 'druid', 'ranger', 'paladin'];
-  
+
   if (wizardTypes.includes(archetype.toLowerCase())) return 'wizard'; // INT-based
   if (clericTypes.includes(archetype.toLowerCase())) return 'cleric';  // WIS-based
   if (['bard'].includes(archetype.toLowerCase())) return 'mixed';      // Either INT or WIS
@@ -315,7 +315,7 @@ const SPECIES_OPTIONS = [
 
 const PRONOUN_OPTIONS = [
   "she/her",
-  "he/him", 
+  "he/him",
   "they/them",
   "xe/xir",
   "ze/hir",
@@ -399,7 +399,7 @@ const PREMADE_CHARACTERS = [
   },
   {
     name: "Marcus Ironforge",
-    pronouns: "he/him", 
+    pronouns: "he/him",
     species: "Alloy",
     archetype: "Artificer",
     background: "Born in the crystal caves, they were raised by wise elders and learned the ways of crafting. Their greatest challenge was mastering the fusion of magic and metal that defines their people.",
@@ -411,7 +411,7 @@ const PREMADE_CHARACTERS = [
   {
     name: "Zara Nightwhisper",
     pronouns: "they/them",
-    species: "Voidkin", 
+    species: "Voidkin",
     archetype: "Rogue",
     background: "A wandering soul from the shadow realm who fought in great battles against the encroaching darkness. Their destiny was forever changed when they discovered their connection to the void grants them unique abilities.",
     stats: { STR: 9, DEX: 15, CON: 11, INT: 12, WIS: 14, CHA: 13 },
@@ -421,7 +421,7 @@ const PREMADE_CHARACTERS = [
   }
 ];
 
-const MAX_TRAITS = 3;
+const MAX_TRAITS = 2;
 
 function canAffordStatIncrease(currentValue: number, pointsLeft: number): boolean {
   if (currentValue >= MAX_STAT) return false;
@@ -471,7 +471,7 @@ function download(filename: string, data: object) {
 
 function generateBackground(): string {
   const template = BACKGROUND_TEMPLATES[Math.floor(Math.random() * BACKGROUND_TEMPLATES.length)];
-  
+
   return template.replace(/\{(\w+)\}/g, (match, key) => {
     const options = BACKGROUND_WORDS[key as keyof typeof BACKGROUND_WORDS];
     if (options) {
@@ -489,15 +489,15 @@ function abilityMod(score: number) {
 // Calculate final stat with racial and class bonuses
 function getFinalStat(baseStat: number, stat: Stats, species: string, archetype: string): number {
   let final = baseStat;
-  
+
   // Add racial bonus (can be negative)
   const racialBonus = RACIAL_MODIFIERS[species]?.[stat] || 0;
   final += racialBonus;
-  
+
   // Add class bonus (can be negative - balanced like racial bonuses)
   const classBonus = CLASS_MODIFIERS[archetype]?.[stat] || 0;
   final += classBonus;
-  
+
   return Math.max(3, Math.min(final, 22)); // Cap between 3-22 (penalties can bring stats low, but not too low)
 }
 
@@ -505,13 +505,13 @@ function getFinalStat(baseStat: number, stat: Stats, species: string, archetype:
 function getBonusText(stat: Stats, species: string, archetype: string): string {
   const racialBonus = RACIAL_MODIFIERS[species]?.[stat] || 0;
   const classBonus = CLASS_MODIFIERS[archetype]?.[stat] || 0;
-  
+
   let text = "";
   if (racialBonus > 0) text += ` +${racialBonus} racial`;
   if (racialBonus < 0) text += ` ${racialBonus} racial`;
   if (classBonus > 0) text += ` +${classBonus} class`;
   if (classBonus < 0) text += ` ${classBonus} class`;
-  
+
   return text;
 }
 
@@ -589,7 +589,7 @@ export default function CharacterCreate() {
   // Get automatic traits for current species and class
   function getAutomaticTraits(): string[] {
     const automatic = new Set<string>();
-    
+
     // Add species automatic traits
     if (char.species) {
       const speciesRules = SPECIES_TRAIT_RULES[char.species as keyof typeof SPECIES_TRAIT_RULES];
@@ -597,7 +597,7 @@ export default function CharacterCreate() {
         speciesRules.automatic.forEach(trait => automatic.add(trait));
       }
     }
-    
+
     // Add class automatic traits
     if (char.archetype) {
       const classRules = CLASS_TRAIT_RULES[char.archetype as keyof typeof CLASS_TRAIT_RULES];
@@ -605,7 +605,7 @@ export default function CharacterCreate() {
         classRules.automatic.forEach(trait => automatic.add(trait));
       }
     }
-    
+
     return Array.from(automatic);
   }
 
@@ -618,7 +618,7 @@ export default function CharacterCreate() {
         return true;
       }
     }
-    
+
     // Check class restrictions
     if (char.archetype) {
       const classRules = CLASS_TRAIT_RULES[char.archetype as keyof typeof CLASS_TRAIT_RULES];
@@ -626,7 +626,7 @@ export default function CharacterCreate() {
         return true;
       }
     }
-    
+
     return false;
   }
 
@@ -639,7 +639,7 @@ export default function CharacterCreate() {
         return true;
       }
     }
-    
+
     // Check class preferences
     if (char.archetype) {
       const classRules = CLASS_TRAIT_RULES[char.archetype as keyof typeof CLASS_TRAIT_RULES];
@@ -647,7 +647,7 @@ export default function CharacterCreate() {
         return true;
       }
     }
-    
+
     return false;
   }
 
@@ -656,7 +656,7 @@ export default function CharacterCreate() {
     const automaticTraits = getAutomaticTraits();
     const currentTraits = new Set(char.traits);
     let needsUpdate = false;
-    
+
     // Add missing automatic traits
     automaticTraits.forEach(trait => {
       if (!currentTraits.has(trait)) {
@@ -664,7 +664,7 @@ export default function CharacterCreate() {
         needsUpdate = true;
       }
     });
-    
+
     // Remove forbidden traits
     Array.from(currentTraits).forEach(trait => {
       if (isTraitForbidden(trait)) {
@@ -672,7 +672,7 @@ export default function CharacterCreate() {
         needsUpdate = true;
       }
     });
-    
+
     if (needsUpdate) {
       setChar(c => ({ ...c, traits: Array.from(currentTraits) }));
     }
@@ -702,14 +702,14 @@ export default function CharacterCreate() {
       alert("Give your character a name before saving.");
       return;
     }
-    
+
     console.log("Saving character to library:", char);
-    
+
     try {
       // Get existing character library
       const existingCharacters = JSON.parse(localStorage.getItem('world-engine-characters') || '[]');
       console.log("Existing characters:", existingCharacters);
-      
+
       // Create character data for library
       const characterData = {
         id: `char-${Date.now()}`,
@@ -720,16 +720,16 @@ export default function CharacterCreate() {
         createdAt: new Date().toISOString(),
         data: { ...char, createdAt: new Date().toISOString() }
       };
-      
+
       console.log("Character data to save:", characterData);
-      
+
       // Add to library
       existingCharacters.push(characterData);
       localStorage.setItem('world-engine-characters', JSON.stringify(existingCharacters));
       // Create backup
       localStorage.setItem('world-engine-characters-backup', JSON.stringify(existingCharacters));
       console.log("Saved to localStorage, total characters:", existingCharacters.length);
-      
+
       alert(`${char.name} has been saved to your character library!`);
     } catch (error) {
       console.error('Error saving to library:', error);
@@ -770,11 +770,11 @@ export default function CharacterCreate() {
     const finalCON = getFinalStat(char.stats.CON, "CON", char.species, char.archetype);
     const finalSTR = getFinalStat(char.stats.STR, "STR", char.species, char.archetype);
     const finalDEX = getFinalStat(char.stats.DEX, "DEX", char.species, char.archetype);
-    
+
     // Calculate HP with class and race modifiers
     let baseHP = 10; // Starting HP
     let hpPerLevel = abilityMod(finalCON); // Base CON modifier per level
-    
+
     // Class-based HP per level modifiers
     let classHPBonus = 0;
     if (char.archetype === "Thorn Knight" || char.archetype === "Crystal Guardian" || char.archetype === "Ironclad") {
@@ -790,7 +790,7 @@ export default function CharacterCreate() {
     } else {
       classHPBonus = 0; // Magic classes (Sapling Adept, Scholar, Storm Herald) - low HP
     }
-    
+
     // Race-based HP modifiers
     let raceHPBonus = 0;
     if (char.species === "Alloy") {
@@ -808,7 +808,7 @@ export default function CharacterCreate() {
     } else if (char.species === "Stormcaller") {
       raceHPBonus = 0; // Light and agile - average toughness
     }
-    
+
     // Trait-based HP bonuses
     let traitHPBonus = 0;
     if (char.traits.includes("Resilient")) {
@@ -820,26 +820,26 @@ export default function CharacterCreate() {
     if (char.traits.includes("Frail")) {
       traitHPBonus -= 2; // Negative trait reduces HP
     }
-    
+
     // Calculate total HP per level (minimum 1 per level)
     const totalHPPerLevel = Math.max(1, hpPerLevel + classHPBonus + raceHPBonus + traitHPBonus);
-    
+
     // Calculate final HP
     const hp = baseHP + (totalHPPerLevel * (lvl - 1)); // Level 1 gets base HP, then add per level
-    
+
     // Calculate AC with natural bonus (much more conservative)
     let naturalACBonus = 0;
-    
+
     // Very small level bonus (+1 at level 8, +2 at level 16)
     if (lvl >= 16) naturalACBonus += 2;
     else if (lvl >= 8) naturalACBonus += 1;
-    
+
     // Class-based bonus (combat training) - using actual class names
     const archetype = char.archetype;
-    
+
     // Heavy combat classes - fighters and warriors (max +2 at level 20)
-    if (archetype === "Thorn Knight" || archetype === "Ashblade" || archetype === "Ironclad" || 
-        archetype === "Stormbreaker" || archetype === "Voidhunter" || archetype === "Crystal Guardian") {
+    if (archetype === "Thorn Knight" || archetype === "Ashblade" || archetype === "Ironclad" ||
+      archetype === "Stormbreaker" || archetype === "Voidhunter" || archetype === "Crystal Guardian") {
       if (lvl >= 15) naturalACBonus += 2;
       else if (lvl >= 7) naturalACBonus += 1;
     }
@@ -852,7 +852,7 @@ export default function CharacterCreate() {
       if (lvl >= 15) naturalACBonus += 1;
     }
     // Light combat and magic classes get no class bonus
-    
+
     // Race-based bonus (natural toughness) - very small bonuses
     if (char.species === "Alloy") {
       if (lvl >= 12) naturalACBonus += 1; // Metal-infused body
@@ -862,13 +862,13 @@ export default function CharacterCreate() {
       if (lvl >= 15) naturalACBonus += 1; // Crystal-hard skin
     }
     // Other races get no racial AC bonus
-    
+
     // Hard cap at +5 total natural AC bonus
     naturalACBonus = Math.min(naturalACBonus, 5);
-    
+
     const ac = 10 + abilityMod(finalDEX) + naturalACBonus;
     const carry = 15 * finalSTR;
-    
+
     return { level: lvl, hp, ac, carry, naturalACBonus, totalHPPerLevel, classHPBonus, raceHPBonus, traitHPBonus };
   }, [char.stats, char.species, char.archetype, char.level, char.traits]);
 
@@ -884,7 +884,7 @@ export default function CharacterCreate() {
             <SelectRow label="Species" value={char.species} onChange={(v) => setField("species", v)} options={SPECIES_OPTIONS} />
             {char.species && RACIAL_MODIFIERS[char.species] && (
               <div style={{ fontSize: 12, opacity: 0.7, marginTop: -4 }}>
-                Racial modifiers: {Object.entries(RACIAL_MODIFIERS[char.species]).map(([stat, bonus]) => 
+                Racial modifiers: {Object.entries(RACIAL_MODIFIERS[char.species]).map(([stat, bonus]) =>
                   `${stat} ${bonus > 0 ? '+' : ''}${bonus}`
                 ).join(", ")}
               </div>
@@ -913,16 +913,16 @@ export default function CharacterCreate() {
             <div style={{ display: "grid", gap: 4 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>Background</span>
-                <button 
+                <button
                   onClick={() => setField("background", generateBackground())}
-                  style={{ 
-                    padding: "4px 8px", 
-                    fontSize: "12px", 
-                    background: "#374151", 
-                    color: "#e5e7eb", 
-                    border: "none", 
-                    borderRadius: "4px", 
-                    cursor: "pointer" 
+                  style={{
+                    padding: "4px 8px",
+                    fontSize: "12px",
+                    background: "#374151",
+                    color: "#e5e7eb",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer"
                   }}
                 >
                   Generate Random
@@ -936,7 +936,7 @@ export default function CharacterCreate() {
                 style={{ padding: 8, borderRadius: 8, border: "1px solid #334155", background: "#0f172a", color: "#e5e7eb", resize: "vertical" }}
               />
             </div>
-            
+
             {/* Portrait Generator */}
             <div style={{ display: "grid", gap: 4 }}>
               <span>Portrait</span>
@@ -963,7 +963,7 @@ export default function CharacterCreate() {
                   </button>
                 </div>
               ) : null}
-              
+
               <CharacterPortraitPicker
                 characterName={char.name}
                 characterRace={char.species}
@@ -999,7 +999,7 @@ export default function CharacterCreate() {
               const baseStat = char.stats[k];
               const finalStat = getFinalStat(baseStat, k, char.species, char.archetype);
               const bonusText = getBonusText(k, char.species, char.archetype);
-              
+
               return (
                 <div key={k} style={{ border: "1px solid #334155", borderRadius: 10, padding: 10 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -1015,9 +1015,9 @@ export default function CharacterCreate() {
                     {finalStat !== baseStat ? (
                       <>
                         <span style={{ opacity: 0.6 }}>{baseStat}</span>
-                        <span style={{ 
-                          color: finalStat > baseStat ? "#10b981" : "#ef4444", 
-                          marginLeft: 4 
+                        <span style={{
+                          color: finalStat > baseStat ? "#10b981" : "#ef4444",
+                          marginLeft: 4
                         }}>
                           →{finalStat}
                         </span>
@@ -1042,7 +1042,7 @@ export default function CharacterCreate() {
 
         <div style={card}>
           <h2 style={sectionTitle}>Traits <small style={{ opacity: 0.7 }}>(choose up to {MAX_TRAITS})</small></h2>
-          
+
           {/* Trait System Explanation */}
           <div style={{ marginBottom: "16px", padding: "12px", background: "rgba(71, 85, 105, 0.1)", border: "1px solid #475569", borderRadius: "8px" }}>
             <div style={{ display: "flex", gap: "24px", fontSize: "0.85em", color: "#94a3b8" }}>
@@ -1051,7 +1051,7 @@ export default function CharacterCreate() {
               <div><span style={{ color: "#ef4444", fontWeight: "bold" }}>●</span> Forbidden - Conflicts with your nature</div>
             </div>
           </div>
-          
+
           {/* Show species/class info if selected */}
           {(char.species || char.archetype) && (
             <div style={{ marginBottom: "16px", padding: "12px", background: "rgba(30, 41, 59, 0.5)", border: "1px solid #334155", borderRadius: "8px" }}>
@@ -1081,12 +1081,12 @@ export default function CharacterCreate() {
               const isForbidden = isTraitForbidden(t);
               const isPreferred = isTraitPreferred(t);
               const isDisabled = (!isSelected && char.traits.length >= MAX_TRAITS) || isForbidden;
-              
+
               let borderColor = "#374151";
               let backgroundColor = "rgba(15, 23, 42, 0.5)";
               let badgeText = "";
               let badgeColor = "";
-              
+
               if (isAutomatic) {
                 borderColor = "#10b981";
                 backgroundColor = "rgba(16, 185, 129, 0.1)";
@@ -1106,11 +1106,11 @@ export default function CharacterCreate() {
                 badgeText = "RECOMMENDED";
                 badgeColor = "#f59e0b";
               }
-              
+
               return (
-                <label key={t} style={{ 
-                  display: "flex", 
-                  gap: 12, 
+                <label key={t} style={{
+                  display: "flex",
+                  gap: 12,
                   alignItems: "flex-start",
                   padding: "12px",
                   border: `2px solid ${borderColor}`,
@@ -1151,7 +1151,7 @@ export default function CharacterCreate() {
               );
             })}
           </div>
-          
+
           {/* Show selected trait benefits */}
           {char.traits.length > 0 && (
             <div style={{ marginTop: "16px", padding: "12px", background: "rgba(16, 185, 129, 0.1)", border: "1px solid #10b981", borderRadius: "8px" }}>
@@ -1169,7 +1169,7 @@ export default function CharacterCreate() {
         {getSpellcastingClass(char.archetype) !== 'none' && (
           <div style={card}>
             <h2 style={sectionTitle}>Spells & Cantrips</h2>
-            
+
             {/* Spell Capacity Display */}
             <div style={{ marginBottom: "16px", padding: "12px", background: "rgba(59, 130, 246, 0.1)", border: "1px solid #3b82f6", borderRadius: "8px" }}>
               <h3 style={{ margin: "0 0 8px", color: "#3b82f6", fontSize: "1rem" }}>Spell Capacity ({getSpellcastingClass(char.archetype)} caster):</h3>
@@ -1184,9 +1184,9 @@ export default function CharacterCreate() {
                   <strong>Max Spell Level:</strong> {calculateMaxSpellLevel(char.level || 1)}
                 </div>
                 <div>
-                  <strong>Primary Ability:</strong> {getSpellcastingClass(char.archetype) === 'wizard' ? `INT (${char.stats.INT})` : 
-                                                     getSpellcastingClass(char.archetype) === 'cleric' ? `WIS (${char.stats.WIS})` : 
-                                                     `INT (${char.stats.INT}) or WIS (${char.stats.WIS})`}
+                  <strong>Primary Ability:</strong> {getSpellcastingClass(char.archetype) === 'wizard' ? `INT (${char.stats.INT})` :
+                    getSpellcastingClass(char.archetype) === 'cleric' ? `WIS (${char.stats.WIS})` :
+                      `INT (${char.stats.INT}) or WIS (${char.stats.WIS})`}
                 </div>
               </div>
             </div>
@@ -1237,20 +1237,20 @@ export default function CharacterCreate() {
               <button
                 onClick={() => {
                   const savedSpells = JSON.parse(localStorage.getItem('world-engine-saved-spells') || '[]');
-                  const availableCantrips = savedSpells.filter((spell: any) => 
+                  const availableCantrips = savedSpells.filter((spell: any) =>
                     spell.level === 0 && !(char.knownCantrips || []).includes(spell.name)
                   );
-                  
+
                   if (availableCantrips.length === 0) {
                     alert('No saved cantrips available! Create some cantrips in the Spell Generator first.');
                     return;
                   }
-                  
+
                   if ((char.knownCantrips || []).length >= calculateMaxCantrips(char.level || 1, char.stats.INT, char.stats.WIS)) {
                     alert('Maximum cantrips reached! Increase level or ability scores for more.');
                     return;
                   }
-                  
+
                   const randomCantrip = availableCantrips[Math.floor(Math.random() * availableCantrips.length)];
                   const updated = [...(char.knownCantrips || []), randomCantrip.name];
                   setField("knownCantrips", updated);
@@ -1318,20 +1318,20 @@ export default function CharacterCreate() {
                   onClick={() => {
                     const savedSpells = JSON.parse(localStorage.getItem('world-engine-saved-spells') || '[]');
                     const maxLevel = calculateMaxSpellLevel(char.level || 1);
-                    const availableSpells = savedSpells.filter((spell: any) => 
+                    const availableSpells = savedSpells.filter((spell: any) =>
                       spell.level > 0 && spell.level <= maxLevel && !(char.knownSpells || []).includes(spell.name)
                     );
-                    
+
                     if (availableSpells.length === 0) {
                       alert(`No saved spells available up to level ${maxLevel}! Create some spells in the Spell Generator first.`);
                       return;
                     }
-                    
+
                     if ((char.knownSpells || []).length >= calculateMaxSpells(char.level || 1, char.stats.INT, char.stats.WIS)) {
                       alert('Maximum spells reached! Increase level or ability scores for more.');
                       return;
                     }
-                    
+
                     const randomSpell = availableSpells[Math.floor(Math.random() * availableSpells.length)];
                     const updated = [...(char.knownSpells || []), randomSpell.name];
                     setField("knownSpells", updated);
@@ -1351,7 +1351,7 @@ export default function CharacterCreate() {
                 </button>
               </div>
             )}
-            
+
             {calculateMaxSpells(char.level || 1, char.stats.INT, char.stats.WIS) === 0 && (
               <div style={{ padding: "12px", background: "rgba(156, 163, 175, 0.1)", border: "1px solid #6b7280", borderRadius: "8px", textAlign: "center", color: "#9ca3af" }}>
                 No spells available at level {char.level || 1}. Reach level 2 to learn spells!
@@ -1371,9 +1371,9 @@ export default function CharacterCreate() {
           <h2 style={sectionTitle}>Premade Characters</h2>
           <div style={{ display: "grid", gap: 8 }}>
             {PREMADE_CHARACTERS.map((premade) => (
-              <div key={premade.name} style={{ 
-                border: "1px solid #334155", 
-                borderRadius: 8, 
+              <div key={premade.name} style={{
+                border: "1px solid #334155",
+                borderRadius: 8,
                 padding: 12,
                 display: "flex",
                 justifyContent: "space-between",
@@ -1385,14 +1385,14 @@ export default function CharacterCreate() {
                     {premade.species} {premade.archetype} • {premade.traits.join(", ")}
                   </div>
                 </div>
-                <button 
+                <button
                   onClick={() => loadPremade(premade)}
-                  style={{ 
-                    padding: "6px 12px", 
-                    background: "#059669", 
-                    color: "#f9fafb", 
-                    border: "none", 
-                    borderRadius: "4px", 
+                  style={{
+                    padding: "6px 12px",
+                    background: "#059669",
+                    color: "#f9fafb",
+                    border: "none",
+                    borderRadius: "4px",
                     cursor: "pointer",
                     fontSize: "12px"
                   }}
@@ -1504,11 +1504,11 @@ function SelectRow(props: { label: string; value: string; onChange: (v: string) 
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        style={{ 
-          padding: 8, 
-          borderRadius: 8, 
-          border: "1px solid #334155", 
-          background: "#0f172a", 
+        style={{
+          padding: 8,
+          borderRadius: 8,
+          border: "1px solid #334155",
+          background: "#0f172a",
           color: "#e5e7eb",
           cursor: "pointer"
         }}
