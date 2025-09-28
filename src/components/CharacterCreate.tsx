@@ -680,6 +680,45 @@ export default function CharacterCreate() {
     }
   }, [char.species, char.archetype]);
 
+  // Auto-generate portrait when character has enough information
+  React.useEffect(() => {
+    // Only generate if we have the essential info and no existing portrait
+    if (char.name && char.species && char.archetype && !char.portraitUrl) {
+      const generatePortrait = async () => {
+        try {
+          const visualData: CharacterVisualData = {
+            name: char.name,
+            species: char.species,
+            archetype: char.archetype,
+            level: char.level || 1,
+            appearance: {}
+          };
+
+          const result = await generateCharacterPortrait(visualData, {
+            size: 'medium',
+            format: 'svg',
+            quality: 'medium'
+          });
+
+          if (result.success && result.data) {
+            let portraitUrl = result.data as string;
+            if (typeof result.data === 'string' && result.data.startsWith('<svg')) {
+              portraitUrl = `data:image/svg+xml;base64,${btoa(result.data)}`;
+            }
+            setChar(c => ({ ...c, portraitUrl }));
+          }
+        } catch (error) {
+          console.warn('Auto-portrait generation failed:', error);
+          // Don't show error to user for auto-generation, just log it
+        }
+      };
+
+      // Small delay to avoid rapid re-generation while user is typing
+      const timer = setTimeout(generatePortrait, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [char.name, char.species, char.archetype, char.level, char.portraitUrl]);
+
   function toggleTrait(t: string) {
     setChar((c) => {
       const has = c.traits.includes(t);
@@ -960,9 +999,54 @@ export default function CharacterCreate() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: '#0f172a', borderRadius: '8px', border: '1px solid #334155' }}>
                   <PortraitDisplay portraitData={char.portraitUrl} size={60} />
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '14px', color: '#e5e7eb', fontWeight: 'bold' }}>Portrait Generated</div>
-                    <div style={{ fontSize: '12px', color: '#94a3b8' }}>Based on {char.name || 'character'} as {char.species} {char.archetype}</div>
+                    <div style={{ fontSize: '14px', color: '#e5e7eb', fontWeight: 'bold' }}>Auto-Generated Portrait</div>
+                    <div style={{ fontSize: '12px', color: '#94a3b8' }}>{char.name || 'Character'} as {char.species} {char.archetype}</div>
                   </div>
+                  <button
+                    onClick={async () => {
+                      // Regenerate the portrait
+                      try {
+                        const visualData: CharacterVisualData = {
+                          name: char.name,
+                          species: char.species,
+                          archetype: char.archetype,
+                          level: char.level || 1,
+                          appearance: {}
+                        };
+
+                        const result = await generateCharacterPortrait(visualData, {
+                          size: 'medium',
+                          format: 'svg',
+                          quality: 'medium'
+                        });
+
+                        if (result.success && result.data) {
+                          let portraitUrl = result.data as string;
+                          if (typeof result.data === 'string' && result.data.startsWith('<svg')) {
+                            portraitUrl = `data:image/svg+xml;base64,${btoa(result.data)}`;
+                          }
+                          setField("portraitUrl", portraitUrl);
+                        } else {
+                          alert('Failed to regenerate portrait: ' + (result.error || 'Unknown error'));
+                        }
+                      } catch (error) {
+                        console.error('Portrait regeneration error:', error);
+                        alert('Error regenerating portrait. Please try again.');
+                      }
+                    }}
+                    style={{
+                      background: '#3b82f6',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      padding: '6px 10px',
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                      marginRight: '8px'
+                    }}
+                  >
+                    🔄 Regenerate
+                  </button>
                   <button
                     onClick={() => setField("portraitUrl", "")}
                     style={{
@@ -978,57 +1062,23 @@ export default function CharacterCreate() {
                     Remove
                   </button>
                 </div>
-              ) : null}
-
-              {/* Generate Portrait Button */}
-              {char.name && char.species && char.archetype && !char.portraitUrl && (
-                <button
-                  onClick={async () => {
-                    try {
-                      const visualData: CharacterVisualData = {
-                        name: char.name,
-                        species: char.species,
-                        archetype: char.archetype,
-                        level: char.level || 1,
-                        appearance: {}
-                      };
-
-                      const result = await generateCharacterPortrait(visualData, {
-                        size: 'medium',
-                        format: 'svg',
-                        quality: 'medium'
-                      });
-
-                      if (result.success && result.data) {
-                        let portraitUrl = result.data as string;
-                        if (typeof result.data === 'string' && result.data.startsWith('<svg')) {
-                          portraitUrl = `data:image/svg+xml;base64,${btoa(result.data)}`;
-                        }
-                        setField("portraitUrl", portraitUrl);
-                      } else {
-                        alert('Failed to generate portrait: ' + (result.error || 'Unknown error'));
-                      }
-                    } catch (error) {
-                      console.error('Portrait generation error:', error);
-                      alert('Error generating portrait. Please try again.');
-                    }
-                  }}
-                  style={{
-                    background: '#3b82f6',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    padding: '12px 16px',
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    justifyContent: 'center'
-                  }}
-                >
-                  🎨 Generate Portrait
-                </button>
+              ) : (
+                char.name && char.species && char.archetype ? (
+                  <div style={{ padding: '12px', background: '#1e293b', borderRadius: '8px', border: '1px solid #475569', textAlign: 'center' }}>
+                    <div style={{ fontSize: '14px', color: '#94a3b8', marginBottom: '8px' }}>
+                      🎨 Generating portrait...
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#64748b' }}>
+                      Portrait will appear automatically
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ padding: '12px', background: '#374151', borderRadius: '8px', border: '1px solid #4b5563', textAlign: 'center' }}>
+                    <div style={{ fontSize: '14px', color: '#9ca3af', marginBottom: '4px' }}>
+                      Enter name, species, and class to auto-generate portrait
+                    </div>
+                  </div>
+                )
               )}
 
               {/* Visual System Preview */}
@@ -1050,13 +1100,13 @@ export default function CharacterCreate() {
                     />
                     <div>
                       <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>
-                        Real-time preview of generated portrait
+                        Live preview of your character's appearance
                       </div>
                       <div style={{ fontSize: '11px', color: '#64748b' }}>
                         Species: {char.species} • Class: {char.archetype}
                       </div>
                       <div style={{ fontSize: '11px', color: '#64748b' }}>
-                        Click "Generate Portrait" to use this design
+                        Portrait generates automatically from this design
                       </div>
                     </div>
                   </div>
