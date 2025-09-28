@@ -34,7 +34,12 @@ class VisualAssetManager {
      */
     private async loadManifest(): Promise<void> {
         try {
-            const response = await fetch('/assets/portraits/manifest.json');
+            // Use process.env.PUBLIC_URL to handle GitHub Pages deployment path
+            const basePath = process.env.PUBLIC_URL || '';
+            const manifestUrl = `${basePath}/assets/portraits/manifest.json`;
+            
+            console.log('Loading portrait manifest from:', manifestUrl);
+            const response = await fetch(manifestUrl);
             if (!response.ok) {
                 console.warn('Portrait manifest not found, using empty asset system');
                 this.initializeEmptyManifest();
@@ -42,6 +47,7 @@ class VisualAssetManager {
             }
 
             this.manifest = await response.json();
+            console.log('Portrait manifest loaded:', this.manifest);
             this.indexAssets();
         } catch (error) {
             console.warn('Failed to load portrait manifest:', error);
@@ -126,6 +132,32 @@ class VisualAssetManager {
      */
     getAsset(id: string): VisualAsset | undefined {
         return this.assets.get(id);
+    }
+
+    /**
+     * Get full URL for an asset
+     */
+    getAssetUrl(asset: VisualAsset): string {
+        const basePath = process.env.PUBLIC_URL || '';
+        return `${basePath}/assets/portraits/${asset.path}`;
+    }
+
+    /**
+     * Load asset content (SVG, image, etc.)
+     */
+    async loadAssetContent(asset: VisualAsset): Promise<string> {
+        try {
+            const url = this.getAssetUrl(asset);
+            console.log('Loading asset content from:', url);
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`Failed to load asset: ${response.status}`);
+            }
+            return await response.text();
+        } catch (error) {
+            console.warn(`Failed to load asset ${asset.id}:`, error);
+            return ''; // Return empty string as fallback
+        }
     }
 
     /**

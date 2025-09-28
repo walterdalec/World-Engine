@@ -71,6 +71,13 @@ class Renderer2D {
     ): Promise<string> {
         const dimensions = this.getDimensions(options.size);
 
+        // Try to use asset-based rendering first
+        const assetBasedSVG = await this.tryAssetBasedSVG(data, dimensions);
+        if (assetBasedSVG) {
+            return assetBasedSVG;
+        }
+
+        // Fallback to procedural generation
         let svg = `<svg width="${dimensions.width}" height="${dimensions.height}" viewBox="0 0 ${dimensions.width} ${dimensions.height}" xmlns="http://www.w3.org/2000/svg">`;
 
         // Render layers to SVG
@@ -85,6 +92,87 @@ class Renderer2D {
 
         svg += '</svg>';
         return svg;
+    }
+
+    /**
+     * Try asset-based SVG rendering
+     */
+    private async tryAssetBasedSVG(
+        data: CharacterVisualData, 
+        dimensions: { width: number; height: number }
+    ): Promise<string | null> {
+        try {
+            // Get sample asset for now (in future this would be more sophisticated)
+            const sampleAsset = assetManager.getAsset('sample-portrait');
+            if (!sampleAsset) {
+                console.log('No sample asset found, using procedural rendering');
+                return null;
+            }
+
+            // Load the asset content
+            const assetSVG = await assetManager.loadAssetContent(sampleAsset);
+            if (!assetSVG) {
+                console.log('Failed to load asset content, using procedural rendering');
+                return null;
+            }
+
+            console.log('Using asset-based rendering for character:', data.name);
+
+            // Parse and customize the SVG based on character data
+            let customizedSVG = assetSVG;
+
+            // Customize colors based on character theme
+            const theme = getClassVisualTheme(data.archetype);
+            if (theme) {
+                // Replace clothing color
+                customizedSVG = customizedSVG.replace(
+                    /fill="#8B4513"/g, 
+                    `fill="${theme.colorPalette.primary}"`
+                );
+                
+                // Replace background tint
+                customizedSVG = customizedSVG.replace(
+                    /fill="#8B4513" opacity="0.1"/g, 
+                    `fill="${theme.colorPalette.secondary}" opacity="0.2"`
+                );
+            }
+
+            // Customize based on species
+            if (data.species === 'Draketh') {
+                // Add dragon-like features
+                customizedSVG = customizedSVG.replace(
+                    /<\/svg>/,
+                    `<polygon points="56,35 60,30 64,35 68,30 72,35" fill="#ff6b35" opacity="0.8"/>
+                     <text x="64" y="124" text-anchor="middle" font-family="Arial" font-size="6" fill="#ff6b35">
+                       ${data.name} (${data.species})
+                     </text>
+                     </svg>`
+                );
+            } else if (data.species === 'Sylvanborn') {
+                // Add nature-like features
+                customizedSVG = customizedSVG.replace(
+                    /<\/svg>/,
+                    `<circle cx="52" cy="30" r="3" fill="#4ade80" opacity="0.6"/>
+                     <circle cx="76" cy="30" r="3" fill="#4ade80" opacity="0.6"/>
+                     <text x="64" y="124" text-anchor="middle" font-family="Arial" font-size="6" fill="#4ade80">
+                       ${data.name} (${data.species})
+                     </text>
+                     </svg>`
+                );
+            } else {
+                // Default customization
+                customizedSVG = customizedSVG.replace(
+                    /Sample Portrait/g,
+                    `${data.name} (${data.species})`
+                );
+            }
+
+            return customizedSVG;
+
+        } catch (error) {
+            console.warn('Asset-based rendering failed:', error);
+            return null;
+        }
     }
 
     /**
