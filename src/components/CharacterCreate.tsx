@@ -1,10 +1,9 @@
 // src/components/CharacterCreate.tsx
 import React, { useMemo, useState } from "react";
 import { CLASS_DEFINITIONS } from '../defaultWorlds';
-import CharacterPortraitPicker from './CharacterPortraitPicker';
 import PortraitDisplay from './PortraitDisplay';
 // Visual System Integration
-import { PortraitPreview, VisualUtils, bindPortraitToCharacter } from '../visuals';
+import { PortraitPreview, VisualUtils, bindPortraitToCharacter, generateCharacterPortrait } from '../visuals';
 import type { CharacterVisualData } from '../visuals';
 
 type Stats = "STR" | "DEX" | "CON" | "INT" | "WIS" | "CHA";
@@ -981,18 +980,62 @@ export default function CharacterCreate() {
                 </div>
               ) : null}
 
-              <CharacterPortraitPicker
-                characterName={char.name}
-                characterRace={char.species}
-                characterClass={char.archetype}
-                onPortraitChange={(portraitData) => setField("portraitUrl", portraitData)}
-              />
+              {/* Generate Portrait Button */}
+              {char.name && char.species && char.archetype && !char.portraitUrl && (
+                <button
+                  onClick={async () => {
+                    try {
+                      const visualData: CharacterVisualData = {
+                        name: char.name,
+                        species: char.species,
+                        archetype: char.archetype,
+                        level: char.level || 1,
+                        appearance: {}
+                      };
 
-              {/* New Visual System Preview */}
+                      const result = await generateCharacterPortrait(visualData, {
+                        size: 'medium',
+                        format: 'svg',
+                        quality: 'medium'
+                      });
+
+                      if (result.success && result.data) {
+                        let portraitUrl = result.data as string;
+                        if (typeof result.data === 'string' && result.data.startsWith('<svg')) {
+                          portraitUrl = `data:image/svg+xml;base64,${btoa(result.data)}`;
+                        }
+                        setField("portraitUrl", portraitUrl);
+                      } else {
+                        alert('Failed to generate portrait: ' + (result.error || 'Unknown error'));
+                      }
+                    } catch (error) {
+                      console.error('Portrait generation error:', error);
+                      alert('Error generating portrait. Please try again.');
+                    }
+                  }}
+                  style={{
+                    background: '#3b82f6',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '12px 16px',
+                    fontSize: '14px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    justifyContent: 'center'
+                  }}
+                >
+                  🎨 Generate Portrait
+                </button>
+              )}
+
+              {/* Visual System Preview */}
               {char.name && char.species && char.archetype && (
                 <div style={{ marginTop: '12px', padding: '12px', background: '#1e293b', borderRadius: '8px', border: '1px solid #475569' }}>
                   <div style={{ fontSize: '14px', color: '#e5e7eb', fontWeight: 'bold', marginBottom: '8px' }}>
-                    📸 Generated Portrait Preview
+                    📸 Portrait Preview
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <PortraitPreview
@@ -1007,13 +1050,13 @@ export default function CharacterCreate() {
                     />
                     <div>
                       <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>
-                        Auto-generated using visual system
+                        Real-time preview of generated portrait
                       </div>
                       <div style={{ fontSize: '11px', color: '#64748b' }}>
                         Species: {char.species} • Class: {char.archetype}
                       </div>
                       <div style={{ fontSize: '11px', color: '#64748b' }}>
-                        Updates automatically with character changes
+                        Click "Generate Portrait" to use this design
                       </div>
                     </div>
                   </div>
