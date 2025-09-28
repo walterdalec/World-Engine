@@ -5,6 +5,7 @@ import { CharacterVisualData, PortraitOptions, VisualGenerationResult, VisualPlu
 import { assetManager, ensureAssetsLoaded } from './assets';
 import { getClassVisualTheme, generateDefaultAppearance } from './classmap';
 import { createCharacterRandom, ColorVariations } from './seed';
+import { renderCharacterToSVG } from './renderer2d';
 
 class VisualService {
     private plugins: Map<string, VisualPlugin> = new Map();
@@ -31,6 +32,14 @@ class VisualService {
      * Register default visual plugins
      */
     private registerDefaultPlugins(): void {
+        // 2D SVG renderer (primary)
+        this.registerPlugin({
+            name: '2d-svg-renderer',
+            version: '1.0.0',
+            render: this.render2DSVGPortrait.bind(this),
+            supports: () => true // Supports all species/archetypes
+        });
+
         // Placeholder text renderer (fallback)
         this.registerPlugin({
             name: 'text-placeholder',
@@ -39,7 +48,7 @@ class VisualService {
             supports: () => true
         });
 
-        // TODO: Add SVG, Canvas, and 3D renderers in future updates
+        // TODO: Add Canvas, and 3D renderers in future updates
     }
 
     /**
@@ -185,6 +194,21 @@ class VisualService {
         }
 
         return assets;
+    }
+
+    /**
+     * 2D SVG renderer (main renderer)
+     */
+    private async render2DSVGPortrait(
+        data: CharacterVisualData,
+        context: any
+    ): Promise<string> {
+        try {
+            return await renderCharacterToSVG(data, context.options);
+        } catch (error) {
+            console.warn('2D SVG renderer failed, falling back to placeholder:', error);
+            return this.renderTextPlaceholder(data, context);
+        }
     }
 
     /**
