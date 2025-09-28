@@ -37,7 +37,7 @@ class VisualAssetManager {
             // Use process.env.PUBLIC_URL to handle GitHub Pages deployment path
             const basePath = process.env.PUBLIC_URL || '';
             const manifestUrl = `${basePath}/assets/portraits/manifest.json`;
-            
+
             console.log('Loading portrait manifest from:', manifestUrl);
             const response = await fetch(manifestUrl);
             if (!response.ok) {

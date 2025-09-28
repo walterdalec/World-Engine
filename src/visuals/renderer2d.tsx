@@ -4,6 +4,7 @@
 import { CharacterVisualData, PortraitOptions, RenderContext } from './types';
 import { getClassVisualTheme } from './classmap';
 import { assetManager } from './assets';
+import { loadLayeredPortrait, getAssetLayers } from './manifest';
 
 interface LayerDefinition {
     name: string;
@@ -95,84 +96,77 @@ class Renderer2D {
     }
 
     /**
-     * Try asset-based SVG rendering
+     * Try asset-based SVG rendering using the new layered system
      */
     private async tryAssetBasedSVG(
-        data: CharacterVisualData, 
+        data: CharacterVisualData,
         dimensions: { width: number; height: number }
     ): Promise<string | null> {
         try {
-            // Get sample asset for now (in future this would be more sophisticated)
-            const sampleAsset = assetManager.getAsset('sample-portrait');
-            if (!sampleAsset) {
-                console.log('No sample asset found, using procedural rendering');
-                return null;
+            console.log(`Loading layered portrait for ${data.species} ${data.archetype}:`, data.name);
+
+            // Use the new layered portrait system
+            const layeredSVG = await loadLayeredPortrait(
+                data.species,
+                data.archetype,
+                data.name
+            );
+
+            if (layeredSVG && layeredSVG.includes('<svg')) {
+                console.log('Successfully loaded layered portrait');
+
+                // Customize colors based on character theme if needed
+                const theme = getClassVisualTheme(data.archetype);
+                let customizedSVG = layeredSVG;
+
+                if (theme) {
+                    // Apply theme-based color customizations
+                    customizedSVG = this.applyThemeColors(customizedSVG, theme);
+                }
+
+                // Ensure proper dimensions
+                customizedSVG = customizedSVG.replace(
+                    /width="[^"]*"[\s]*height="[^"]*"/,
+                    `width="${dimensions.width}" height="${dimensions.height}"`
+                );
+
+                return customizedSVG;
             }
 
-            // Load the asset content
-            const assetSVG = await assetManager.loadAssetContent(sampleAsset);
-            if (!assetSVG) {
-                console.log('Failed to load asset content, using procedural rendering');
-                return null;
-            }
-
-            console.log('Using asset-based rendering for character:', data.name);
-
-            // Parse and customize the SVG based on character data
-            let customizedSVG = assetSVG;
-
-            // Customize colors based on character theme
-            const theme = getClassVisualTheme(data.archetype);
-            if (theme) {
-                // Replace clothing color
-                customizedSVG = customizedSVG.replace(
-                    /fill="#8B4513"/g, 
-                    `fill="${theme.colorPalette.primary}"`
-                );
-                
-                // Replace background tint
-                customizedSVG = customizedSVG.replace(
-                    /fill="#8B4513" opacity="0.1"/g, 
-                    `fill="${theme.colorPalette.secondary}" opacity="0.2"`
-                );
-            }
-
-            // Customize based on species
-            if (data.species === 'Draketh') {
-                // Add dragon-like features
-                customizedSVG = customizedSVG.replace(
-                    /<\/svg>/,
-                    `<polygon points="56,35 60,30 64,35 68,30 72,35" fill="#ff6b35" opacity="0.8"/>
-                     <text x="64" y="124" text-anchor="middle" font-family="Arial" font-size="6" fill="#ff6b35">
-                       ${data.name} (${data.species})
-                     </text>
-                     </svg>`
-                );
-            } else if (data.species === 'Sylvanborn') {
-                // Add nature-like features
-                customizedSVG = customizedSVG.replace(
-                    /<\/svg>/,
-                    `<circle cx="52" cy="30" r="3" fill="#4ade80" opacity="0.6"/>
-                     <circle cx="76" cy="30" r="3" fill="#4ade80" opacity="0.6"/>
-                     <text x="64" y="124" text-anchor="middle" font-family="Arial" font-size="6" fill="#4ade80">
-                       ${data.name} (${data.species})
-                     </text>
-                     </svg>`
-                );
-            } else {
-                // Default customization
-                customizedSVG = customizedSVG.replace(
-                    /Sample Portrait/g,
-                    `${data.name} (${data.species})`
-                );
-            }
-
-            return customizedSVG;
+            console.log('No layered portrait available, falling back to procedural');
+            return null;
 
         } catch (error) {
-            console.warn('Asset-based rendering failed:', error);
+            console.error('Error in layered portrait rendering:', error);
             return null;
         }
+    }
+
+    /**
+     * Apply theme colors to SVG content
+     */
+    private applyThemeColors(svg: string, theme: any): string {
+        let customized = svg;
+
+        // Apply primary color to clothing elements
+        customized = customized.replace(
+            /#4c1d95/g,
+            theme.colorPalette.primary
+        );
+
+        // Apply secondary color to accents
+        customized = customized.replace(
+            /#6d28d9/g,
+            theme.colorPalette.secondary
+        );
+
+        // Apply accent color to highlights
+        customized = customized.replace(
+            /#fbbf24/g,
+            theme.colorPalette.accent || theme.colorPalette.primary
+        );
+
+        return customized;
     }
 
     /**

@@ -55,6 +55,15 @@ export {
     renderCharacterToSVG
 } from './renderer2d';
 
+// Asset Layering Manifest
+export {
+    loadLayeredPortrait,
+    getAssetLayers,
+    isSupported as isSpeciesArchetypeSupported,
+    getSupportedSpecies,
+    getSupportedArchetypes
+} from './manifest';
+
 // React Components
 export {
     PortraitPreview,
