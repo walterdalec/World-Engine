@@ -4,7 +4,7 @@
 import { CharacterVisualData, PortraitOptions, RenderContext } from './types';
 import { getClassVisualTheme } from './classmap';
 import { assetManager } from './assets';
-import { loadLayeredPortrait, getAssetLayers } from './manifest';
+import { loadLayeredPortrait, getAssetLayers, loadPortraitFromExternalManifest, loadPortraitFromPreset, getPresetsByFilter } from './manifest';
 
 interface LayerDefinition {
     name: string;
@@ -103,17 +103,65 @@ class Renderer2D {
         dimensions: { width: number; height: number }
     ): Promise<string | null> {
         try {
-            console.log(`Loading layered portrait for ${data.species} ${data.archetype}:`, data.name);
+            console.log(`🎨 TRYING LAYERED PORTRAITS: ${data.species} ${data.archetype} (${data.name})`);
+            console.log('🔍 Character data details:', {
+                species: data.species,
+                archetype: data.archetype,
+                pronouns: data.pronouns,
+                fullData: data
+            });
 
-            // Use the new layered portrait system
-            const layeredSVG = await loadLayeredPortrait(
-                data.species,
-                data.archetype,
-                data.name
-            );
+            // Try preset system first (for pronoun-aware portraits)
+            let layeredSVG: string;
+            let usedMethod = '';
+
+            try {
+                // Try to find a matching preset based on character data
+                const filterCriteria = {
+                    species: data.species,
+                    archetype: data.archetype,
+                    pronouns: data.pronouns || 'they/them' // Default fallback
+                };
+
+                console.log('🔎 Searching presets with criteria:', filterCriteria);
+                const presets = await getPresetsByFilter(filterCriteria);
+                console.log(`🎯 Found ${presets.length} matching presets`);
+
+                if (presets.length > 0) {
+                    // Use the first matching preset
+                    console.log(`🎭 Using PRESET: ${presets[0].label} (ID: ${presets[0].id})`);
+                    layeredSVG = await loadPortraitFromPreset(presets[0].id);
+                    usedMethod = 'PRESET SYSTEM';
+                } else {
+                    throw new Error('No matching presets found');
+                }
+            } catch (presetError) {
+                console.log('🎭 Preset system failed:', presetError);
+                console.log('🎭 Trying external manifest');
+                try {
+                    layeredSVG = await loadPortraitFromExternalManifest(
+                        data.species,
+                        data.archetype
+                    );
+                    usedMethod = 'EXTERNAL MANIFEST';
+                    console.log('✅ Using EXTERNAL manifest with professional art assets!');
+                } catch (externalError) {
+                    console.log('📋 External manifest failed:', externalError);
+                    console.log('📋 Trying internal manifest');
+                    layeredSVG = await loadLayeredPortrait(
+                        data.species,
+                        data.archetype,
+                        data.name
+                    );
+                    usedMethod = 'INTERNAL MANIFEST';
+                }
+            }
+
+            console.log(`🖼️ Layered SVG result (${usedMethod}):`, layeredSVG ? `${layeredSVG.length} characters` : 'null/empty');
 
             if (layeredSVG && layeredSVG.includes('<svg')) {
-                console.log('Successfully loaded layered portrait');
+                console.log(`✅ SUCCESS: Using layered portrait via ${usedMethod}!`);
+                console.log('🔍 SVG Preview (first 200 chars):', layeredSVG.substring(0, 200) + '...');
 
                 // Customize colors based on character theme if needed
                 const theme = getClassVisualTheme(data.archetype);
@@ -130,11 +178,12 @@ class Renderer2D {
                     `width="${dimensions.width}" height="${dimensions.height}"`
                 );
 
+                console.log('🎨 Final SVG being returned (first 200 chars):', customizedSVG.substring(0, 200) + '...');
                 return customizedSVG;
+            } else {
+                console.log('❌ FALLBACK: Layered portrait failed, using procedural');
+                return null;
             }
-
-            console.log('No layered portrait available, falling back to procedural');
-            return null;
 
         } catch (error) {
             console.error('Error in layered portrait rendering:', error);

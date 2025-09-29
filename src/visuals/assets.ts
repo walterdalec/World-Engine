@@ -139,7 +139,9 @@ class VisualAssetManager {
      */
     getAssetUrl(asset: VisualAsset): string {
         const basePath = process.env.PUBLIC_URL || '';
-        return `${basePath}/assets/portraits/${asset.path}`;
+        const fullUrl = `${basePath}/assets/portraits/${asset.path}`;
+        console.log('🔍 ASSET URL: PUBLIC_URL =', process.env.PUBLIC_URL, '→ Full URL =', fullUrl);
+        return fullUrl;
     }
 
     /**
@@ -148,14 +150,18 @@ class VisualAssetManager {
     async loadAssetContent(asset: VisualAsset): Promise<string> {
         try {
             const url = this.getAssetUrl(asset);
-            console.log('Loading asset content from:', url);
+            console.log('🔍 ASSET MANAGER: Loading asset content from:', url);
+            console.log('🔍 ASSET MANAGER: Asset object:', asset);
             const response = await fetch(url);
+            console.log('🔍 ASSET MANAGER: Response status:', response.status, response.statusText);
             if (!response.ok) {
-                throw new Error(`Failed to load asset: ${response.status}`);
+                throw new Error(`Failed to load asset: ${response.status} ${response.statusText}`);
             }
-            return await response.text();
+            const content = await response.text();
+            console.log('🔍 ASSET MANAGER: Content loaded, length:', content.length);
+            return content;
         } catch (error) {
-            console.warn(`Failed to load asset ${asset.id}:`, error);
+            console.error(`💥 ASSET MANAGER: Failed to load asset ${asset.id}:`, error);
             return ''; // Return empty string as fallback
         }
     }

@@ -16,7 +16,9 @@
     "preview:ps": "powershell -ExecutionPolicy Bypass -File ./start-preview.ps1",
     "deploy:gh": "npm run build && powershell -NoProfile -Command \"Copy-Item -Force build/index.html build/404.html\" && npx --yes gh-pages -d build",
     "test": "react-scripts test --env=jsdom",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "portraits:update": "node scripts/updatePortraits.js",
+    "portraits:test": "node scripts/testPortraits.js"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^5.16.5",

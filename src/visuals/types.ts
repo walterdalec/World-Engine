@@ -8,6 +8,9 @@ export interface CharacterVisualData {
     archetype: string;
     level: number;
 
+    // Character identity
+    pronouns?: 'she/her' | 'he/him' | 'they/them' | 'xe/xir' | 'ze/hir' | 'fae/faer';
+
     // Physical characteristics
     appearance: {
         skinTone?: string;

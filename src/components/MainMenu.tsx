@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import PortraitDisplay from './PortraitDisplay';
+import { PortraitPreview, VisualUtils } from '../visuals';
 
 interface Campaign {
   id: string;
@@ -28,11 +28,10 @@ interface Props {
   onSpellGenerator: () => void;
   onSpellAssignment: () => void;
   onHealingSystem: () => void;
-  onPortraitStudio: () => void;
   onCharacterCreate: () => void;
 }
 
-export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onPortraitStudio, onCharacterCreate }: Props) {
+export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate }: Props) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [characters, setCharacters] = useState<SavedCharacter[]>([]);
   const [activeTab, setActiveTab] = useState<'campaigns' | 'characters'>('campaigns');
@@ -379,11 +378,33 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
           </div>
 
           <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
-            <PortraitDisplay
-              portraitData={character.data?.portraitUrl || ''}
-              size={120}
-              style={{ flexShrink: 0 }}
-            />
+            {character.data?.name && character.data?.species && character.data?.archetype ? (
+              <PortraitPreview
+                character={VisualUtils.createCharacterData({
+                  name: character.data.name,
+                  species: character.data.species,
+                  archetype: character.data.archetype,
+                  level: character.level || 1
+                })}
+                size="medium"
+                style={{ flexShrink: 0, width: 120, height: 120 }}
+              />
+            ) : (
+              <div style={{
+                width: 120,
+                height: 120,
+                background: '#374151',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#9ca3af',
+                fontSize: '24px',
+                flexShrink: 0
+              }}>
+                👤
+              </div>
+            )}
             <div style={{ flex: 1 }}>
               <p style={{ margin: '5px 0', fontSize: '18px' }}>
                 <strong>{character.race} {character.characterClass}</strong>
@@ -713,20 +734,36 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
                 <p style={{ margin: 0, opacity: 0.9 }}>Manage party health & healing</p>
               </div>
 
-              <div style={newCardStyle} onClick={onPortraitStudio}>
-                <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🎨</div>
-                <h3 style={{ margin: '0 0 5px 0' }}>Portrait Studio</h3>
-                <p style={{ margin: 0, opacity: 0.9 }}>Create character portraits</p>
-              </div>
-
               {characters.map(character => (
                 <div key={character.id} style={cardStyle}>
                   <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
-                    <PortraitDisplay
-                      portraitData={character.data?.portraitUrl || ''}
-                      size={60}
-                      style={{ flexShrink: 0 }}
-                    />
+                    {character.data?.name && character.data?.species && character.data?.archetype ? (
+                      <PortraitPreview
+                        character={VisualUtils.createCharacterData({
+                          name: character.data.name,
+                          species: character.data.species,
+                          archetype: character.data.archetype,
+                          level: character.level || 1
+                        })}
+                        size="small"
+                        style={{ flexShrink: 0, width: 60, height: 60 }}
+                      />
+                    ) : (
+                      <div style={{
+                        width: 60,
+                        height: 60,
+                        background: '#374151',
+                        borderRadius: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#9ca3af',
+                        fontSize: '16px',
+                        flexShrink: 0
+                      }}>
+                        👤
+                      </div>
+                    )}
                     <div style={{ flex: 1 }}>
                       <h3 style={{ margin: '0 0 8px 0', color: '#f1f5f9' }}>{character.name}</h3>
                       <p style={{ margin: '0 0 4px 0', color: '#94a3b8', fontSize: '0.9rem' }}>

@@ -24,6 +24,8 @@ export const PortraitPreview: React.FC<PortraitPreviewProps> = ({
     onError,
     onLoad
 }) => {
+    console.log('🎭 PortraitPreview: Component mounted/re-rendered with character:', character);
+
     const [portraitData, setPortraitData] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -34,10 +36,12 @@ export const PortraitPreview: React.FC<PortraitPreviewProps> = ({
     useEffect(() => {
         const initSystem = async () => {
             try {
+                console.log('🚀 PortraitPreview: Initializing visual system...');
                 await initializeVisualSystem();
+                console.log('✅ PortraitPreview: Visual system initialized successfully');
                 setSystemReady(true);
             } catch (err) {
-                console.error('Failed to initialize visual system:', err);
+                console.error('❌ PortraitPreview: Failed to initialize visual system:', err);
                 setError('Failed to initialize portrait system');
                 onError?.('System initialization failed');
             }
@@ -52,16 +56,23 @@ export const PortraitPreview: React.FC<PortraitPreviewProps> = ({
 
     // Generate portrait when character or options change
     useEffect(() => {
-        if (!systemReady || !character.name) return;
+        console.log('🔄 PortraitPreview: useEffect triggered - systemReady:', systemReady, 'character:', character.name, character.species, character.archetype);
+        if (!systemReady || !character.name) {
+            console.log('⏸️ PortraitPreview: Skipping generation - systemReady:', systemReady, 'hasName:', !!character.name);
+            return;
+        }
 
         const generatePortrait = async () => {
+            console.log('🎨 PortraitPreview: Starting portrait generation for:', character.name, character.species, character.archetype);
             setIsLoading(true);
             setError(null);
             setPortraitData(null);
 
             try {
                 const options: PortraitOptions = { size, format };
+                console.log('🔧 PortraitPreview: Using options:', options);
                 const result = await generateCharacterPortrait(character, options);
+                console.log('🖼️ PortraitPreview: Generation result:', result.success ? 'SUCCESS' : 'FAILED', result.error || '');
 
                 if (result.success && result.data) {
                     if (typeof result.data === 'string') {
@@ -106,6 +117,7 @@ export const PortraitPreview: React.FC<PortraitPreviewProps> = ({
 
     // Loading state
     if (!systemReady || isLoading) {
+        console.log('🎭 PortraitPreview: Showing loading state - systemReady:', systemReady, 'isLoading:', isLoading);
         return (
             <div
                 className={`portrait-preview portrait-loading ${className}`}
@@ -115,17 +127,20 @@ export const PortraitPreview: React.FC<PortraitPreviewProps> = ({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    backgroundColor: '#f0f0f0',
-                    border: '1px solid #ccc',
+                    backgroundColor: '#e3f2fd',
+                    border: '3px solid #2196f3',
                     ...style
                 }}
             >
                 <div style={{
                     fontSize: size === 'small' ? '10px' : '12px',
-                    color: '#666',
-                    textAlign: 'center'
+                    color: '#1976d2',
+                    textAlign: 'center',
+                    fontWeight: 'bold'
                 }}>
-                    {!systemReady ? 'Initializing...' : 'Generating...'}
+                    {!systemReady ? '🔧 Initializing...' : '🎨 Generating...'}
+                    <br />
+                    <small>System: {systemReady ? '✅' : '❌'}</small>
                 </div>
             </div>
         );
@@ -133,6 +148,7 @@ export const PortraitPreview: React.FC<PortraitPreviewProps> = ({
 
     // Error state
     if (error) {
+        console.log('🎭 PortraitPreview: Showing error state:', error);
         return (
             <div
                 className={`portrait-preview portrait-error ${className}`}
@@ -143,7 +159,7 @@ export const PortraitPreview: React.FC<PortraitPreviewProps> = ({
                     alignItems: 'center',
                     justifyContent: 'center',
                     backgroundColor: '#ffebee',
-                    border: '1px solid #f44336',
+                    border: '3px solid #f44336',
                     color: '#d32f2f',
                     ...style
                 }}
@@ -151,9 +167,12 @@ export const PortraitPreview: React.FC<PortraitPreviewProps> = ({
                 <div style={{
                     fontSize: size === 'small' ? '10px' : '12px',
                     textAlign: 'center',
-                    padding: '4px'
+                    padding: '4px',
+                    fontWeight: 'bold'
                 }}>
-                    Portrait Error
+                    ❌ Portrait Error
+                    <br />
+                    <small>{error.substring(0, 50)}...</small>
                 </div>
             </div>
         );
@@ -161,6 +180,7 @@ export const PortraitPreview: React.FC<PortraitPreviewProps> = ({
 
     // Success state - render the portrait
     if (portraitData) {
+        console.log('🎭 PortraitPreview: Showing success state - format:', format, 'data type:', typeof portraitData, 'data length:', portraitData.length);
         if (format === 'svg' && portraitData.startsWith('<svg')) {
             return (
                 <div
@@ -168,6 +188,7 @@ export const PortraitPreview: React.FC<PortraitPreviewProps> = ({
                     style={{
                         width: dimensions.width,
                         height: dimensions.height,
+                        border: '2px solid #4caf50',
                         ...style
                     }}
                     dangerouslySetInnerHTML={{ __html: portraitData }}
@@ -184,6 +205,7 @@ export const PortraitPreview: React.FC<PortraitPreviewProps> = ({
                         width: dimensions.width,
                         height: dimensions.height,
                         objectFit: 'cover',
+                        border: '2px solid #4caf50',
                         ...style
                     }}
                 />
@@ -192,6 +214,7 @@ export const PortraitPreview: React.FC<PortraitPreviewProps> = ({
     }
 
     // Fallback empty state
+    console.log('🎭 PortraitPreview: Showing fallback empty state - no portrait data available');
     return (
         <div
             className={`portrait-preview portrait-empty ${className}`}
@@ -201,16 +224,20 @@ export const PortraitPreview: React.FC<PortraitPreviewProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: '#fafafa',
-                border: '1px solid #eee',
+                backgroundColor: '#fff3e0',
+                border: '3px solid #ff9800',
                 ...style
             }}
         >
             <div style={{
                 fontSize: size === 'small' ? '10px' : '12px',
-                color: '#999'
+                color: '#f57c00',
+                textAlign: 'center',
+                fontWeight: 'bold'
             }}>
-                No Portrait
+                ⚠️ No Portrait
+                <br />
+                <small>Check console for details</small>
             </div>
         </div>
     );

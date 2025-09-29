@@ -131,5 +131,13 @@ export const DevTools = {
         });
 
         return generateCharacterPortrait(testData);
+    },
+
+    /**
+     * Test layered portrait loading directly
+     */
+    testLayeredPortrait: async (characterName = 'Test Character') => {
+        const { loadLayeredPortrait } = await import('./manifest');
+        return loadLayeredPortrait('Human', 'Warrior', characterName);
     }
 };
