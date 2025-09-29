@@ -172,13 +172,28 @@ class Renderer2D {
                     customizedSVG = this.applyThemeColors(customizedSVG, theme);
                 }
 
-                // Ensure proper dimensions
+                // Ensure proper dimensions - handle multiple SVG attribute patterns
                 customizedSVG = customizedSVG.replace(
-                    /width="[^"]*"[\s]*height="[^"]*"/,
-                    `width="${dimensions.width}" height="${dimensions.height}"`
+                    /<svg([^>]*?)width=["'][^"']*["']([^>]*?)height=["'][^"']*["']/i,
+                    `<svg$1width="${dimensions.width}"$2height="${dimensions.height}"`
                 );
 
-                console.log('🎨 Final SVG being returned (first 200 chars):', customizedSVG.substring(0, 200) + '...');
+                // Also add viewBox if missing to ensure proper scaling
+                if (!customizedSVG.includes('viewBox')) {
+                    customizedSVG = customizedSVG.replace(
+                        /<svg([^>]*?)>/i,
+                        `<svg$1 viewBox="0 0 ${dimensions.width} ${dimensions.height}">`
+                    );
+                }
+
+                console.log('🎨 Final SVG being returned (first 300 chars):', customizedSVG.substring(0, 300) + '...');
+                console.log('🔍 Final SVG dimensions check:', {
+                    hasWidth: customizedSVG.includes('width='),
+                    hasHeight: customizedSVG.includes('height='),
+                    hasViewBox: customizedSVG.includes('viewBox'),
+                    expectedWidth: dimensions.width,
+                    expectedHeight: dimensions.height
+                });
                 return customizedSVG;
             } else {
                 console.log('❌ FALLBACK: Layered portrait failed, using procedural');

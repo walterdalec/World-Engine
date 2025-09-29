@@ -85,9 +85,17 @@ class VisualService {
             const context = this.createRenderContext(options);
             const result = await plugin.render(enhancedData, context);
 
+            console.log('🎨 VisualService: Plugin render result:', {
+                resultType: typeof result,
+                isString: typeof result === 'string',
+                length: typeof result === 'string' ? result.length : 'N/A',
+                preview: typeof result === 'string' ? result.substring(0, 100) + '...' : result,
+                isSVG: typeof result === 'string' && result.includes('<svg')
+            });
+
             const renderTime = performance.now() - startTime;
 
-            return {
+            const finalResult = {
                 success: true,
                 data: result,
                 metadata: {
@@ -96,6 +104,15 @@ class VisualService {
                     assets: this.getUsedAssets(enhancedData)
                 }
             };
+
+            console.log('📤 VisualService: Final result being returned:', {
+                success: finalResult.success,
+                hasData: !!finalResult.data,
+                dataType: typeof finalResult.data,
+                renderTime: finalResult.metadata.renderTime
+            });
+
+            return finalResult;
 
         } catch (error) {
             const renderTime = performance.now() - startTime;

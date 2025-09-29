@@ -25,6 +25,7 @@ export const PortraitPreview: React.FC<PortraitPreviewProps> = ({
     onLoad
 }) => {
     console.log('🎭 PortraitPreview: Component mounted/re-rendered with character:', character);
+    console.log('🚨🚨🚨 BUILD TEST - If you see this, the latest code is running! 🚨🚨🚨');
 
     const [portraitData, setPortraitData] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -63,6 +64,7 @@ export const PortraitPreview: React.FC<PortraitPreviewProps> = ({
         }
 
         const generatePortrait = async () => {
+            console.log('🚨🚨🚨 PORTRAIT GENERATION STARTING - THIS SHOULD ALWAYS APPEAR 🚨🚨🚨');
             console.log('🎨 PortraitPreview: Starting portrait generation for:', character.name, character.species, character.archetype);
             setIsLoading(true);
             setError(null);
@@ -73,6 +75,7 @@ export const PortraitPreview: React.FC<PortraitPreviewProps> = ({
                 console.log('🔧 PortraitPreview: Using options:', options);
                 const result = await generateCharacterPortrait(character, options);
                 console.log('🖼️ PortraitPreview: Generation result:', result.success ? 'SUCCESS' : 'FAILED', result.error || '');
+                console.log('🚨🚨🚨 RESULT DATA TYPE:', typeof result.data, 'LENGTH:', typeof result.data === 'string' ? result.data.length : 'N/A');
 
                 if (result.success && result.data) {
                     if (typeof result.data === 'string') {
@@ -181,17 +184,28 @@ export const PortraitPreview: React.FC<PortraitPreviewProps> = ({
     // Success state - render the portrait
     if (portraitData) {
         console.log('🎭 PortraitPreview: Showing success state - format:', format, 'data type:', typeof portraitData, 'data length:', portraitData.length);
+        console.log('🔍 PortraitPreview: SVG content preview:', portraitData.substring(0, 300));
+        console.log('🔍 PortraitPreview: SVG content ends with:', portraitData.substring(portraitData.length - 100));
+
         if (format === 'svg' && portraitData.startsWith('<svg')) {
+            // Test render: Add a simple test SVG to check if SVG rendering works at all
+            const testSVG = `<svg width="50" height="50" style="position: absolute; top: 5px; right: 5px; z-index: 1000;"><rect width="50" height="50" fill="red"/><text x="25" y="30" text-anchor="middle" fill="white" font-size="12">TEST</text></svg>`;
+
             return (
                 <div
                     className={`portrait-preview portrait-svg ${className}`}
                     style={{
                         width: dimensions.width,
                         height: dimensions.height,
-                        border: '2px solid #4caf50',
+                        border: '3px solid #4caf50',
+                        backgroundColor: '#f0f8ff', // Light blue background to see if container renders
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        position: 'relative',
                         ...style
                     }}
-                    dangerouslySetInnerHTML={{ __html: portraitData }}
+                    dangerouslySetInnerHTML={{ __html: portraitData + testSVG }}
                 />
             );
         } else {

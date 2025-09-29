@@ -1421,22 +1421,40 @@ export default function CharacterCreate() {
       {/* RIGHT: live preview */}
       <div style={card}>
         <h2 style={{ marginTop: 0 }}>Preview</h2>
-        {char.name && char.species && char.archetype ? (
-          <PortraitPreview
-            character={VisualUtils.createCharacterData({
-              name: char.name,
-              species: char.species,
-              archetype: char.archetype,
-              level: char.level || 1
-            })}
-            size="large"
-            style={{ width: "100%", borderRadius: 12, marginBottom: 8 }}
-          />
-        ) : (
-          <div style={{ border: "1px dashed #334155", borderRadius: 12, padding: 12, textAlign: "center", marginBottom: 8, opacity: 0.7 }}>
-            Add a name, species, and class to see portrait
-          </div>
-        )}
+        {(() => {
+          console.log('🧪 CharacterCreate: Preview section - checking character data:', {
+            hasName: !!char.name,
+            hasSpecies: !!char.species,
+            hasArchetype: !!char.archetype,
+            name: char.name,
+            species: char.species,
+            archetype: char.archetype,
+            level: char.level
+          });
+
+          if (char.name && char.species && char.archetype) {
+            console.log('✅ CharacterCreate: Rendering PortraitPreview with full character data');
+            return (
+              <PortraitPreview
+                character={VisualUtils.createCharacterData({
+                  name: char.name,
+                  species: char.species,
+                  archetype: char.archetype,
+                  level: char.level || 1
+                })}
+                size="large"
+                style={{ width: "100%", borderRadius: 12, marginBottom: 8 }}
+              />
+            );
+          } else {
+            console.log('⏸️ CharacterCreate: NOT rendering PortraitPreview - missing data');
+            return (
+              <div style={{ border: "1px dashed #334155", borderRadius: 12, padding: 12, textAlign: "center", marginBottom: 8, opacity: 0.7 }}>
+                Add a name, species, and class to see portrait
+              </div>
+            );
+          }
+        })()}
 
         <div><strong>{char.name || "Unnamed Adventurer"}</strong></div>
         <div style={{ opacity: 0.8, marginBottom: 8 }}>
