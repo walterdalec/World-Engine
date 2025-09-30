@@ -246,23 +246,42 @@ class VisualService {
         };
 
         const dim = dimensions[size as string] || 128;
-        const theme = getClassVisualTheme(data.archetype);
-        const primaryColor = theme?.colorPalette.primary || '#666';
 
-        // Create simple SVG placeholder
+        // Try to get theme colors, with fallbacks
+        const theme = getClassVisualTheme(data.archetype);
+        const primaryColor = theme?.colorPalette.primary || '#4a5568';
+        const secondaryColor = theme?.colorPalette.secondary || '#718096';
+
+        // Try species fallback for colors
+        let speciesColor = primaryColor;
+        if (data.species === 'Crystalborn') speciesColor = '#9f7aea';
+        else if (data.species === 'Sylvanborn') speciesColor = '#38a169';
+        else if (data.species === 'Nightborn') speciesColor = '#553c9a';
+        else if (data.species === 'Stormcaller') speciesColor = '#3182ce';
+        else if (data.species === 'Draketh') speciesColor = '#e53e3e';
+        else if (data.species === 'Alloy') speciesColor = '#718096';
+        else if (data.species === 'Voidkin') speciesColor = '#2d3748';
+
+        // Create a more attractive procedural SVG
         return `
       <svg width="${dim}" height="${dim}" viewBox="0 0 ${dim} ${dim}" xmlns="http://www.w3.org/2000/svg">
-        <rect width="${dim}" height="${dim}" fill="${primaryColor}" opacity="0.2"/>
-        <circle cx="${dim / 2}" cy="${dim / 3}" r="${dim / 8}" fill="${primaryColor}" opacity="0.4"/>
-        <rect x="${dim / 4}" y="${dim / 2}" width="${dim / 2}" height="${dim / 3}" fill="${primaryColor}" opacity="0.3"/>
-        <text x="${dim / 2}" y="${dim - 10}" text-anchor="middle" font-family="Arial" font-size="10" fill="${primaryColor}">
-          ${data.name}
+        <defs>
+          <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:${speciesColor};stop-opacity:0.1"/>
+            <stop offset="100%" style="stop-color:${secondaryColor};stop-opacity:0.2"/>
+          </linearGradient>
+        </defs>
+        <rect width="${dim}" height="${dim}" fill="url(#bgGrad)"/>
+        <circle cx="${dim / 2}" cy="${dim * 0.35}" r="${dim * 0.12}" fill="${speciesColor}" opacity="0.6"/>
+        <rect x="${dim * 0.3}" y="${dim * 0.5}" width="${dim * 0.4}" height="${dim * 0.35}" fill="${speciesColor}" opacity="0.4" rx="4"/>
+        <text x="${dim / 2}" y="${dim * 0.85}" text-anchor="middle" font-family="Arial, sans-serif" font-size="${dim * 0.08}" font-weight="bold" fill="${speciesColor}">
+          ${data.name || 'Character'}
         </text>
-        <text x="${dim / 2}" y="${dim - 25}" text-anchor="middle" font-family="Arial" font-size="8" fill="${primaryColor}" opacity="0.7">
+        <text x="${dim / 2}" y="${dim * 0.93}" text-anchor="middle" font-family="Arial, sans-serif" font-size="${dim * 0.06}" fill="${secondaryColor}" opacity="0.8">
           ${data.species} ${data.archetype}
         </text>
       </svg>
-    `;
+    `.trim();
     }
 
     /**

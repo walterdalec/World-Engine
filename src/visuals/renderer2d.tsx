@@ -3,7 +3,7 @@
 
 import { CharacterVisualData, PortraitOptions, RenderContext } from './types';
 import { getClassVisualTheme } from './classmap';
-import { assetManager } from './assets';
+import { assetManager, getFallbackSpecies } from './assets';
 import { loadLayeredPortrait, getAssetLayers, loadPortraitFromExternalManifest, loadPortraitFromPreset, getPresetsByFilter } from './manifest';
 
 interface LayerDefinition {
@@ -102,106 +102,81 @@ class Renderer2D {
         data: CharacterVisualData,
         dimensions: { width: number; height: number }
     ): Promise<string | null> {
-        try {
-            console.log(`🎨 TRYING LAYERED PORTRAITS: ${data.species} ${data.archetype} (${data.name})`);
-            console.log('🔍 Character data details:', {
-                species: data.species,
-                archetype: data.archetype,
-                pronouns: data.pronouns,
-                fullData: data
-            });
+        // Try the original species first, then fallbacks
+        const speciesToTry = [data.species];
 
-            // Try preset system first (for pronoun-aware portraits)
-            let layeredSVG: string;
-            let usedMethod = '';
+        // Add fallback species
+        const fallbackSpecies = getFallbackSpecies(data.species);
+        if (fallbackSpecies && fallbackSpecies !== data.species) {
+            speciesToTry.push(fallbackSpecies);
+        }
 
+        // Always try Human as final fallback
+        if (!speciesToTry.includes('Human')) {
+            speciesToTry.push('Human');
+        }
+
+        for (const species of speciesToTry) {
             try {
-                // Try to find a matching preset based on character data
-                const filterCriteria = {
-                    species: data.species,
-                    archetype: data.archetype,
-                    pronouns: data.pronouns || 'they/them' // Default fallback
-                };
+                const result = await this.trySpeciesAssets(species, data.archetype, data.pronouns);
+                if (result) {
+                    // Customize colors and dimensions
+                    const theme = getClassVisualTheme(data.archetype);
+                    let customizedSVG = result;
 
-                console.log('🔎 Searching presets with criteria:', filterCriteria);
-                const presets = await getPresetsByFilter(filterCriteria);
-                console.log(`🎯 Found ${presets.length} matching presets`);
+                    if (theme) {
+                        customizedSVG = this.applyThemeColors(customizedSVG, theme);
+                    }
 
-                if (presets.length > 0) {
-                    // Use the first matching preset
-                    console.log(`🎭 Using PRESET: ${presets[0].label} (ID: ${presets[0].id})`);
-                    layeredSVG = await loadPortraitFromPreset(presets[0].id);
-                    usedMethod = 'PRESET SYSTEM';
-                } else {
-                    throw new Error('No matching presets found');
-                }
-            } catch (presetError) {
-                console.log('🎭 Preset system failed:', presetError);
-                console.log('🎭 Trying external manifest');
-                try {
-                    layeredSVG = await loadPortraitFromExternalManifest(
-                        data.species,
-                        data.archetype
-                    );
-                    usedMethod = 'EXTERNAL MANIFEST';
-                    console.log('✅ Using EXTERNAL manifest with professional art assets!');
-                } catch (externalError) {
-                    console.log('📋 External manifest failed:', externalError);
-                    console.log('📋 Trying internal manifest');
-                    layeredSVG = await loadLayeredPortrait(
-                        data.species,
-                        data.archetype,
-                        data.name
-                    );
-                    usedMethod = 'INTERNAL MANIFEST';
-                }
-            }
-
-            console.log(`🖼️ Layered SVG result (${usedMethod}):`, layeredSVG ? `${layeredSVG.length} characters` : 'null/empty');
-
-            if (layeredSVG && layeredSVG.includes('<svg')) {
-                console.log(`✅ SUCCESS: Using layered portrait via ${usedMethod}!`);
-                console.log('🔍 SVG Preview (first 200 chars):', layeredSVG.substring(0, 200) + '...');
-
-                // Customize colors based on character theme if needed
-                const theme = getClassVisualTheme(data.archetype);
-                let customizedSVG = layeredSVG;
-
-                if (theme) {
-                    // Apply theme-based color customizations
-                    customizedSVG = this.applyThemeColors(customizedSVG, theme);
-                }
-
-                // Ensure proper dimensions - handle multiple SVG attribute patterns
-                customizedSVG = customizedSVG.replace(
-                    /<svg([^>]*?)width=["'][^"']*["']([^>]*?)height=["'][^"']*["']/i,
-                    `<svg$1width="${dimensions.width}"$2height="${dimensions.height}"`
-                );
-
-                // Also add viewBox if missing to ensure proper scaling
-                if (!customizedSVG.includes('viewBox')) {
+                    // Ensure proper dimensions
                     customizedSVG = customizedSVG.replace(
-                        /<svg([^>]*?)>/i,
-                        `<svg$1 viewBox="0 0 ${dimensions.width} ${dimensions.height}">`
+                        /<svg([^>]*?)width=["'][^"']*["']([^>]*?)height=["'][^"']*["']/i,
+                        `<svg$1width="${dimensions.width}"$2height="${dimensions.height}"`
                     );
-                }
 
-                console.log('🎨 Final SVG being returned (first 300 chars):', customizedSVG.substring(0, 300) + '...');
-                console.log('🔍 Final SVG dimensions check:', {
-                    hasWidth: customizedSVG.includes('width='),
-                    hasHeight: customizedSVG.includes('height='),
-                    hasViewBox: customizedSVG.includes('viewBox'),
-                    expectedWidth: dimensions.width,
-                    expectedHeight: dimensions.height
-                });
-                return customizedSVG;
-            } else {
-                console.log('❌ FALLBACK: Layered portrait failed, using procedural');
-                return null;
+                    if (!customizedSVG.includes('viewBox')) {
+                        customizedSVG = customizedSVG.replace(
+                            /<svg([^>]*?)>/i,
+                            `<svg$1 viewBox="0 0 ${dimensions.width} ${dimensions.height}">`
+                        );
+                    }
+
+                    return customizedSVG;
+                }
+            } catch (error) {
+                // Continue to next species
+                continue;
+            }
+        }
+
+        return null; // All attempts failed
+    }
+
+    /**
+     * Try assets for a specific species
+     */
+    private async trySpeciesAssets(species: string, archetype: string, pronouns?: string): Promise<string | null> {
+        try {
+            // Try preset system first
+            const filterCriteria = {
+                species: species,
+                archetype: archetype,
+                pronouns: pronouns || 'they/them'
+            };
+
+            const presets = await getPresetsByFilter(filterCriteria);
+            if (presets.length > 0) {
+                return await loadPortraitFromPreset(presets[0].id);
             }
 
+            // Try external manifest
+            try {
+                return await loadPortraitFromExternalManifest(species, archetype);
+            } catch (externalError) {
+                // Try internal manifest
+                return await loadLayeredPortrait(species, archetype, `${species} ${archetype}`);
+            }
         } catch (error) {
-            console.error('Error in layered portrait rendering:', error);
             return null;
         }
     }

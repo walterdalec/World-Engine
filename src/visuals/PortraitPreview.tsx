@@ -18,8 +18,8 @@ export const PortraitPreview: React.FC<PortraitPreviewProps> = ({
     height = 200,
     options = { size: 'medium', format: 'svg' }
 }) => {
-    console.log('🎭 PortraitPreview: Component mounted/re-rendered with character:', character);
-    console.log('🚨🚨🚨 BUILD TEST - If you see this, the latest code is running! 🚨🚨🚨');
+    // Reduced console logging to prevent spam
+    // console.log('🎭 PortraitPreview: Component mounted/re-rendered with character:', character);
 
     const [isInitialized, setIsInitialized] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
@@ -31,9 +31,9 @@ export const PortraitPreview: React.FC<PortraitPreviewProps> = ({
     useEffect(() => {
         const initSystem = async () => {
             try {
-                console.log('🚀 PortraitPreview: Initializing visual system...');
+                // console.log('🚀 PortraitPreview: Initializing visual system...');
                 await visualService.initialize();
-                console.log('✅ PortraitPreview: Visual system initialized successfully');
+                // console.log('✅ PortraitPreview: Visual system initialized successfully');
                 setIsInitialized(true);
             } catch (err) {
                 console.error('❌ PortraitPreview: Failed to initialize visual system:', err);
@@ -50,9 +50,9 @@ export const PortraitPreview: React.FC<PortraitPreviewProps> = ({
 
     // Generate portrait when character or options change
     useEffect(() => {
-        console.log('🔄 PortraitPreview: useEffect triggered - isInitialized:', isInitialized, 'character:', character.name, character.species, character.archetype);
+        // console.log('🔄 PortraitPreview: useEffect triggered - isInitialized:', isInitialized, 'character:', character.name, character.species, character.archetype);
         if (!isInitialized || !character.name) {
-            console.log('⏸️ PortraitPreview: Skipping generation - isInitialized:', isInitialized, 'hasName:', !!character.name);
+            // console.log('⏸️ PortraitPreview: Skipping generation - isInitialized:', isInitialized, 'hasName:', !!character.name);
             return;
         }
 
@@ -100,7 +100,7 @@ export const PortraitPreview: React.FC<PortraitPreviewProps> = ({
 
     // Loading or error state
     if (!isInitialized || isGenerating || errorMessage) {
-        console.log('🎭 PortraitPreview: Showing loading/error state - isInitialized:', isInitialized, 'isGenerating:', isGenerating, 'errorMessage:', errorMessage);
+        // console.log('🎭 PortraitPreview: Showing loading/error state - isInitialized:', isInitialized, 'isGenerating:', isGenerating, 'errorMessage:', errorMessage);
         return (
             <div className="portrait-preview" style={containerStyle}>
                 {errorMessage ? (
@@ -123,7 +123,7 @@ export const PortraitPreview: React.FC<PortraitPreviewProps> = ({
 
     // Success state - render the portrait
     if (portraitData) {
-        console.log('🎭 PortraitPreview: Showing success state - data type:', typeof portraitData, 'data length:', portraitData.length);
+        // console.log('🎭 PortraitPreview: Showing success state - data type:', typeof portraitData, 'data length:', portraitData.length);
         return (
             <div className="portrait-preview" style={containerStyle}>
                 <div dangerouslySetInnerHTML={{ __html: portraitData }} />
@@ -148,7 +148,7 @@ export const PortraitPreview: React.FC<PortraitPreviewProps> = ({
     }
 
     // Fallback empty state
-    console.log('🎭 PortraitPreview: Showing fallback empty state - no portrait data available');
+    // console.log('🎭 PortraitPreview: Showing fallback empty state - no portrait data available');
     return (
         <div className="portrait-preview" style={containerStyle}>
             <div style={{ textAlign: 'center', color: '#f57c00', fontWeight: 'bold' }}>
@@ -175,6 +175,10 @@ export const PortraitPreview: React.FC<PortraitPreviewProps> = ({
                     <div>Character: {character.name || 'Unnamed'}</div>
                     <div>Species: {character.species || 'Not set'}</div>
                     <div>Archetype: {character.archetype || 'Not set'}</div>
+                    <div>Initialized: {isInitialized ? '✅' : '❌'}</div>
+                    <div>Generating: {isGenerating ? '🔄' : '✅'}</div>
+                    <div>Has Data: {portraitData ? '✅' : '❌'}</div>
+                    <div>Error: {errorMessage || 'None'}</div>
                     <pre style={{ fontSize: '10px', overflow: 'auto', maxHeight: '100px' }}>
                         {JSON.stringify(options, null, 2)}
                     </pre>

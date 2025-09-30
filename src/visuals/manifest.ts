@@ -164,10 +164,10 @@ export function getAssetLayers(species: string, archetype: string): AssetLayer[]
     // Use the new World Engine manifest
     const speciesManifest = WORLD_ENGINE_MANIFEST[species];
     if (!speciesManifest) {
-        console.warn(`No visual manifest found for species: ${species}`);
+        // console.warn(`No visual manifest found for species: ${species}`);
         // Try to provide a basic fallback using the species base
         const fallbackLayers: AssetLayer[] = [
-            { category: 'base', path: `base/${species.toLowerCase()}.svg`, zIndex: 1 }
+            { category: 'base', path: `base/${(species || 'human').toLowerCase()}.svg`, zIndex: 1 }
         ];
         // Add basic clothing if available
         const verdanceClasses = ['Greenwarden', 'Thorn Knight', 'Sapling Adept', 'Bloomcaller'];
@@ -182,7 +182,7 @@ export function getAssetLayers(species: string, archetype: string): AssetLayer[]
         if (world) {
             fallbackLayers.push({
                 category: `clothing/${world}` as AssetLayer['category'],
-                path: `clothing/${world}/${archetype.toLowerCase().replace(/ /g, '_')}.svg`,
+                path: `clothing/${world}/${(archetype || 'warrior').toLowerCase().replace(/ /g, '_')}.svg`,
                 zIndex: 20
             });
         }
@@ -192,7 +192,7 @@ export function getAssetLayers(species: string, archetype: string): AssetLayer[]
 
     const layers = speciesManifest[archetype];
     if (!layers) {
-        console.warn(`No visual layers found for ${species} ${archetype}`);
+        // console.warn(`No visual layers found for ${species} ${archetype}`);
         return speciesManifest.Greenwarden || speciesManifest['Thorn Knight'] || []; // Fallback to available classes
     }
 
@@ -342,7 +342,7 @@ export async function loadExternalManifest(): Promise<any> {
         console.log('✅ External manifest loaded successfully:', manifest.version);
         return manifest;
     } catch (error) {
-        console.warn('Failed to load external manifest, using internal:', error);
+        // console.warn('Failed to load external manifest, using internal:', error);
         return null;
     }
 }
@@ -357,8 +357,10 @@ export async function loadPortraitFromExternalManifest(species: string, archetyp
             return loadLayeredPortrait(species, archetype);
         }
 
-        // Find species in external manifest
-        const speciesData = externalManifest.species.find((s: any) => s.name.toLowerCase() === species.toLowerCase());
+        // Find species in external manifest with proper null checking
+        const speciesData = externalManifest.species?.find((s: any) =>
+            s?.name?.toLowerCase() === species?.toLowerCase()
+        );
         if (!speciesData) {
             console.warn(`Species ${species} not found in external manifest`);
             return loadLayeredPortrait(species, archetype);
@@ -370,7 +372,7 @@ export async function loadPortraitFromExternalManifest(species: string, archetyp
         // Base layer
         layers.push({
             category: 'base',
-            path: `base/${speciesData.name.toLowerCase()}.svg`,
+            path: `base/${(speciesData.name || species).toLowerCase()}.svg`,
             zIndex: 1
         });
 
@@ -441,7 +443,7 @@ function getWorldClothingForArchetype(archetype: string, manifest: any): { categ
     const clothingCategory = `clothing/${world}`;
     if (manifest.categories.clothing && manifest.categories.clothing[world]) {
         const archetypeClothing = manifest.categories.clothing[world].find((item: any) =>
-            item.includes(archetype.toLowerCase().replace(' ', '_'))
+            item.includes((archetype || 'warrior').toLowerCase().replace(' ', '_'))
         );
         if (archetypeClothing) {
             return {
@@ -461,7 +463,7 @@ function getArchetypeAssets(archetype: string, manifest: any): AssetLayer[] {
     // Add weapons
     if (manifest.categories.weapons) {
         const weapon = manifest.categories.weapons.find((w: string) =>
-            w.includes(archetype.toLowerCase().replace(' ', '_'))
+            w.includes((archetype || 'warrior').toLowerCase().replace(' ', '_'))
         );
         if (weapon) {
             layers.push({
@@ -476,7 +478,7 @@ function getArchetypeAssets(archetype: string, manifest: any): AssetLayer[] {
     // Add accessories  
     if (manifest.categories.accessories) {
         const accessory = manifest.categories.accessories.find((a: string) =>
-            a.includes(archetype.toLowerCase().replace(' ', '_'))
+            a.includes((archetype || 'warrior').toLowerCase().replace(' ', '_'))
         );
         if (accessory) {
             layers.push({
@@ -491,7 +493,7 @@ function getArchetypeAssets(archetype: string, manifest: any): AssetLayer[] {
     // Add effects
     if (manifest.categories.effects) {
         const effect = manifest.categories.effects.find((e: string) =>
-            e.includes(archetype.toLowerCase().replace(' ', '_'))
+            e.includes((archetype || 'warrior').toLowerCase().replace(' ', '_'))
         );
         if (effect) {
             layers.push({
@@ -588,10 +590,11 @@ export async function loadPresets(): Promise<PresetDefinition[]> {
         }
 
         const presetData = JSON.parse(text);
-        console.log('✅ Presets loaded successfully:', presetData.count, 'presets');
+        // console.log('✅ Presets loaded successfully:', presetData.count, 'presets');
         return presetData.presets || [];
     } catch (error) {
-        console.warn('Failed to load presets:', error);
+        // Silently fail for missing presets - this is expected during development
+        // console.warn('Failed to load presets:', error);
         return [];
     }
 }
