@@ -188,8 +188,14 @@ export const PortraitPreview: React.FC<PortraitPreviewProps> = ({
         console.log('🔍 PortraitPreview: SVG content ends with:', portraitData.substring(portraitData.length - 100));
 
         if (format === 'svg' && portraitData.startsWith('<svg')) {
-            // Test render: Add a simple test SVG to check if SVG rendering works at all
-            const testSVG = `<svg width="50" height="50" style="position: absolute; top: 5px; right: 5px; z-index: 1000;"><rect width="50" height="50" fill="red"/><text x="25" y="30" text-anchor="middle" fill="white" font-size="12">TEST</text></svg>`;
+            // Debug: Show SVG content info directly in UI
+            const debugOverlay = `
+                <div style="position: absolute; top: 0; left: 0; background: rgba(255,0,0,0.9); color: white; padding: 5px; font-size: 10px; z-index: 1000; max-width: 300px; word-wrap: break-word; font-family: monospace;">
+                    SVG Data: ${portraitData.length} chars<br/>
+                    Starts: ${portraitData.substring(0, 50)}...<br/>
+                    Contains: ${portraitData.includes('<svg') ? '✓SVG' : '✗SVG'} ${portraitData.includes('<rect') ? '✓RECT' : '✗RECT'} ${portraitData.includes('<circle') ? '✓CIRCLE' : '✗CIRCLE'}
+                </div>
+            `;
 
             return (
                 <div
@@ -198,14 +204,14 @@ export const PortraitPreview: React.FC<PortraitPreviewProps> = ({
                         width: dimensions.width,
                         height: dimensions.height,
                         border: '3px solid #4caf50',
-                        backgroundColor: '#f0f8ff', // Light blue background to see if container renders
+                        backgroundColor: '#f0f8ff',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         position: 'relative',
                         ...style
                     }}
-                    dangerouslySetInnerHTML={{ __html: portraitData + testSVG }}
+                    dangerouslySetInnerHTML={{ __html: portraitData + debugOverlay }}
                 />
             );
         } else {
