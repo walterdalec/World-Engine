@@ -219,3 +219,108 @@ export async function ensureAssetsLoaded(): Promise<void> {
 export function getAssetUrl(path: string): string {
     return `/assets/portraits/${path}`;
 }
+
+// Get portrait assets organized by species and archetypes
+export async function getPortraitAssets(): Promise<any> {
+    await ensureAssetsLoaded();
+
+    const species = assetManager.getSupportedSpecies();
+    const result: any = {};
+
+    for (const speciesName of species) {
+        result[speciesName] = {
+            archetypes: {}
+        };
+
+        // Get assets for this species
+        const speciesAssets = assetManager.getFilteredAssets({ species: speciesName });
+
+        // Group by archetypes if available
+        for (const asset of speciesAssets) {
+            if (asset.archetype && asset.archetype.length > 0) {
+                for (const archetype of asset.archetype) {
+                    if (!result[speciesName].archetypes[archetype]) {
+                        result[speciesName].archetypes[archetype] = [];
+                    }
+                    result[speciesName].archetypes[archetype].push(asset);
+                }
+            }
+        }
+    }
+
+    return result;
+}
+
+// Fallback chain for species
+export function getFallbackSpecies(species: string): string | null {
+    // Define fallback chains for your actual game species
+    const fallbacks: Record<string, string[]> = {
+        'Sylvanborn': ['Human'], // Nature-based -> Human
+        'Nightborn': ['Human'],  // Shadow-based -> Human  
+        'Stormcaller': ['Human'], // Storm-based -> Human
+        'Crystalborn': ['Human'], // Crystal-based -> Human
+        'Draketh': ['Human'],     // Dragon-like -> Human
+        'Alloy': ['Human'],       // Mechanical -> Human
+        'Voidkin': ['Nightborn', 'Human'], // Void -> Shadow -> Human
+    };
+
+    // Try the direct fallbacks
+    if (species in fallbacks) {
+        for (const fallback of fallbacks[species]) {
+            return fallback; // Return the first fallback
+        }
+    }
+
+    // Default fallback for all species
+    return 'Human';
+}
+
+// Fallback chain for archetypes
+export function getFallbackArchetype(species: string, archetype: string): string | null {
+    // Define fallback chains for your actual archetypes
+    const fallbacks: Record<string, Record<string, string[]>> = {
+        'Human': {
+            'Thorn Knight': ['Guardian', 'Warrior'],
+            'Ashblade': ['Warrior', 'Rogue'],
+            'Ironclad': ['Guardian', 'Warrior'],
+            'Stormbreaker': ['Warrior', 'Mage'],
+            'Voidhunter': ['Scout', 'Ranger'],
+            'Crystal Guardian': ['Guardian', 'Mage'],
+            'Greenwarden': ['Ranger', 'Scout'],
+        },
+        // Add more species-specific fallbacks
+    };
+
+    // Try species-specific archetype fallbacks
+    if (species in fallbacks && archetype in fallbacks[species]) {
+        for (const fallback of fallbacks[species][archetype]) {
+            return fallback; // Return the first fallback
+        }
+    }
+
+    // General archetype fallbacks using your actual archetypes
+    const generalFallbacks: Record<string, string[]> = {
+        'Thorn Knight': ['Guardian', 'Warrior'],
+        'Ashblade': ['Warrior', 'Rogue'],
+        'Ironclad': ['Guardian', 'Warrior'],
+        'Stormbreaker': ['Warrior', 'Mage'],
+        'Voidhunter': ['Scout', 'Ranger'],
+        'Crystal Guardian': ['Guardian', 'Mage'],
+        'Greenwarden': ['Ranger', 'Scout'],
+        'Warrior': ['Guardian', 'Scout'],
+        'Scout': ['Ranger', 'Warrior'],
+        'Mage': ['Guardian', 'Warrior'],
+        'Guardian': ['Warrior', 'Scout'],
+        'Ranger': ['Scout', 'Warrior'],
+        'Rogue': ['Scout', 'Warrior'],
+        'Artificer': ['Mage', 'Guardian'],
+    };
+
+    if (archetype in generalFallbacks) {
+        for (const fallback of generalFallbacks[archetype]) {
+            return fallback; // Return the first fallback
+        }
+    }
+
+    return null;
+}

@@ -10,6 +10,8 @@ import SpellGenerator from "./components/SpellGenerator";
 import SpellAssignment from "./components/SpellAssignment";
 import HealingSystem from "./components/HealingSystem";
 import WorldMapEngine from "./components/WorldMapEngine";
+import PortraitTestPage from "./pages/PortraitTest";
+import { preloadCommonPortraits } from "./visuals/preloader";
 import { Engine } from "./engine.d";
 import { DEFAULT_WORLDS } from "./defaultWorlds";
 
@@ -34,7 +36,7 @@ function randomSeed(): string {
 }
 
 function App() {
-  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "charactercreate">("menu");
+  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "charactercreate" | "portraittest">("menu");
   const [party, setParty] = React.useState<Character[]>([]);
   const [currentCampaign, setCurrentCampaign] = React.useState<any>(null);
   const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0); // Force re-render hook
@@ -65,6 +67,11 @@ function App() {
         console.error('Failed to recover emergency save:', error);
       }
     }
+
+    // Initialize portrait preloading
+    preloadCommonPortraits().catch(error => {
+      console.error('Failed to preload common portraits:', error);
+    });
 
     // Setup periodic backup (every 5 minutes)
     const backupInterval = setInterval(() => {
@@ -275,6 +282,11 @@ function App() {
     setStep("charactercreate");
   };
 
+  const handlePortraitTest = () => {
+    // Portrait test page
+    setStep("portraittest");
+  };
+
   // fake engine stub for now
   // Engine stub - will be replaced with real engine
   const eng: Engine = {
@@ -369,6 +381,7 @@ function App() {
           onSpellAssignment={handleSpellAssignment}
           onHealingSystem={handleHealingSystem}
           onCharacterCreate={handleCharacterCreate}
+          onPortraitTest={handlePortraitTest}
         />
       )}
       {step === "world" && (
@@ -438,6 +451,30 @@ function App() {
             ← Back to Menu
           </button>
           <CharacterCreate />
+        </div>
+      )}
+      {step === "portraittest" && (
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={() => setStep("menu")}
+            style={{
+              position: 'absolute',
+              top: '20px',
+              left: '20px',
+              zIndex: 1000,
+              background: '#374151',
+              color: '#f8fafc',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '10px 15px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold'
+            }}
+          >
+            ← Back to Menu
+          </button>
+          <PortraitTestPage />
         </div>
       )}
     </>

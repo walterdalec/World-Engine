@@ -1435,16 +1435,17 @@ export default function CharacterCreate() {
           if (char.name && char.species && char.archetype) {
             console.log('✅ CharacterCreate: Rendering PortraitPreview with full character data');
             return (
-              <PortraitPreview
-                character={VisualUtils.createCharacterData({
-                  name: char.name,
-                  species: char.species,
-                  archetype: char.archetype,
-                  level: char.level || 1
-                })}
-                size="large"
-                style={{ width: "100%", borderRadius: 12, marginBottom: 8 }}
-              />
+              <div style={{ width: "100%", borderRadius: 12, marginBottom: 8 }}>
+                <PortraitPreview
+                  character={VisualUtils.createCharacterData({
+                    name: char.name,
+                    species: char.species,
+                    archetype: char.archetype,
+                    level: char.level || 1
+                  })}
+                  options={{ size: "large", format: "svg" }}
+                />
+              </div>
             );
           } else {
             console.log('⏸️ CharacterCreate: NOT rendering PortraitPreview - missing data');

@@ -2,10 +2,13 @@
 // Main service for generating character portraits and visuals
 
 import { CharacterVisualData, PortraitOptions, VisualGenerationResult, VisualPlugin } from './types';
-import { assetManager, ensureAssetsLoaded } from './assets';
+import { assetManager, ensureAssetsLoaded, getFallbackSpecies, getFallbackArchetype } from './assets';
 import { getClassVisualTheme, generateDefaultAppearance } from './classmap';
 import { createCharacterRandom, ColorVariations } from './seed';
 import { renderCharacterToSVG } from './renderer2d';
+import { optimizeSvg } from './svgUtils';
+
+const portraitCache: Record<string, string> = {};
 
 class VisualService {
     private plugins: Map<string, VisualPlugin> = new Map();
@@ -355,4 +358,12 @@ export async function bindPortraitToCharacter(
         console.error('Error binding portrait to character:', error);
         return character;
     }
+}
+
+/**
+ * Add this utility function
+ */
+export function clearPortraitCache(): void {
+    Object.keys(portraitCache).forEach(key => delete portraitCache[key]);
+    console.log('Portrait cache cleared');
 }

@@ -1,264 +1,186 @@
 // Portrait Preview Component
 // React component for displaying generated character portraits
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
+import { visualService } from './service';
 import { CharacterVisualData, PortraitOptions } from './types';
-import { generateCharacterPortrait, initializeVisualSystem, isVisualSystemReady } from './service';
 
 interface PortraitPreviewProps {
     character: CharacterVisualData;
-    size?: 'small' | 'medium' | 'large';
-    format?: 'svg' | 'png' | 'jpg';
-    className?: string;
-    style?: React.CSSProperties;
-    onError?: (error: string) => void;
-    onLoad?: () => void;
+    width?: number;
+    height?: number;
+    options?: PortraitOptions;
 }
 
 export const PortraitPreview: React.FC<PortraitPreviewProps> = ({
     character,
-    size = 'medium',
-    format = 'svg',
-    className = '',
-    style = {},
-    onError,
-    onLoad
+    width = 200,
+    height = 200,
+    options = { size: 'medium', format: 'svg' }
 }) => {
     console.log('🎭 PortraitPreview: Component mounted/re-rendered with character:', character);
     console.log('🚨🚨🚨 BUILD TEST - If you see this, the latest code is running! 🚨🚨🚨');
 
+    const [isInitialized, setIsInitialized] = useState(false);
+    const [isGenerating, setIsGenerating] = useState(false);
     const [portraitData, setPortraitData] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [systemReady, setSystemReady] = useState(false);
-    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [showDebug, setShowDebug] = useState(false);
 
     // Initialize visual system
     useEffect(() => {
         const initSystem = async () => {
             try {
                 console.log('🚀 PortraitPreview: Initializing visual system...');
-                await initializeVisualSystem();
+                await visualService.initialize();
                 console.log('✅ PortraitPreview: Visual system initialized successfully');
-                setSystemReady(true);
+                setIsInitialized(true);
             } catch (err) {
                 console.error('❌ PortraitPreview: Failed to initialize visual system:', err);
-                setError('Failed to initialize portrait system');
-                onError?.('System initialization failed');
+                setErrorMessage('Failed to initialize portrait system');
             }
         };
 
-        if (!isVisualSystemReady()) {
+        if (!visualService.isReady()) {
             initSystem();
         } else {
-            setSystemReady(true);
+            setIsInitialized(true);
         }
-    }, [onError]);
+    }, []);
 
     // Generate portrait when character or options change
     useEffect(() => {
-        console.log('🔄 PortraitPreview: useEffect triggered - systemReady:', systemReady, 'character:', character.name, character.species, character.archetype);
-        if (!systemReady || !character.name) {
-            console.log('⏸️ PortraitPreview: Skipping generation - systemReady:', systemReady, 'hasName:', !!character.name);
+        console.log('🔄 PortraitPreview: useEffect triggered - isInitialized:', isInitialized, 'character:', character.name, character.species, character.archetype);
+        if (!isInitialized || !character.name) {
+            console.log('⏸️ PortraitPreview: Skipping generation - isInitialized:', isInitialized, 'hasName:', !!character.name);
             return;
         }
 
-        const generatePortrait = async () => {
-            console.log('🚨🚨🚨 PORTRAIT GENERATION STARTING - THIS SHOULD ALWAYS APPEAR 🚨🚨🚨');
-            console.log('🎨 PortraitPreview: Starting portrait generation for:', character.name, character.species, character.archetype);
-            setIsLoading(true);
-            setError(null);
-            setPortraitData(null);
+        const generateCharacterPortrait = async () => {
+            if (!character) {
+                setErrorMessage('No character data provided');
+                return;
+            }
 
+            setIsGenerating(true);
             try {
-                const options: PortraitOptions = { size, format };
-                console.log('🔧 PortraitPreview: Using options:', options);
-                const result = await generateCharacterPortrait(character, options);
-                console.log('🖼️ PortraitPreview: Generation result:', result.success ? 'SUCCESS' : 'FAILED', result.error || '');
-                console.log('🚨🚨🚨 RESULT DATA TYPE:', typeof result.data, 'LENGTH:', typeof result.data === 'string' ? result.data.length : 'N/A');
-
+                const result = await visualService.generatePortrait(character, options);
                 if (result.success && result.data) {
-                    if (typeof result.data === 'string') {
-                        setPortraitData(result.data);
-                    } else {
-                        // Handle HTMLElement case (for canvas)
-                        if (result.data instanceof HTMLCanvasElement) {
-                            setPortraitData(result.data.toDataURL());
-                        } else {
-                            setPortraitData(result.data.outerHTML);
-                        }
-                    }
-                    onLoad?.();
+                    setPortraitData(result.data as string);
+                    setErrorMessage(null);
                 } else {
-                    const errorMsg = result.error || 'Failed to generate portrait';
-                    setError(errorMsg);
-                    onError?.(errorMsg);
+                    setErrorMessage(result.error || 'Portrait generation failed');
                 }
+                setIsGenerating(false);
             } catch (err) {
-                const errorMsg = err instanceof Error ? err.message : 'Unknown error';
-                setError(errorMsg);
-                onError?.(errorMsg);
-            } finally {
-                setIsLoading(false);
+                setErrorMessage((err as Error).message || 'Portrait generation failed');
+                setIsGenerating(false);
             }
         };
 
-        generatePortrait();
-    }, [character, size, format, systemReady, onLoad, onError]);
+        generateCharacterPortrait();
+    }, [character, options, isInitialized]);
 
-    // Get dimensions for display
-    const getDimensions = (): { width: number; height: number } => {
-        const sizes = {
-            small: { width: 64, height: 64 },
-            medium: { width: 128, height: 128 },
-            large: { width: 256, height: 256 }
-        };
-        return sizes[size];
+    const toggleDebug = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setShowDebug(!showDebug);
     };
 
-    const dimensions = getDimensions();
+    const containerStyle = {
+        width,
+        height,
+        position: 'relative' as 'relative',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        border: '3px solid #4caf50',
+        backgroundColor: '#f0f8ff',
+        overflow: 'hidden' as 'hidden'
+    } as React.CSSProperties;
 
-    // Loading state
-    if (!systemReady || isLoading) {
-        console.log('🎭 PortraitPreview: Showing loading state - systemReady:', systemReady, 'isLoading:', isLoading);
+    // Loading or error state
+    if (!isInitialized || isGenerating || errorMessage) {
+        console.log('🎭 PortraitPreview: Showing loading/error state - isInitialized:', isInitialized, 'isGenerating:', isGenerating, 'errorMessage:', errorMessage);
         return (
-            <div
-                className={`portrait-preview portrait-loading ${className}`}
-                style={{
-                    width: dimensions.width,
-                    height: dimensions.height,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: '#e3f2fd',
-                    border: '3px solid #2196f3',
-                    ...style
-                }}
-            >
-                <div style={{
-                    fontSize: size === 'small' ? '10px' : '12px',
-                    color: '#1976d2',
-                    textAlign: 'center',
-                    fontWeight: 'bold'
-                }}>
-                    {!systemReady ? '🔧 Initializing...' : '🎨 Generating...'}
-                    <br />
-                    <small>System: {systemReady ? '✅' : '❌'}</small>
-                </div>
-            </div>
-        );
-    }
-
-    // Error state
-    if (error) {
-        console.log('🎭 PortraitPreview: Showing error state:', error);
-        return (
-            <div
-                className={`portrait-preview portrait-error ${className}`}
-                style={{
-                    width: dimensions.width,
-                    height: dimensions.height,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: '#ffebee',
-                    border: '3px solid #f44336',
-                    color: '#d32f2f',
-                    ...style
-                }}
-            >
-                <div style={{
-                    fontSize: size === 'small' ? '10px' : '12px',
-                    textAlign: 'center',
-                    padding: '4px',
-                    fontWeight: 'bold'
-                }}>
-                    ❌ Portrait Error
-                    <br />
-                    <small>{error.substring(0, 50)}...</small>
-                </div>
+            <div className="portrait-preview" style={containerStyle}>
+                {errorMessage ? (
+                    <>
+                        <div>❌ {errorMessage}</div>
+                        <button onClick={toggleDebug} style={{ position: 'absolute', right: '5px', bottom: '5px' }}>🐞</button>
+                    </>
+                ) : !isInitialized ? (
+                    <div style={{ textAlign: 'center', color: '#1976d2', fontWeight: 'bold' }}>
+                        🔧 Initializing...
+                    </div>
+                ) : (
+                    <div style={{ textAlign: 'center', color: '#f57c00', fontWeight: 'bold' }}>
+                        🎨 Generating...
+                    </div>
+                )}
             </div>
         );
     }
 
     // Success state - render the portrait
     if (portraitData) {
-        console.log('🎭 PortraitPreview: Showing success state - format:', format, 'data type:', typeof portraitData, 'data length:', portraitData.length);
-        console.log('🔍 PortraitPreview: SVG content preview:', portraitData.substring(0, 300));
-        console.log('🔍 PortraitPreview: SVG content ends with:', portraitData.substring(portraitData.length - 100));
-
-        if (format === 'svg' && portraitData.startsWith('<svg')) {
-            // Debug: Show SVG content info directly in UI
-            const debugOverlay = `
-                <div style="position: absolute; top: 0; left: 0; background: rgba(255,0,0,0.9); color: white; padding: 5px; font-size: 10px; z-index: 1000; max-width: 300px; word-wrap: break-word; font-family: monospace;">
-                    SVG Data: ${portraitData.length} chars<br/>
-                    Starts: ${portraitData.substring(0, 50)}...<br/>
-                    Contains: ${portraitData.includes('<svg') ? '✓SVG' : '✗SVG'} ${portraitData.includes('<rect') ? '✓RECT' : '✗RECT'} ${portraitData.includes('<circle') ? '✓CIRCLE' : '✗CIRCLE'}
-                </div>
-            `;
-
-            return (
-                <div
-                    className={`portrait-preview portrait-svg ${className}`}
+        console.log('🎭 PortraitPreview: Showing success state - data type:', typeof portraitData, 'data length:', portraitData.length);
+        return (
+            <div className="portrait-preview" style={containerStyle}>
+                <div dangerouslySetInnerHTML={{ __html: portraitData }} />
+                <button
+                    onClick={toggleDebug}
                     style={{
-                        width: dimensions.width,
-                        height: dimensions.height,
-                        border: '3px solid #4caf50',
-                        backgroundColor: '#f0f8ff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        position: 'relative',
-                        ...style
+                        position: 'absolute',
+                        right: '5px',
+                        bottom: '5px',
+                        background: 'rgba(0,0,0,0.5)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '3px',
+                        padding: '2px 5px',
+                        fontSize: '10px'
                     }}
-                    dangerouslySetInnerHTML={{ __html: portraitData + debugOverlay }}
-                />
-            );
-        } else {
-            // Image format (PNG/JPG) or data URL
-            return (
-                <img
-                    src={portraitData}
-                    alt={`${character.name} portrait`}
-                    className={`portrait-preview portrait-img ${className}`}
-                    style={{
-                        width: dimensions.width,
-                        height: dimensions.height,
-                        objectFit: 'cover',
-                        border: '2px solid #4caf50',
-                        ...style
-                    }}
-                />
-            );
-        }
+                >
+                    🐞
+                </button>
+            </div>
+        );
     }
 
     // Fallback empty state
     console.log('🎭 PortraitPreview: Showing fallback empty state - no portrait data available');
     return (
-        <div
-            className={`portrait-preview portrait-empty ${className}`}
-            style={{
-                width: dimensions.width,
-                height: dimensions.height,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#fff3e0',
-                border: '3px solid #ff9800',
-                ...style
-            }}
-        >
-            <div style={{
-                fontSize: size === 'small' ? '10px' : '12px',
-                color: '#f57c00',
-                textAlign: 'center',
-                fontWeight: 'bold'
-            }}>
+        <div className="portrait-preview" style={containerStyle}>
+            <div style={{ textAlign: 'center', color: '#f57c00', fontWeight: 'bold' }}>
                 ⚠️ No Portrait
                 <br />
                 <small>Check console for details</small>
             </div>
+
+            {showDebug && (
+                <div style={{
+                    position: 'absolute',
+                    top: '0',
+                    left: '0',
+                    width: '100%',
+                    background: 'rgba(0,0,0,0.8)',
+                    color: 'white',
+                    padding: '10px',
+                    fontSize: '12px',
+                    zIndex: 10,
+                    overflow: 'auto',
+                    maxHeight: '100%'
+                }}>
+                    <h4>Portrait Debug</h4>
+                    <div>Character: {character.name || 'Unnamed'}</div>
+                    <div>Species: {character.species || 'Not set'}</div>
+                    <div>Archetype: {character.archetype || 'Not set'}</div>
+                    <pre style={{ fontSize: '10px', overflow: 'auto', maxHeight: '100px' }}>
+                        {JSON.stringify(options, null, 2)}
+                    </pre>
+                    <button onClick={toggleDebug}>Close</button>
+                </div>
+            )}
         </div>
     );
 };

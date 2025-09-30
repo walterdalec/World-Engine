@@ -29,9 +29,10 @@ interface Props {
   onSpellAssignment: () => void;
   onHealingSystem: () => void;
   onCharacterCreate: () => void;
+  onPortraitTest: () => void;
 }
 
-export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate }: Props) {
+export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onPortraitTest }: Props) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [characters, setCharacters] = useState<SavedCharacter[]>([]);
   const [activeTab, setActiveTab] = useState<'campaigns' | 'characters'>('campaigns');
@@ -386,8 +387,8 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
                   archetype: character.data.archetype,
                   level: character.level || 1
                 })}
-                size="medium"
-                style={{ flexShrink: 0, width: 120, height: 120 }}
+                width={120}
+                height={120}
               />
             ) : (
               <div style={{
@@ -734,6 +735,12 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
                 <p style={{ margin: 0, opacity: 0.9 }}>Manage party health & healing</p>
               </div>
 
+              <div style={newCardStyle} onClick={onPortraitTest}>
+                <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🎭</div>
+                <h3 style={{ margin: '0 0 5px 0' }}>Portrait Test</h3>
+                <p style={{ margin: 0, opacity: 0.9 }}>Test all portrait combinations</p>
+              </div>
+
               {characters.map(character => (
                 <div key={character.id} style={cardStyle}>
                   <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
@@ -745,8 +752,8 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
                           archetype: character.data.archetype,
                           level: character.level || 1
                         })}
-                        size="small"
-                        style={{ flexShrink: 0, width: 60, height: 60 }}
+                        width={60}
+                        height={60}
                       />
                     ) : (
                       <div style={{
