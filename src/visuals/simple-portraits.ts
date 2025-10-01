@@ -36,7 +36,6 @@ export async function generateSimplePortrait(options: SimplePortraitOptions): Pr
 
         // Base layer (gender-specific) - always include
         const basePath = getAssetUrl(`portraits-new/base/${gender}/neutral.png`);
-        console.log(`🔍 Base asset path: ${basePath}`);
         layers.push({
             type: 'base',
             src: basePath,
@@ -45,7 +44,6 @@ export async function generateSimplePortrait(options: SimplePortraitOptions): Pr
 
         // Race layer (species overlay) - always include  
         const racePath = getAssetUrl(`portraits-new/race/${species}.png`);
-        console.log(`🔍 Race asset path: ${racePath}`);
         layers.push({
             type: 'race',
             src: racePath,
@@ -54,7 +52,6 @@ export async function generateSimplePortrait(options: SimplePortraitOptions): Pr
 
         // Class layer (archetype overlay) - always include
         const classPath = getAssetUrl(`portraits-new/class/${archetype}.png`);
-        console.log(`🔍 Class asset path: ${classPath}`);
         layers.push({
             type: 'class',
             src: classPath,
@@ -74,8 +71,6 @@ export async function generateSimplePortrait(options: SimplePortraitOptions): Pr
         // Generate composite image
         const dataUrl = await compositeImages(layers, size);
 
-        console.log(`🎭 Generated portrait: ${gender} ${species} ${archetype} (${layers.length} layers)`);
-
         return {
             success: true,
             layers,
@@ -83,7 +78,7 @@ export async function generateSimplePortrait(options: SimplePortraitOptions): Pr
         };
 
     } catch (error) {
-        console.error('🎭 Portrait generation failed:', error);
+        // Silently handle errors to prevent console spam
         return {
             success: false,
             layers: [],
@@ -151,8 +146,8 @@ function loadAndDrawLayer(
         };
 
         img.onerror = () => {
-            console.warn(`🎭 Failed to load ${layer.type} layer: ${layer.src}`);
-            resolve(); // Continue with other layers
+            // Silently fail for missing assets to prevent console spam
+            resolve();
         };
 
         img.src = layer.src;
