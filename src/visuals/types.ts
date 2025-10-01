@@ -9,7 +9,7 @@ export interface CharacterVisualData {
     level: number;
 
     // Character identity
-    pronouns?: 'she/her' | 'he/him' | 'they/them' | 'xe/xir' | 'ze/hir' | 'fae/faer';
+    gender?: 'Female' | 'Male';
 
     // Physical characteristics
     appearance: {

@@ -12,8 +12,8 @@ const SPECIES_OPTIONS = [
   "Human", "Sylvanborn", "Alloy", "Draketh", "Voidkin", "Crystalborn", "Stormcaller"
 ];
 
-const PRONOUN_OPTIONS = [
-  "she/her", "he/him", "they/them", "xe/xir", "ze/hir", "fae/faer"
+const GENDER_OPTIONS = [
+  "Female", "Male"
 ];
 
 const SPECIES_TRAIT_RULES: Record<string, {
@@ -1194,7 +1194,7 @@ function SpellsBySchool({ engine, characterId }: { engine: WorldEngine; characte
 function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
   const [formData, setFormData] = useState({
     name: '',
-    pronouns: 'they/them',
+    gender: 'Female',
     species: 'Human',
     archetype: 'Greenwarden',
     background: 'Commoner',
@@ -1255,7 +1255,7 @@ function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
 
     const character = engine.addCharacter({
       name: formData.name.trim(),
-      pronouns: formData.pronouns,
+      gender: formData.gender,
       species: formData.species,
       archetype: formData.archetype,
       background: formData.background,
@@ -1270,7 +1270,7 @@ function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
     // Reset form
     setFormData({
       name: '',
-      pronouns: 'they/them',
+      gender: 'Female',
       species: 'Human',
       archetype: 'Fighter',
       background: 'Commoner',
@@ -1331,11 +1331,11 @@ function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
               <label style={{ display: 'block', fontSize: '12px', color: '#cbd5e1', marginBottom: '4px' }}>
-                Pronouns
+                Gender
               </label>
               <select
-                value={formData.pronouns}
-                onChange={(e) => setFormData(prev => ({ ...prev, pronouns: e.target.value }))}
+                value={formData.gender}
+                onChange={(e) => setFormData(prev => ({ ...prev, gender: e.target.value }))}
                 style={{
                   width: '100%',
                   padding: '8px 12px',
@@ -1346,7 +1346,7 @@ function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
                   fontSize: '14px'
                 }}
               >
-                {PRONOUN_OPTIONS.map(option => (
+                {GENDER_OPTIONS.map(option => (
                   <option key={option} value={option}>{option}</option>
                 ))}
               </select>
@@ -1850,7 +1850,7 @@ function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
                 <div>
                   <h5 style={{ color: '#e2e8f0', marginBottom: '12px' }}>Basic Info</h5>
                   <div style={{ fontSize: '14px', color: '#cbd5e1', lineHeight: '1.6' }}>
-                    <div><strong>{formData.name}</strong> ({formData.pronouns})</div>
+                    <div><strong>{formData.name}</strong> ({formData.gender})</div>
                     <div>{formData.species} {formData.archetype}</div>
                     <div>Level {formData.level} {formData.background}</div>
                   </div>

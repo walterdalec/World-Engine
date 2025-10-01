@@ -18,7 +18,7 @@ import { DEFAULT_WORLDS } from "./defaultWorlds";
 // Character type definition
 type Character = {
   name: string;
-  pronouns: string;
+  gender: string;
   species: string;
   archetype: string;
   background: string;

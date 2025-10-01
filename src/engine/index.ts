@@ -28,7 +28,7 @@ export type { MagicalSpell, MagicalSchool, SpellTier } from '../proc/magicalSpel
 export interface Character {
   id: string;
   name: string;
-  pronouns: string;
+  gender: string;
   species: string;
   archetype: string;
   background: string;

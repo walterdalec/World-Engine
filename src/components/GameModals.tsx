@@ -77,7 +77,7 @@ export default function GameModals({
               <p style={{ color: '#cbd5e1', marginBottom: '16px' }}>
                 Customize your world generation parameters. Changes will regenerate the entire world.
               </p>
-              
+
               <div style={{ display: 'grid', gap: '16px' }}>
                 <div>
                   <label style={{ display: 'block', marginBottom: '8px', color: '#e2e8f0' }}>
@@ -92,7 +92,7 @@ export default function GameModals({
                     style={{ width: '100%' }}
                   />
                 </div>
-                
+
                 <div>
                   <label style={{ display: 'block', marginBottom: '8px', color: '#e2e8f0' }}>
                     Continent Frequency (Lower = Larger Continents)
@@ -106,7 +106,7 @@ export default function GameModals({
                     style={{ width: '100%' }}
                   />
                 </div>
-                
+
                 <div>
                   <label style={{ display: 'block', marginBottom: '8px', color: '#e2e8f0' }}>
                     Feature Frequency (Lower = Larger Features)
@@ -178,12 +178,11 @@ export default function GameModals({
             color: '#f9fafb',
             padding: '32px',
             borderRadius: '12px',
-            border: `3px solid ${
-              activeEncounter.danger === 'extreme' ? '#dc2626' :
-              activeEncounter.danger === 'high' ? '#ea580c' :
-              activeEncounter.danger === 'medium' ? '#eab308' :
-              activeEncounter.danger === 'low' ? '#65a30d' : '#059669'
-            }`,
+            border: `3px solid ${activeEncounter.danger === 'extreme' ? '#dc2626' :
+                activeEncounter.danger === 'high' ? '#ea580c' :
+                  activeEncounter.danger === 'medium' ? '#eab308' :
+                    activeEncounter.danger === 'low' ? '#65a30d' : '#059669'
+              }`,
             maxWidth: '700px',
             width: '90%',
             maxHeight: '80vh',
@@ -191,48 +190,47 @@ export default function GameModals({
             boxShadow: '0 20px 60px rgba(0, 0, 0, 0.8)'
           }}>
             <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-              <div style={{ 
-                fontSize: '48px', 
+              <div style={{
+                fontSize: '48px',
                 marginBottom: '16px',
                 filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.8))'
               }}>
                 {activeEncounter.type === 'combat' ? '⚔️' :
-                 activeEncounter.type === 'discovery' ? '🗺️' :
-                 activeEncounter.type === 'trader' ? '🏪' :
-                 activeEncounter.type === 'event' ? '📜' : '❓'}
+                  activeEncounter.type === 'discovery' ? '🗺️' :
+                    activeEncounter.type === 'trader' ? '🏪' :
+                      activeEncounter.type === 'event' ? '📜' : '❓'}
               </div>
-              
-              <h2 style={{ 
-                margin: '0 0 8px 0', 
+
+              <h2 style={{
+                margin: '0 0 8px 0',
                 color: '#f1f5f9',
                 fontSize: '28px',
                 textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)'
               }}>
                 {activeEncounter.name}
               </h2>
-              
+
               <div style={{
                 display: 'inline-block',
                 padding: '4px 12px',
                 borderRadius: '20px',
                 fontSize: '12px',
                 fontWeight: 'bold',
-                backgroundColor: 
+                backgroundColor:
                   activeEncounter.danger === 'extreme' ? 'rgba(220, 38, 38, 0.3)' :
-                  activeEncounter.danger === 'high' ? 'rgba(234, 88, 12, 0.3)' :
-                  activeEncounter.danger === 'medium' ? 'rgba(234, 179, 8, 0.3)' :
-                  activeEncounter.danger === 'low' ? 'rgba(101, 163, 13, 0.3)' : 'rgba(5, 150, 105, 0.3)',
-                color: 
+                    activeEncounter.danger === 'high' ? 'rgba(234, 88, 12, 0.3)' :
+                      activeEncounter.danger === 'medium' ? 'rgba(234, 179, 8, 0.3)' :
+                        activeEncounter.danger === 'low' ? 'rgba(101, 163, 13, 0.3)' : 'rgba(5, 150, 105, 0.3)',
+                color:
                   activeEncounter.danger === 'extreme' ? '#fca5a5' :
-                  activeEncounter.danger === 'high' ? '#fdba74' :
-                  activeEncounter.danger === 'medium' ? '#fde047' :
-                  activeEncounter.danger === 'low' ? '#a3e635' : '#6ee7b7',
-                border: `1px solid ${
-                  activeEncounter.danger === 'extreme' ? '#dc2626' :
-                  activeEncounter.danger === 'high' ? '#ea580c' :
-                  activeEncounter.danger === 'medium' ? '#eab308' :
-                  activeEncounter.danger === 'low' ? '#65a30d' : '#059669'
-                }`
+                    activeEncounter.danger === 'high' ? '#fdba74' :
+                      activeEncounter.danger === 'medium' ? '#fde047' :
+                        activeEncounter.danger === 'low' ? '#a3e635' : '#6ee7b7',
+                border: `1px solid ${activeEncounter.danger === 'extreme' ? '#dc2626' :
+                    activeEncounter.danger === 'high' ? '#ea580c' :
+                      activeEncounter.danger === 'medium' ? '#eab308' :
+                        activeEncounter.danger === 'low' ? '#65a30d' : '#059669'
+                  }`
               }}>
                 {activeEncounter.danger.toUpperCase()} RISK
               </div>
@@ -245,9 +243,9 @@ export default function GameModals({
               marginBottom: '24px',
               border: '1px solid rgba(75, 85, 99, 0.5)'
             }}>
-              <p style={{ 
-                margin: 0, 
-                fontSize: '16px', 
+              <p style={{
+                margin: 0,
+                fontSize: '16px',
                 lineHeight: '1.6',
                 color: '#e2e8f0'
               }}>
@@ -259,8 +257,8 @@ export default function GameModals({
             {activeEncounter.rewards && (
               <div style={{ marginBottom: '24px' }}>
                 <h4 style={{ margin: '0 0 12px 0', color: '#fbbf24' }}>💰 Potential Rewards</h4>
-                <div style={{ 
-                  fontSize: '14px', 
+                <div style={{
+                  fontSize: '14px',
                   color: '#cbd5e1',
                   backgroundColor: 'rgba(251, 191, 36, 0.1)',
                   padding: '12px',
@@ -281,10 +279,10 @@ export default function GameModals({
             )}
 
             {/* Action Buttons */}
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', 
-              gap: '12px' 
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+              gap: '12px'
             }}>
               {activeEncounter.type === 'combat' && (
                 <>
@@ -322,7 +320,7 @@ export default function GameModals({
                   </button>
                 </>
               )}
-              
+
               {(activeEncounter.type === 'trader' || activeEncounter.type === 'event') && (
                 <button
                   onClick={() => onEncounterAction('negotiate')}
@@ -341,7 +339,7 @@ export default function GameModals({
                   💬 Interact
                 </button>
               )}
-              
+
               {activeEncounter.type === 'discovery' && (
                 <button
                   onClick={() => onEncounterAction('explore')}
@@ -360,7 +358,7 @@ export default function GameModals({
                   🔍 Explore
                 </button>
               )}
-              
+
               {/* Always show dismiss option */}
               <button
                 onClick={onCloseEncounterModal}
@@ -482,9 +480,9 @@ function CharacterList({ engine }: { engine: { getPartyCharacters: () => any[] }
             <div>
               <h3 style={{ margin: '0 0 8px 0', color: '#60a5fa' }}>{char.name}</h3>
               <div style={{ fontSize: '14px', color: '#cbd5e1', marginBottom: '12px' }}>
-                Level {char.level} {char.species} {char.archetype} • {char.pronouns}
+                Level {char.level} {char.species} {char.archetype} • {char.gender}
               </div>
-              
+
               {/* Stats Grid */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
                 <div style={{ fontSize: '12px' }}>
@@ -539,7 +537,7 @@ function CharacterList({ engine }: { engine: { getPartyCharacters: () => any[] }
             <div>
               <h4 style={{ margin: '0 0 8px 0', color: '#4ade80', fontSize: '14px' }}>⚔️ Abilities ({char.knownAbilities.length})</h4>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                {char.knownAbilities.length > 0 ? 
+                {char.knownAbilities.length > 0 ?
                   char.knownAbilities.slice(0, 3).map((ability: string, i: number) => (
                     <div key={i} style={{
                       padding: '2px 6px',
@@ -550,7 +548,7 @@ function CharacterList({ engine }: { engine: { getPartyCharacters: () => any[] }
                     }}>
                       {ability}
                     </div>
-                  )) : 
+                  )) :
                   <div style={{ fontSize: '10px', color: '#6b7280', fontStyle: 'italic' }}>None learned</div>
                 }
                 {char.knownAbilities.length > 3 && (
@@ -558,11 +556,11 @@ function CharacterList({ engine }: { engine: { getPartyCharacters: () => any[] }
                 )}
               </div>
             </div>
-            
+
             <div>
               <h4 style={{ margin: '0 0 8px 0', color: '#8b5cf6', fontSize: '14px' }}>✨ Spells ({char.knownSpells.length})</h4>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                {char.knownSpells.length > 0 ? 
+                {char.knownSpells.length > 0 ?
                   char.knownSpells.slice(0, 3).map((spell: string, i: number) => (
                     <div key={i} style={{
                       padding: '2px 6px',
@@ -573,7 +571,7 @@ function CharacterList({ engine }: { engine: { getPartyCharacters: () => any[] }
                     }}>
                       {spell}
                     </div>
-                  )) : 
+                  )) :
                   <div style={{ fontSize: '10px', color: '#6b7280', fontStyle: 'italic' }}>None learned</div>
                 }
                 {char.knownSpells.length > 3 && (

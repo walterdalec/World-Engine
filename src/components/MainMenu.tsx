@@ -419,10 +419,10 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
 
           {character.data && (
             <>
-              {character.data.pronouns && (
+              {character.data.gender && (
                 <div style={{ marginBottom: '15px' }}>
-                  <h4 style={{ margin: '0 0 8px 0', color: '#8b5cf6' }}>Pronouns</h4>
-                  <p style={{ margin: 0, color: '#e2e8f0' }}>{character.data.pronouns}</p>
+                  <h4 style={{ margin: '0 0 8px 0', color: '#8b5cf6' }}>Gender</h4>
+                  <p style={{ margin: 0, color: '#e2e8f0' }}>{character.data.gender}</p>
                 </div>
               )}
 

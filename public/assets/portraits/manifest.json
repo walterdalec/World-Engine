@@ -1,6 +1,6 @@
 {
   "version": "3.0.0",
-  "lastUpdated": "2025-09-29T07:12:19.508Z",
+  "lastUpdated": "2025-10-01T07:33:58.405Z",
   "categories": [
     "base",
     "face/eyes",
@@ -473,6 +473,326 @@
       "id": "weapons_sword",
       "category": "weapons",
       "path": "weapons/sword.svg"
+    },
+    {
+      "id": "portraits_accessories_bone_charm",
+      "category": "portraits/accessories",
+      "path": "portraits/accessories/bone_charm.svg"
+    },
+    {
+      "id": "portraits_accessories_crystal_pendant",
+      "category": "portraits/accessories",
+      "path": "portraits/accessories/crystal_pendant.svg"
+    },
+    {
+      "id": "portraits_accessories_feather_cloak",
+      "category": "portraits/accessories",
+      "path": "portraits/accessories/feather_cloak.svg"
+    },
+    {
+      "id": "portraits_accessories_leaf_circlet",
+      "category": "portraits/accessories",
+      "path": "portraits/accessories/leaf_circlet.svg"
+    },
+    {
+      "id": "portraits_accessories_storm_goggles",
+      "category": "portraits/accessories",
+      "path": "portraits/accessories/storm_goggles.svg"
+    },
+    {
+      "id": "portraits_base_alloy",
+      "category": "portraits/base",
+      "path": "portraits/base/alloy.svg"
+    },
+    {
+      "id": "portraits_base_crystalborn",
+      "category": "portraits/base",
+      "path": "portraits/base/crystalborn.svg"
+    },
+    {
+      "id": "portraits_base_draketh",
+      "category": "portraits/base",
+      "path": "portraits/base/draketh.svg"
+    },
+    {
+      "id": "portraits_base_human",
+      "category": "portraits/base",
+      "path": "portraits/base/human.svg"
+    },
+    {
+      "id": "portraits_base_stormcaller",
+      "category": "portraits/base",
+      "path": "portraits/base/stormcaller.svg"
+    },
+    {
+      "id": "portraits_base_sylvanborn",
+      "category": "portraits/base",
+      "path": "portraits/base/sylvanborn.svg"
+    },
+    {
+      "id": "portraits_base_voidkin",
+      "category": "portraits/base",
+      "path": "portraits/base/voidkin.svg"
+    },
+    {
+      "id": "portraits_clothing_ashenreach_ashblade",
+      "category": "portraits/clothing/ashenreach",
+      "path": "portraits/clothing/ashenreach/ashblade.svg"
+    },
+    {
+      "id": "portraits_clothing_ashenreach_bonechanter",
+      "category": "portraits/clothing/ashenreach",
+      "path": "portraits/clothing/ashenreach/bonechanter.svg"
+    },
+    {
+      "id": "portraits_clothing_ashenreach_cinder_mystic",
+      "category": "portraits/clothing/ashenreach",
+      "path": "portraits/clothing/ashenreach/cinder_mystic.svg"
+    },
+    {
+      "id": "portraits_clothing_ashenreach_dust_ranger",
+      "category": "portraits/clothing/ashenreach",
+      "path": "portraits/clothing/ashenreach/dust_ranger.svg"
+    },
+    {
+      "id": "portraits_clothing_skyvault_sky_knight",
+      "category": "portraits/clothing/skyvault",
+      "path": "portraits/clothing/skyvault/sky_knight.svg"
+    },
+    {
+      "id": "portraits_clothing_skyvault_stormcaller_cls",
+      "category": "portraits/clothing/skyvault",
+      "path": "portraits/clothing/skyvault/stormcaller_cls.svg"
+    },
+    {
+      "id": "portraits_clothing_skyvault_voidwing",
+      "category": "portraits/clothing/skyvault",
+      "path": "portraits/clothing/skyvault/voidwing.svg"
+    },
+    {
+      "id": "portraits_clothing_skyvault_wind_sage",
+      "category": "portraits/clothing/skyvault",
+      "path": "portraits/clothing/skyvault/wind_sage.svg"
+    },
+    {
+      "id": "portraits_clothing_verdance_bloomcaller",
+      "category": "portraits/clothing/verdance",
+      "path": "portraits/clothing/verdance/bloomcaller.svg"
+    },
+    {
+      "id": "portraits_clothing_verdance_greenwarden",
+      "category": "portraits/clothing/verdance",
+      "path": "portraits/clothing/verdance/greenwarden.svg"
+    },
+    {
+      "id": "portraits_clothing_verdance_sapling_adept",
+      "category": "portraits/clothing/verdance",
+      "path": "portraits/clothing/verdance/sapling_adept.svg"
+    },
+    {
+      "id": "portraits_clothing_verdance_thorn_knight",
+      "category": "portraits/clothing/verdance",
+      "path": "portraits/clothing/verdance/thorn_knight.svg"
+    },
+    {
+      "id": "portraits_effects_aura_ashenreach",
+      "category": "portraits/effects",
+      "path": "portraits/effects/aura_ashenreach.svg"
+    },
+    {
+      "id": "portraits_effects_aura_crystal",
+      "category": "portraits/effects",
+      "path": "portraits/effects/aura_crystal.svg"
+    },
+    {
+      "id": "portraits_effects_aura_skyvault",
+      "category": "portraits/effects",
+      "path": "portraits/effects/aura_skyvault.svg"
+    },
+    {
+      "id": "portraits_effects_aura_storm",
+      "category": "portraits/effects",
+      "path": "portraits/effects/aura_storm.svg"
+    },
+    {
+      "id": "portraits_effects_aura_verdance",
+      "category": "portraits/effects",
+      "path": "portraits/effects/aura_verdance.svg"
+    },
+    {
+      "id": "portraits_effects_aura_void",
+      "category": "portraits/effects",
+      "path": "portraits/effects/aura_void.svg"
+    },
+    {
+      "id": "portraits_effects_soft_shadow",
+      "category": "portraits/effects",
+      "path": "portraits/effects/soft_shadow.svg"
+    },
+    {
+      "id": "portraits_face_brows_brows_arced",
+      "category": "portraits/face/brows",
+      "path": "portraits/face/brows/brows_arced.svg"
+    },
+    {
+      "id": "portraits_face_brows_brows_thick",
+      "category": "portraits/face/brows",
+      "path": "portraits/face/brows/brows_thick.svg"
+    },
+    {
+      "id": "portraits_face_brows_brows_thin",
+      "category": "portraits/face/brows",
+      "path": "portraits/face/brows/brows_thin.svg"
+    },
+    {
+      "id": "portraits_face_eyes_eyes_glow",
+      "category": "portraits/face/eyes",
+      "path": "portraits/face/eyes/eyes_glow.svg"
+    },
+    {
+      "id": "portraits_face_eyes_eyes_heavy",
+      "category": "portraits/face/eyes",
+      "path": "portraits/face/eyes/eyes_heavy.svg"
+    },
+    {
+      "id": "portraits_face_eyes_eyes_round",
+      "category": "portraits/face/eyes",
+      "path": "portraits/face/eyes/eyes_round.svg"
+    },
+    {
+      "id": "portraits_face_eyes_eyes_sharp",
+      "category": "portraits/face/eyes",
+      "path": "portraits/face/eyes/eyes_sharp.svg"
+    },
+    {
+      "id": "portraits_face_mouth_mouth_grim",
+      "category": "portraits/face/mouth",
+      "path": "portraits/face/mouth/mouth_grim.svg"
+    },
+    {
+      "id": "portraits_face_mouth_mouth_neutral",
+      "category": "portraits/face/mouth",
+      "path": "portraits/face/mouth/mouth_neutral.svg"
+    },
+    {
+      "id": "portraits_face_mouth_mouth_smile",
+      "category": "portraits/face/mouth",
+      "path": "portraits/face/mouth/mouth_smile.svg"
+    },
+    {
+      "id": "portraits_face_mouth_mouth_snarl",
+      "category": "portraits/face/mouth",
+      "path": "portraits/face/mouth/mouth_snarl.svg"
+    },
+    {
+      "id": "portraits_facial_hair_beard_short",
+      "category": "portraits/facial_hair",
+      "path": "portraits/facial_hair/beard_short.svg"
+    },
+    {
+      "id": "portraits_facial_hair_mustache",
+      "category": "portraits/facial_hair",
+      "path": "portraits/facial_hair/mustache.svg"
+    },
+    {
+      "id": "portraits_facial_hair_stubble",
+      "category": "portraits/facial_hair",
+      "path": "portraits/facial_hair/stubble.svg"
+    },
+    {
+      "id": "portraits_hair_curly",
+      "category": "portraits/hair",
+      "path": "portraits/hair/curly.svg"
+    },
+    {
+      "id": "portraits_hair_locs",
+      "category": "portraits/hair",
+      "path": "portraits/hair/locs.svg"
+    },
+    {
+      "id": "portraits_hair_long_wavy",
+      "category": "portraits/hair",
+      "path": "portraits/hair/long_wavy.svg"
+    },
+    {
+      "id": "portraits_hair_shaved",
+      "category": "portraits/hair",
+      "path": "portraits/hair/shaved.svg"
+    },
+    {
+      "id": "portraits_hair_short_straight",
+      "category": "portraits/hair",
+      "path": "portraits/hair/short_straight.svg"
+    },
+    {
+      "id": "portraits_hair_topknot",
+      "category": "portraits/hair",
+      "path": "portraits/hair/topknot.svg"
+    },
+    {
+      "id": "portraits_hair_undercut",
+      "category": "portraits/hair",
+      "path": "portraits/hair/undercut.svg"
+    },
+    {
+      "id": "portraits_weapons_ashblade_sword",
+      "category": "portraits/weapons",
+      "path": "portraits/weapons/ashblade_sword.svg"
+    },
+    {
+      "id": "portraits_weapons_bloomcaller_rod",
+      "category": "portraits/weapons",
+      "path": "portraits/weapons/bloomcaller_rod.svg"
+    },
+    {
+      "id": "portraits_weapons_bonechanter_totem",
+      "category": "portraits/weapons",
+      "path": "portraits/weapons/bonechanter_totem.svg"
+    },
+    {
+      "id": "portraits_weapons_cinder_mystic_staff",
+      "category": "portraits/weapons",
+      "path": "portraits/weapons/cinder_mystic_staff.svg"
+    },
+    {
+      "id": "portraits_weapons_dust_ranger_bow",
+      "category": "portraits/weapons",
+      "path": "portraits/weapons/dust_ranger_bow.svg"
+    },
+    {
+      "id": "portraits_weapons_greenwarden_spear",
+      "category": "portraits/weapons",
+      "path": "portraits/weapons/greenwarden_spear.svg"
+    },
+    {
+      "id": "portraits_weapons_sapling_adept_staff",
+      "category": "portraits/weapons",
+      "path": "portraits/weapons/sapling_adept_staff.svg"
+    },
+    {
+      "id": "portraits_weapons_sky_knight_lance",
+      "category": "portraits/weapons",
+      "path": "portraits/weapons/sky_knight_lance.svg"
+    },
+    {
+      "id": "portraits_weapons_stormcaller_cls_staff",
+      "category": "portraits/weapons",
+      "path": "portraits/weapons/stormcaller_cls_staff.svg"
+    },
+    {
+      "id": "portraits_weapons_thorn_knight_morningstar",
+      "category": "portraits/weapons",
+      "path": "portraits/weapons/thorn_knight_morningstar.svg"
+    },
+    {
+      "id": "portraits_weapons_voidwing_daggers",
+      "category": "portraits/weapons",
+      "path": "portraits/weapons/voidwing_daggers.svg"
+    },
+    {
+      "id": "portraits_weapons_wind_sage_fan",
+      "category": "portraits/weapons",
+      "path": "portraits/weapons/wind_sage_fan.svg"
     }
   ]
 }

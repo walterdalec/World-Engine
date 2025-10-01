@@ -21,7 +21,7 @@ function calculateStatCost(value: number): number {
 
 type Character = {
   name: string;
-  pronouns: string;
+  gender: string;
   species: string;
   archetype: string;
   background: string;
@@ -314,13 +314,9 @@ const SPECIES_OPTIONS = [
   "Human", "Sylvanborn", "Alloy", "Draketh", "Voidkin", "Crystalborn", "Stormcaller"
 ];
 
-const PRONOUN_OPTIONS = [
-  "she/her",
-  "he/him",
-  "they/them",
-  "xe/xir",
-  "ze/hir",
-  "fae/faer"
+const GENDER_OPTIONS = [
+  "Female",
+  "Male"
 ];
 
 const ARCHETYPE_OPTIONS = [
@@ -389,7 +385,7 @@ const BACKGROUND_WORDS = {
 const PREMADE_CHARACTERS = [
   {
     name: "Kira Stormwind",
-    pronouns: "she/her",
+    gender: "Female",
     species: "Stormcaller",
     archetype: "Mystic",
     background: "A former temple acolyte who left their old life behind after a mystical awakening. Now they seek knowledge in the wider world, wielding storm magic passed down through generations.",
@@ -400,10 +396,10 @@ const PREMADE_CHARACTERS = [
   },
   {
     name: "Marcus Ironforge",
-    pronouns: "he/him",
+    gender: "Male",
     species: "Alloy",
     archetype: "Artificer",
-    background: "Born in the crystal caves, they were raised by wise elders and learned the ways of crafting. Their greatest challenge was mastering the fusion of magic and metal that defines their people.",
+    background: "Born in the crystal caves, he was raised by wise elders and learned the ways of crafting. His greatest challenge was mastering the fusion of magic and metal that defines his people.",
     stats: { STR: 13, DEX: 11, CON: 15, INT: 14, WIS: 12, CHA: 8 },
     traits: ["Clever", "Iron Will", "Stoic"],
     portraitUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face",
@@ -411,10 +407,10 @@ const PREMADE_CHARACTERS = [
   },
   {
     name: "Zara Nightwhisper",
-    pronouns: "they/them",
+    gender: "Female",
     species: "Voidkin",
     archetype: "Rogue",
-    background: "A wandering soul from the shadow realm who fought in great battles against the encroaching darkness. Their destiny was forever changed when they discovered their connection to the void grants them unique abilities.",
+    background: "A wandering soul from the shadow realm who fought in great battles against the encroaching darkness. Her destiny was forever changed when she discovered her connection to the void grants her unique abilities.",
     stats: { STR: 9, DEX: 15, CON: 11, INT: 12, WIS: 14, CHA: 13 },
     traits: ["Cunning", "Lucky", "Observant"],
     portraitUrl: "https://images.unsplash.com/photo-1494790108755-2616c4b43e69?w=300&h=300&fit=crop&crop=face",
@@ -524,7 +520,7 @@ const MAX_STAT = 20;
 export default function CharacterCreate() {
   const [char, setChar] = useState<Character>({
     name: "",
-    pronouns: "",
+    gender: "",
     species: "",
     archetype: "",
     background: "",
@@ -785,7 +781,7 @@ export default function CharacterCreate() {
   function resetAll() {
     setChar({
       name: "",
-      pronouns: "",
+      gender: "",
       species: "",
       archetype: "",
       background: "",
@@ -911,7 +907,7 @@ export default function CharacterCreate() {
           <h2 style={sectionTitle}>Identity</h2>
           <div style={{ display: "grid", gap: 8 }}>
             <TextRow label="Name" value={char.name} onChange={(v) => setField("name", v)} />
-            <SelectRow label="Pronouns" value={char.pronouns} onChange={(v) => setField("pronouns", v)} options={PRONOUN_OPTIONS} />
+            <SelectRow label="Gender" value={char.gender} onChange={(v) => setField("gender", v)} options={GENDER_OPTIONS} />
             <SelectRow label="Species" value={char.species} onChange={(v) => setField("species", v)} options={SPECIES_OPTIONS} />
             {char.species && RACIAL_MODIFIERS[char.species] && (
               <div style={{ fontSize: 12, opacity: 0.7, marginTop: -4 }}>
@@ -1459,7 +1455,7 @@ export default function CharacterCreate() {
 
         <div><strong>{char.name || "Unnamed Adventurer"}</strong></div>
         <div style={{ opacity: 0.8, marginBottom: 8 }}>
-          {[char.pronouns, char.species, char.archetype].filter(Boolean).join(" • ")}
+          {[char.gender, char.species, char.archetype].filter(Boolean).join(" • ")}
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6, marginBottom: 8 }}>

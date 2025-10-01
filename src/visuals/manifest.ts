@@ -544,7 +544,7 @@ export interface PresetDefinition {
     species: string;
     world: string;
     archetype: string;
-    pronouns: string;
+    gender: string;
     layers: string[];
 }
 
@@ -592,14 +592,14 @@ export async function getPresetsByFilter(filter: {
     species?: string;
     world?: string;
     archetype?: string;
-    pronouns?: string;
+    gender?: string;
 }): Promise<PresetDefinition[]> {
     const presets = await loadPresets();
     return presets.filter(preset => {
         return (!filter.species || preset.species === filter.species) &&
             (!filter.world || preset.world === filter.world) &&
             (!filter.archetype || preset.archetype === filter.archetype) &&
-            (!filter.pronouns || preset.pronouns === filter.pronouns);
+            (!filter.gender || preset.gender === filter.gender);
     });
 }
 

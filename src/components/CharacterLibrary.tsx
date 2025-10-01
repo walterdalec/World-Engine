@@ -4,7 +4,7 @@ import { Engine } from '../engine.d';
 // Use the same Character type as CharacterCreate
 type Character = {
   name: string;
-  pronouns: string;
+  gender: string;
   species: string;
   archetype: string;
   background: string;
@@ -17,10 +17,10 @@ type Character = {
   knownCantrips?: string[]; // Array of cantrip IDs
 };
 
-type Props = { 
-  eng: Engine; 
-  party: Character[]; 
-  setParty: (p: Character[]) => void; 
+type Props = {
+  eng: Engine;
+  party: Character[];
+  setParty: (p: Character[]) => void;
   onStart: () => void;
   onCreateNew: () => void; // Navigate to character creator
 };
@@ -38,7 +38,7 @@ interface SavedCharacter {
 const PRESET_CHARACTERS = [
   {
     name: "Kira Stormwind",
-    pronouns: "she/her",
+    gender: "Female",
     species: "Stormcaller",
     archetype: "Storm Herald",
     background: "A former temple acolyte who left their old life behind after a mystical awakening. Now they seek knowledge in the wider world, wielding storm magic passed down through generations.",
@@ -49,7 +49,7 @@ const PRESET_CHARACTERS = [
   },
   {
     name: "Marcus Ironforge",
-    pronouns: "he/him", 
+    gender: "Male",
     species: "Alloy",
     archetype: "Dust Warden",
     background: "Born in the crystal caves, they were raised by wise elders and learned the ways of crafting. Their greatest challenge was mastering the fusion of magic and metal that defines their people.",
@@ -60,8 +60,8 @@ const PRESET_CHARACTERS = [
   },
   {
     name: "Zara Nightwhisper",
-    pronouns: "they/them",
-    species: "Voidkin", 
+    gender: "Female",
+    species: "Voidkin",
     archetype: "Wind Sage",
     background: "A wandering soul from the shadow realm who fought in great battles against the encroaching darkness. Their destiny was forever changed when they discovered their connection to the void grants them unique abilities.",
     stats: { STR: 9, DEX: 15, CON: 11, INT: 12, WIS: 14, CHA: 13 },
@@ -71,7 +71,7 @@ const PRESET_CHARACTERS = [
   },
   {
     name: "Theron Greenbough",
-    pronouns: "he/him",
+    gender: "Male",
     species: "Sylvanborn",
     archetype: "Greenwarden",
     background: "A guardian of the ancient forests who communes with the spirits of nature. After witnessing the corruption of his homeland, he seeks allies to restore the natural balance.",
@@ -93,7 +93,7 @@ export function CharacterLibrary({ eng, party, setParty, onStart, onCreateNew }:
     try {
       // Primary storage
       let saved = JSON.parse(localStorage.getItem('world-engine-characters') || '[]');
-      
+
       // If primary is empty, try backup
       if (saved.length === 0) {
         const backup = JSON.parse(localStorage.getItem('world-engine-characters-backup') || '[]');
@@ -104,10 +104,10 @@ export function CharacterLibrary({ eng, party, setParty, onStart, onCreateNew }:
           localStorage.setItem('world-engine-characters', JSON.stringify(saved));
         }
       }
-      
+
       console.log("CharacterLibrary: Loaded characters:", saved.length, "total");
       setSavedCharacters(saved);
-      
+
       // Create backup if we have data
       if (saved.length > 0) {
         localStorage.setItem('world-engine-characters-backup', JSON.stringify(saved));
@@ -123,12 +123,12 @@ export function CharacterLibrary({ eng, party, setParty, onStart, onCreateNew }:
       alert('Party is full! Maximum 4 characters.');
       return;
     }
-    
+
     if (party.some(c => c.name === character.name)) {
       alert('Character already in party!');
       return;
     }
-    
+
     setParty([...party, character]);
   };
 
@@ -139,7 +139,7 @@ export function CharacterLibrary({ eng, party, setParty, onStart, onCreateNew }:
   const deleteCharacter = (id: string) => {
     const confirmed = window.confirm('Are you sure you want to delete this character? This cannot be undone.');
     if (!confirmed) return;
-    
+
     const updated = savedCharacters.filter(c => c.id !== id);
     setSavedCharacters(updated);
     localStorage.setItem('world-engine-characters', JSON.stringify(updated));
@@ -236,16 +236,16 @@ export function CharacterLibrary({ eng, party, setParty, onStart, onCreateNew }:
 
           {/* Character Header */}
           <div style={{ marginBottom: "2rem" }}>
-            <h2 style={{ 
-              margin: "0 0 0.5rem", 
-              color: "#f1f5f9", 
+            <h2 style={{
+              margin: "0 0 0.5rem",
+              color: "#f1f5f9",
               fontSize: "2rem",
               fontWeight: "bold"
             }}>
               {character.name}
             </h2>
             <div style={{ color: "#94a3b8", fontSize: "1.1rem" }}>
-              {character.data.pronouns} • {character.race} {character.characterClass}
+              {character.data.gender} • {character.race} {character.characterClass}
             </div>
             <div style={{ color: "#64748b", fontSize: "0.9rem", marginTop: "0.5rem" }}>
               Created: {new Date(character.createdAt).toLocaleDateString()}
@@ -255,9 +255,9 @@ export function CharacterLibrary({ eng, party, setParty, onStart, onCreateNew }:
           {/* Stats */}
           <div style={{ marginBottom: "2rem" }}>
             <h3 style={{ color: "#e2e8f0", marginBottom: "1rem" }}>Ability Scores</h3>
-            <div style={{ 
-              display: "grid", 
-              gridTemplateColumns: "repeat(3, 1fr)", 
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
               gap: "1rem"
             }}>
               {Object.entries(character.data.stats).map(([stat, value]) => (
@@ -361,16 +361,16 @@ export function CharacterLibrary({ eng, party, setParty, onStart, onCreateNew }:
   };
 
   return (
-    <div style={{ 
-      display: "flex", 
-      flexDirection: "column", 
-      height: "100vh", 
+    <div style={{
+      display: "flex",
+      flexDirection: "column",
+      height: "100vh",
       background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
       color: "#e2e8f0"
     }}>
       {/* Header */}
-      <div style={{ 
-        padding: "1.5rem", 
+      <div style={{
+        padding: "1.5rem",
         borderBottom: "1px solid #334155",
         background: "rgba(15, 23, 42, 0.8)",
         display: "flex",
@@ -421,15 +421,15 @@ export function CharacterLibrary({ eng, party, setParty, onStart, onCreateNew }:
 
       <div style={{ display: "flex", flex: 1 }}>
         {/* Left Panel - Character Selection */}
-        <div style={{ 
-          flex: 2, 
-          padding: "1.5rem", 
+        <div style={{
+          flex: 2,
+          padding: "1.5rem",
           borderRight: "1px solid #334155",
           overflowY: "auto"
         }}>
           {/* Tab Navigation */}
-          <div style={{ 
-            display: "flex", 
+          <div style={{
+            display: "flex",
             marginBottom: "1.5rem",
             borderBottom: "1px solid #334155"
           }}>
@@ -486,9 +486,9 @@ export function CharacterLibrary({ eng, party, setParty, onStart, onCreateNew }:
           <div style={{ display: "grid", gap: "1rem" }}>
             {selectedTab === 'saved' ? (
               savedCharacters.length === 0 ? (
-                <div style={{ 
-                  textAlign: "center", 
-                  padding: "2rem", 
+                <div style={{
+                  textAlign: "center",
+                  padding: "2rem",
                   color: "#64748b",
                   fontStyle: "italic"
                 }}>
@@ -572,9 +572,9 @@ export function CharacterLibrary({ eng, party, setParty, onStart, onCreateNew }:
                       <p style={{ margin: "0.25rem 0", color: "#94a3b8", fontSize: "0.9rem" }}>
                         {char.species} {char.archetype}
                       </p>
-                      <p style={{ 
-                        margin: "0.5rem 0 0", 
-                        color: "#64748b", 
+                      <p style={{
+                        margin: "0.5rem 0 0",
+                        color: "#64748b",
                         fontSize: "0.8rem",
                         maxWidth: "300px",
                         overflow: "hidden",
@@ -606,17 +606,17 @@ export function CharacterLibrary({ eng, party, setParty, onStart, onCreateNew }:
         </div>
 
         {/* Right Panel - Current Party */}
-        <div style={{ 
-          flex: 1, 
+        <div style={{
+          flex: 1,
           padding: "1.5rem",
           background: "rgba(15, 23, 42, 0.5)"
         }}>
           <h2 style={{ marginBottom: "1rem" }}>Current Party ({party.length}/4)</h2>
-          
+
           {party.length === 0 ? (
-            <div style={{ 
-              textAlign: "center", 
-              padding: "2rem", 
+            <div style={{
+              textAlign: "center",
+              padding: "2rem",
               color: "#64748b",
               fontStyle: "italic"
             }}>

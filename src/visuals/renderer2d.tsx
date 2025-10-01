@@ -118,7 +118,7 @@ class Renderer2D {
 
         for (const species of speciesToTry) {
             try {
-                const result = await this.trySpeciesAssets(species, data.archetype, data.pronouns);
+                const result = await this.trySpeciesAssets(species, data.archetype, data.gender);
                 if (result) {
                     // Customize colors and dimensions
                     const theme = getClassVisualTheme(data.archetype);
@@ -155,13 +155,13 @@ class Renderer2D {
     /**
      * Try assets for a specific species
      */
-    private async trySpeciesAssets(species: string, archetype: string, pronouns?: string): Promise<string | null> {
+    private async trySpeciesAssets(species: string, archetype: string, gender?: string): Promise<string | null> {
         try {
             // Try preset system first
             const filterCriteria = {
                 species: species,
                 archetype: archetype,
-                pronouns: pronouns || 'they/them'
+                gender: gender || 'Female'
             };
 
             const presets = await getPresetsByFilter(filterCriteria);

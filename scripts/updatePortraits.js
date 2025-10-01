@@ -15,16 +15,12 @@ const classes = {
     Ashenreach: ["Ashblade", "Cinder Mystic", "Dust Ranger", "Bonechanter"],
     Skyvault: ["Stormcaller", "Voidwing", "Sky Knight", "Wind Sage"]
 };
-const pronouns = ["she/her", "he/him", "they/them", "xe/xir", "ze/hir", "fae/faer"];
+const genders = ["Female", "Male"];
 
-// Default pronoun styles (change to taste)
-const pronounStyles = {
-    "she/her": { hair: "hair/long_wavy.svg", brows: "face/brows/brows_arced.svg", mouth: "face/mouth/mouth_smile.svg" },
-    "he/him": { hair: "hair/short_straight.svg", brows: "face/brows/brows_thick.svg", mouth: "face/mouth/mouth_grim.svg", facial: "facial_hair/stubble.svg" },
-    "they/them": { hair: "hair/undercut.svg", brows: "face/brows/brows_thin.svg", mouth: "face/mouth/mouth_neutral.svg" },
-    "xe/xir": { hair: "hair/topknot.svg", brows: "face/brows/brows_arced.svg", mouth: "face/mouth/mouth_neutral.svg" },
-    "ze/hir": { hair: "hair/shaved.svg", brows: "face/brows/brows_thick.svg", mouth: "face/mouth/mouth_smile.svg", facial: "facial_hair/mustache.svg" },
-    "fae/faer": { hair: "hair/curly.svg", brows: "face/brows/brows_arced.svg", mouth: "face/mouth/mouth_smile.svg" }
+// Default gender styles (change to taste)
+const genderStyles = {
+    "Female": { hair: "hair/long_wavy.svg", brows: "face/brows/brows_arced.svg", mouth: "face/mouth/mouth_smile.svg" },
+    "Male": { hair: "hair/short_straight.svg", brows: "face/brows/brows_thick.svg", mouth: "face/mouth/mouth_grim.svg", facial: "facial_hair/stubble.svg" }
 };
 
 // === Utility: walk dir ===
@@ -140,27 +136,27 @@ for (const sp of species) {
                 continue;
             }
 
-            for (const pr of pronouns) {
-                const pst = pronounStyles[pr];
+            for (const gd of genders) {
+                const gst = genderStyles[gd];
                 const layers = [
                     base,
                     eyeCycle[i % eyeCycle.length] || null,
-                    pst.brows,
-                    pst.mouth,
-                    pst.hair,
+                    gst.brows,
+                    gst.mouth,
+                    gst.hair,
                     clothingPath
                 ].filter(Boolean);
 
-                if (pst.facial) layers.splice(5, 0, pst.facial);
+                if (gst.facial) layers.splice(5, 0, gst.facial);
 
                 presets.push({
-                    id: `${sp.toLowerCase()}_${world.toLowerCase()}_${cls.toLowerCase().replace(/ /g, "_")}_${pr.replace("/", "-")}`,
-                    label: `${sp} • ${cls} (${world}) — ${pr}`,
-                    tags: [sp, world, cls, pr],
+                    id: `${sp.toLowerCase()}_${world.toLowerCase()}_${cls.toLowerCase().replace(/ /g, "_")}_${gd.toLowerCase()}`,
+                    label: `${sp} • ${cls} (${world}) — ${gd}`,
+                    tags: [sp, world, cls, gd],
                     species: sp,
                     world: world,
                     archetype: cls,
-                    pronouns: pr,
+                    gender: gd,
                     layers
                 });
                 i++;
@@ -176,7 +172,7 @@ const presetDoc = {
     species,
     worlds: Object.keys(classes),
     archetypes: classes,
-    pronouns,
+    genders,
     presets
 };
 
