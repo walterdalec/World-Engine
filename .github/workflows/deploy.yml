@@ -1,4 +1,4 @@
-name: Build & Deploy
+name: Build & Deploy (CRA)
 
 on:
   push:
@@ -9,6 +9,10 @@ permissions:
   contents: read
   pages: write
   id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -26,16 +30,16 @@ jobs:
       - name: Install 📦
         run: npm ci
 
-      # Set PUBLIC_URL to your repo base path for CRA
+      # IMPORTANT for GitHub Pages base path
       - name: Build 🧱
         run: |
           export PUBLIC_URL=/${{ github.event.repository.name }}
           npm run build
 
-      - name: Upload build artifact ⬆️
+      - name: Upload artifact ⬆️
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./build   # CRA default
+          path: ./build
 
   deploy:
     needs: build
