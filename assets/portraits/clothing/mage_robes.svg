@@ -1,0 +1,35 @@
+<svg width="300" height="380" viewBox="0 0 300 380" xmlns="http://www.w3.org/2000/svg">
+  <!-- Mage Robes -->
+  <defs>
+    <linearGradient id="robeFlow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#4c1d95"/>
+      <stop offset="50%" stop-color="#6d28d9"/>
+      <stop offset="100%" stop-color="#1e1b4b"/>
+    </linearGradient>
+    <pattern id="starPattern" patternUnits="userSpaceOnUse" width="20" height="20">
+      <circle cx="10" cy="10" r="1" fill="#fbbf24" opacity="0.6"/>
+    </pattern>
+  </defs>
+  
+  <!-- Flowing robe -->
+  <path d="M 110 180 Q 150 175 190 180 Q 195 185 200 200 L 205 280 Q 205 300 195 320 Q 180 340 150 340 Q 120 340 105 320 Q 95 300 95 280 L 100 200 Q 105 185 110 180 Z" 
+        fill="url(#robeFlow)" stroke="#2d1b69" stroke-width="2"/>
+  
+  <!-- Robe overlay with stars -->
+  <path d="M 110 180 Q 150 175 190 180 Q 195 185 200 200 L 205 280 Q 205 300 195 320 Q 180 340 150 340 Q 120 340 105 320 Q 95 300 95 280 L 100 200 Q 105 185 110 180 Z" 
+        fill="url(#starPattern)" opacity="0.3"/>
+  
+  <!-- Hood -->
+  <path d="M 125 160 Q 150 150 175 160 Q 180 165 175 175 Q 165 180 150 180 Q 135 180 125 175 Q 120 165 125 160 Z" 
+        fill="url(#robeFlow)" stroke="#2d1b69" stroke-width="2"/>
+  
+  <!-- Sleeves -->
+  <ellipse cx="85" cy="200" rx="18" ry="40" fill="url(#robeFlow)" stroke="#2d1b69" stroke-width="1"/>
+  <ellipse cx="215" cy="200" rx="18" ry="40" fill="url(#robeFlow)" stroke="#2d1b69" stroke-width="1"/>
+  
+  <!-- Mystical belt -->
+  <rect x="120" y="240" width="60" height="8" fill="#fbbf24" stroke="#d97706" stroke-width="1"/>
+  <circle cx="135" cy="244" r="3" fill="#7c3aed"/>
+  <circle cx="150" cy="244" r="3" fill="#7c3aed"/>
+  <circle cx="165" cy="244" r="3" fill="#7c3aed"/>
+</svg>

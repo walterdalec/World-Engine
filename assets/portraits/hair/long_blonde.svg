@@ -1,0 +1,28 @@
+<svg width="300" height="380" viewBox="0 0 300 380" xmlns="http://www.w3.org/2000/svg">
+  <!-- Long Blonde Hair -->
+  <defs>
+    <linearGradient id="blondeHair" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffd700"/>
+      <stop offset="50%" stop-color="#daa520"/>
+      <stop offset="100%" stop-color="#b8860b"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Hair crown -->
+  <path d="M 105 85 Q 150 70 195 85 Q 200 95 195 110 Q 190 125 185 140" 
+        fill="url(#blondeHair)" stroke="#b8860b" stroke-width="1"/>
+  
+  <!-- Long flowing hair -->
+  <path d="M 115 140 Q 100 160 105 200 Q 110 240 120 280 Q 125 300 130 320" 
+        fill="url(#blondeHair)" stroke="#b8860b" stroke-width="1"/>
+  <path d="M 185 140 Q 200 160 195 200 Q 190 240 180 280 Q 175 300 170 320" 
+        fill="url(#blondeHair)" stroke="#b8860b" stroke-width="1"/>
+  
+  <!-- Center flow -->
+  <path d="M 150 140 Q 145 180 148 220 Q 152 260 155 300" 
+        fill="url(#blondeHair)" stroke="#b8860b" stroke-width="1"/>
+  
+  <!-- Hair highlights -->
+  <path d="M 120 90 Q 140 85 160 90" stroke="#ffff99" stroke-width="2" fill="none" opacity="0.8"/>
+  <path d="M 125 160 Q 145 155 165 160" stroke="#ffff99" stroke-width="1.5" fill="none" opacity="0.6"/>
+</svg>

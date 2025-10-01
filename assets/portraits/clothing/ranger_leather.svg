@@ -1,0 +1,32 @@
+<svg width="300" height="380" viewBox="0 0 300 380" xmlns="http://www.w3.org/2000/svg">
+  <!-- Ranger Leather Armor -->
+  <defs>
+    <linearGradient id="leatherGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8b4513"/>
+      <stop offset="50%" stop-color="#a0522d"/>
+      <stop offset="100%" stop-color="#654321"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Leather vest -->
+  <path d="M 120 185 L 180 185 Q 183 188 185 195 L 185 260 Q 185 270 180 275 L 120 275 Q 115 270 115 260 L 115 195 Q 115 188 120 185 Z" 
+        fill="url(#leatherGrad)" stroke="#4a2c17" stroke-width="2"/>
+  
+  <!-- Leather straps -->
+  <rect x="125" y="200" width="5" height="60" fill="#654321"/>
+  <rect x="170" y="200" width="5" height="60" fill="#654321"/>
+  
+  <!-- Buckles -->
+  <rect x="123" y="210" width="9" height="6" fill="#8b7355" stroke="#654321" stroke-width="1"/>
+  <rect x="168" y="210" width="9" height="6" fill="#8b7355" stroke="#654321" stroke-width="1"/>
+  <rect x="123" y="230" width="9" height="6" fill="#8b7355" stroke="#654321" stroke-width="1"/>
+  <rect x="168" y="230" width="9" height="6" fill="#8b7355" stroke="#654321" stroke-width="1"/>
+  
+  <!-- Cloak clasp -->
+  <circle cx="150" cy="175" r="6" fill="#8b7355" stroke="#654321" stroke-width="2"/>
+  <circle cx="150" cy="175" r="3" fill="#2d4a22"/>
+  
+  <!-- Arm guards -->
+  <rect x="100" y="195" width="8" height="25" rx="4" fill="url(#leatherGrad)" stroke="#4a2c17" stroke-width="1"/>
+  <rect x="192" y="195" width="8" height="25" rx="4" fill="url(#leatherGrad)" stroke="#4a2c17" stroke-width="1"/>
+</svg>

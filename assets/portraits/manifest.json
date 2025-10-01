@@ -1,63 +1,478 @@
 {
-    "version": "1.0.0",
-    "lastUpdated": "2025-09-27T00:00:00.000Z",
-    "description": "Character portrait asset manifest for World Engine",
-    "assets": [
-        {
-            "id": "sample-portrait",
-            "category": "base",
-            "subcategory": "sample",
-            "species": [
-                "Human"
-            ],
-            "archetype": [
-                "Warrior"
-            ],
-            "tags": [
-                "placeholder",
-                "sample"
-            ],
-            "path": "samples/sample.svg",
-            "metadata": {
-                "author": "World Engine",
-                "description": "Sample portrait for testing"
-            }
-        }
+  "version": "3.0.0",
+  "lastUpdated": "2025-09-29T07:12:19.508Z",
+  "categories": [
+    "base",
+    "face/eyes",
+    "face/brows",
+    "face/mouth",
+    "hair",
+    "facial_hair",
+    "clothing/verdance",
+    "clothing/ashenreach",
+    "clothing/skyvault",
+    "accessories",
+    "weapons",
+    "effects"
+  ],
+  "species": [
+    "Human",
+    "Sylvanborn",
+    "Alloy",
+    "Draketh",
+    "Voidkin",
+    "Crystalborn",
+    "Stormcaller"
+  ],
+  "worlds": [
+    "Verdance",
+    "Ashenreach",
+    "Skyvault"
+  ],
+  "archetypes": {
+    "Verdance": [
+      "Greenwarden",
+      "Thorn Knight",
+      "Sapling Adept",
+      "Bloomcaller"
     ],
-    "categories": [
-        "base",
-        "hair",
-        "eyes",
-        "clothing",
-        "accessories",
-        "armor",
-        "weapons",
-        "effects"
+    "Ashenreach": [
+      "Ashblade",
+      "Cinder Mystic",
+      "Dust Ranger",
+      "Bonechanter"
     ],
-    "species": [
-        "Human",
-        "Sylvanborn",
-        "Nightborn",
-        "Stormcaller",
-        "Crystalborn",
-        "Draketh",
-        "Alloy",
-        "Voidkin"
-    ],
-    "archetypes": [
-        "Warrior",
-        "Scout",
-        "Mage",
-        "Guardian",
-        "Ranger",
-        "Rogue",
-        "Artificer",
-        "Thorn Knight",
-        "Ashblade",
-        "Ironclad",
-        "Stormbreaker",
-        "Voidhunter",
-        "Crystal Guardian",
-        "Greenwarden"
+    "Skyvault": [
+      "Stormcaller",
+      "Voidwing",
+      "Sky Knight",
+      "Wind Sage"
     ]
+  },
+  "assets": [
+    {
+      "id": "base_human",
+      "category": "base",
+      "path": "base/human.svg",
+      "species": [
+        "Human"
+      ]
+    },
+    {
+      "id": "base_sylvanborn",
+      "category": "base",
+      "path": "base/sylvanborn.svg",
+      "species": [
+        "Sylvanborn"
+      ]
+    },
+    {
+      "id": "base_alloy",
+      "category": "base",
+      "path": "base/alloy.svg",
+      "species": [
+        "Alloy"
+      ]
+    },
+    {
+      "id": "base_draketh",
+      "category": "base",
+      "path": "base/draketh.svg",
+      "species": [
+        "Draketh"
+      ]
+    },
+    {
+      "id": "base_voidkin",
+      "category": "base",
+      "path": "base/voidkin.svg",
+      "species": [
+        "Voidkin"
+      ]
+    },
+    {
+      "id": "base_crystalborn",
+      "category": "base",
+      "path": "base/crystalborn.svg",
+      "species": [
+        "Crystalborn"
+      ]
+    },
+    {
+      "id": "base_stormcaller",
+      "category": "base",
+      "path": "base/stormcaller.svg",
+      "species": [
+        "Stormcaller"
+      ]
+    },
+    {
+      "id": "eyes_eyes_glow",
+      "category": "face/eyes",
+      "path": "face/eyes/eyes_glow.svg"
+    },
+    {
+      "id": "eyes_eyes_heavy",
+      "category": "face/eyes",
+      "path": "face/eyes/eyes_heavy.svg"
+    },
+    {
+      "id": "eyes_eyes_round",
+      "category": "face/eyes",
+      "path": "face/eyes/eyes_round.svg"
+    },
+    {
+      "id": "eyes_eyes_sharp",
+      "category": "face/eyes",
+      "path": "face/eyes/eyes_sharp.svg"
+    },
+    {
+      "id": "brows_brows_arced",
+      "category": "face/brows",
+      "path": "face/brows/brows_arced.svg"
+    },
+    {
+      "id": "brows_brows_thick",
+      "category": "face/brows",
+      "path": "face/brows/brows_thick.svg"
+    },
+    {
+      "id": "brows_brows_thin",
+      "category": "face/brows",
+      "path": "face/brows/brows_thin.svg"
+    },
+    {
+      "id": "mouth_mouth_grim",
+      "category": "face/mouth",
+      "path": "face/mouth/mouth_grim.svg"
+    },
+    {
+      "id": "mouth_mouth_neutral",
+      "category": "face/mouth",
+      "path": "face/mouth/mouth_neutral.svg"
+    },
+    {
+      "id": "mouth_mouth_smile",
+      "category": "face/mouth",
+      "path": "face/mouth/mouth_smile.svg"
+    },
+    {
+      "id": "mouth_mouth_snarl",
+      "category": "face/mouth",
+      "path": "face/mouth/mouth_snarl.svg"
+    },
+    {
+      "id": "hair_curly",
+      "category": "hair",
+      "path": "hair/curly.svg"
+    },
+    {
+      "id": "hair_locs",
+      "category": "hair",
+      "path": "hair/locs.svg"
+    },
+    {
+      "id": "hair_long_wavy",
+      "category": "hair",
+      "path": "hair/long_wavy.svg"
+    },
+    {
+      "id": "hair_shaved",
+      "category": "hair",
+      "path": "hair/shaved.svg"
+    },
+    {
+      "id": "hair_short_straight",
+      "category": "hair",
+      "path": "hair/short_straight.svg"
+    },
+    {
+      "id": "hair_topknot",
+      "category": "hair",
+      "path": "hair/topknot.svg"
+    },
+    {
+      "id": "hair_undercut",
+      "category": "hair",
+      "path": "hair/undercut.svg"
+    },
+    {
+      "id": "facial_beard_short",
+      "category": "facial_hair",
+      "path": "facial_hair/beard_short.svg"
+    },
+    {
+      "id": "facial_mustache",
+      "category": "facial_hair",
+      "path": "facial_hair/mustache.svg"
+    },
+    {
+      "id": "facial_stubble",
+      "category": "facial_hair",
+      "path": "facial_hair/stubble.svg"
+    },
+    {
+      "id": "clo_verdance_greenwarden",
+      "category": "clothing/verdance",
+      "path": "clothing/verdance/greenwarden.svg",
+      "archetype": [
+        "Greenwarden"
+      ],
+      "world": "Verdance"
+    },
+    {
+      "id": "clo_verdance_thorn_knight",
+      "category": "clothing/verdance",
+      "path": "clothing/verdance/thorn_knight.svg",
+      "archetype": [
+        "Thorn Knight"
+      ],
+      "world": "Verdance"
+    },
+    {
+      "id": "clo_verdance_sapling_adept",
+      "category": "clothing/verdance",
+      "path": "clothing/verdance/sapling_adept.svg",
+      "archetype": [
+        "Sapling Adept"
+      ],
+      "world": "Verdance"
+    },
+    {
+      "id": "clo_verdance_bloomcaller",
+      "category": "clothing/verdance",
+      "path": "clothing/verdance/bloomcaller.svg",
+      "archetype": [
+        "Bloomcaller"
+      ],
+      "world": "Verdance"
+    },
+    {
+      "id": "clo_ashenreach_ashblade",
+      "category": "clothing/ashenreach",
+      "path": "clothing/ashenreach/ashblade.svg",
+      "archetype": [
+        "Ashblade"
+      ],
+      "world": "Ashenreach"
+    },
+    {
+      "id": "clo_ashenreach_cinder_mystic",
+      "category": "clothing/ashenreach",
+      "path": "clothing/ashenreach/cinder_mystic.svg",
+      "archetype": [
+        "Cinder Mystic"
+      ],
+      "world": "Ashenreach"
+    },
+    {
+      "id": "clo_ashenreach_dust_ranger",
+      "category": "clothing/ashenreach",
+      "path": "clothing/ashenreach/dust_ranger.svg",
+      "archetype": [
+        "Dust Ranger"
+      ],
+      "world": "Ashenreach"
+    },
+    {
+      "id": "clo_ashenreach_bonechanter",
+      "category": "clothing/ashenreach",
+      "path": "clothing/ashenreach/bonechanter.svg",
+      "archetype": [
+        "Bonechanter"
+      ],
+      "world": "Ashenreach"
+    },
+    {
+      "id": "clo_skyvault_stormcaller_cls",
+      "category": "clothing/skyvault",
+      "path": "clothing/skyvault/stormcaller_cls.svg",
+      "archetype": [
+        "Stormcaller"
+      ],
+      "world": "Skyvault"
+    },
+    {
+      "id": "clo_skyvault_voidwing",
+      "category": "clothing/skyvault",
+      "path": "clothing/skyvault/voidwing.svg",
+      "archetype": [
+        "Voidwing"
+      ],
+      "world": "Skyvault"
+    },
+    {
+      "id": "clo_skyvault_sky_knight",
+      "category": "clothing/skyvault",
+      "path": "clothing/skyvault/sky_knight.svg",
+      "archetype": [
+        "Sky Knight"
+      ],
+      "world": "Skyvault"
+    },
+    {
+      "id": "clo_skyvault_wind_sage",
+      "category": "clothing/skyvault",
+      "path": "clothing/skyvault/wind_sage.svg",
+      "archetype": [
+        "Wind Sage"
+      ],
+      "world": "Skyvault"
+    },
+    {
+      "id": "acc_bone_charm",
+      "category": "accessories",
+      "path": "accessories/bone_charm.svg"
+    },
+    {
+      "id": "acc_crystal_pendant",
+      "category": "accessories",
+      "path": "accessories/crystal_pendant.svg"
+    },
+    {
+      "id": "acc_feather_cloak",
+      "category": "accessories",
+      "path": "accessories/feather_cloak.svg"
+    },
+    {
+      "id": "acc_leaf_circlet",
+      "category": "accessories",
+      "path": "accessories/leaf_circlet.svg"
+    },
+    {
+      "id": "acc_storm_goggles",
+      "category": "accessories",
+      "path": "accessories/storm_goggles.svg"
+    },
+    {
+      "id": "wpn_ashblade_sword",
+      "category": "weapons",
+      "path": "weapons/ashblade_sword.svg"
+    },
+    {
+      "id": "wpn_bloomcaller_rod",
+      "category": "weapons",
+      "path": "weapons/bloomcaller_rod.svg"
+    },
+    {
+      "id": "wpn_bonechanter_totem",
+      "category": "weapons",
+      "path": "weapons/bonechanter_totem.svg"
+    },
+    {
+      "id": "wpn_cinder_mystic_staff",
+      "category": "weapons",
+      "path": "weapons/cinder_mystic_staff.svg"
+    },
+    {
+      "id": "wpn_dust_ranger_bow",
+      "category": "weapons",
+      "path": "weapons/dust_ranger_bow.svg"
+    },
+    {
+      "id": "wpn_greenwarden_spear",
+      "category": "weapons",
+      "path": "weapons/greenwarden_spear.svg"
+    },
+    {
+      "id": "wpn_sapling_adept_staff",
+      "category": "weapons",
+      "path": "weapons/sapling_adept_staff.svg"
+    },
+    {
+      "id": "wpn_sky_knight_lance",
+      "category": "weapons",
+      "path": "weapons/sky_knight_lance.svg"
+    },
+    {
+      "id": "wpn_stormcaller_cls_staff",
+      "category": "weapons",
+      "path": "weapons/stormcaller_cls_staff.svg"
+    },
+    {
+      "id": "wpn_thorn_knight_morningstar",
+      "category": "weapons",
+      "path": "weapons/thorn_knight_morningstar.svg"
+    },
+    {
+      "id": "wpn_voidwing_daggers",
+      "category": "weapons",
+      "path": "weapons/voidwing_daggers.svg"
+    },
+    {
+      "id": "wpn_wind_sage_fan",
+      "category": "weapons",
+      "path": "weapons/wind_sage_fan.svg"
+    },
+    {
+      "id": "fx_aura_ashenreach",
+      "category": "effects",
+      "path": "effects/aura_ashenreach.svg"
+    },
+    {
+      "id": "fx_aura_crystal",
+      "category": "effects",
+      "path": "effects/aura_crystal.svg"
+    },
+    {
+      "id": "fx_aura_skyvault",
+      "category": "effects",
+      "path": "effects/aura_skyvault.svg"
+    },
+    {
+      "id": "fx_aura_storm",
+      "category": "effects",
+      "path": "effects/aura_storm.svg"
+    },
+    {
+      "id": "fx_aura_verdance",
+      "category": "effects",
+      "path": "effects/aura_verdance.svg"
+    },
+    {
+      "id": "fx_aura_void",
+      "category": "effects",
+      "path": "effects/aura_void.svg"
+    },
+    {
+      "id": "fx_soft_shadow",
+      "category": "effects",
+      "path": "effects/soft_shadow.svg"
+    },
+    {
+      "id": "clothing_mage_robes",
+      "category": "clothing",
+      "path": "clothing/mage_robes.svg"
+    },
+    {
+      "id": "clothing_ranger_leather",
+      "category": "clothing",
+      "path": "clothing/ranger_leather.svg"
+    },
+    {
+      "id": "clothing_warrior_armor",
+      "category": "clothing",
+      "path": "clothing/warrior_armor.svg"
+    },
+    {
+      "id": "hair_long_blonde",
+      "category": "hair",
+      "path": "hair/long_blonde.svg"
+    },
+    {
+      "id": "hair_short_brown",
+      "category": "hair",
+      "path": "hair/short_brown.svg"
+    },
+    {
+      "id": "weapons_staff",
+      "category": "weapons",
+      "path": "weapons/staff.svg"
+    },
+    {
+      "id": "weapons_sword",
+      "category": "weapons",
+      "path": "weapons/sword.svg"
+    }
+  ]
 }
