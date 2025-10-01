@@ -1,0 +1,49 @@
+name: Build & Deploy
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
+
+      - name: Setup Node ⚙️
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install 📦
+        run: npm ci
+
+      # Set PUBLIC_URL to your repo base path for CRA
+      - name: Build 🧱
+        run: |
+          export PUBLIC_URL=/${{ github.event.repository.name }}
+          npm run build
+
+      - name: Upload build artifact ⬆️
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./build   # CRA default
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages 🚀
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -237,6 +237,15 @@ export async function ensureAssetsLoaded(): Promise<void> {
     await assetManager.initialize();
 }
 
+/**
+ * Bullet-proof asset URL builder that works locally & on GitHub Pages
+ */
+export function assetUrl(relPath: string): string {
+    const origin = window.location.origin; // respects https, subpath host
+    const cleanRel = relPath.replace(/^\/+/, ''); // "base/human.svg"
+    return new URL(`/assets/portraits/${cleanRel}`, origin).toString();
+}
+
 export function getAssetUrl(path: string): string {
     const publicUrl = process.env.PUBLIC_URL || '';
     const basePath = publicUrl.replace(/\/+$/, '');
