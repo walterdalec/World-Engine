@@ -1,0 +1,30 @@
+<svg width="300" height="380" viewBox="0 0 300 380" xmlns="http://www.w3.org/2000/svg">
+  <!-- Warrior Armor -->
+  <defs>
+    <linearGradient id="armorShine" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8b9dc3"/>
+      <stop offset="50%" stop-color="#6b7db0"/>
+      <stop offset="100%" stop-color="#4b5d90"/>
+    </linearGradient>
+    <pattern id="chainmail" patternUnits="userSpaceOnUse" width="8" height="8">
+      <circle cx="4" cy="4" r="2" fill="none" stroke="#5a6a8a" stroke-width="0.8"/>
+    </pattern>
+  </defs>
+  
+  <!-- Chest plate -->
+  <path d="M 120 180 L 180 180 Q 185 185 185 195 L 185 250 Q 185 260 180 265 L 120 265 Q 115 260 115 250 L 115 195 Q 115 185 120 180 Z" 
+        fill="url(#armorShine)" stroke="#3d4d6d" stroke-width="2"/>
+  
+  <!-- Shoulder guards -->
+  <ellipse cx="105" cy="175" rx="15" ry="20" fill="url(#armorShine)" stroke="#3d4d6d" stroke-width="2"/>
+  <ellipse cx="195" cy="175" rx="15" ry="20" fill="url(#armorShine)" stroke="#3d4d6d" stroke-width="2"/>
+  
+  <!-- Chainmail under armor -->
+  <rect x="120" y="265" width="60" height="25" fill="url(#chainmail)"/>
+  
+  <!-- Armor details -->
+  <circle cx="150" cy="200" r="8" fill="#ffd700" stroke="#cc9900" stroke-width="1"/>
+  <rect x="145" y="220" width="10" height="3" fill="#3d4d6d"/>
+  <rect x="145" y="230" width="10" height="3" fill="#3d4d6d"/>
+  <rect x="145" y="240" width="10" height="3" fill="#3d4d6d"/>
+</svg>

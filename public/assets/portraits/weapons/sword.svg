@@ -1,0 +1,30 @@
+<svg width="300" height="380" viewBox="0 0 300 380" xmlns="http://www.w3.org/2000/svg">
+  <!-- Sword -->
+  <defs>
+    <linearGradient id="swordBlade" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#e5e7eb"/>
+      <stop offset="50%" stop-color="#f9fafb"/>
+      <stop offset="100%" stop-color="#d1d5db"/>
+    </linearGradient>
+    <linearGradient id="swordHilt" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8b5a2b"/>
+      <stop offset="100%" stop-color="#654321"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Sword blade -->
+  <path d="M 225 150 L 270 150 Q 275 150 275 155 L 275 245 Q 275 250 270 250 L 225 250 Q 220 245 220 240 L 220 160 Q 220 155 225 150 Z" 
+        fill="url(#swordBlade)" stroke="#9ca3af" stroke-width="1"/>
+  
+  <!-- Blade centerline -->
+  <line x1="225" y1="200" x2="270" y2="200" stroke="#9ca3af" stroke-width="0.5"/>
+  
+  <!-- Cross guard -->
+  <rect x="215" y="248" width="20" height="4" fill="#8b5a2b"/>
+  
+  <!-- Hilt -->
+  <rect x="222" y="252" width="6" height="20" fill="url(#swordHilt)" stroke="#654321" stroke-width="1"/>
+  
+  <!-- Pommel -->
+  <circle cx="225" cy="274" r="4" fill="#8b5a2b" stroke="#654321" stroke-width="1"/>
+</svg>
