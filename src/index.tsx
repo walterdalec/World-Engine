@@ -12,7 +12,7 @@ import HealingSystem from "./components/HealingSystem";
 import WorldMapEngine from "./components/WorldMapEngine";
 import PortraitTestPage from "./pages/PortraitTest";
 import { SimplePortraitTest } from "./components/SimplePortraitTest";
-import { preloadCommonPortraits } from "./visuals/preloader";
+// import { preloadCommonPortraits } from "./visuals/preloader"; // Disabled - using simple system
 import { Engine } from "./engine.d";
 import { DEFAULT_WORLDS } from "./defaultWorlds";
 
@@ -69,10 +69,10 @@ function App() {
       }
     }
 
-    // Initialize portrait preloading
-    preloadCommonPortraits().catch(error => {
-      console.error('Failed to preload common portraits:', error);
-    });
+    // Portrait preloading disabled - using new simple system that loads on-demand
+    // preloadCommonPortraits().catch(error => {
+    //   console.error('Failed to preload common portraits:', error);
+    // });
 
     // Setup periodic backup (every 5 minutes)
     const backupInterval = setInterval(() => {
