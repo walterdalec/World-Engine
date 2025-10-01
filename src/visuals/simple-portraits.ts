@@ -25,31 +25,56 @@ export interface PortraitResult {
 }
 
 /**
- * Generate portrait using PNG layering system
+ * Generate portrait using PNG layering system - simplified approach
  */
 export async function generateSimplePortrait(options: SimplePortraitOptions): Promise<PortraitResult> {
     try {
-        const { gender, species, archetype, size = { width: 300, height: 380 } } = options;
+        const { gender, species, archetype, decorations = [], size = { width: 300, height: 380 } } = options;
 
-        // Build validated layer stack (only existing assets)
-        const layers = await buildValidatedLayers(options);
+        // Build layer stack - always try to load the basic layers
+        const layers: PortraitLayer[] = [];
 
-        // If no layers found, return graceful failure
-        if (layers.length === 0) {
-            return {
-                success: false,
-                layers: [],
-                error: `No portrait assets found for ${gender} ${species} ${archetype}`
-            };
-        }
+        // Base layer (gender-specific) - always include
+        const basePath = getAssetUrl(`portraits-new/base/${gender}/neutral.png`);
+        console.log(`🔍 Base asset path: ${basePath}`);
+        layers.push({
+            type: 'base',
+            src: basePath,
+            zIndex: 1
+        });
+
+        // Race layer (species overlay) - always include  
+        const racePath = getAssetUrl(`portraits-new/race/${species}.png`);
+        console.log(`🔍 Race asset path: ${racePath}`);
+        layers.push({
+            type: 'race',
+            src: racePath,
+            zIndex: 2
+        });
+
+        // Class layer (archetype overlay) - always include
+        const classPath = getAssetUrl(`portraits-new/class/${archetype}.png`);
+        console.log(`🔍 Class asset path: ${classPath}`);
+        layers.push({
+            type: 'class',
+            src: classPath,
+            zIndex: 3
+        });
+
+        // Optional decoration layers
+        decorations.forEach((deco, index) => {
+            const decoPath = getAssetUrl(`portraits-new/deco/${deco}.png`);
+            layers.push({
+                type: 'deco',
+                src: decoPath,
+                zIndex: 10 + index
+            });
+        });
 
         // Generate composite image
         const dataUrl = await compositeImages(layers, size);
 
-        // Only log successful portraits to reduce console spam
-        if (dataUrl) {
-            console.log(`🎭 Generated portrait: ${gender} ${species} ${archetype} (${layers.length} layers)`);
-        }
+        console.log(`🎭 Generated portrait: ${gender} ${species} ${archetype} (${layers.length} layers)`);
 
         return {
             success: true,
@@ -58,10 +83,7 @@ export async function generateSimplePortrait(options: SimplePortraitOptions): Pr
         };
 
     } catch (error) {
-        // Only log actual errors, not missing assets
-        if (error instanceof Error && !error.message.includes('404')) {
-            console.error('🎭 Portrait generation failed:', error);
-        }
+        console.error('🎭 Portrait generation failed:', error);
         return {
             success: false,
             layers: [],
@@ -129,24 +151,12 @@ function loadAndDrawLayer(
         };
 
         img.onerror = () => {
-            // Silently fail for missing assets - don't spam console
-            resolve();
+            console.warn(`🎭 Failed to load ${layer.type} layer: ${layer.src}`);
+            resolve(); // Continue with other layers
         };
 
         img.src = layer.src;
     });
-}
-
-/**
- * Check if an asset exists without spamming the console
- */
-async function checkAssetExists(url: string): Promise<boolean> {
-    try {
-        const response = await fetch(url, { method: 'HEAD' });
-        return response.ok;
-    } catch {
-        return false;
-    }
 }
 
 /**
@@ -155,61 +165,7 @@ async function checkAssetExists(url: string): Promise<boolean> {
 function getAssetUrl(path: string): string {
     const publicUrl = process.env.PUBLIC_URL || '';
     return `${publicUrl}/assets/${path}`;
-}
-
-/**
- * Build validated layer stack (only include existing assets)
- */
-async function buildValidatedLayers(options: SimplePortraitOptions): Promise<PortraitLayer[]> {
-    const { gender, species, archetype, decorations = [] } = options;
-    const layers: PortraitLayer[] = [];
-
-    // Base layer (always required)
-    const basePath = getAssetUrl(`portraits-new/base/${gender}/neutral.png`);
-    if (await checkAssetExists(basePath)) {
-        layers.push({
-            type: 'base',
-            src: basePath,
-            zIndex: 1
-        });
-    }
-
-    // Race layer (optional)
-    const racePath = getAssetUrl(`portraits-new/race/${species}.png`);
-    if (await checkAssetExists(racePath)) {
-        layers.push({
-            type: 'race',
-            src: racePath,
-            zIndex: 2
-        });
-    }
-
-    // Class layer (optional)
-    const classPath = getAssetUrl(`portraits-new/class/${archetype}.png`);
-    if (await checkAssetExists(classPath)) {
-        layers.push({
-            type: 'class',
-            src: classPath,
-            zIndex: 3
-        });
-    }
-
-    // Decoration layers (optional)
-    for (let i = 0; i < decorations.length; i++) {
-        const decoPath = getAssetUrl(`portraits-new/deco/${decorations[i]}.png`);
-        if (await checkAssetExists(decoPath)) {
-            layers.push({
-                type: 'deco',
-                src: decoPath,
-                zIndex: 10 + i
-            });
-        }
-    }
-
-    return layers;
-}
-
-/**
+}/**
  * Simple caching for generated portraits
  */
 const portraitCache = new Map<string, string>();
