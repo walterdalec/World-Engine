@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { PortraitPreview } from '../visuals/PortraitPreview';
-import { getPortraitAssets } from '../visuals/assets';
-import { clearPortraitCache } from '../visuals/service';
+import { PortraitPreview } from './PortraitPreview';
+import { getPortraitAssets } from './assets';
+import { clearPortraitCache } from './service';
 
 export const PortraitTestPage: React.FC = () => {
     const [assets, setAssets] = useState<any>(null);

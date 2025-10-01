@@ -1,7 +1,7 @@
-// World Engine Visual System - Simplified PNG Portrait System
-// Simple layered PNG approach replacing complex SVG generation
+// World Engine Visual System - Simple PNG Portrait System
+// Clean, modern approach using layered PNG assets
 
-// === NEW SIMPLE SYSTEM (Primary) ===
+// === SIMPLE PORTRAIT SYSTEM ===
 export { SimplePortraitPreview } from './SimplePortraitPreview';
 export {
     generateSimplePortrait,
@@ -18,29 +18,7 @@ export type {
 import {
     generateSimplePortrait,
     SimplePortraitOptions
-} from './simple-portraits';// === LEGACY SYSTEM (Backward Compatibility) ===
-export type {
-    CharacterVisualData,
-    PortraitOptions,
-    VisualAsset,
-    RenderContext,
-    Visual3DContext,
-    VisualPlugin,
-    VisualGenerationResult
-} from './types';
-
-export {
-    generateCharacterPortrait,
-    initializeVisualSystem,
-    isVisualSystemReady,
-    visualService,
-    bindPortraitToCharacter
-} from './service';
-
-export {
-    PortraitPreview,
-    default as PortraitPreviewComponent
-} from './PortraitPreview';
+} from './simple-portraits';
 
 // === UTILITY FUNCTIONS ===
 export const SimpleUtils = {
@@ -85,34 +63,7 @@ export const SimpleUtils = {
     })
 };
 
-// Legacy utility functions (for compatibility)
-export const VisualUtils = {
-    createCharacterData: (character: {
-        name: string;
-        species: string;
-        archetype: string;
-        level?: number;
-    }) => ({
-        name: character.name,
-        species: character.species,
-        archetype: character.archetype,
-        level: character.level || 1,
-        appearance: {}
-    }),
-
-    getDefaultPortraitOptions: () => ({
-        size: 'medium',
-        format: 'svg',
-        quality: 'medium',
-        background: 'transparent'
-    }),
-
-    isValidCharacterData: (data: any) => {
-        return !!(data?.name && data?.species && data?.archetype);
-    }
-};
-
-// Development helpers
+// === DEVELOPMENT TOOLS ===
 export const DevTools = {
     /**
      * Test simple portrait generation
@@ -129,18 +80,19 @@ export const DevTools = {
     },
 
     /**
-     * Test all species/archetype combinations
+     * Test multiple species/archetype combinations
      */
-    testAllCombinations: async () => {
+    testMultipleCombinations: async () => {
         const species = SimpleUtils.getAvailableSpecies();
         const archetypes = SimpleUtils.getAvailableArchetypes();
         const genders: ('male' | 'female')[] = ['male', 'female'];
 
-        console.log(`🎭 Testing ${species.length}×${archetypes.length}×${genders.length} = ${species.length * archetypes.length * genders.length} combinations...`);
+        console.log(`🎭 Testing ${species.length}×${archetypes.length}×${genders.length} combinations...`);
 
         const results = [];
-        for (const s of species.slice(0, 2)) { // Test first 2 species
-            for (const a of archetypes.slice(0, 2)) { // Test first 2 archetypes
+        // Test a small sample to avoid overwhelming the browser
+        for (const s of species.slice(0, 2)) {
+            for (const a of archetypes.slice(0, 2)) {
                 for (const g of genders) {
                     const result = await generateSimplePortrait({
                         gender: g,
@@ -157,5 +109,22 @@ export const DevTools = {
     }
 };
 
-// Version info
+// === VERSION INFO ===
 export const VERSION = '2.0.0-simple';
+
+// === NOTE ABOUT LEGACY SYSTEM ===
+/*
+The old SVG-based portrait system has been moved to:
+src/visuals/legacy-svg-system/
+
+This includes:
+- PortraitPreview.tsx (old React component)
+- service.ts (complex portrait generation)  
+- renderer2d.tsx (SVG rendering)
+- assets.ts (SVG asset management)
+- manifest.ts (asset catalogs)
+- And other supporting files
+
+The legacy system is preserved for future development but 
+isolated from the main game to prevent conflicts.
+*/

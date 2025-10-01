@@ -10,7 +10,7 @@ import SpellGenerator from "./components/SpellGenerator";
 import SpellAssignment from "./components/SpellAssignment";
 import HealingSystem from "./components/HealingSystem";
 import WorldMapEngine from "./components/WorldMapEngine";
-import PortraitTestPage from "./pages/PortraitTest";
+// import PortraitTestPage from "./pages/PortraitTest"; // Moved to legacy system
 import { SimplePortraitTest } from "./components/SimplePortraitTest";
 // import { preloadCommonPortraits } from "./visuals/preloader"; // Disabled - using simple system
 import { Engine } from "./engine.d";

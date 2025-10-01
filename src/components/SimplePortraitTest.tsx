@@ -14,7 +14,7 @@ export const SimplePortraitTest: React.FC = () => {
 
     const testAllCombinations = async () => {
         console.log('🎭 Testing multiple combinations...');
-        const results = await DevTools.testAllCombinations();
+        const results = await DevTools.testMultipleCombinations();
         console.log('All results:', results);
     };
 
