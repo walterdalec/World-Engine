@@ -11,6 +11,7 @@ import SpellAssignment from "./components/SpellAssignment";
 import HealingSystem from "./components/HealingSystem";
 import WorldMapEngine from "./components/WorldMapEngine";
 import PortraitTestPage from "./pages/PortraitTest";
+import { SimplePortraitTest } from "./components/SimplePortraitTest";
 import { preloadCommonPortraits } from "./visuals/preloader";
 import { Engine } from "./engine.d";
 import { DEFAULT_WORLDS } from "./defaultWorlds";
@@ -474,7 +475,7 @@ function App() {
           >
             ← Back to Menu
           </button>
-          <PortraitTestPage />
+          <SimplePortraitTest />
         </div>
       )}
     </>

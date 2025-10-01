@@ -1,9 +1,8 @@
 // src/components/CharacterCreate.tsx
 import React, { useMemo, useState } from "react";
 import { CLASS_DEFINITIONS } from '../defaultWorlds';
-// Visual System Integration
-import { PortraitPreview, VisualUtils, bindPortraitToCharacter, generateCharacterPortrait } from '../visuals';
-import type { CharacterVisualData } from '../visuals';
+// Visual System Integration - NEW Simple PNG System
+import { SimplePortraitPreview, SimpleUtils } from '../visuals';
 
 type Stats = "STR" | "DEX" | "CON" | "INT" | "WIS" | "CHA";
 
@@ -691,18 +690,13 @@ export default function CharacterCreate() {
     }
 
     try {
-      // Create snapshot with portrait binding
-      const characterWithPortrait = { ...char, createdAt: new Date().toISOString() };
-      await bindPortraitToCharacter(characterWithPortrait, {
-        body: "standard",
-        palette: "Rootspeakers",
-        size: { width: 300, height: 380 }
-      });
-
-      localStorage.setItem("we:lastCharacter", JSON.stringify(characterWithPortrait));
-      download(`${char.name.replace(/\s+/g, "_")}.json`, characterWithPortrait);
+      // Create snapshot without complex portrait binding
+      const characterSnapshot = { ...char, createdAt: new Date().toISOString() };
+      localStorage.setItem("we:lastCharacter", JSON.stringify(characterSnapshot));
+      download(`${char.name.replace(/\s+/g, "_")}.json`, characterSnapshot);
+      console.log("✅ Character saved successfully");
     } catch (error) {
-      console.error('Error saving character with portrait:', error);
+      console.error('Error saving character:', error);
       // Fallback to saving without portrait
       const payload = { ...char, createdAt: new Date().toISOString() };
       localStorage.setItem("we:lastCharacter", JSON.stringify(payload));
@@ -710,14 +704,10 @@ export default function CharacterCreate() {
     }
   }
 
-  // Finalize character with portrait binding (from patch example)
-  async function finalizeCharacter(character: any) {
-    await bindPortraitToCharacter(character, {
-      body: "standard",
-      palette: "Rootspeakers", // Could be mapped from species/archetype
-      size: { width: 300, height: 380 }
-    });
-    // now character.portraitUrl contains the generated portrait PNG data URL
+  // Simplified character finalization (no complex portrait binding needed)
+  function finalizeCharacter(character: any) {
+    // Simple portraits are generated on-demand via SimplePortraitPreview
+    // No need for complex binding or storage
     return character;
   }
 
@@ -1428,26 +1418,24 @@ export default function CharacterCreate() {
             level: char.level
           });
 
-          if (char.name && char.species && char.archetype) {
-            console.log('✅ CharacterCreate: Rendering PortraitPreview with full character data');
+          if (char.name && char.species && char.archetype && char.gender) {
+            console.log('✅ CharacterCreate: Rendering SimplePortraitPreview with full character data');
             return (
               <div style={{ width: "100%", borderRadius: 12, marginBottom: 8 }}>
-                <PortraitPreview
-                  character={VisualUtils.createCharacterData({
-                    name: char.name,
-                    species: char.species,
-                    archetype: char.archetype,
-                    level: char.level || 1
-                  })}
-                  options={{ size: "large", format: "svg" }}
+                <SimplePortraitPreview
+                  gender={char.gender.toLowerCase() as 'male' | 'female'}
+                  species={char.species.toLowerCase()}
+                  archetype={char.archetype.toLowerCase()}
+                  size="large"
+                  showDebug={true}
                 />
               </div>
             );
           } else {
-            console.log('⏸️ CharacterCreate: NOT rendering PortraitPreview - missing data');
+            console.log('⏸️ CharacterCreate: NOT rendering SimplePortraitPreview - missing data');
             return (
               <div style={{ border: "1px dashed #334155", borderRadius: 12, padding: 12, textAlign: "center", marginBottom: 8, opacity: 0.7 }}>
-                Add a name, species, and class to see portrait
+                Add a name, gender, species, and class to see portrait
               </div>
             );
           }

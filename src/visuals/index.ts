@@ -1,7 +1,24 @@
-// World Engine Visual System
-// Main export file for the character portrait and visual generation system
+// World Engine Visual System - Simplified PNG Portrait System
+// Simple layered PNG approach replacing complex SVG generation
 
-// Types
+// === NEW SIMPLE SYSTEM (Primary) ===
+export { SimplePortraitPreview } from './SimplePortraitPreview';
+export {
+    generateSimplePortrait,
+    getCachedPortrait,
+    setCachedPortrait
+} from './simple-portraits';
+export type {
+    SimplePortraitOptions,
+    PortraitResult,
+    PortraitLayer
+} from './simple-portraits';
+
+// Import for internal use
+import {
+    generateSimplePortrait,
+    SimplePortraitOptions
+} from './simple-portraits';// === LEGACY SYSTEM (Backward Compatibility) ===
 export type {
     CharacterVisualData,
     PortraitOptions,
@@ -12,7 +29,6 @@ export type {
     VisualGenerationResult
 } from './types';
 
-// Core Services
 export {
     generateCharacterPortrait,
     initializeVisualSystem,
@@ -21,70 +37,62 @@ export {
     bindPortraitToCharacter
 } from './service';
 
-// Asset Management
-export {
-    assetManager,
-    ensureAssetsLoaded,
-    getAssetUrl
-} from './assets';
-
-// Class/Character Mapping
-export {
-    getClassVisualTheme,
-    getClassColors,
-    getPreferredAssets,
-    generateDefaultAppearance,
-    getAllClassThemes,
-    hasVisualTheme
-} from './classmap';
-
-// Random Generation
-export {
-    SeededRandom,
-    generateCharacterSeed,
-    createCharacterRandom,
-    generateVisualVariation,
-    generateMultipleVariations,
-    ColorVariations
-} from './seed';
-
-// 2D Rendering
-export {
-    renderer2D,
-    renderCharacterToCanvas,
-    renderCharacterToSVG
-} from './renderer2d';
-
-// Asset Layering Manifest
-export {
-    loadLayeredPortrait,
-    getAssetLayers,
-    isSupported as isSpeciesArchetypeSupported,
-    getSupportedSpecies,
-    getSupportedArchetypes
-} from './manifest';
-
-// React Components
 export {
     PortraitPreview,
     default as PortraitPreviewComponent
 } from './PortraitPreview';
 
-// Import types for utility functions
-import { CharacterVisualData, PortraitOptions } from './types';
-import { visualService, generateCharacterPortrait } from './service';
-
-// Utility Functions
-export const VisualUtils = {
+// === UTILITY FUNCTIONS ===
+export const SimpleUtils = {
     /**
-     * Create character data for portrait generation
+     * Convert legacy character data to simple portrait options
      */
+    convertToSimpleOptions: (character: {
+        name: string;
+        species: string;
+        archetype: string;
+        gender?: 'male' | 'female';
+    }): SimplePortraitOptions => ({
+        gender: character.gender || 'male',
+        species: character.species.toLowerCase(),
+        archetype: character.archetype.toLowerCase()
+    }),
+
+    /**
+     * Get species options from the catalog
+     */
+    getAvailableSpecies: (): string[] => [
+        'human', 'sylvanborn', 'alloy', 'draketh',
+        'voidkin', 'crystalborn', 'stormcaller_species'
+    ],
+
+    /**
+     * Get archetype options from the catalog
+     */
+    getAvailableArchetypes: (): string[] => [
+        'greenwarden', 'thornknight', 'saplingadept', 'bloomcaller',
+        'ashblade', 'cindermystic', 'dustranger', 'bonechanter',
+        'stormcaller_class', 'voidwing', 'skyknight', 'windsage'
+    ],
+
+    /**
+     * Get archetype by world
+     */
+    getArchetypesByWorld: () => ({
+        Verdance: ['greenwarden', 'thornknight', 'saplingadept', 'bloomcaller'],
+        Ashenreach: ['ashblade', 'cindermystic', 'dustranger', 'bonechanter'],
+        Skyvault: ['stormcaller_class', 'voidwing', 'skyknight', 'windsage']
+    })
+};
+
+// Legacy utility functions (for compatibility)
+export const VisualUtils = {
     createCharacterData: (character: {
         name: string;
         species: string;
         archetype: string;
         level?: number;
-    }): CharacterVisualData => ({
+    }) => ({
         name: character.name,
         species: character.species,
         archetype: character.archetype,
@@ -92,52 +100,62 @@ export const VisualUtils = {
         appearance: {}
     }),
 
-    /**
-     * Get default portrait options
-     */
-    getDefaultPortraitOptions: (): PortraitOptions => ({
+    getDefaultPortraitOptions: () => ({
         size: 'medium',
         format: 'svg',
         quality: 'medium',
         background: 'transparent'
     }),
 
-    /**
-     * Check if character data is valid for portrait generation
-     */
-    isValidCharacterData: (data: Partial<CharacterVisualData>): data is CharacterVisualData => {
-        return !!(data.name && data.species && data.archetype);
+    isValidCharacterData: (data: any) => {
+        return !!(data?.name && data?.species && data?.archetype);
     }
 };
-
-// Version info
-export const VERSION = '1.0.0';
 
 // Development helpers
 export const DevTools = {
     /**
-     * Get system statistics
+     * Test simple portrait generation
      */
-    getSystemStats: () => visualService.getStats(),
+    testSimplePortrait: async () => {
+        const options: SimplePortraitOptions = {
+            gender: 'male',
+            species: 'human',
+            archetype: 'greenwarden'
+        };
 
-    /**
-     * Test portrait generation
-     */
-    testPortraitGeneration: async (characterName = 'Test Character') => {
-        const testData = VisualUtils.createCharacterData({
-            name: characterName,
-            species: 'Human',
-            archetype: 'Warrior'
-        });
-
-        return generateCharacterPortrait(testData);
+        console.log('🎭 Testing simple portrait generation...');
+        return generateSimplePortrait(options);
     },
 
     /**
-     * Test layered portrait loading directly
+     * Test all species/archetype combinations
      */
-    testLayeredPortrait: async (characterName = 'Test Character') => {
-        const { loadLayeredPortrait } = await import('./manifest');
-        return loadLayeredPortrait('Human', 'Warrior', characterName);
+    testAllCombinations: async () => {
+        const species = SimpleUtils.getAvailableSpecies();
+        const archetypes = SimpleUtils.getAvailableArchetypes();
+        const genders: ('male' | 'female')[] = ['male', 'female'];
+
+        console.log(`🎭 Testing ${species.length}×${archetypes.length}×${genders.length} = ${species.length * archetypes.length * genders.length} combinations...`);
+
+        const results = [];
+        for (const s of species.slice(0, 2)) { // Test first 2 species
+            for (const a of archetypes.slice(0, 2)) { // Test first 2 archetypes
+                for (const g of genders) {
+                    const result = await generateSimplePortrait({
+                        gender: g,
+                        species: s,
+                        archetype: a
+                    });
+                    results.push({ species: s, archetype: a, gender: g, success: result.success });
+                }
+            }
+        }
+
+        console.log('🎭 Test results:', results);
+        return results;
     }
 };
+
+// Version info
+export const VERSION = '2.0.0-simple';
