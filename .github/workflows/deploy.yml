@@ -28,7 +28,7 @@ jobs:
           cache: npm
 
       - name: Install 📦
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       # IMPORTANT for GitHub Pages base path
       - name: Build 🧱
