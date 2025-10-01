@@ -308,22 +308,12 @@ export function getSupportedArchetypes(species: string): string[] {
 // Enhanced portrait loading with external manifest support
 export async function loadExternalManifest(): Promise<any> {
     try {
-        // Try multiple methods for loading the manifest
-        let response: Response;
-        let url: string;
-
-        // Method 1: Using PUBLIC_URL (best for production)
-        try {
-            const publicUrl = process.env.PUBLIC_URL || '';
-            url = `${publicUrl}/assets/portraits/manifest.json`;
-            console.log('🔍 Fetching external manifest from:', url);
-            response = await fetch(url);
-        } catch (error) {
-            // Method 2: Using relative path (fallback for dev server)
-            url = './assets/portraits/manifest.json';
-            console.log('🔄 Retrying with relative path:', url);
-            response = await fetch(url);
-        }
+        // Use bullet-proof URL construction with PUBLIC_URL support
+        const publicUrl = process.env.PUBLIC_URL || '';
+        const basePath = publicUrl.replace(/\/+$/, '');
+        const url = new URL(`${basePath}/assets/portraits/manifest.json`, window.location.origin).toString();
+        console.log('� Fetching external manifest from:', url);
+        const response = await fetch(url, { cache: 'no-store' });
 
         console.log('📡 Response status:', response.status, response.statusText);
 
@@ -514,8 +504,10 @@ async function renderLayers(layers: AssetLayer[]): Promise<string> {
 
     for (const layer of layers) {
         try {
-            const svgPath = `/assets/portraits/${layer.path}`;
-            const response = await fetch(svgPath);
+            const publicUrl = process.env.PUBLIC_URL || '';
+            const basePath = publicUrl.replace(/\/+$/, '');
+            const svgPath = new URL(`${basePath}/assets/portraits/${layer.path}`, window.location.origin).toString();
+            const response = await fetch(svgPath, { cache: 'no-store' });
 
             if (!response.ok) {
                 console.warn(`Failed to load asset: ${svgPath}`);
@@ -559,22 +551,12 @@ export interface PresetDefinition {
 // Load presets from external presets.json
 export async function loadPresets(): Promise<PresetDefinition[]> {
     try {
-        // Try multiple methods for loading the presets
-        let response: Response;
-        let url: string;
-
-        // Method 1: Using PUBLIC_URL (best for production)
-        try {
-            const publicUrl = process.env.PUBLIC_URL || '';
-            url = `${publicUrl}/assets/portraits/presets.json`;
-            console.log('🔍 Fetching presets from:', url);
-            response = await fetch(url);
-        } catch (error) {
-            // Method 2: Using relative path (fallback for dev server)
-            url = './assets/portraits/presets.json';
-            console.log('🔄 Retrying presets with relative path:', url);
-            response = await fetch(url);
-        }
+        // Use bullet-proof URL construction with PUBLIC_URL support
+        const publicUrl = process.env.PUBLIC_URL || '';
+        const basePath = publicUrl.replace(/\/+$/, '');
+        const url = new URL(`${basePath}/assets/portraits/presets.json`, window.location.origin).toString();
+        console.log('� Fetching presets from:', url);
+        const response = await fetch(url, { cache: 'no-store' });
 
         console.log('📡 Presets response status:', response.status, response.statusText);
 

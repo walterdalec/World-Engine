@@ -34,12 +34,13 @@ class VisualAssetManager {
      */
     private async loadManifest(): Promise<void> {
         try {
-            // Use process.env.PUBLIC_URL to handle GitHub Pages deployment path
-            const basePath = process.env.PUBLIC_URL || '';
-            const manifestUrl = `${basePath}/assets/portraits/manifest.json`;
+            // Use bullet-proof URL construction with PUBLIC_URL support
+            const publicUrl = process.env.PUBLIC_URL || '';
+            const basePath = publicUrl.replace(/\/+$/, '');
+            const manifestUrl = new URL(`${basePath}/assets/portraits/manifest.json`, window.location.origin).toString();
 
             console.log('Loading portrait manifest from:', manifestUrl);
-            const response = await fetch(manifestUrl);
+            const response = await fetch(manifestUrl, { cache: 'no-store' });
             if (!response.ok) {
                 console.warn('Portrait manifest not found, using empty asset system');
                 this.initializeEmptyManifest();
@@ -135,13 +136,28 @@ class VisualAssetManager {
     }
 
     /**
-     * Get full URL for an asset
+     * Build bullet-proof asset URLs that work across all deployment scenarios
+     */
+    private assetUrl(relPath: string): string {
+        // Get the base path from PUBLIC_URL (e.g., "/World-Engine/" for GitHub Pages)
+        const publicUrl = process.env.PUBLIC_URL || '';
+        const origin = window.location.origin;
+
+        // Normalize the public URL path
+        const basePath = publicUrl.replace(/\/+$/, ''); // Remove trailing slashes
+        const assetsPath = `${basePath}/assets/portraits/`;
+
+        const cleanRel = relPath.replace(/^\/+/, ''); // e.g. "base/human.svg"
+
+        // Build the full URL: origin + basePath + /assets/portraits/ + relativePath
+        return new URL(`${assetsPath}${cleanRel}`, origin).toString();
+    }
+
+    /**
+     * Get full URL for an asset using bullet-proof URL building
      */
     getAssetUrl(asset: VisualAsset): string {
-        const basePath = process.env.PUBLIC_URL || '';
-        const fullUrl = `${basePath}/assets/portraits/${asset.path}`;
-        // console.log('🔍 ASSET URL: PUBLIC_URL =', process.env.PUBLIC_URL, '→ Full URL =', fullUrl);
-        return fullUrl;
+        return this.assetUrl(asset.path);
     }
 
     /**
@@ -150,15 +166,20 @@ class VisualAssetManager {
     async loadAssetContent(asset: VisualAsset): Promise<string> {
         try {
             const url = this.getAssetUrl(asset);
-            // console.log('🔍 ASSET MANAGER: Loading asset content from:', url);
-            // console.log('🔍 ASSET MANAGER: Asset object:', asset);
-            const response = await fetch(url);
-            // console.log('🔍 ASSET MANAGER: Response status:', response.status, response.statusText);
+            console.log('🔍 ASSET MANAGER: Loading asset content from:', url);
+
+            const response = await fetch(url, { cache: 'no-store' });
             if (!response.ok) {
-                throw new Error(`Failed to load asset: ${response.status} ${response.statusText}`);
+                throw new Error(`${response.status} ${response.statusText} - ${url}`);
             }
+
             const content = await response.text();
-            // console.log('🔍 ASSET MANAGER: Content loaded, length:', content.length);
+
+            // Assert it's actually SVG content, not HTML error page
+            if (!/^<svg[\s>]/i.test(content.trim())) {
+                throw new Error(`Not an SVG at ${url}: ${content.slice(0, 80)}…`);
+            }
+
             return content;
         } catch (error) {
             console.error(`💥 ASSET MANAGER: Failed to load asset ${asset.id}:`, error);
@@ -217,7 +238,9 @@ export async function ensureAssetsLoaded(): Promise<void> {
 }
 
 export function getAssetUrl(path: string): string {
-    return `/assets/portraits/${path}`;
+    const publicUrl = process.env.PUBLIC_URL || '';
+    const basePath = publicUrl.replace(/\/+$/, '');
+    return new URL(`${basePath}/assets/portraits/${path}`, window.location.origin).toString();
 }
 
 // Get portrait assets organized by species and archetypes

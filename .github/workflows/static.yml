@@ -1,87 +1,38 @@
-name: Build and Deployname: Build and Deployname: Build and Deploy
+name: Build and Deploy
 
 on:
-
-  push:on:on:
-
+  push:
     branches:
-
-      - main  push:  push:
-
+      - main
   pull_request:
-
-    branches:    branches:    branches:
-
+    branches:
       - main
 
-      - main      - main
-
 permissions:
+  contents: write
+  pages: write
+  id-token: write
 
-  contents: write  pull_request:  pull_request:
-
-
-
-jobs:    branches:    branches:
-
+jobs:
   build-and-deploy:
-
-    runs-on: ubuntu-latest      - main      - main
-
+    runs-on: ubuntu-latest
     steps:
-
       - name: Checkout 🛎️
-
         uses: actions/checkout@v4
 
-permissions:permissions:
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
 
       - name: Install and Build 🔧
-
-        run: |  contents: write  contents: write
-
-          npm install
-
-          npm run build  pages: write
-
-
-
-      - name: Deploy 🚀jobs:  id-token: write
-
-        uses: JamesIves/github-pages-deploy-action@v4
-
-        with:  build-and-deploy:
-
-          folder: build
-
-          token: ${{ secrets.GITHUB_TOKEN }}    runs-on: ubuntu-latestjobs:
-
-    steps:  build-and-deploy:
-
-      - name: Checkout 🛎️    runs-on: ubuntu-latest
-
-        uses: actions/checkout@v4    steps:
-
-      - name: Checkout 🛎️
-
-      - name: Install and Build 🔧        uses: actions/checkout@v4
-
         run: |
-
-          npm install      - name: Install and Build 🔧
-
-          npm run build        run: |
-
           npm install
+          npm run build
 
-      - name: Deploy 🚀          npm run build
-
+      - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4
-
-        with:      - name: Deploy 🚀
-
-          folder: build        uses: JamesIves/github-pages-deploy-action@v4
-
-          token: ${{ secrets.GITHUB_TOKEN }}        with:
+        with:
           folder: build
           token: ${{ secrets.GITHUB_TOKEN }}
