@@ -5,7 +5,7 @@
 import React, { useState, useMemo } from 'react';
 import { WorldEngine } from '../engine/index';
 import { CLASS_DEFINITIONS } from '../defaultWorlds';
-import { PortraitPreview, VisualUtils } from '../visuals';
+import { SimplePortraitPreview, SimpleUtils } from '../visuals';
 
 // Species and trait definitions for character creation
 const SPECIES_OPTIONS = [

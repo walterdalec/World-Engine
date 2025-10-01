@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PortraitPreview, VisualUtils } from '../visuals';
+import { SimplePortraitPreview, SimpleUtils } from '../visuals';
 
 interface Campaign {
   id: string;
@@ -379,16 +379,12 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
           </div>
 
           <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
-            {character.data?.name && character.data?.species && character.data?.archetype ? (
-              <PortraitPreview
-                character={VisualUtils.createCharacterData({
-                  name: character.data.name,
-                  species: character.data.species,
-                  archetype: character.data.archetype,
-                  level: character.level || 1
-                })}
-                width={120}
-                height={120}
+            {character.data?.name && character.data?.species && character.data?.archetype && character.data?.gender ? (
+              <SimplePortraitPreview
+                gender={character.data.gender.toLowerCase() as 'male' | 'female'}
+                species={character.data.species.toLowerCase()}
+                archetype={character.data.archetype.toLowerCase()}
+                size="small"
               />
             ) : (
               <div style={{
@@ -744,16 +740,12 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
               {characters.map(character => (
                 <div key={character.id} style={cardStyle}>
                   <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
-                    {character.data?.name && character.data?.species && character.data?.archetype ? (
-                      <PortraitPreview
-                        character={VisualUtils.createCharacterData({
-                          name: character.data.name,
-                          species: character.data.species,
-                          archetype: character.data.archetype,
-                          level: character.level || 1
-                        })}
-                        width={60}
-                        height={60}
+                    {character.data?.name && character.data?.species && character.data?.archetype && character.data?.gender ? (
+                      <SimplePortraitPreview
+                        gender={character.data.gender.toLowerCase() as 'male' | 'female'}
+                        species={character.data.species.toLowerCase()}
+                        archetype={character.data.archetype.toLowerCase()}
+                        size="small"
                       />
                     ) : (
                       <div style={{
