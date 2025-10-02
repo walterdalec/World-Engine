@@ -52,11 +52,8 @@ export const SimplePortraitPreview: React.FC<SimplePortraitPreviewProps> = ({
         // Check cache first
         const cached = getCachedPortrait(options);
         if (cached) {
-            setPortrait({
-                success: true,
-                layers: [], // Don't need layers for cached
-                dataUrl: cached
-            });
+            console.log('🎭 Using cached portrait with', cached.layers?.length || 0, 'layers');
+            setPortrait(cached);
             setIsLoading(false);
             return;
         }
@@ -65,7 +62,7 @@ export const SimplePortraitPreview: React.FC<SimplePortraitPreviewProps> = ({
             const result = await generateSimplePortrait(options);
 
             if (result.success && result.dataUrl) {
-                setCachedPortrait(options, result.dataUrl);
+                setCachedPortrait(options, result);
             }
 
             setPortrait(result);
