@@ -42,7 +42,7 @@ export const PORTRAIT_CONFIGS: AllPortraitConfigs = {
         // Male classes
         'Knight': {
             genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/human-knight-male.png',
+            imagePath: '/World-Engine/assets/portraits-realistic/human-knight-male.png',
             description: 'Human warrior with heavy armor and weapons'
         },
         'Ranger': {
@@ -187,15 +187,33 @@ export const PORTRAIT_CONFIGS: AllPortraitConfigs = {
  * Get the gender lock for a specific archetype (applies to all species)
  */
 export function getGenderLock(species: string, archetype: string): 'male' | 'female' | null {
-    // Check global gender locks first
-    const globalLock = GLOBAL_GENDER_LOCKS[archetype];
+    // Check global gender locks first - try exact match then case-insensitive
+    let globalLock = GLOBAL_GENDER_LOCKS[archetype];
+    if (!globalLock) {
+        const archetypeKey = Object.keys(GLOBAL_GENDER_LOCKS).find(
+            key => key.toLowerCase() === archetype.toLowerCase()
+        );
+        if (archetypeKey) {
+            globalLock = GLOBAL_GENDER_LOCKS[archetypeKey];
+        }
+    }
     if (globalLock) return globalLock;
 
     // Fallback to species-specific config (for backwards compatibility)
     const speciesConfig = PORTRAIT_CONFIGS[species.toLowerCase()];
     if (!speciesConfig) return null;
 
-    const classConfig = speciesConfig[archetype];
+    // Try exact match first, then case-insensitive match
+    let classConfig = speciesConfig[archetype];
+    if (!classConfig) {
+        const archetypeKey = Object.keys(speciesConfig).find(
+            key => key.toLowerCase() === archetype.toLowerCase()
+        );
+        if (archetypeKey) {
+            classConfig = speciesConfig[archetypeKey];
+        }
+    }
+
     if (!classConfig) return null;
 
     return classConfig.genderLocked || null;
@@ -208,7 +226,18 @@ export function getPortraitImagePath(species: string, archetype: string, gender:
     const speciesConfig = PORTRAIT_CONFIGS[species.toLowerCase()];
     if (!speciesConfig) return null;
 
-    const classConfig = speciesConfig[archetype];
+    // Try exact match first, then case-insensitive match
+    let classConfig = speciesConfig[archetype];
+    if (!classConfig) {
+        // Try to find case-insensitive match
+        const archetypeKey = Object.keys(speciesConfig).find(
+            key => key.toLowerCase() === archetype.toLowerCase()
+        );
+        if (archetypeKey) {
+            classConfig = speciesConfig[archetypeKey];
+        }
+    }
+
     if (!classConfig) return null;
 
     // Check if gender matches the lock (if any)

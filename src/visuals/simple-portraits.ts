@@ -1259,6 +1259,8 @@ export async function generateSimplePortrait(options: SimplePortraitOptions): Pr
 
         // First, check if we have a realistic image for this combination
         const imagePath = getPortraitImagePath(species, archetype, gender);
+        console.log(`🔍 Portrait lookup: species=${species}, archetype=${archetype}, gender=${gender}`);
+        console.log(`🖼️ Image path result: ${imagePath}`);
 
         if (imagePath) {
             console.log(`🖼️ Using realistic image: ${imagePath}`);
@@ -1266,6 +1268,7 @@ export async function generateSimplePortrait(options: SimplePortraitOptions): Pr
             // Try to load the realistic image
             try {
                 const imageUrl = await loadRealisticImage(imagePath);
+                console.log(`🖼️ Image load result: ${imageUrl ? 'SUCCESS' : 'FAILED'}`);
                 if (imageUrl) {
                     return {
                         success: true,
@@ -1279,8 +1282,10 @@ export async function generateSimplePortrait(options: SimplePortraitOptions): Pr
                     };
                 }
             } catch (imageError) {
-                console.warn(`🖼️ Failed to load realistic image ${imagePath}, falling back to placeholder`);
+                console.warn(`🖼️ Failed to load realistic image ${imagePath}, falling back to placeholder`, imageError);
             }
+        } else {
+            console.log(`🚫 No realistic image path found for: ${gender} ${species} ${archetype}`);
         }
 
         // Fallback to placeholder generation
