@@ -78,7 +78,7 @@ export const PORTRAIT_CONFIGS: AllPortraitConfigs = {
         // Male classes
         'Knight': {
             genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/sylvanborn-knight-male.jpg',
+            imagePath: '/World-Engine/assets/portraits-realistic/sylvanborn-knight-male.png',
             description: 'Sylvanborn warrior-druid with natural armor'
         },
         'Ranger': {
@@ -114,7 +114,7 @@ export const PORTRAIT_CONFIGS: AllPortraitConfigs = {
         // Male classes
         'Knight': {
             genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/nightborn-knight-male.jpg',
+            imagePath: '/World-Engine/assets/portraits-realistic/nightborn-knight-male.png',
             description: 'Nightborn shadow warrior with dark armor'
         },
         'Ranger': {
@@ -150,7 +150,7 @@ export const PORTRAIT_CONFIGS: AllPortraitConfigs = {
         // Male classes
         'Knight': {
             genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/stormcaller-knight-male.jpg',
+            imagePath: '/World-Engine/assets/portraits-realistic/stormcaller-knight-male.png',
             description: 'Stormcaller sky warrior with storm weapons'
         },
         'Ranger': {
