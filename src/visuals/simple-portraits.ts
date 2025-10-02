@@ -179,8 +179,20 @@ function loadAndDrawLayer(
  * Get asset URL with proper base path handling
  */
 function getAssetUrl(path: string): string {
-    const publicUrl = process.env.PUBLIC_URL || '';
-    return `${publicUrl}/assets/${path}`;
+    // For local development, use relative paths
+    // For production (GitHub Pages), use the PUBLIC_URL
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+    if (isLocal) {
+        const basePath = `assets/${path}`;
+        console.log(`🔗 Local asset URL: ${basePath}`);
+        return basePath;
+    } else {
+        const publicUrl = process.env.PUBLIC_URL || '';
+        const basePath = `${publicUrl}/assets/${path}`;
+        console.log(`🔗 Production asset URL: ${basePath}`);
+        return basePath;
+    }
 }/**
  * Simple caching for generated portraits
  */
