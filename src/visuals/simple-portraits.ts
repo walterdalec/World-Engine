@@ -151,72 +151,82 @@ async function trySpritesheetCharacter(species: string, archetype: string, gende
 
 /**
  * Extract a sprite from a spritesheet using canvas with retry logic
+ * Uses fetch API for better CORS handling on GitHub Pages
  */
 async function extractSpriteFromSheet(sheetName: string, x: number, y: number, w: number, h: number, retryCount = 0): Promise<string> {
-    return new Promise((resolve, reject) => {
-        const img = new Image();
+    try {
+        console.log(`🔍 Fetching spritesheet: ${sheetName} (attempt ${retryCount + 1})`);
 
-        // Set CORS to handle GitHub Pages
-        img.crossOrigin = 'anonymous';
+        const assetUrl = getAssetUrl(`portraits-new/${sheetName}`);
+        console.log(`🌐 Fetch URL: ${assetUrl}`);
 
-        console.log(`🔍 Creating image for spritesheet: ${sheetName}`); img.onload = () => {
-            // Create canvas for extracted sprite
-            const canvas = document.createElement('canvas');
-            canvas.width = w * 4; // Scale up 4x for better visibility
-            canvas.height = h * 4;
+        // Try fetch first for better CORS handling
+        const response = await fetch(assetUrl);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
 
-            const ctx = canvas.getContext('2d');
-            if (!ctx) {
-                reject(new Error('Could not get canvas context'));
-                return;
-            }
+        const blob = await response.blob();
+        const imageUrl = URL.createObjectURL(blob);
 
-            // Draw the sprite section from the sheet, scaled up
-            ctx.imageSmoothingEnabled = false; // Pixel art should stay crisp
-            ctx.drawImage(img, x, y, w, h, 0, 0, w * 4, h * 4);
+        return new Promise((resolve, reject) => {
+            const img = new Image();
 
-            // Convert to data URL
-            const dataUrl = canvas.toDataURL('image/png');
-            console.log(`🎨 Extracted sprite from ${sheetName} at (${x},${y}) -> ${dataUrl.length} bytes`);
-            resolve(dataUrl);
-        };
+            img.onload = () => {
+                try {
+                    console.log(`✅ Successfully loaded spritesheet: ${sheetName}`);
+                    console.log(`📏 Image dimensions: ${img.width}x${img.height}`);
 
-        img.onerror = () => {
-            console.log(`❌ Failed to load spritesheet: ${sheetName} (attempt ${retryCount + 1})`);
-            console.log(`🔍 Full URL attempted: ${getAssetUrl(`portraits-new/${sheetName}`)}`);
-            console.log(`🌐 Current location: ${window.location.href}`);
-            console.log(`🔗 Base path logic: isLocal=${window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'}`);
+                    // Create canvas for extracted sprite
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w * 4; // Scale up 4x for better visibility
+                    canvas.height = h * 4;
 
-            // Retry up to 2 times with delay
-            if (retryCount < 2) {
-                console.log(`🔄 Retrying spritesheet load in ${(retryCount + 1) * 1000}ms...`);
-                setTimeout(() => {
-                    extractSpriteFromSheet(sheetName, x, y, w, h, retryCount + 1)
-                        .then(resolve)
-                        .catch(reject);
-                }, (retryCount + 1) * 1000);
-            } else {
-                reject(new Error(`Failed to load spritesheet: ${sheetName} after ${retryCount + 1} attempts`));
-            }
-        };
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) {
+                        URL.revokeObjectURL(imageUrl);
+                        reject(new Error('Could not get canvas context'));
+                        return;
+                    }
 
-        img.src = getAssetUrl(`portraits-new/${sheetName}`);
-        console.log(`🔍 Attempting to load spritesheet from: ${img.src}`);
-        console.log(`🌐 window.location.href: ${window.location.href}`);
-        console.log(`🌐 window.location.hostname: ${window.location.hostname}`);
-        console.log(`🌐 process.env.PUBLIC_URL: ${process.env.PUBLIC_URL || 'undefined'}`);
+                    // Draw the sprite section from the sheet, scaled up
+                    ctx.imageSmoothingEnabled = false; // Pixel art should stay crisp
+                    ctx.drawImage(img, x, y, w, h, 0, 0, w * 4, h * 4);
 
-        // Add a timeout to catch hanging requests
-        setTimeout(() => {
-            if (!img.complete) {
-                console.log(`⏰ Spritesheet load timeout for: ${sheetName}`);
-                reject(new Error(`Timeout loading spritesheet: ${sheetName}`));
-            }
-        }, 10000);
-    });
-}
+                    // Convert to data URL
+                    const dataUrl = canvas.toDataURL('image/png');
+                    console.log(`🎨 Extracted sprite from ${sheetName} at (${x},${y}) -> ${dataUrl.length} bytes`);
 
-/**
+                    URL.revokeObjectURL(imageUrl);
+                    resolve(dataUrl);
+                } catch (error) {
+                    URL.revokeObjectURL(imageUrl);
+                    console.error(`🎨 Canvas error for ${sheetName}:`, error);
+                    reject(error);
+                }
+            };
+
+            img.onerror = () => {
+                URL.revokeObjectURL(imageUrl);
+                reject(new Error(`Failed to load blob image: ${sheetName}`));
+            };
+
+            img.src = imageUrl;
+        });
+
+    } catch (fetchError) {
+        console.log(`❌ Fetch failed for ${sheetName} (attempt ${retryCount + 1}):`, fetchError);
+
+        // Retry up to 2 times with delay
+        if (retryCount < 2) {
+            console.log(`🔄 Retrying fetch in ${(retryCount + 1) * 1000}ms...`);
+            await new Promise(resolve => setTimeout(resolve, (retryCount + 1) * 1000));
+            return extractSpriteFromSheet(sheetName, x, y, w, h, retryCount + 1);
+        } else {
+            throw new Error(`Failed to fetch spritesheet: ${sheetName} after ${retryCount + 1} attempts`);
+        }
+    }
+}/**
  * Generate portrait using PNG layering system with spritesheet fallbacks
  */
 export async function generateSimplePortrait(options: SimplePortraitOptions): Promise<PortraitResult> {
