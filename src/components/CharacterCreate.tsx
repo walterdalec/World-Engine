@@ -3,6 +3,8 @@ import React, { useMemo, useState } from "react";
 import { CLASS_DEFINITIONS } from '../defaultWorlds';
 // Visual System Integration - NEW Simple PNG System
 import { SimplePortraitPreview, SimpleUtils } from '../visuals';
+// Gender-locked portrait system
+import { getAvailableArchetypes, isValidGenderForClass, getGenderLock } from '../portraitConfig';
 
 type Stats = "STR" | "DEX" | "CON" | "INT" | "WIS" | "CHA";
 
@@ -542,6 +544,26 @@ export default function CharacterCreate() {
 
   const pointsLeft = POINTS_POOL - pointsSpent;
 
+  // Calculate available archetypes based on gender locks
+  const availableArchetypes = useMemo(() => {
+    if (!char.gender || !char.species) return CLASS_OPTIONS;
+    return getAvailableArchetypes(char.species, char.gender.toLowerCase(), CLASS_OPTIONS);
+  }, [char.gender, char.species]);
+
+  // Check if current archetype is valid for selected gender
+  const isCurrentArchetypeValid = useMemo(() => {
+    if (!char.archetype || !char.gender || !char.species) return true;
+    return isValidGenderForClass(char.species, char.archetype, char.gender.toLowerCase());
+  }, [char.archetype, char.gender, char.species]);
+
+  // Auto-clear invalid archetype when gender changes
+  React.useEffect(() => {
+    if (char.archetype && !isCurrentArchetypeValid) {
+      console.log(`🚫 Gender lock: ${char.archetype} not available for ${char.gender} ${char.species}, clearing selection`);
+      setField("archetype", "");
+    }
+  }, [char.archetype, char.gender, char.species, isCurrentArchetypeValid]);
+
   function setField<K extends keyof Character>(key: K, val: Character[K]) {
     setChar((c) => ({ ...c, [key]: val }));
   }
@@ -906,7 +928,35 @@ export default function CharacterCreate() {
                 ).join(", ")}
               </div>
             )}
-            <SelectRow label="Class" value={char.archetype} onChange={(v) => setField("archetype", v)} options={CLASS_OPTIONS} />
+            <SelectRow
+              label="Class"
+              value={char.archetype}
+              onChange={(v) => setField("archetype", v)}
+              options={availableArchetypes}
+            />
+            {!isCurrentArchetypeValid && char.archetype && (
+              <div style={{
+                fontSize: 12,
+                color: '#f87171',
+                marginTop: -4,
+                padding: '4px 8px',
+                background: 'rgba(248, 113, 113, 0.1)',
+                borderRadius: '4px',
+                border: '1px solid rgba(248, 113, 113, 0.3)'
+              }}>
+                ⚠️ {char.archetype} is gender-locked for {getGenderLock(char.species, char.archetype) === 'male' ? 'male' : 'female'} characters only
+              </div>
+            )}
+            {availableArchetypes.length < CLASS_OPTIONS.length && (
+              <div style={{
+                fontSize: 12,
+                color: '#60a5fa',
+                marginTop: 4,
+                fontStyle: 'italic'
+              }}>
+                ℹ️ Some classes are gender-locked. {CLASS_OPTIONS.length - availableArchetypes.length} classes hidden.
+              </div>
+            )}
             <div style={{ display: "grid", gap: 4 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>Level</span>
