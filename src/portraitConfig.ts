@@ -52,7 +52,7 @@ export const PORTRAIT_CONFIGS: AllPortraitConfigs = {
         },
         'Chanter': {
             genderLocked: 'male',
-            imagePath: '/World-Engine/assets/portraits-realistic/human-chanter-male.jpg',
+            imagePath: '/World-Engine/assets/portraits-realistic/human-chanter-male.png',
             description: 'Human priest and bone singer'
         },
 
@@ -88,7 +88,7 @@ export const PORTRAIT_CONFIGS: AllPortraitConfigs = {
         },
         'Chanter': {
             genderLocked: 'male',
-            imagePath: '/World-Engine/assets/portraits-realistic/sylvanborn-chanter-male.jpg',
+            imagePath: '/World-Engine/assets/portraits-realistic/sylvanborn-chanter-male.png',
             description: 'Sylvanborn sage and ancient singer'
         },
 
@@ -124,7 +124,7 @@ export const PORTRAIT_CONFIGS: AllPortraitConfigs = {
         },
         'Chanter': {
             genderLocked: 'male',
-            imagePath: '/World-Engine/assets/portraits-realistic/nightborn-chanter-male.jpg',
+            imagePath: '/World-Engine/assets/portraits-realistic/nightborn-chanter-male.png',
             description: 'Nightborn death priest and void singer'
         },
 
@@ -160,7 +160,7 @@ export const PORTRAIT_CONFIGS: AllPortraitConfigs = {
         },
         'Chanter': {
             genderLocked: 'male',
-            imagePath: '/World-Engine/assets/portraits-realistic/stormcaller-chanter-male.jpg',
+            imagePath: '/World-Engine/assets/portraits-realistic/stormcaller-chanter-male.png',
             description: 'Stormcaller storm priest and wind singer'
         },
 
