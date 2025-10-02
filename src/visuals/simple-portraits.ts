@@ -29,21 +29,115 @@ export interface PortraitResult {
  */
 async function trySpritesheetCharacter(species: string, archetype: string, gender: string): Promise<string | null> {
     try {
-        // Simple character mapping to DENZI spritesheet coordinates
+        // Comprehensive character mapping to DENZI spritesheet coordinates
+        // Maps all 7 species × 12 archetypes = 84 combinations
         const characterMappings: Record<string, { sheet: string; x: number; y: number; w: number; h: number }> = {
+            // HUMAN characters - humanoid tileset (32x32)
             'human_greenwarden': { sheet: 'denzi-tileset.png', x: 0, y: 0, w: 32, h: 32 },
-            'human_ashblade': { sheet: 'denzi-tileset.png', x: 32, y: 0, w: 32, h: 32 },
-            'sylvanborn_greenwarden': { sheet: 'denzi-tileset.png', x: 64, y: 0, w: 32, h: 32 },
-            'draketh_stormcaller': { sheet: 'denzi-monsters.png', x: 0, y: 0, w: 32, h: 48 },
-            'alloy_stormcaller': { sheet: 'denzi-monsters.png', x: 32, y: 0, w: 32, h: 48 },
-            'voidkin_voidwing': { sheet: 'denzi-monsters.png', x: 64, y: 0, w: 32, h: 48 },
-            'crystalborn_skyknight': { sheet: 'denzi-monsters.png', x: 96, y: 0, w: 32, h: 48 },
-            // Add fallback for any combination
-            'default': { sheet: 'denzi-tileset.png', x: 0, y: 32, w: 32, h: 32 }
+            'human_thorn knight': { sheet: 'denzi-tileset.png', x: 32, y: 0, w: 32, h: 32 },
+            'human_sapling adept': { sheet: 'denzi-tileset.png', x: 64, y: 0, w: 32, h: 32 },
+            'human_bloomcaller': { sheet: 'denzi-tileset.png', x: 96, y: 0, w: 32, h: 32 },
+            'human_ashblade': { sheet: 'denzi-tileset.png', x: 128, y: 0, w: 32, h: 32 },
+            'human_cinder mystic': { sheet: 'denzi-tileset.png', x: 160, y: 0, w: 32, h: 32 },
+            'human_dust ranger': { sheet: 'denzi-tileset.png', x: 192, y: 0, w: 32, h: 32 },
+            'human_bonechanter': { sheet: 'denzi-tileset.png', x: 224, y: 0, w: 32, h: 32 },
+            'human_stormcaller': { sheet: 'denzi-tileset.png', x: 0, y: 32, w: 32, h: 32 },
+            'human_voidwing': { sheet: 'denzi-tileset.png', x: 32, y: 32, w: 32, h: 32 },
+            'human_sky knight': { sheet: 'denzi-tileset.png', x: 64, y: 32, w: 32, h: 32 },
+            'human_wind sage': { sheet: 'denzi-tileset.png', x: 96, y: 32, w: 32, h: 32 },
+
+            // SYLVANBORN characters - nature-themed tileset (32x32)
+            'sylvanborn_greenwarden': { sheet: 'denzi-tileset.png', x: 128, y: 32, w: 32, h: 32 },
+            'sylvanborn_thorn knight': { sheet: 'denzi-tileset.png', x: 160, y: 32, w: 32, h: 32 },
+            'sylvanborn_sapling adept': { sheet: 'denzi-tileset.png', x: 192, y: 32, w: 32, h: 32 },
+            'sylvanborn_bloomcaller': { sheet: 'denzi-tileset.png', x: 224, y: 32, w: 32, h: 32 },
+            'sylvanborn_ashblade': { sheet: 'denzi-tileset.png', x: 0, y: 64, w: 32, h: 32 },
+            'sylvanborn_cinder mystic': { sheet: 'denzi-tileset.png', x: 32, y: 64, w: 32, h: 32 },
+            'sylvanborn_dust ranger': { sheet: 'denzi-tileset.png', x: 64, y: 64, w: 32, h: 32 },
+            'sylvanborn_bonechanter': { sheet: 'denzi-tileset.png', x: 96, y: 64, w: 32, h: 32 },
+            'sylvanborn_stormcaller': { sheet: 'denzi-tileset.png', x: 128, y: 64, w: 32, h: 32 },
+            'sylvanborn_voidwing': { sheet: 'denzi-tileset.png', x: 160, y: 64, w: 32, h: 32 },
+            'sylvanborn_sky knight': { sheet: 'denzi-tileset.png', x: 192, y: 64, w: 32, h: 32 },
+            'sylvanborn_wind sage': { sheet: 'denzi-tileset.png', x: 224, y: 64, w: 32, h: 32 },
+
+            // ALLOY characters - mechanical/constructs from tileset (32x32)
+            'alloy_greenwarden': { sheet: 'denzi-tileset.png', x: 0, y: 96, w: 32, h: 32 },
+            'alloy_thorn knight': { sheet: 'denzi-tileset.png', x: 32, y: 96, w: 32, h: 32 },
+            'alloy_sapling adept': { sheet: 'denzi-tileset.png', x: 64, y: 96, w: 32, h: 32 },
+            'alloy_bloomcaller': { sheet: 'denzi-tileset.png', x: 96, y: 96, w: 32, h: 32 },
+            'alloy_ashblade': { sheet: 'denzi-tileset.png', x: 128, y: 96, w: 32, h: 32 },
+            'alloy_cinder mystic': { sheet: 'denzi-tileset.png', x: 160, y: 96, w: 32, h: 32 },
+            'alloy_dust ranger': { sheet: 'denzi-tileset.png', x: 192, y: 96, w: 32, h: 32 },
+            'alloy_bonechanter': { sheet: 'denzi-tileset.png', x: 224, y: 96, w: 32, h: 32 },
+            'alloy_stormcaller': { sheet: 'denzi-tileset.png', x: 0, y: 128, w: 32, h: 32 },
+            'alloy_voidwing': { sheet: 'denzi-tileset.png', x: 32, y: 128, w: 32, h: 32 },
+            'alloy_sky knight': { sheet: 'denzi-tileset.png', x: 64, y: 128, w: 32, h: 32 },
+            'alloy_wind sage': { sheet: 'denzi-tileset.png', x: 96, y: 128, w: 32, h: 32 },
+
+            // DRAKETH characters - dragon-like monsters (32x48)
+            'draketh_greenwarden': { sheet: 'denzi-monsters.png', x: 0, y: 0, w: 32, h: 48 },
+            'draketh_thorn knight': { sheet: 'denzi-monsters.png', x: 32, y: 0, w: 32, h: 48 },
+            'draketh_sapling adept': { sheet: 'denzi-monsters.png', x: 64, y: 0, w: 32, h: 48 },
+            'draketh_bloomcaller': { sheet: 'denzi-monsters.png', x: 96, y: 0, w: 32, h: 48 },
+            'draketh_ashblade': { sheet: 'denzi-monsters.png', x: 128, y: 0, w: 32, h: 48 },
+            'draketh_cinder mystic': { sheet: 'denzi-monsters.png', x: 160, y: 0, w: 32, h: 48 },
+            'draketh_dust ranger': { sheet: 'denzi-monsters.png', x: 192, y: 0, w: 32, h: 48 },
+            'draketh_bonechanter': { sheet: 'denzi-monsters.png', x: 224, y: 0, w: 32, h: 48 },
+            'draketh_stormcaller': { sheet: 'denzi-monsters.png', x: 0, y: 48, w: 32, h: 48 },
+            'draketh_voidwing': { sheet: 'denzi-monsters.png', x: 32, y: 48, w: 32, h: 48 },
+            'draketh_sky knight': { sheet: 'denzi-monsters.png', x: 64, y: 48, w: 32, h: 48 },
+            'draketh_wind sage': { sheet: 'denzi-monsters.png', x: 96, y: 48, w: 32, h: 48 },
+
+            // VOIDKIN characters - shadow/void monsters (32x48)
+            'voidkin_greenwarden': { sheet: 'denzi-monsters.png', x: 128, y: 48, w: 32, h: 48 },
+            'voidkin_thorn knight': { sheet: 'denzi-monsters.png', x: 160, y: 48, w: 32, h: 48 },
+            'voidkin_sapling adept': { sheet: 'denzi-monsters.png', x: 192, y: 48, w: 32, h: 48 },
+            'voidkin_bloomcaller': { sheet: 'denzi-monsters.png', x: 224, y: 48, w: 32, h: 48 },
+            'voidkin_ashblade': { sheet: 'denzi-monsters.png', x: 0, y: 96, w: 32, h: 48 },
+            'voidkin_cinder mystic': { sheet: 'denzi-monsters.png', x: 32, y: 96, w: 32, h: 48 },
+            'voidkin_dust ranger': { sheet: 'denzi-monsters.png', x: 64, y: 96, w: 32, h: 48 },
+            'voidkin_bonechanter': { sheet: 'denzi-monsters.png', x: 96, y: 96, w: 32, h: 48 },
+            'voidkin_stormcaller': { sheet: 'denzi-monsters.png', x: 128, y: 96, w: 32, h: 48 },
+            'voidkin_voidwing': { sheet: 'denzi-monsters.png', x: 160, y: 96, w: 32, h: 48 },
+            'voidkin_sky knight': { sheet: 'denzi-monsters.png', x: 192, y: 96, w: 32, h: 48 },
+            'voidkin_wind sage': { sheet: 'denzi-monsters.png', x: 224, y: 96, w: 32, h: 48 },
+
+            // CRYSTALBORN characters - crystal/elemental monsters (32x48)
+            'crystalborn_greenwarden': { sheet: 'denzi-monsters.png', x: 0, y: 144, w: 32, h: 48 },
+            'crystalborn_thorn knight': { sheet: 'denzi-monsters.png', x: 32, y: 144, w: 32, h: 48 },
+            'crystalborn_sapling adept': { sheet: 'denzi-monsters.png', x: 64, y: 144, w: 32, h: 48 },
+            'crystalborn_bloomcaller': { sheet: 'denzi-monsters.png', x: 96, y: 144, w: 32, h: 48 },
+            'crystalborn_ashblade': { sheet: 'denzi-monsters.png', x: 128, y: 144, w: 32, h: 48 },
+            'crystalborn_cinder mystic': { sheet: 'denzi-monsters.png', x: 160, y: 144, w: 32, h: 48 },
+            'crystalborn_dust ranger': { sheet: 'denzi-monsters.png', x: 192, y: 144, w: 32, h: 48 },
+            'crystalborn_bonechanter': { sheet: 'denzi-monsters.png', x: 224, y: 144, w: 32, h: 48 },
+            'crystalborn_stormcaller': { sheet: 'denzi-monsters.png', x: 0, y: 192, w: 32, h: 48 },
+            'crystalborn_voidwing': { sheet: 'denzi-monsters.png', x: 32, y: 192, w: 32, h: 48 },
+            'crystalborn_sky knight': { sheet: 'denzi-monsters.png', x: 64, y: 192, w: 32, h: 48 },
+            'crystalborn_wind sage': { sheet: 'denzi-monsters.png', x: 96, y: 192, w: 32, h: 48 },
+
+            // STORMCALLER characters - elemental/storm monsters (32x48)
+            'stormcaller_greenwarden': { sheet: 'denzi-monsters.png', x: 128, y: 192, w: 32, h: 48 },
+            'stormcaller_thorn knight': { sheet: 'denzi-monsters.png', x: 160, y: 192, w: 32, h: 48 },
+            'stormcaller_sapling adept': { sheet: 'denzi-monsters.png', x: 192, y: 192, w: 32, h: 48 },
+            'stormcaller_bloomcaller': { sheet: 'denzi-monsters.png', x: 224, y: 192, w: 32, h: 48 },
+            'stormcaller_ashblade': { sheet: 'denzi-monsters.png', x: 0, y: 240, w: 32, h: 48 },
+            'stormcaller_cinder mystic': { sheet: 'denzi-monsters.png', x: 32, y: 240, w: 32, h: 48 },
+            'stormcaller_dust ranger': { sheet: 'denzi-monsters.png', x: 64, y: 240, w: 32, h: 48 },
+            'stormcaller_bonechanter': { sheet: 'denzi-monsters.png', x: 96, y: 240, w: 32, h: 48 },
+            'stormcaller_stormcaller': { sheet: 'denzi-monsters.png', x: 128, y: 240, w: 32, h: 48 },
+            'stormcaller_voidwing': { sheet: 'denzi-monsters.png', x: 160, y: 240, w: 32, h: 48 },
+            'stormcaller_sky knight': { sheet: 'denzi-monsters.png', x: 192, y: 240, w: 32, h: 48 },
+            'stormcaller_wind sage': { sheet: 'denzi-monsters.png', x: 224, y: 240, w: 32, h: 48 },
+
+            // Fallback for any combination not found above
+            'default': { sheet: 'denzi-tileset.png', x: 0, y: 160, w: 32, h: 32 }
         };
 
-        const key = `${species}_${archetype}`;
+        const key = `${species.toLowerCase()}_${archetype.toLowerCase().replace(/\s+/g, ' ')}`;
         const mapping = characterMappings[key] || characterMappings['default'];
+
+        console.log(`🗺️ Character mapping lookup: ${species} + ${archetype} → ${key} → ${mapping.sheet} (${mapping.x}, ${mapping.y})`);
 
         // Extract sprite from spritesheet
         const spriteUrl = await extractSpriteFromSheet(mapping.sheet, mapping.x, mapping.y, mapping.w, mapping.h);
