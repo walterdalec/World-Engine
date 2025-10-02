@@ -4,7 +4,7 @@
  */
 
 // Base types for validation
-export type Species = 'Human' | 'Sylvanborn' | 'Nightborn' | 'Stormcaller' | 'Crystalborn' | 'Draketh' | 'Alloy' | 'Voidkin';
+export type Species = 'Human' | 'Sylvanborn' | 'Nightborn' | 'Stormcaller';
 export type World = 'Verdance' | 'Ashenreach' | 'Skyvault';
 export type Gender = 'male' | 'female' | 'other';
 
@@ -109,7 +109,7 @@ export const validatePartialCharacter = (data: any): Partial<Character> => {
 };
 
 export const isValidSpecies = (species: string): species is Species => {
-    return ['Human', 'Sylvanborn', 'Nightborn', 'Stormcaller', 'Crystalborn', 'Draketh', 'Alloy', 'Voidkin'].includes(species);
+    return ['Human', 'Sylvanborn', 'Nightborn', 'Stormcaller'].includes(species);
 };
 
 export const isValidWorld = (world: string): world is World => {

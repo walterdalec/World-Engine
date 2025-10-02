@@ -198,29 +198,11 @@ const SPECIES_TRAIT_RULES: Record<string, {
     preferred: ["Observant", "Keen Senses", "Patient"],
     description: "Forest dwellers with an innate connection to nature."
   },
-  "Alloy": {
-    automatic: ["Iron Will"], // Constructed beings have strong mental defenses
-    forbidden: ["Empathic", "Silver Tongue"], // Struggle with emotional connections
-    preferred: ["Stoic", "Patient", "Clever"],
-    description: "Mechanical beings with logical minds but limited emotional range."
-  },
-  "Draketh": {
-    automatic: ["Brave"], // Draconic heritage makes them naturally fearless
-    forbidden: ["Patient"], // Too hot-blooded for patience
-    preferred: ["Swift", "Silver Tongue", "Stoic"],
-    description: "Proud dragon-descendants who rarely back down from challenges."
-  },
-  "Voidkin": {
+  "Nightborn": {
     automatic: ["Observant"], // Always aware of hidden truths
-    forbidden: ["Nature's Friend"], // Void energy conflicts with natural forces
+    forbidden: ["Nature's Friend"], // Shadow energy conflicts with natural forces
     preferred: ["Clever", "Iron Will", "Cunning"],
     description: "Shadow-touched beings with enhanced perception but unnatural aura."
-  },
-  "Crystalborn": {
-    automatic: ["Stoic"], // Crystal nature makes them emotionally stable
-    forbidden: ["Swift"], // Crystalline bodies are less agile
-    preferred: ["Iron Will", "Patient", "Keen Senses"],
-    description: "Living crystal beings with incredible mental fortitude."
   },
   "Stormcaller": {
     automatic: ["Swift"], // Storm magic enhances their speed
@@ -312,7 +294,7 @@ const CLASS_TRAIT_RULES: Record<string, {
 };
 
 const SPECIES_OPTIONS = [
-  "Human", "Sylvanborn", "Alloy", "Draketh", "Voidkin", "Crystalborn", "Stormcaller"
+  "Human", "Sylvanborn", "Nightborn", "Stormcaller"
 ];
 
 const GENDER_OPTIONS = [
@@ -330,10 +312,7 @@ const CLASS_OPTIONS = Object.keys(CLASS_DEFINITIONS);
 const RACIAL_MODIFIERS: Record<string, Partial<Record<Stats, number>>> = {
   "Human": { STR: 1, CHA: 1, CON: -1, WIS: -1 }, // Strong and social, but less hardy and wise
   "Sylvanborn": { DEX: 2, WIS: 1, STR: -2, CON: -1 }, // Graceful and wise, but frail
-  "Alloy": { CON: 2, INT: 1, DEX: -2, CHA: -1 }, // Durable and smart, but rigid and impersonal
-  "Draketh": { STR: 2, CHA: 1, DEX: -1, WIS: -2 }, // Strong and charismatic, but clumsy and impulsive
-  "Voidkin": { INT: 2, WIS: 1, STR: -1, CHA: -2 }, // Brilliant and perceptive, but weak and unsettling
-  "Crystalborn": { CON: 1, INT: 2, DEX: -1, CHA: -2 }, // Resilient and bright, but inflexible and cold
+  "Nightborn": { DEX: 1, INT: 2, STR: -1, CHA: -2 }, // Quick and clever, but weak and dark
   "Stormcaller": { DEX: 1, CHA: 2, CON: -1, STR: -2 }, // Quick and magnetic, but fragile and weak
 };
 
@@ -393,28 +372,6 @@ const PREMADE_CHARACTERS = [
     stats: { STR: 10, DEX: 14, CON: 12, INT: 15, WIS: 13, CHA: 11 },
     traits: ["Observant", "Silver Tongue", "Swift"],
     portraitUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&h=300&fit=crop&crop=face",
-    mode: "POINT_BUY" as const
-  },
-  {
-    name: "Marcus Ironforge",
-    gender: "Male",
-    species: "Alloy",
-    archetype: "Artificer",
-    background: "Born in the crystal caves, he was raised by wise elders and learned the ways of crafting. His greatest challenge was mastering the fusion of magic and metal that defines his people.",
-    stats: { STR: 13, DEX: 11, CON: 15, INT: 14, WIS: 12, CHA: 8 },
-    traits: ["Clever", "Iron Will", "Stoic"],
-    portraitUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face",
-    mode: "POINT_BUY" as const
-  },
-  {
-    name: "Zara Nightwhisper",
-    gender: "Female",
-    species: "Voidkin",
-    archetype: "Rogue",
-    background: "A wandering soul from the shadow realm who fought in great battles against the encroaching darkness. Her destiny was forever changed when she discovered her connection to the void grants her unique abilities.",
-    stats: { STR: 9, DEX: 15, CON: 11, INT: 12, WIS: 14, CHA: 13 },
-    traits: ["Cunning", "Lucky", "Observant"],
-    portraitUrl: "https://images.unsplash.com/photo-1494790108755-2616c4b43e69?w=300&h=300&fit=crop&crop=face",
     mode: "POINT_BUY" as const
   }
 ];
@@ -832,16 +789,10 @@ export default function CharacterCreate() {
 
     // Race-based HP modifiers
     let raceHPBonus = 0;
-    if (char.species === "Alloy") {
-      raceHPBonus = 2; // Metal-infused - very tough
-    } else if (char.species === "Draketh") {
-      raceHPBonus = 2; // Dragon heritage - naturally tough
-    } else if (char.species === "Crystalborn") {
-      raceHPBonus = 1; // Crystal-hard - somewhat tough
-    } else if (char.species === "Human") {
+    if (char.species === "Human") {
       raceHPBonus = 1; // Adaptable - slightly above average
-    } else if (char.species === "Voidkin") {
-      raceHPBonus = 0; // Otherworldly - average toughness
+    } else if (char.species === "Nightborn") {
+      raceHPBonus = 0; // Shadow-touched - average toughness
     } else if (char.species === "Sylvanborn") {
       raceHPBonus = -1; // Graceful but fragile
     } else if (char.species === "Stormcaller") {
@@ -893,14 +844,7 @@ export default function CharacterCreate() {
     // Light combat and magic classes get no class bonus
 
     // Race-based bonus (natural toughness) - very small bonuses
-    if (char.species === "Alloy") {
-      if (lvl >= 12) naturalACBonus += 1; // Metal-infused body
-    } else if (char.species === "Draketh") {
-      if (lvl >= 15) naturalACBonus += 1; // Dragon heritage - tough scales
-    } else if (char.species === "Crystalborn") {
-      if (lvl >= 15) naturalACBonus += 1; // Crystal-hard skin
-    }
-    // Other races get no racial AC bonus
+    // All 4 remaining races get no racial AC bonus
 
     // Hard cap at +5 total natural AC bonus
     naturalACBonus = Math.min(naturalACBonus, 5);

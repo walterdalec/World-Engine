@@ -9,7 +9,7 @@ import { SimplePortraitPreview, SimpleUtils } from '../visuals';
 
 // Species and trait definitions for character creation
 const SPECIES_OPTIONS = [
-  "Human", "Sylvanborn", "Alloy", "Draketh", "Voidkin", "Crystalborn", "Stormcaller"
+  "Human", "Sylvanborn", "Nightborn", "Stormcaller"
 ];
 
 const GENDER_OPTIONS = [
@@ -34,29 +34,11 @@ const SPECIES_TRAIT_RULES: Record<string, {
     preferred: ["Observant", "Keen Senses", "Patient"],
     description: "Forest dwellers with an innate connection to nature."
   },
-  "Alloy": {
-    automatic: ["Iron Will"],
-    forbidden: ["Empathic", "Silver Tongue"],
-    preferred: ["Stoic", "Patient", "Clever"],
-    description: "Mechanical beings with logical minds but limited emotional range."
-  },
-  "Draketh": {
-    automatic: ["Brave"],
-    forbidden: ["Patient"],
-    preferred: ["Swift", "Silver Tongue", "Stoic"],
-    description: "Proud dragon-descendants who rarely back down from challenges."
-  },
-  "Voidkin": {
+  "Nightborn": {
     automatic: ["Observant"],
     forbidden: ["Nature's Friend"],
     preferred: ["Clever", "Iron Will", "Cunning"],
     description: "Shadow-touched beings with enhanced perception but unnatural aura."
-  },
-  "Crystalborn": {
-    automatic: ["Stoic"],
-    forbidden: ["Swift"],
-    preferred: ["Iron Will", "Patient", "Keen Senses"],
-    description: "Living crystal beings with incredible mental fortitude."
   },
   "Stormcaller": {
     automatic: ["Swift"],
