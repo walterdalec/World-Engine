@@ -181,10 +181,22 @@ async function extractSpriteFromSheet(sheetName: string, x: number, y: number, w
 
         img.onerror = () => {
             console.log(`❌ Failed to load spritesheet: ${sheetName}`);
+            console.log(`🔍 Full URL attempted: ${getAssetUrl(`portraits-new/${sheetName}`)}`);
+            console.log(`🌐 Current location: ${window.location.href}`);
+            console.log(`🔗 Base path logic: isLocal=${window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'}`);
             reject(new Error(`Failed to load spritesheet: ${sheetName}`));
         };
 
         img.src = getAssetUrl(`portraits-new/${sheetName}`);
+        console.log(`🔍 Attempting to load spritesheet from: ${img.src}`);
+
+        // Add a timeout to catch hanging requests
+        setTimeout(() => {
+            if (!img.complete) {
+                console.log(`⏰ Spritesheet load timeout for: ${sheetName}`);
+                reject(new Error(`Timeout loading spritesheet: ${sheetName}`));
+            }
+        }, 10000);
     });
 }
 
