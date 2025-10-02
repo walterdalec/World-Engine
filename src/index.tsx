@@ -10,9 +10,7 @@ import SpellGenerator from "./components/SpellGenerator";
 import SpellAssignment from "./components/SpellAssignment";
 import HealingSystem from "./components/HealingSystem";
 import WorldMapEngine from "./components/WorldMapEngine";
-// import PortraitTestPage from "./pages/PortraitTest"; // Moved to legacy system
 import { SimplePortraitTest } from "./components/SimplePortraitTest";
-// import { preloadCommonPortraits } from "./visuals/preloader"; // Disabled - using simple system
 import { Engine } from "./engine.d";
 import { DEFAULT_WORLDS } from "./defaultWorlds";
 
@@ -68,11 +66,6 @@ function App() {
         console.error('Failed to recover emergency save:', error);
       }
     }
-
-    // Portrait preloading disabled - using new simple system that loads on-demand
-    // preloadCommonPortraits().catch(error => {
-    //   console.error('Failed to preload common portraits:', error);
-    // });
 
     // Setup periodic backup (every 5 minutes)
     const backupInterval = setInterval(() => {
@@ -484,29 +477,3 @@ function App() {
 
 const root = createRoot(document.getElementById("root")!);
 root.render(<App />);
-
-// Service worker disabled - can cause issues with SPA routing on GitHub Pages
-// if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
-//   window.addEventListener('load', () => {
-//     navigator.serviceWorker.register('/World-Engine/service-worker.js')
-//       .then((registration) => {
-//         console.log('SW registered:', registration);
-//
-//         // Handle updates
-//         registration.addEventListener('updatefound', () => {
-//           const newWorker = registration.installing;
-//           if (newWorker) {
-//             newWorker.addEventListener('statechange', () => {
-//               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-//                 // New content available, refresh the page
-//                 window.location.reload();
-//               }
-//             });
-//           }
-//         });
-//       })
-//       .catch((err) => {
-//         console.warn('SW registration failed:', err);
-//       });
-//   });
-// }
