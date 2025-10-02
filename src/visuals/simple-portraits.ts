@@ -25,7 +25,77 @@ export interface PortraitResult {
 }
 
 /**
- * Generate portrait using PNG layering system - simplified approach
+ * Try to extract a character sprite from the DENZI spritesheets
+ */
+async function trySpritesheetCharacter(species: string, archetype: string, gender: string): Promise<string | null> {
+    try {
+        // Simple character mapping to DENZI spritesheet coordinates
+        const characterMappings: Record<string, { sheet: string; x: number; y: number; w: number; h: number }> = {
+            'human_greenwarden': { sheet: 'denzi-tileset.png', x: 0, y: 0, w: 32, h: 32 },
+            'human_ashblade': { sheet: 'denzi-tileset.png', x: 32, y: 0, w: 32, h: 32 },
+            'sylvanborn_greenwarden': { sheet: 'denzi-tileset.png', x: 64, y: 0, w: 32, h: 32 },
+            'draketh_stormcaller': { sheet: 'denzi-monsters.png', x: 0, y: 0, w: 32, h: 48 },
+            'alloy_stormcaller': { sheet: 'denzi-monsters.png', x: 32, y: 0, w: 32, h: 48 },
+            'voidkin_voidwing': { sheet: 'denzi-monsters.png', x: 64, y: 0, w: 32, h: 48 },
+            'crystalborn_skyknight': { sheet: 'denzi-monsters.png', x: 96, y: 0, w: 32, h: 48 },
+            // Add fallback for any combination
+            'default': { sheet: 'denzi-tileset.png', x: 0, y: 32, w: 32, h: 32 }
+        };
+
+        const key = `${species}_${archetype}`;
+        const mapping = characterMappings[key] || characterMappings['default'];
+
+        // Extract sprite from spritesheet
+        const spriteUrl = await extractSpriteFromSheet(mapping.sheet, mapping.x, mapping.y, mapping.w, mapping.h);
+        return spriteUrl;
+
+    } catch (error) {
+        console.log(`🔄 No spritesheet character found for ${species} ${archetype}, using fallback`);
+        return null;
+    }
+}
+
+/**
+ * Extract a sprite from a spritesheet using canvas
+ */
+async function extractSpriteFromSheet(sheetName: string, x: number, y: number, w: number, h: number): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+
+        img.onload = () => {
+            // Create canvas for extracted sprite
+            const canvas = document.createElement('canvas');
+            canvas.width = w * 4; // Scale up 4x for better visibility
+            canvas.height = h * 4;
+
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+                reject(new Error('Could not get canvas context'));
+                return;
+            }
+
+            // Draw the sprite section from the sheet, scaled up
+            ctx.imageSmoothingEnabled = false; // Pixel art should stay crisp
+            ctx.drawImage(img, x, y, w, h, 0, 0, w * 4, h * 4);
+
+            // Convert to data URL
+            const dataUrl = canvas.toDataURL('image/png');
+            console.log(`🎨 Extracted sprite from ${sheetName} at (${x},${y}) -> ${dataUrl.length} bytes`);
+            resolve(dataUrl);
+        };
+
+        img.onerror = () => {
+            console.log(`❌ Failed to load spritesheet: ${sheetName}`);
+            reject(new Error(`Failed to load spritesheet: ${sheetName}`));
+        };
+
+        img.src = getAssetUrl(`portraits-new/${sheetName}`);
+    });
+}
+
+/**
+ * Generate portrait using PNG layering system with spritesheet fallbacks
  */
 export async function generateSimplePortrait(options: SimplePortraitOptions): Promise<PortraitResult> {
     try {
@@ -33,7 +103,23 @@ export async function generateSimplePortrait(options: SimplePortraitOptions): Pr
 
         console.log(`🎭 Generating portrait: ${gender} ${species} ${archetype}`);
 
-        // Build layer stack - always try to load the basic layers
+        // First, try to use a character from the DENZI spritesheets as primary portrait
+        const spritesheetCharacter = await trySpritesheetCharacter(species, archetype, gender);
+        if (spritesheetCharacter) {
+            console.log(`✨ Using spritesheet character for ${species} ${archetype}`);
+            return {
+                success: true,
+                layers: [{
+                    type: 'base',
+                    src: spritesheetCharacter,
+                    zIndex: 1
+                }],
+                dataUrl: spritesheetCharacter
+            };
+        }
+
+        // Fallback to layered system with placeholder files
+        console.log(`🔄 Falling back to layered placeholder system`);
         const layers: PortraitLayer[] = [];
 
         // Base layer (gender-specific) - always include
