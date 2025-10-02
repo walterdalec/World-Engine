@@ -4,29 +4,38 @@
   "private": true,
   "homepage": "https://walterdalec.github.io/World-Engine",
   "dependencies": {
+    "framer-motion": "^12.23.22",
+    "konva": "^10.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-konva": "^19.0.10",
     "react-scripts": "5.0.1",
-    "typescript": "^4.9.5"
+    "typescript": "^4.9.5",
+    "zod": "^4.1.11",
+    "zustand": "^5.0.8"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "build:analyze": "npm run build && npx webpack-bundle-analyzer build/static/js/*.js",
     "preview": "npx --yes serve -s build -l 5000",
     "preview:ps": "powershell -ExecutionPolicy Bypass -File ./start-preview.ps1",
     "deploy:gh": "npm run build && powershell -NoProfile -Command \"Copy-Item -Force build/index.html build/404.html\" && npx --yes gh-pages -d build",
     "test": "react-scripts test --env=jsdom",
+    "test:coverage": "react-scripts test --coverage --watchAll=false",
     "eject": "react-scripts eject",
     "portraits:update": "node scripts/updatePortraits.js",
     "portraits:test": "node scripts/testPortraits.js"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "gh-pages": "^6.3.0",
-    "serve": "^14.2.1"
+    "serve": "^14.2.1",
+    "webpack-bundle-analyzer": "^4.10.2"
   },
   "browserslist": {
     "production": [
