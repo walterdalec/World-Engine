@@ -47,7 +47,7 @@ export const PORTRAIT_CONFIGS: AllPortraitConfigs = {
         },
         'Ranger': {
             genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/human-ranger-male.jpg',
+            imagePath: '/World-Engine/assets/portraits-realistic/human-ranger-male.png',
             description: 'Human scout and wasteland survivor'
         },
         'Chanter': {
@@ -83,7 +83,7 @@ export const PORTRAIT_CONFIGS: AllPortraitConfigs = {
         },
         'Ranger': {
             genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/sylvanborn-ranger-male.jpg',
+            imagePath: '/World-Engine/assets/portraits-realistic/sylvanborn-ranger-male.png',
             description: 'Sylvanborn forest wanderer and tracker'
         },
         'Chanter': {
@@ -119,7 +119,7 @@ export const PORTRAIT_CONFIGS: AllPortraitConfigs = {
         },
         'Ranger': {
             genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/nightborn-ranger-male.jpg',
+            imagePath: '/World-Engine/assets/portraits-realistic/nightborn-ranger-male.png',
             description: 'Nightborn shadow scout and stalker'
         },
         'Chanter': {
@@ -155,7 +155,7 @@ export const PORTRAIT_CONFIGS: AllPortraitConfigs = {
         },
         'Ranger': {
             genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/stormcaller-ranger-male.jpg',
+            imagePath: '/World-Engine/assets/portraits-realistic/stormcaller-ranger-male.png',
             description: 'Stormcaller wind rider and weather tracker'
         },
         'Chanter': {
