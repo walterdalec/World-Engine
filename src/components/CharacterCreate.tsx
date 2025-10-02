@@ -503,14 +503,29 @@ export default function CharacterCreate() {
 
   // Calculate available archetypes based on gender locks
   const availableArchetypes = useMemo(() => {
-    if (!char.gender || !char.species) return CLASS_OPTIONS;
+    if (!char.gender) return CLASS_OPTIONS;
+
+    // If no species selected, still filter by global gender locks
+    if (!char.species) {
+      return CLASS_OPTIONS.filter(archetype => {
+        const genderLock = getGenderLock('', archetype); // Empty species, will use global locks
+        return genderLock === null || genderLock === char.gender.toLowerCase();
+      });
+    }
+
     return getAvailableArchetypes(char.species, char.gender.toLowerCase(), CLASS_OPTIONS);
   }, [char.gender, char.species]);
 
   // Check if current archetype is valid for selected gender
   const isCurrentArchetypeValid = useMemo(() => {
-    if (!char.archetype || !char.gender || !char.species) return true;
-    return isValidGenderForClass(char.species, char.archetype, char.gender.toLowerCase());
+    if (!char.archetype || !char.gender) return true;
+
+    // Check global gender locks even without species
+    const genderLock = char.species
+      ? getGenderLock(char.species, char.archetype)
+      : getGenderLock('', char.archetype); // Empty species uses global locks
+
+    return genderLock === null || genderLock === char.gender.toLowerCase();
   }, [char.archetype, char.gender, char.species]);
 
   // Auto-clear invalid archetype when gender changes
