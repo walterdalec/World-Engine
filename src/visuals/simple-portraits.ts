@@ -202,6 +202,9 @@ async function extractSpriteFromSheet(sheetName: string, x: number, y: number, w
 
         img.src = getAssetUrl(`portraits-new/${sheetName}`);
         console.log(`🔍 Attempting to load spritesheet from: ${img.src}`);
+        console.log(`🌐 window.location.href: ${window.location.href}`);
+        console.log(`🌐 window.location.hostname: ${window.location.hostname}`);
+        console.log(`🌐 process.env.PUBLIC_URL: ${process.env.PUBLIC_URL || 'undefined'}`);
 
         // Add a timeout to catch hanging requests
         setTimeout(() => {
