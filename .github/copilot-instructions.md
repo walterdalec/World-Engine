@@ -3,8 +3,26 @@
 ## Development Authority
 AI agents have full permissions to edit, create, modify, and refactor any code in this repository. Feel free to make direct changes to improve functionality, fix bugs, optimize performance, or implement new features without asking for permission.
 
+## Required Workflow
+**ALWAYS push changes to GitHub after making code modifications.** Use this sequence:
+1. Make code changes
+2. `git add -A`
+3. `git commit -m "descriptive message"`
+4. `git push origin main`
+
+Never leave changes uncommitted. The user relies on GitHub Pages deployment for testing.
+
+## Assistant Role
+Act as a proactive development assistant:
+- **Research open source solutions** that could enhance our project without compromising originality
+- **Suggest libraries, tools, or patterns** that solve common problems we encounter
+- **Identify optimization opportunities** in existing code
+- **Recommend best practices** for React, TypeScript, and game development
+- **Look for community solutions** to complex problems before building from scratch
+- Always respect licensing and ensure compatibility with our MIT-style project
+
 ## Project Overview
-World Engine is a React-based character creation system with an advanced SVG portrait generation system. It manages fantasy characters across three worlds (Verdance, Ashenreach, Skyvault) with species-specific archetypes and automated visual generation.
+World Engine is a React-based character creation system with a simple PNG portrait generation system. It manages fantasy characters across three worlds (Verdance, Ashenreach, Skyvault) with species-specific archetypes and automated visual generation.
 
 ## Architecture
 
@@ -15,16 +33,21 @@ World Engine is a React-based character creation system with an advanced SVG por
 - **Archetypes**: World-specific classes (Greenwarden, Thorn Knight, Ashblade, etc.)
 
 ### Portrait System (`src/visuals/`)
-Three-tier portrait generation with automatic fallbacks:
-1. **Preset System** (Primary): 504 pronoun-aware presets from `public/assets/portraits/presets.json`
-2. **External Manifest** (Fallback): Asset catalog from `public/assets/portraits/manifest.json`
-3. **Procedural SVG** (Last resort): Generated shapes with species/archetype colors
+**Current Active System**: Simple PNG layered portrait generation
+- **SimplePortraitPreview.tsx**: React component with debug overlay (`🐞` button)
+- **simple-portraits.ts**: Core PNG layering and canvas composition
+- **index.ts**: Clean exports and utility functions
 
-Key files:
-- `service.ts`: Core portrait generation with caching and fallback logic
-- `PortraitPreview.tsx`: React component with debug overlay (`🐞` button)
-- `assets.ts`: Asset management with species/archetype fallback chains
-- `renderer2d.tsx`: SVG generation and layered asset composition
+**Legacy System**: Complex SVG system preserved in `src/visuals/legacy-svg-system/`
+- Fully functional but isolated from main game
+- Available for future advanced features
+- Self-contained with own imports and documentation
+
+Key features:
+- PNG asset layering (base + race + class)
+- Environment-aware asset URL handling (localhost vs GitHub Pages)
+- Comprehensive debugging with emoji-prefixed console logs
+- Caching system for performance
 
 ## Development Workflows
 
@@ -44,13 +67,19 @@ npm run portraits:test   # Test portrait generation
 ### Character Integration
 Characters automatically get portraits via:
 ```tsx
-import { PortraitPreview, bindPortraitToCharacter } from '../visuals';
+import { SimplePortraitPreview, SimpleUtils } from '../visuals';
 
 // Live preview
-<PortraitPreview character={VisualUtils.createCharacterData(char)} size="large" />
+<SimplePortraitPreview 
+  gender="female" 
+  species="human" 
+  archetype="greenwarden" 
+  size="large" 
+  showDebug={true} 
+/>
 
-// Save with portrait
-await bindPortraitToCharacter(character, { size: { width: 300, height: 380 } });
+// Convert character data
+const options = SimpleUtils.convertToSimpleOptions(character);
 ```
 
 ## Key Patterns
@@ -63,16 +92,14 @@ await bindPortraitToCharacter(character, { size: { width: 300, height: 380 } });
 
 ### Asset Structure
 ```
-public/assets/portraits/
-├── base/           # Species base bodies
-├── face/eyes/      # Facial features
-├── hair/           # Hair styles  
-├── clothing/       # World-specific clothing
-├── weapons/        # Class weapons
-├── effects/        # Visual effects
-├── manifest.json   # Auto-generated asset catalog
-└── presets.json    # Auto-generated portrait combinations
+public/assets/portraits-new/
+├── base/           # Gender-specific base bodies (male/female)
+├── race/           # Species overlay PNGs
+├── class/          # Archetype-specific clothing/equipment
+└── catalog.json    # Asset metadata
 ```
+
+Legacy SVG assets preserved in `public/assets/portraits/` for future use.
 
 ### Error Handling
 - Portrait failures fallback gracefully through the three-tier system
@@ -82,7 +109,7 @@ public/assets/portraits/
 ### Performance
 - Portrait caching with `JSON.stringify` keys
 - Batch preloading for common species/archetype combinations  
-- SVG optimization removes comments, whitespace, and redundant attributes
+- PNG optimization and canvas-based composition
 
 ## Testing
 - Navigate to `/portrait-test` for comprehensive portrait system testing
@@ -93,4 +120,4 @@ public/assets/portraits/
 - `src/visuals/types.ts`: Core interfaces for the visual system
 - `src/components/CharacterCreate.tsx`: Main character builder UI
 - `PORTRAIT_SYSTEM.md`: Detailed portrait system documentation
-- `public/assets/portraits/manifest.json`: Asset catalog (auto-generated)
+- `public/assets/portraits-new/catalog.json`: Asset catalog (auto-generated)
