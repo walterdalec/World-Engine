@@ -1,0 +1,104 @@
+{
+  "races": [
+    {
+      "id": "human",
+      "label": "Human"
+    },
+    {
+      "id": "sylvanborn",
+      "label": "Sylvanborn"
+    },
+    {
+      "id": "alloy",
+      "label": "Alloy"
+    },
+    {
+      "id": "draketh",
+      "label": "Draketh"
+    },
+    {
+      "id": "voidkin",
+      "label": "Voidkin"
+    },
+    {
+      "id": "crystalborn",
+      "label": "Crystalborn"
+    },
+    {
+      "id": "stormcaller_species",
+      "label": "Stormcaller (Species)"
+    }
+  ],
+  "classes": [
+    {
+      "id": "greenwarden",
+      "world": "Verdance",
+      "label": "Greenwarden"
+    },
+    {
+      "id": "thornknight",
+      "world": "Verdance",
+      "label": "Thorn Knight"
+    },
+    {
+      "id": "saplingadept",
+      "world": "Verdance",
+      "label": "Sapling Adept"
+    },
+    {
+      "id": "bloomcaller",
+      "world": "Verdance",
+      "label": "Bloomcaller"
+    },
+    {
+      "id": "ashblade",
+      "world": "Ashenreach",
+      "label": "Ashblade"
+    },
+    {
+      "id": "cindermystic",
+      "world": "Ashenreach",
+      "label": "Cinder Mystic"
+    },
+    {
+      "id": "dustranger",
+      "world": "Ashenreach",
+      "label": "Dust Ranger"
+    },
+    {
+      "id": "bonechanter",
+      "world": "Ashenreach",
+      "label": "Bonechanter"
+    },
+    {
+      "id": "stormcaller_class",
+      "world": "Skyvault",
+      "label": "Stormcaller (Class)"
+    },
+    {
+      "id": "voidwing",
+      "world": "Skyvault",
+      "label": "Voidwing"
+    },
+    {
+      "id": "skyknight",
+      "world": "Skyvault",
+      "label": "Sky Knight"
+    },
+    {
+      "id": "windsage",
+      "world": "Skyvault",
+      "label": "Wind Sage"
+    }
+  ],
+  "deco": [
+    {
+      "id": "scar_01",
+      "label": "Scar 01"
+    },
+    {
+      "id": "tattoo_01",
+      "label": "Tattoo 01"
+    }
+  ]
+}
