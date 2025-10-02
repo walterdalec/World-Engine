@@ -42,7 +42,7 @@ export const PORTRAIT_CONFIGS: AllPortraitConfigs = {
         // Male classes
         'Knight': {
             genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/human-knight-male.jpg',
+            imagePath: '/assets/portraits-realistic/human-knight-male.png',
             description: 'Human warrior with heavy armor and weapons'
         },
         'Ranger': {
