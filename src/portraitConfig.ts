@@ -22,21 +22,15 @@ export interface AllPortraitConfigs {
  * Each class is locked to one gender across all species
  */
 const GLOBAL_GENDER_LOCKS: { [archetype: string]: 'male' | 'female' } = {
-    // MALE-ONLY CLASSES (6)
-    'Thorn Knight': 'male',
-    'Ashblade': 'male',
-    'Dust Ranger': 'male',
-    'Stormcaller': 'male',
-    'Sky Knight': 'male',
-    'Wind Sage': 'male',
+    // MALE-ONLY CLASSES (3)
+    'Knight': 'male',
+    'Ranger': 'male',
+    'Chanter': 'male',
 
-    // FEMALE-ONLY CLASSES (6)
-    'Greenwarden': 'female',
-    'Sapling Adept': 'female',
-    'Bloomcaller': 'female',
-    'Cinder Mystic': 'female',
-    'Bonechanter': 'female',
-    'Voidwing': 'female'
+    // FEMALE-ONLY CLASSES (3)
+    'Mystic': 'female',
+    'Guardian': 'female',
+    'Corsair': 'female'
 };
 
 /**
@@ -46,265 +40,145 @@ const GLOBAL_GENDER_LOCKS: { [archetype: string]: 'male' | 'female' } = {
 export const PORTRAIT_CONFIGS: AllPortraitConfigs = {
     'human': {
         // Male classes
-        'Thorn Knight': {
+        'Knight': {
             genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/human-thorn-knight-male.jpg',
-            description: 'Human warrior with thorn-covered armor'
+            imagePath: '/assets/portraits-realistic/human-knight-male.jpg',
+            description: 'Human warrior with heavy armor and weapons'
         },
-        'Ashblade': {
+        'Ranger': {
             genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/human-ashblade-male.jpg',
-            description: 'Human warrior with ash-forged blade'
+            imagePath: '/assets/portraits-realistic/human-ranger-male.jpg',
+            description: 'Human scout and wasteland survivor'
         },
-        'Dust Ranger': {
+        'Chanter': {
             genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/human-dust-ranger-male.jpg',
-            description: 'Human desert scout and survivor'
-        },
-        'Stormcaller': {
-            genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/human-stormcaller-male.jpg',
-            description: 'Human lightning mage'
-        },
-        'Sky Knight': {
-            genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/human-sky-knight-male.jpg',
-            description: 'Human aerial cavalry warrior'
-        },
-        'Wind Sage': {
-            genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/human-wind-sage-male.jpg',
-            description: 'Human scholarly monk of air magic'
+            imagePath: '/assets/portraits-realistic/human-chanter-male.jpg',
+            description: 'Human priest and bone singer'
         },
 
         // Female classes
-        'Greenwarden': {
+        'Mystic': {
             genderLocked: 'female',
-            imagePath: '/assets/portraits-realistic/human-greenwarden-female.jpg',
-            description: 'Human nature guardian'
+            imagePath: '/assets/portraits-realistic/human-mystic-female.jpg',
+            description: 'Human spellcaster with elemental magic'
         },
-        'Sapling Adept': {
+        'Guardian': {
             genderLocked: 'female',
-            imagePath: '/assets/portraits-realistic/human-sapling-adept-female.jpg',
-            description: 'Human nature magic student'
+            imagePath: '/assets/portraits-realistic/human-guardian-female.jpg',
+            description: 'Human nature protector and healer'
         },
-        'Bloomcaller': {
+        'Corsair': {
             genderLocked: 'female',
-            imagePath: '/assets/portraits-realistic/human-bloomcaller-female.jpg',
-            description: 'Human diplomatic plant speaker'
-        },
-        'Cinder Mystic': {
-            genderLocked: 'female',
-            imagePath: '/assets/portraits-realistic/human-cinder-mystic-female.jpg',
-            description: 'Human fire sorceress'
-        },
-        'Bonechanter': {
-            genderLocked: 'female',
-            imagePath: '/assets/portraits-realistic/human-bonechanter-female.jpg',
-            description: 'Human necromantic priest'
-        },
-        'Voidwing': {
-            genderLocked: 'female',
-            imagePath: '/assets/portraits-realistic/human-voidwing-female.jpg',
-            description: 'Human sky pirate'
+            imagePath: '/assets/portraits-realistic/human-corsair-female.jpg',
+            description: 'Human sky pirate and void warrior'
         }
     },
 
     'sylvanborn': {
         // Male classes
-        'Thorn Knight': {
+        'Knight': {
             genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/sylvanborn-thorn-knight-male.jpg',
-            description: 'Sylvanborn warrior-druid'
+            imagePath: '/assets/portraits-realistic/sylvanborn-knight-male.jpg',
+            description: 'Sylvanborn warrior-druid with natural armor'
         },
-        'Ashblade': {
+        'Ranger': {
             genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/sylvanborn-ashblade-male.jpg',
-            description: 'Sylvanborn ash warrior'
+            imagePath: '/assets/portraits-realistic/sylvanborn-ranger-male.jpg',
+            description: 'Sylvanborn forest wanderer and tracker'
         },
-        'Dust Ranger': {
+        'Chanter': {
             genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/sylvanborn-dust-ranger-male.jpg',
-            description: 'Sylvanborn desert wanderer'
-        },
-        'Stormcaller': {
-            genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/sylvanborn-stormcaller-male.jpg',
-            description: 'Sylvanborn storm mage'
-        },
-        'Sky Knight': {
-            genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/sylvanborn-sky-knight-male.jpg',
-            description: 'Sylvanborn aerial knight'
-        },
-        'Wind Sage': {
-            genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/sylvanborn-wind-sage-male.jpg',
-            description: 'Sylvanborn air mystic'
+            imagePath: '/assets/portraits-realistic/sylvanborn-chanter-male.jpg',
+            description: 'Sylvanborn sage and ancient singer'
         },
 
         // Female classes
-        'Greenwarden': {
+        'Mystic': {
             genderLocked: 'female',
-            imagePath: '/assets/portraits-realistic/sylvanborn-greenwarden-female.jpg',
-            description: 'Sylvanborn nature guardian'
+            imagePath: '/assets/portraits-realistic/sylvanborn-mystic-female.jpg',
+            description: 'Sylvanborn nature mage with plant magic'
         },
-        'Sapling Adept': {
+        'Guardian': {
             genderLocked: 'female',
-            imagePath: '/assets/portraits-realistic/sylvanborn-sapling-adept-female.jpg',
-            description: 'Sylvanborn plant mage'
+            imagePath: '/assets/portraits-realistic/sylvanborn-guardian-female.jpg',
+            description: 'Sylvanborn grove protector and life keeper'
         },
-        'Bloomcaller': {
+        'Corsair': {
             genderLocked: 'female',
-            imagePath: '/assets/portraits-realistic/sylvanborn-bloomcaller-female.jpg',
-            description: 'Sylvanborn flower diplomat'
-        },
-        'Cinder Mystic': {
-            genderLocked: 'female',
-            imagePath: '/assets/portraits-realistic/sylvanborn-cinder-mystic-female.jpg',
-            description: 'Sylvanborn flame sorceress'
-        },
-        'Bonechanter': {
-            genderLocked: 'female',
-            imagePath: '/assets/portraits-realistic/sylvanborn-bonechanter-female.jpg',
-            description: 'Sylvanborn bone singer'
-        },
-        'Voidwing': {
-            genderLocked: 'female',
-            imagePath: '/assets/portraits-realistic/sylvanborn-voidwing-female.jpg',
-            description: 'Sylvanborn void pirate'
+            imagePath: '/assets/portraits-realistic/sylvanborn-corsair-female.jpg',
+            description: 'Sylvanborn shadow dancer and void walker'
         }
     },
 
     'nightborn': {
         // Male classes
-        'Thorn Knight': {
+        'Knight': {
             genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/nightborn-thorn-knight-male.jpg',
-            description: 'Nightborn shadow warrior'
+            imagePath: '/assets/portraits-realistic/nightborn-knight-male.jpg',
+            description: 'Nightborn shadow warrior with dark armor'
         },
-        'Ashblade': {
+        'Ranger': {
             genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/nightborn-ashblade-male.jpg',
-            description: 'Nightborn ash blade master'
+            imagePath: '/assets/portraits-realistic/nightborn-ranger-male.jpg',
+            description: 'Nightborn shadow scout and stalker'
         },
-        'Dust Ranger': {
+        'Chanter': {
             genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/nightborn-dust-ranger-male.jpg',
-            description: 'Nightborn wasteland scout'
-        },
-        'Stormcaller': {
-            genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/nightborn-stormcaller-male.jpg',
-            description: 'Nightborn lightning wielder'
-        },
-        'Sky Knight': {
-            genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/nightborn-sky-knight-male.jpg',
-            description: 'Nightborn sky guardian'
-        },
-        'Wind Sage': {
-            genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/nightborn-wind-sage-male.jpg',
-            description: 'Nightborn air philosopher'
+            imagePath: '/assets/portraits-realistic/nightborn-chanter-male.jpg',
+            description: 'Nightborn death priest and void singer'
         },
 
         // Female classes
-        'Greenwarden': {
+        'Mystic': {
             genderLocked: 'female',
-            imagePath: '/assets/portraits-realistic/nightborn-greenwarden-female.jpg',
-            description: 'Nightborn nature protector'
+            imagePath: '/assets/portraits-realistic/nightborn-mystic-female.jpg',
+            description: 'Nightborn shadow mage with void magic'
         },
-        'Sapling Adept': {
+        'Guardian': {
             genderLocked: 'female',
-            imagePath: '/assets/portraits-realistic/nightborn-sapling-adept-female.jpg',
-            description: 'Nightborn growth mage'
+            imagePath: '/assets/portraits-realistic/nightborn-guardian-female.jpg',
+            description: 'Nightborn dark protector and shadow healer'
         },
-        'Bloomcaller': {
+        'Corsair': {
             genderLocked: 'female',
-            imagePath: '/assets/portraits-realistic/nightborn-bloomcaller-female.jpg',
-            description: 'Nightborn plant speaker'
-        },
-        'Cinder Mystic': {
-            genderLocked: 'female',
-            imagePath: '/assets/portraits-realistic/nightborn-cinder-mystic-female.jpg',
-            description: 'Nightborn fire mystic'
-        },
-        'Bonechanter': {
-            genderLocked: 'female',
-            imagePath: '/assets/portraits-realistic/nightborn-bonechanter-female.jpg',
-            description: 'Nightborn death singer'
-        },
-        'Voidwing': {
-            genderLocked: 'female',
-            imagePath: '/assets/portraits-realistic/nightborn-voidwing-female.jpg',
-            description: 'Nightborn void corsair'
+            imagePath: '/assets/portraits-realistic/nightborn-corsair-female.jpg',
+            description: 'Nightborn void pirate and darkness master'
         }
     },
 
     'stormcaller': {
         // Male classes
-        'Thorn Knight': {
+        'Knight': {
             genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/stormcaller-thorn-knight-male.jpg',
-            description: 'Stormcaller elemental warrior'
+            imagePath: '/assets/portraits-realistic/stormcaller-knight-male.jpg',
+            description: 'Stormcaller sky warrior with storm weapons'
         },
-        'Ashblade': {
+        'Ranger': {
             genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/stormcaller-ashblade-male.jpg',
-            description: 'Stormcaller storm-forged warrior'
+            imagePath: '/assets/portraits-realistic/stormcaller-ranger-male.jpg',
+            description: 'Stormcaller wind rider and weather tracker'
         },
-        'Dust Ranger': {
+        'Chanter': {
             genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/stormcaller-dust-ranger-male.jpg',
-            description: 'Stormcaller weather tracker'
-        },
-        'Stormcaller': {
-            genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/stormcaller-stormcaller-male.jpg',
-            description: 'Stormcaller lightning master'
-        },
-        'Sky Knight': {
-            genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/stormcaller-sky-knight-male.jpg',
-            description: 'Stormcaller storm rider'
-        },
-        'Wind Sage': {
-            genderLocked: 'male',
-            imagePath: '/assets/portraits-realistic/stormcaller-wind-sage-male.jpg',
-            description: 'Stormcaller wind master'
+            imagePath: '/assets/portraits-realistic/stormcaller-chanter-male.jpg',
+            description: 'Stormcaller storm priest and wind singer'
         },
 
         // Female classes
-        'Greenwarden': {
+        'Mystic': {
             genderLocked: 'female',
-            imagePath: '/assets/portraits-realistic/stormcaller-greenwarden-female.jpg',
-            description: 'Stormcaller storm guardian'
+            imagePath: '/assets/portraits-realistic/stormcaller-mystic-female.jpg',
+            description: 'Stormcaller lightning mage with storm magic'
         },
-        'Sapling Adept': {
+        'Guardian': {
             genderLocked: 'female',
-            imagePath: '/assets/portraits-realistic/stormcaller-sapling-adept-female.jpg',
-            description: 'Stormcaller weather mage'
+            imagePath: '/assets/portraits-realistic/stormcaller-guardian-female.jpg',
+            description: 'Stormcaller sky protector and storm keeper'
         },
-        'Bloomcaller': {
+        'Corsair': {
             genderLocked: 'female',
-            imagePath: '/assets/portraits-realistic/stormcaller-bloomcaller-female.jpg',
-            description: 'Stormcaller storm speaker'
-        },
-        'Cinder Mystic': {
-            genderLocked: 'female',
-            imagePath: '/assets/portraits-realistic/stormcaller-cinder-mystic-female.jpg',
-            description: 'Stormcaller lightning sorceress'
-        },
-        'Bonechanter': {
-            genderLocked: 'female',
-            imagePath: '/assets/portraits-realistic/stormcaller-bonechanter-female.jpg',
-            description: 'Stormcaller storm chanter'
-        },
-        'Voidwing': {
-            genderLocked: 'female',
-            imagePath: '/assets/portraits-realistic/stormcaller-voidwing-female.jpg',
-            description: 'Stormcaller tempest pirate'
+            imagePath: '/assets/portraits-realistic/stormcaller-corsair-female.jpg',
+            description: 'Stormcaller tempest pirate and void storm master'
         }
     }
 };
