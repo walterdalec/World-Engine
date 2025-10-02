@@ -150,14 +150,16 @@ async function trySpritesheetCharacter(species: string, archetype: string, gende
 }
 
 /**
- * Extract a sprite from a spritesheet using canvas
+ * Extract a sprite from a spritesheet using canvas with retry logic
  */
-async function extractSpriteFromSheet(sheetName: string, x: number, y: number, w: number, h: number): Promise<string> {
+async function extractSpriteFromSheet(sheetName: string, x: number, y: number, w: number, h: number, retryCount = 0): Promise<string> {
     return new Promise((resolve, reject) => {
         const img = new Image();
+
+        // Set CORS to handle GitHub Pages
         img.crossOrigin = 'anonymous';
 
-        img.onload = () => {
+        console.log(`🔍 Creating image for spritesheet: ${sheetName}`); img.onload = () => {
             // Create canvas for extracted sprite
             const canvas = document.createElement('canvas');
             canvas.width = w * 4; // Scale up 4x for better visibility
@@ -180,11 +182,22 @@ async function extractSpriteFromSheet(sheetName: string, x: number, y: number, w
         };
 
         img.onerror = () => {
-            console.log(`❌ Failed to load spritesheet: ${sheetName}`);
+            console.log(`❌ Failed to load spritesheet: ${sheetName} (attempt ${retryCount + 1})`);
             console.log(`🔍 Full URL attempted: ${getAssetUrl(`portraits-new/${sheetName}`)}`);
             console.log(`🌐 Current location: ${window.location.href}`);
             console.log(`🔗 Base path logic: isLocal=${window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'}`);
-            reject(new Error(`Failed to load spritesheet: ${sheetName}`));
+
+            // Retry up to 2 times with delay
+            if (retryCount < 2) {
+                console.log(`🔄 Retrying spritesheet load in ${(retryCount + 1) * 1000}ms...`);
+                setTimeout(() => {
+                    extractSpriteFromSheet(sheetName, x, y, w, h, retryCount + 1)
+                        .then(resolve)
+                        .catch(reject);
+                }, (retryCount + 1) * 1000);
+            } else {
+                reject(new Error(`Failed to load spritesheet: ${sheetName} after ${retryCount + 1} attempts`));
+            }
         };
 
         img.src = getAssetUrl(`portraits-new/${sheetName}`);
