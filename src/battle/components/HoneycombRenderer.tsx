@@ -96,16 +96,19 @@ export function HoneycombBattleCanvas({
         return null;
     }, [screenToWorld, grid, getHexPosition, state.grid.width, state.grid.height]);
 
-    // Canvas initialization
+    // Canvas initialization (only run once)
     const handleInit = useCallback((ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
-        // Initial camera position - center the grid
+        // Don't reset camera if it already has values (prevents reset on re-render)
         const camera = cameraRef.current;
-        camera.x = 0;
-        camera.y = 0;
-        camera.scale = 1;
+        if (camera.x === 0 && camera.y === 0 && camera.scale === 1) {
+            // Only set initial values if camera is at defaults
+            camera.x = 0;
+            camera.y = 0;
+            camera.scale = 1;
+        }
     }, []);
 
-    // Main render function
+    // Main render function (stabilized to prevent resets)
     const handleRender = useCallback((ctx: CanvasRenderingContext2D, t: number) => {
         const canvas = ctx.canvas;
         const camera = cameraRef.current;
@@ -138,7 +141,7 @@ export function HoneycombBattleCanvas({
 
         // Draw terrain tiles
         grid.forEach(hex => {
-            const pos = getHexPosition(hex);
+            const pos = { q: hex.col, r: hex.row }; // Direct conversion instead of function call
             const tile = state.grid.tiles.find(t => t.q === pos.q && t.r === pos.r);
 
             if (tile) {
@@ -153,7 +156,7 @@ export function HoneycombBattleCanvas({
             // Friendly deployment (green)
             ctx.fillStyle = 'rgba(34, 197, 94, 0.3)';
             state.friendlyDeployment.hexes.forEach(hexPos => {
-                const hex = getHoneycombHex(hexPos);
+                const hex = new BattleTile({ col: hexPos.q, row: hexPos.r }); // Direct creation instead of function call
                 const { x, y } = hex;
                 fillHexagon(ctx, x, y, hex.dimensions.xRadius);
             });
@@ -161,7 +164,7 @@ export function HoneycombBattleCanvas({
             // Enemy deployment (red)
             ctx.fillStyle = 'rgba(239, 68, 68, 0.3)';
             state.enemyDeployment.hexes.forEach(hexPos => {
-                const hex = getHoneycombHex(hexPos);
+                const hex = new BattleTile({ col: hexPos.q, row: hexPos.r }); // Direct creation instead of function call
                 const { x, y } = hex;
                 fillHexagon(ctx, x, y, hex.dimensions.xRadius);
             });
@@ -170,7 +173,7 @@ export function HoneycombBattleCanvas({
         // Draw units
         state.units.forEach(unit => {
             if (unit.pos && !unit.isDead) {
-                const hex = getHoneycombHex(unit.pos);
+                const hex = new BattleTile({ col: unit.pos.q, row: unit.pos.r }); // Direct creation instead of function call
                 const { x, y } = hex;
                 const isSelected = selectedUnit === unit.id;
                 drawUnit(ctx, x, y, unit, isSelected);
@@ -179,7 +182,7 @@ export function HoneycombBattleCanvas({
 
         // Highlight hovered hex
         if (hoveredHex) {
-            const hex = getHoneycombHex(hoveredHex);
+            const hex = new BattleTile({ col: hoveredHex.q, row: hoveredHex.r }); // Direct creation instead of function call
             const { x, y } = hex;
             ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
             fillHexagon(ctx, x, y, hex.dimensions.xRadius);
@@ -187,14 +190,14 @@ export function HoneycombBattleCanvas({
 
         // Highlight target hex
         if (targetHex) {
-            const hex = getHoneycombHex(targetHex);
+            const hex = new BattleTile({ col: targetHex.q, row: targetHex.r }); // Direct creation instead of function call
             const { x, y } = hex;
             ctx.fillStyle = 'rgba(239, 68, 68, 0.5)';
             fillHexagon(ctx, x, y, hex.dimensions.xRadius);
         }
 
         ctx.restore();
-    }, [state, selectedUnit, targetHex, hoveredHex, showGrid, grid, getHoneycombHex, getHexPosition]);
+    }, [grid, state, selectedUnit, targetHex, hoveredHex, showGrid]);
 
     // Pan handler
     const handlePan = useCallback((dx: number, dy: number) => {
