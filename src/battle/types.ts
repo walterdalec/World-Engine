@@ -114,7 +114,7 @@ export interface BattleContext {
     timeOfDay?: "Dawn" | "Day" | "Dusk" | "Night";
 }
 
-export type BattlePhase = "Setup" | "Deployment" | "PlayerTurn" | "EnemyTurn" | "Victory" | "Defeat";
+export type BattlePhase = "Setup" | "HeroTurn" | "UnitsTurn" | "EnemyTurn" | "Victory" | "Defeat";
 
 export interface BattleState {
     id: string;

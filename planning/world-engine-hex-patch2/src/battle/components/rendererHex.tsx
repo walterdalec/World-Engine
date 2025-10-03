@@ -1,0 +1,1 @@
+// canvas hex renderer placeholder

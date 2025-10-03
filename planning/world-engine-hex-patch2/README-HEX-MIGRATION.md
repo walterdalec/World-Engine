@@ -1,0 +1,1 @@
+# Migration Guide for Hex Battles\nUse these files to replace square grid system.

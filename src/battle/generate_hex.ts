@@ -176,3 +176,100 @@ export function isValidPosition(pos: HexPosition, grid: BattleGrid): boolean {
     const tile = grid.tiles.find(t => t.q === pos.q && t.r === pos.r);
     return tile ? tile.passable : false;
 }
+
+// ===== PHASE 0: HEX COORDINATE UTILITIES =====
+
+/**
+ * Convert axial coordinates to cube coordinates
+ */
+export function axialToCube(hex: HexPosition): { x: number; y: number; z: number } {
+    const x = hex.q;
+    const z = hex.r;
+    const y = -x - z;
+    return { x, y, z };
+}
+
+/**
+ * Convert cube coordinates to axial coordinates
+ */
+export function cubeToAxial(cube: { x: number; y: number; z: number }): HexPosition {
+    return { q: cube.x, r: cube.z };
+}
+
+/**
+ * Calculate distance between two hex positions using cube coordinates
+ */
+export function cubeDistance(a: HexPosition, b: HexPosition): number {
+    const cubeA = axialToCube(a);
+    const cubeB = axialToCube(b);
+    return Math.max(
+        Math.abs(cubeA.x - cubeB.x),
+        Math.abs(cubeA.y - cubeB.y),
+        Math.abs(cubeA.z - cubeB.z)
+    );
+}
+
+/**
+ * Six hex directions (pointy-top orientation)
+ */
+export const axialDirections: HexPosition[] = [
+    { q: 1, r: 0 },   // East
+    { q: 1, r: -1 },  // Northeast  
+    { q: 0, r: -1 },  // Northwest
+    { q: -1, r: 0 },  // West
+    { q: -1, r: 1 },  // Southwest
+    { q: 0, r: 1 }    // Southeast
+];
+
+/**
+ * Get all neighboring hexes of a position
+ */
+export function neighborsHex(center: HexPosition): HexPosition[] {
+    return axialDirections.map(dir => ({
+        q: center.q + dir.q,
+        r: center.r + dir.r
+    }));
+}
+
+/**
+ * Get hex at distance and direction from center
+ */
+export function hexNeighbor(center: HexPosition, direction: number): HexPosition {
+    const dir = axialDirections[direction % 6];
+    return {
+        q: center.q + dir.q,
+        r: center.r + dir.r
+    };
+}
+
+/**
+ * Get all hexes in a ring around center at given radius
+ */
+export function hexRing(center: HexPosition, radius: number): HexPosition[] {
+    if (radius === 0) return [center];
+
+    const results: HexPosition[] = [];
+    let hex = { q: center.q + axialDirections[4].q * radius, r: center.r + axialDirections[4].r * radius };
+
+    for (let i = 0; i < 6; i++) {
+        for (let j = 0; j < radius; j++) {
+            results.push({ ...hex });
+            hex = hexNeighbor(hex, i);
+        }
+    }
+
+    return results;
+}
+
+/**
+ * Get all hexes within radius (filled circle)
+ */
+export function hexSpiral(center: HexPosition, maxRadius: number): HexPosition[] {
+    const results: HexPosition[] = [center];
+
+    for (let r = 1; r <= maxRadius; r++) {
+        results.push(...hexRing(center, r));
+    }
+
+    return results;
+}

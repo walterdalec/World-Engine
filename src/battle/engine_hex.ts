@@ -10,7 +10,7 @@ import { hexDistance, isValidPosition } from './generate_hex';
  * Initialize battle state
  */
 export function startBattle(state: BattleState): void {
-    state.phase = "Deployment";
+    state.phase = "Setup";
     state.turn = 1;
 
     // Calculate initiative order based on speed
@@ -24,23 +24,29 @@ export function startBattle(state: BattleState): void {
 
 /**
  * Advance to next battle phase
+ * Phase flow: Setup → HeroTurn → UnitsTurn → EnemyTurn → (repeat)
  */
 export function nextPhase(state: BattleState): void {
     switch (state.phase) {
-        case "Deployment":
-            state.phase = "PlayerTurn";
-            state.log.push("Deployment complete. Player turn begins.");
+        case "Setup":
+            state.phase = "HeroTurn";
+            state.log.push("Deployment complete. Hero turn begins.");
             break;
 
-        case "PlayerTurn":
+        case "HeroTurn":
+            state.phase = "UnitsTurn";
+            state.log.push("Hero turn complete. Units turn begins.");
+            break;
+
+        case "UnitsTurn":
             state.phase = "EnemyTurn";
-            state.log.push("Player turn ends. Enemy turn begins.");
+            state.log.push("Units turn complete. Enemy turn begins.");
             break;
 
         case "EnemyTurn":
             state.turn += 1;
-            state.phase = "PlayerTurn";
-            state.log.push(`Turn ${state.turn} begins.`);
+            state.phase = "HeroTurn";
+            state.log.push(`Turn ${state.turn} begins. Hero turn.`);
             // Reset cooldowns and AP
             resetTurnResources(state);
             break;
