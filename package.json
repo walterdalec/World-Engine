@@ -15,6 +15,7 @@
     "zod": "^4.1.11",
     "zustand": "^5.0.8"
   },
+  "main": "electron.js",
   "scripts": {
     "start": "set NODE_OPTIONS=--max-old-space-size=2048 && react-scripts start",
     "start:full-mem": "react-scripts start",
@@ -26,6 +27,13 @@
     "preview": "npx --yes serve -s build -l 5000",
     "preview:ps": "powershell -ExecutionPolicy Bypass -File ./start-preview.ps1",
     "deploy:gh": "npm run build && powershell -NoProfile -Command \"Copy-Item -Force build/index.html build/404.html\" && npx --yes gh-pages -d build",
+    "electron": "electron .",
+    "electron:dev": "concurrently \"npm start\" \"wait-on http://localhost:3000 && electron .\"",
+    "electron:build": "npm run build && electron .",
+    "dist": "npm run build && electron-builder",
+    "dist:win": "npm run build && electron-builder --win",
+    "dist:mac": "npm run build && electron-builder --mac",
+    "dist:linux": "npm run build && electron-builder --linux",
     "test": "react-scripts test --env=jsdom",
     "test:coverage": "react-scripts test --coverage --watchAll=false",
     "eject": "react-scripts eject",
@@ -38,9 +46,44 @@
     "@testing-library/user-event": "^14.6.1",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
+    "concurrently": "^9.2.1",
+    "electron": "^38.2.1",
+    "electron-builder": "^26.0.12",
+    "electron-is-dev": "^3.0.1",
     "gh-pages": "^6.3.0",
     "serve": "^14.2.1",
+    "wait-on": "^9.0.1",
     "webpack-bundle-analyzer": "^4.10.2"
+  },
+  "build": {
+    "appId": "com.worldengine.app",
+    "productName": "World Engine",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "build/**/*",
+      "electron.js",
+      "node_modules/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.games",
+      "target": "dmg"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "public/favicon.ico"
+    },
+    "linux": {
+      "target": "AppImage",
+      "category": "Game"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
   },
   "browserslist": {
     "production": [
