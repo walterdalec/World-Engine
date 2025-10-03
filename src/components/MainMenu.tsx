@@ -30,9 +30,10 @@ interface Props {
   onHealingSystem: () => void;
   onCharacterCreate: () => void;
   onPortraitTest: () => void;
+  onBattleSystem: () => void;
 }
 
-export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onPortraitTest }: Props) {
+export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onPortraitTest, onBattleSystem }: Props) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [characters, setCharacters] = useState<SavedCharacter[]>([]);
   const [activeTab, setActiveTab] = useState<'campaigns' | 'characters'>('campaigns');
@@ -729,6 +730,12 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
                 <div style={{ fontSize: '3rem', marginBottom: '10px' }}>⚕️</div>
                 <h3 style={{ margin: '0 0 5px 0' }}>Healing System</h3>
                 <p style={{ margin: 0, opacity: 0.9 }}>Manage party health & healing</p>
+              </div>
+
+              <div style={newCardStyle} onClick={onBattleSystem}>
+                <div style={{ fontSize: '3rem', marginBottom: '10px' }}>⚔️</div>
+                <h3 style={{ margin: '0 0 5px 0' }}>Battle System</h3>
+                <p style={{ margin: 0, opacity: 0.9 }}>Tactical hex-grid combat</p>
               </div>
 
               <div style={newCardStyle} onClick={onPortraitTest}>

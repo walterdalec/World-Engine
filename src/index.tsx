@@ -11,6 +11,7 @@ import SpellAssignment from "./components/SpellAssignment";
 import HealingSystem from "./components/HealingSystem";
 import WorldMapEngine from "./components/WorldMapEngine";
 import { SimplePortraitTest } from "./components/SimplePortraitTest";
+import { BattleMockup } from "./components/BattleMockup";
 import { Engine } from "./engine.d";
 import { DEFAULT_WORLDS } from "./defaultWorlds";
 
@@ -35,7 +36,7 @@ function randomSeed(): string {
 }
 
 function App() {
-  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "charactercreate" | "portraittest">("menu");
+  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "charactercreate" | "portraittest" | "battlesystem">("menu");
   const [party, setParty] = React.useState<Character[]>([]);
   const [currentCampaign, setCurrentCampaign] = React.useState<any>(null);
   const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0); // Force re-render hook
@@ -281,6 +282,11 @@ function App() {
     setStep("portraittest");
   };
 
+  const handleBattleSystem = () => {
+    // Battle system demo
+    setStep("battlesystem");
+  };
+
   // fake engine stub for now
   // Engine stub - will be replaced with real engine
   const eng: Engine = {
@@ -376,6 +382,7 @@ function App() {
           onHealingSystem={handleHealingSystem}
           onCharacterCreate={handleCharacterCreate}
           onPortraitTest={handlePortraitTest}
+          onBattleSystem={handleBattleSystem}
         />
       )}
       {step === "world" && (
@@ -469,6 +476,30 @@ function App() {
             ← Back to Menu
           </button>
           <SimplePortraitTest />
+        </div>
+      )}
+      {step === "battlesystem" && (
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={() => setStep("menu")}
+            style={{
+              position: 'absolute',
+              top: '20px',
+              left: '20px',
+              zIndex: 1000,
+              background: '#374151',
+              color: '#f8fafc',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '10px 15px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold'
+            }}
+          >
+            ← Back to Menu
+          </button>
+          <BattleMockup />
         </div>
       )}
     </>
