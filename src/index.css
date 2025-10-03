@@ -12,3 +12,27 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Professional Canvas Map Wrapper Styles */
+.map-root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  /* contain scroll; no scroll chaining */
+}
+
+/* Make touchpads/phones ignore native panning/zooming gestures on the canvas */
+.map-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+  /* disables browser touch scrolling/zooming */
+  cursor: grab;
+}
+
+.map-canvas:active {
+  cursor: grabbing;
+}

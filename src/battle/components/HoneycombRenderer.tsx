@@ -1,11 +1,12 @@
 /**
- * Improved Hex Battle Renderer using Honeycomb Grid
- * Modern, clean implementation with proper mouse interaction and scaling
+ * Professional Hex Battle Renderer using HexStage wrapper
+ * Implements drag-to-pan, wheel zoom, no-scroll hover
  */
 
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useMemo } from 'react';
 import { defineHex, Grid, rectangle, Hex, Orientation } from 'honeycomb-grid';
 import type { BattleState, HexPosition, Unit } from '../types';
+import HexStage from './HexStage';
 
 interface HoneycombBattleCanvasProps {
     state: BattleState;
@@ -21,6 +22,13 @@ const BattleTile = defineHex({
     orientation: Orientation.POINTY // Classic pointy-top hexagons
 });
 
+// Camera state for pan/zoom
+interface Camera {
+    x: number;
+    y: number;
+    scale: number;
+}
+
 export function HoneycombBattleCanvas({
     state,
     onTileClick,
@@ -28,14 +36,12 @@ export function HoneycombBattleCanvas({
     targetHex,
     showGrid = true
 }: HoneycombBattleCanvasProps) {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const containerRef = useRef<HTMLDivElement>(null);
+    const cameraRef = useRef<Camera>({ x: 0, y: 0, scale: 1 });
     const [hoveredHex, setHoveredHex] = useState<HexPosition | null>(null);
-    const [scale, setScale] = useState(1);
-    const [offset, setOffset] = useState({ x: 0, y: 0 });
+    const [, forceRender] = useState(0);
 
     // Create grid using Honeycomb (memoized to prevent recreation)
-    const grid = React.useMemo(() => {
+    const grid = useMemo(() => {
         return new Grid(BattleTile, rectangle({
             width: state.grid.width,
             height: state.grid.height
@@ -52,35 +58,69 @@ export function HoneycombBattleCanvas({
         return { q: hex.col, r: hex.row };
     }, []);
 
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        const container = containerRef.current;
-        if (!canvas || !container) return;
+    // Convert screen coordinates to world coordinates
+    const screenToWorld = useCallback((canvasX: number, canvasY: number, canvas: HTMLCanvasElement) => {
+        const camera = cameraRef.current;
+        const centerX = canvas.width / (2 * window.devicePixelRatio);
+        const centerY = canvas.height / (2 * window.devicePixelRatio);
 
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
+        // Convert to world coordinates by reversing the camera transform
+        const worldX = (canvasX - centerX - camera.x) / camera.scale;
+        const worldY = (canvasY - centerY - camera.y) / camera.scale;
 
-        // Stable canvas sizing - only resize when container dimensions actually change
-        const rect = container.getBoundingClientRect();
-        const newWidth = Math.floor(rect.width);
-        const newHeight = Math.floor(rect.height);
+        // Adjust for grid centering
+        const gridWidth = grid.pixelWidth;
+        const gridHeight = grid.pixelHeight;
+        const adjustedX = worldX + gridWidth / 2;
+        const adjustedY = worldY + gridHeight / 2;
 
-        if (canvas.width !== newWidth || canvas.height !== newHeight) {
-            canvas.width = newWidth;
-            canvas.height = newHeight;
+        return { x: adjustedX, y: adjustedY };
+    }, [grid]);
+
+    // Get hex position from screen coordinates
+    const getHexFromScreen = useCallback((canvasX: number, canvasY: number, canvas: HTMLCanvasElement): HexPosition | null => {
+        try {
+            const worldPos = screenToWorld(canvasX, canvasY, canvas);
+            const hex = grid.pointToHex({ x: worldPos.x, y: worldPos.y });
+
+            if (hex) {
+                const pos = getHexPosition(hex);
+                // Check if within grid bounds
+                if (pos.q >= 0 && pos.q < state.grid.width && pos.r >= 0 && pos.r < state.grid.height) {
+                    return pos;
+                }
+            }
+        } catch (error) {
+            // Silently handle coordinate conversion errors
         }
+        return null;
+    }, [screenToWorld, grid, getHexPosition, state.grid.width, state.grid.height]);
 
-        // Clear and setup transform
+    // Canvas initialization
+    const handleInit = useCallback((ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
+        // Initial camera position - center the grid
+        const camera = cameraRef.current;
+        camera.x = 0;
+        camera.y = 0;
+        camera.scale = 1;
+    }, []);
+
+    // Main render function
+    const handleRender = useCallback((ctx: CanvasRenderingContext2D, t: number) => {
+        const canvas = ctx.canvas;
+        const camera = cameraRef.current;
+
+        // Clear canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.save();
 
-        // Center the grid and apply scale/offset
-        const centerX = canvas.width / 2 + offset.x;
-        const centerY = canvas.height / 2 + offset.y;
-        ctx.translate(centerX, centerY);
-        ctx.scale(scale, scale);
+        // Apply camera transform
+        const centerX = canvas.width / (2 * window.devicePixelRatio);
+        const centerY = canvas.height / (2 * window.devicePixelRatio);
+        ctx.translate(centerX + camera.x, centerY + camera.y);
+        ctx.scale(camera.scale, camera.scale);
 
-        // Calculate grid bounds for centering
+        // Center the grid
         const gridWidth = grid.pixelWidth;
         const gridHeight = grid.pixelHeight;
         ctx.translate(-gridWidth / 2, -gridHeight / 2);
@@ -88,7 +128,7 @@ export function HoneycombBattleCanvas({
         // Draw hex grid
         if (showGrid) {
             ctx.strokeStyle = '#444';
-            ctx.lineWidth = 1 / scale; // Adjust line width for scale
+            ctx.lineWidth = 1 / camera.scale;
 
             grid.forEach(hex => {
                 const { x, y } = hex;
@@ -154,139 +194,127 @@ export function HoneycombBattleCanvas({
         }
 
         ctx.restore();
-    }, [state, selectedUnit, targetHex, hoveredHex, showGrid, scale, offset]);
+    }, [state, selectedUnit, targetHex, hoveredHex, showGrid, grid, getHoneycombHex, getHexPosition]);
 
-    // Handle mouse events with Honeycomb's built-in pixel-to-hex conversion
-    const handleMouseEvent = useCallback((event: React.MouseEvent, eventType: 'click' | 'move') => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
+    // Pan handler
+    const handlePan = useCallback((dx: number, dy: number) => {
+        cameraRef.current.x += dx;
+        cameraRef.current.y += dy;
+    }, []);
 
-        // Prevent any default behavior that might cause scrolling
-        event.preventDefault();
-        event.stopPropagation();
+    // Zoom handler with cursor-centered zooming
+    const handleZoom = useCallback((delta: number, cx: number, cy: number) => {
+        const camera = cameraRef.current;
+        const factor = Math.exp(delta * -0.001);
+        const newScale = Math.max(0.3, Math.min(3, camera.scale * factor));
 
-        const rect = canvas.getBoundingClientRect();
+        if (newScale !== camera.scale) {
+            // Zoom towards cursor position
+            const canvas = document.querySelector('.map-canvas') as HTMLCanvasElement;
+            if (canvas) {
+                const centerX = canvas.width / (2 * window.devicePixelRatio);
+                const centerY = canvas.height / (2 * window.devicePixelRatio);
 
-        // Get mouse position relative to canvas with bounds checking
-        const canvasX = Math.max(0, Math.min(canvas.width, event.clientX - rect.left));
-        const canvasY = Math.max(0, Math.min(canvas.height, event.clientY - rect.top));
+                const inv = 1 / camera.scale;
+                const wx = (cx - centerX - camera.x) * inv;
+                const wy = (cy - centerY - camera.y) * inv;
 
-        try {
-            // Convert to world coordinates by reversing the canvas transforms
-            // First, adjust for canvas center and offset
-            const worldX = (canvasX - canvas.width / 2 - offset.x) / scale;
-            const worldY = (canvasY - canvas.height / 2 - offset.y) / scale;
-
-            // Then adjust for grid centering (undo the grid translation)
-            const gridWidth = grid.pixelWidth;
-            const gridHeight = grid.pixelHeight;
-            const adjustedX = worldX + gridWidth / 2;
-            const adjustedY = worldY + gridHeight / 2;
-
-            // Use Honeycomb's pointToHex conversion
-            const hex = grid.pointToHex({ x: adjustedX, y: adjustedY });
-
-            if (hex) {
-                const pos = getHexPosition(hex);
-
-                // Check if within grid bounds
-                if (pos.q >= 0 && pos.q < state.grid.width && pos.r >= 0 && pos.r < state.grid.height) {
-                    if (eventType === 'click' && onTileClick) {
-                        onTileClick(pos);
-                    } else if (eventType === 'move') {
-                        // Only update if the hex has actually changed
-                        if (!hoveredHex || hoveredHex.q !== pos.q || hoveredHex.r !== pos.r) {
-                            setHoveredHex(pos);
-                        }
-                    }
-                } else if (eventType === 'move') {
-                    setHoveredHex(null);
-                }
-            } else if (eventType === 'move') {
-                setHoveredHex(null);
-            }
-        } catch (error) {
-            // Silently handle any coordinate conversion errors
-            if (eventType === 'move') {
-                setHoveredHex(null);
+                camera.scale = newScale;
+                camera.x = cx - centerX - wx * camera.scale;
+                camera.y = cy - centerY - wy * camera.scale;
             }
         }
-    }, [grid, scale, offset, state.grid.width, state.grid.height, onTileClick, getHexPosition, hoveredHex]);
+    }, []);
 
-    const handleClick = useCallback((event: React.MouseEvent) => {
-        handleMouseEvent(event, 'click');
-    }, [handleMouseEvent]);
+    // Click handler
+    const handleClick = useCallback((x: number, y: number) => {
+        const canvas = document.querySelector('.map-canvas') as HTMLCanvasElement;
+        if (canvas && onTileClick) {
+            const hexPos = getHexFromScreen(x, y, canvas);
+            if (hexPos) {
+                onTileClick(hexPos);
+            }
+        }
+    }, [getHexFromScreen, onTileClick]);
 
-    const handleMouseMove = useCallback((event: React.MouseEvent) => {
-        handleMouseEvent(event, 'move');
-    }, [handleMouseEvent]);
+    // Hover handler
+    const handleHover = useCallback((x: number, y: number) => {
+        const canvas = document.querySelector('.map-canvas') as HTMLCanvasElement;
+        if (canvas) {
+            const hexPos = getHexFromScreen(x, y, canvas);
+            if (!hoveredHex || !hexPos || hoveredHex.q !== hexPos.q || hoveredHex.r !== hexPos.r) {
+                setHoveredHex(hexPos);
+            }
+        }
+    }, [getHexFromScreen, hoveredHex]);
 
-    const handleMouseLeave = useCallback(() => {
+    // Hover end handler
+    const handleHoverEnd = useCallback(() => {
         setHoveredHex(null);
     }, []);
 
-    const handleWheel = useCallback((event: React.WheelEvent) => {
-        event.preventDefault();
-        const direction = event.deltaY > 0 ? 'out' : 'in';
-        setScale(prev => {
-            const newScale = direction === 'in' ? prev * 1.1 : prev / 1.1;
-            return Math.max(0.3, Math.min(3, newScale));
-        });
-    }, []);
-
+    // Reset view function
     const resetView = useCallback(() => {
-        setScale(1);
-        setOffset({ x: 0, y: 0 });
+        cameraRef.current.x = 0;
+        cameraRef.current.y = 0;
+        cameraRef.current.scale = 1;
+        forceRender(prev => prev + 1);
     }, []);
 
     return (
-        <div ref={containerRef} className="relative w-full h-full bg-gray-900 overflow-hidden">
-            <canvas
-                ref={canvasRef}
+        <div className="relative w-full h-full bg-gray-900">
+            <HexStage
+                init={handleInit}
+                onRender={handleRender}
+                pan={handlePan}
+                zoom={handleZoom}
                 onClick={handleClick}
-                onMouseMove={handleMouseMove}
-                onMouseLeave={handleMouseLeave}
-                onWheel={handleWheel}
-                className="w-full h-full cursor-pointer touch-none"
-                style={{ touchAction: 'none', userSelect: 'none' }}
+                onHover={handleHover}
+                onHoverEnd={handleHoverEnd}
             />
 
             {/* Battle info overlay */}
-            <div className="absolute top-4 left-4 bg-black bg-opacity-75 text-white p-3 rounded text-sm">
+            <div className="absolute top-4 left-4 bg-black bg-opacity-75 text-white p-3 rounded text-sm pointer-events-none">
                 <div>Turn {state.turn} - {state.phase}</div>
                 <div>Biome: {state.context.biome}</div>
                 {hoveredHex && (
                     <div>Hex: ({hoveredHex.q}, {hoveredHex.r})</div>
                 )}
-                <div>Zoom: {Math.round(scale * 100)}%</div>
+                <div>Zoom: {Math.round(cameraRef.current.scale * 100)}%</div>
             </div>
 
             {/* Controls */}
             <div className="absolute top-4 right-4 flex flex-col space-y-2">
                 <button
-                    onClick={() => setScale(prev => Math.min(3, prev * 1.1))}
-                    className="px-3 py-2 bg-gray-700 text-white text-sm rounded hover:bg-gray-600"
+                    onClick={() => {
+                        cameraRef.current.scale = Math.min(3, cameraRef.current.scale * 1.1);
+                        forceRender(prev => prev + 1);
+                    }}
+                    className="px-3 py-2 bg-gray-700 text-white text-sm rounded hover:bg-gray-600 pointer-events-auto"
                 >
                     🔍+
                 </button>
                 <button
-                    onClick={() => setScale(prev => Math.max(0.3, prev / 1.1))}
-                    className="px-3 py-2 bg-gray-700 text-white text-sm rounded hover:bg-gray-600"
+                    onClick={() => {
+                        cameraRef.current.scale = Math.max(0.3, cameraRef.current.scale / 1.1);
+                        forceRender(prev => prev + 1);
+                    }}
+                    className="px-3 py-2 bg-gray-700 text-white text-sm rounded hover:bg-gray-600 pointer-events-auto"
                 >
                     🔍-
                 </button>
                 <button
                     onClick={resetView}
-                    className="px-3 py-2 bg-gray-700 text-white text-sm rounded hover:bg-gray-600"
+                    className="px-3 py-2 bg-gray-700 text-white text-sm rounded hover:bg-gray-600 pointer-events-auto"
                 >
                     🎯
                 </button>
             </div>
 
             {/* Instructions */}
-            <div className="absolute bottom-4 left-4 bg-black bg-opacity-75 text-white p-2 rounded text-xs">
-                <div>• Scroll: Zoom • Click: Select • 🎯: Reset</div>
-                <div>• Powered by Honeycomb Grid</div>
+            <div className="absolute bottom-4 left-4 bg-black bg-opacity-75 text-white p-2 rounded text-xs pointer-events-none">
+                <div>• Drag: Pan • Scroll: Zoom • Click: Select • 🎯: Reset</div>
+                <div>• Professional Canvas Wrapper</div>
             </div>
         </div>
     );
