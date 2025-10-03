@@ -69,7 +69,7 @@ export const PORTRAIT_CONFIGS: AllPortraitConfigs = {
         },
         'Corsair': {
             genderLocked: 'female',
-            imagePath: '/World-Engine/assets/portraits-realistic/human-corsair-female.jpg',
+            imagePath: '/World-Engine/assets/portraits-realistic/human-corsair-female.png',
             description: 'Human sky pirate and void warrior'
         }
     },
@@ -105,7 +105,7 @@ export const PORTRAIT_CONFIGS: AllPortraitConfigs = {
         },
         'Corsair': {
             genderLocked: 'female',
-            imagePath: '/World-Engine/assets/portraits-realistic/sylvanborn-corsair-female.jpg',
+            imagePath: '/World-Engine/assets/portraits-realistic/sylvanborn-corsair-female.png',
             description: 'Sylvanborn shadow dancer and void walker'
         }
     },
@@ -141,7 +141,7 @@ export const PORTRAIT_CONFIGS: AllPortraitConfigs = {
         },
         'Corsair': {
             genderLocked: 'female',
-            imagePath: '/World-Engine/assets/portraits-realistic/nightborn-corsair-female.jpg',
+            imagePath: '/World-Engine/assets/portraits-realistic/nightborn-corsair-female.png',
             description: 'Nightborn void pirate and darkness master'
         }
     },
@@ -177,7 +177,7 @@ export const PORTRAIT_CONFIGS: AllPortraitConfigs = {
         },
         'Corsair': {
             genderLocked: 'female',
-            imagePath: '/World-Engine/assets/portraits-realistic/stormcaller-corsair-female.jpg',
+            imagePath: '/World-Engine/assets/portraits-realistic/stormcaller-corsair-female.png',
             description: 'Stormcaller tempest pirate and void storm master'
         }
     }
