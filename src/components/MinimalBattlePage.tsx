@@ -27,7 +27,11 @@ export function MinimalBattlePage() {
 
     // Auto-handle enemy turns
     useEffect(() => {
+        console.log(`🎲 Turn check: ${engine.current.name} (${engine.current.team}), phase: ${engine.state.phase}, isEnemy: ${engine.isCurrentUnitEnemy}`);
+
         if (engine.isCurrentUnitEnemy && engine.state.phase === "awaitAction") {
+            console.log(`🤖 Enemy ${engine.current.name} taking turn...`);
+
             // Add a small delay to make enemy actions visible
             const timer = setTimeout(() => {
                 engine.doEnemyTurn();
@@ -36,7 +40,7 @@ export function MinimalBattlePage() {
 
             return () => clearTimeout(timer);
         }
-    }, [engine.current.id, engine.state.phase, engine]);
+    }, [engine.current.id, engine.state.phase, engine.state.turnIndex]);
 
     const onAction = (action: "Move" | "Fight" | "Spells" | "Defend" | "Wait" | "EndTurn") => {
         switch (action) {

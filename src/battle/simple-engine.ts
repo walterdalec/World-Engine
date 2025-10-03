@@ -39,9 +39,11 @@ export class GameEngine {
     }
 
     endTurn() {
+        console.log(`🔄 ${this.current.name} ending turn...`);
         // reset flags on current (next unit will be selected)
         this.advanceToNextLiving();
         const u = this.current;
+        console.log(`➡️ Next turn: ${u.name} (${u.team})`);
         u.defended = false;
         this.state.phase = "awaitAction";
         this.state.reachable.clear();
@@ -128,13 +130,19 @@ export class GameEngine {
     // ---- AI for enemy turns ---------------------------------------------------
     doEnemyTurn() {
         const currentUnit = this.current;
+        console.log(`🤖 doEnemyTurn called for ${currentUnit.name} (${currentUnit.team})`);
+
         if (currentUnit.team !== "enemy") {
+            console.log(`❌ Not an enemy unit, skipping AI`);
             return; // Not an enemy turn
         }
 
         // Simple AI: Try to attack adjacent players, otherwise move closer to nearest player
         const playerUnits = Object.values(this.state.units).filter(u => u.alive && u.team === "player");
+        console.log(`🎯 Found ${playerUnits.length} living players`);
+
         if (playerUnits.length === 0) {
+            console.log(`🏆 No players left, ending turn`);
             this.endTurn();
             return;
         }
@@ -142,10 +150,13 @@ export class GameEngine {
         // Check if we can attack any adjacent player
         for (const player of playerUnits) {
             if (this.canMelee(player.id)) {
+                console.log(`⚔️ ${currentUnit.name} attacking ${player.name}!`);
                 this.fight(player.id);
                 return;
             }
         }
+
+        console.log(`🚶 No adjacent targets, moving toward nearest player`);
 
         // If no adjacent targets, try to move closer to the nearest player
         const nearestPlayer = playerUnits.reduce((closest, player) => {
@@ -154,12 +165,16 @@ export class GameEngine {
             return distToCurrent < distToClosest ? player : closest;
         });
 
+        console.log(`🎯 Target: ${nearestPlayer.name} at (${nearestPlayer.q}, ${nearestPlayer.r})`);
+
         // Try to move toward the nearest player
         this.beginMove();
 
         // Find the best reachable hex that gets us closer to the target
         let bestHex: HexCoord | null = null;
         let bestDistance = Infinity;
+
+        console.log(`📍 Checking ${this.state.reachable.size} reachable hexes`);
 
         for (const hexKey of Array.from(this.state.reachable)) {
             const [q, r] = hexKey.split(",").map(Number);
@@ -173,9 +188,11 @@ export class GameEngine {
         }
 
         if (bestHex) {
+            console.log(`✅ Moving to (${bestHex.q}, ${bestHex.r}), distance: ${bestDistance}`);
             this.moveTo(bestHex);
             this.endTurn(); // End turn after moving
         } else {
+            console.log(`❌ No valid move found, ending turn`);
             // Can't move, just end turn
             this.state.phase = "awaitAction";
             this.state.reachable.clear();
