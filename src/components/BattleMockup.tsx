@@ -184,7 +184,8 @@ export function BattleMockup() {
             stats: { hp: 99, maxHp: 99, atk: 0, def: 0, mag: 5, res: 3, spd: 99, rng: 0, move: 0 },
             statuses: [],
             skills: [],
-            isCommander: true
+            isCommander: true,
+            isDead: false
         };
 
         // Use selected target or default to center of enemy forces

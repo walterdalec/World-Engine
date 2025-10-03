@@ -54,7 +54,7 @@ export interface Unit {
     skills: string[]; // Changed to string[] to match ability IDs
     pos?: HexPosition;
     isCommander?: boolean;
-    isDead?: boolean; // Add isDead property
+    isDead: boolean; // Required property to avoid undefined issues
     gear?: { gearScore?: number }; // Add gear property
     facing?: number; // Add facing for hex directions (0-5)
 }

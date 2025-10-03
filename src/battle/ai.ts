@@ -13,12 +13,12 @@ export interface AIAction {
 // Simple AI that tries to engage the nearest player unit
 export function calculateAIAction(state: BattleState, unitId: string): AIAction | null {
     const unit = state.units.find(u => u.id === unitId);
-    if (!unit || !unit.pos || unit.isDead === true) {
+    if (!unit || !unit.pos || unit.isDead) {
         return null;
     }
 
     const playerUnits = state.units.filter(u =>
-        u.faction === "Player" && u.isDead !== true && u.pos && !u.isCommander
+        u.faction === "Player" && !u.isDead && u.pos && !u.isCommander
     );
 
     if (playerUnits.length === 0) {
@@ -224,7 +224,7 @@ export function calculateAdvancedAIAction(
     personality: "aggressive" | "defensive" | "tactical" = "tactical"
 ): AIAction | null {
     const unit = state.units.find(u => u.id === unitId);
-    if (!unit || !unit.pos || unit.isDead === true) {
+    if (!unit || !unit.pos || unit.isDead) {
         return null;
     }
 
@@ -242,7 +242,7 @@ export function calculateAdvancedAIAction(
 function calculateAggressiveAction(state: BattleState, unit: Unit): AIAction | null {
     // Always try to attack the weakest nearby enemy
     const targets = state.units.filter(u =>
-        u.faction === "Player" && u.isDead !== true && u.pos && !u.isCommander
+        u.faction === "Player" && !u.isDead && u.pos && !u.isCommander
     );
 
     if (targets.length === 0) {
@@ -262,7 +262,7 @@ function calculateDefensiveAction(state: BattleState, unit: Unit): AIAction | nu
     if (!unit.pos) return { type: "wait", unitId: unit.id };
 
     const threats = state.units.filter(u =>
-        u.faction === "Player" && u.isDead !== true && u.pos && !u.isCommander &&
+        u.faction === "Player" && !u.isDead && u.pos && !u.isCommander &&
         hexDistance(unit.pos!, u.pos) <= 3
     );
 
@@ -283,7 +283,7 @@ function calculateTacticalAction(state: BattleState, unit: Unit): AIAction | nul
 // Execute a full AI turn for all enemy units
 export function executeAITurn(state: BattleState): void {
     const enemyUnits = state.units.filter(u =>
-        u.faction === "Enemy" && u.isDead !== true && u.pos
+        u.faction === "Enemy" && !u.isDead && u.pos
     );
 
     for (const unit of enemyUnits) {

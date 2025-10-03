@@ -40,7 +40,7 @@ export function lineOfSight(grid: BattleGrid, start: HexPosition, end: HexPositi
 
 // Initiative and turn order
 export function buildInitiative(state: BattleState): string[] {
-    const units = state.units.filter(u => u.isDead !== true && u.pos && !u.isCommander);
+    const units = state.units.filter(u => !u.isDead && u.pos && !u.isCommander);
     // Higher SPD acts earlier; stable sort by spd desc, then name
     return units
         .sort((a, b) => (b.stats.spd - a.stats.spd) || a.name.localeCompare(b.name))
@@ -201,7 +201,7 @@ export function getTargetsInShape(
         case "ally":
             // All allied units
             return state.units.filter(u =>
-                u.faction === casterFaction && u.isDead !== true && u.pos
+                u.faction === casterFaction && !u.isDead && u.pos
             );
 
         default:
@@ -211,7 +211,7 @@ export function getTargetsInShape(
     // Find units at affected positions
     for (const hex of affectedHexes) {
         const unit = state.units.find(u =>
-            u.pos && u.pos.q === hex.q && u.pos.r === hex.r && u.isDead !== true
+            u.pos && u.pos.q === hex.q && u.pos.r === hex.r && !u.isDead
         );
         if (unit) {
             targets.push(unit);
@@ -295,7 +295,7 @@ export function applyCommanderAura(state: BattleState) {
     if (!commander || !state.commander.aura) return;
 
     for (const unit of state.units) {
-        if (unit.faction === "Player" && unit.isDead !== true && !unit.isCommander) {
+        if (unit.faction === "Player" && !unit.isDead && !unit.isCommander) {
             // Apply aura bonuses (simplified - should track original stats)
             for (const [stat, bonus] of Object.entries(state.commander.aura.stats)) {
                 if (typeof bonus === 'number') {
@@ -309,7 +309,7 @@ export function applyCommanderAura(state: BattleState) {
 // Status effect processing
 function tickStatusEffects(state: BattleState) {
     for (const unit of state.units) {
-        if (unit.isDead === true) continue;
+        if (unit.isDead) continue;
 
         unit.statuses = unit.statuses.filter(status => {
             status.duration--;
@@ -338,10 +338,10 @@ function decrementCooldowns(state: BattleState) {
 // Victory condition checking
 export function checkVictoryConditions(state: BattleState) {
     const playerUnits = state.units.filter(u =>
-        u.faction === "Player" && u.isDead !== true && !u.isCommander
+        u.faction === "Player" && !u.isDead && !u.isCommander
     );
     const enemyUnits = state.units.filter(u =>
-        u.faction === "Enemy" && u.isDead !== true
+        u.faction === "Enemy" && !u.isDead
     );
 
     if (playerUnits.length === 0) {

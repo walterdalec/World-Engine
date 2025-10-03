@@ -50,6 +50,7 @@ export function characterToUnit(
         statuses: [],
         skills: isCommander ? [] : skills, // Commanders use abilities, not skills
         isCommander,
+        isDead: false, // Initialize as alive
         gear: {
             gearScore: character.gearScore || 0
         }
@@ -268,7 +269,7 @@ export function calculateRevivalCost(unit: Unit): number {
 // Helper to get casualties after battle
 export function getCasualties(battleState: BattleState): Unit[] {
     return battleState.units.filter(unit =>
-        unit.isDead === true && unit.faction === "Player" && !unit.isCommander
+        unit.isDead && unit.faction === "Player" && !unit.isCommander
     );
 }
 
