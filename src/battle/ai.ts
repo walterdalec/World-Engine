@@ -2,6 +2,7 @@ import type { BattleState, Unit, HexPosition, Ability } from "./types";
 import { hexDistance, findPath, getTargetsInShape, canUseAbility } from "./engine";
 import { ABILITIES } from "./abilities";
 
+// AI system for battle unit behavior
 export interface AIAction {
     type: "move" | "ability" | "wait";
     unitId: string;
