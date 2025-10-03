@@ -124,4 +124,67 @@ export class GameEngine {
     unitAt(q: number, r: number): Unit | undefined {
         return Object.values(this.state.units).find(u => u.alive && u.q === q && u.r === r);
     }
+
+    // ---- AI for enemy turns ---------------------------------------------------
+    doEnemyTurn() {
+        const currentUnit = this.current;
+        if (currentUnit.team !== "enemy") {
+            return; // Not an enemy turn
+        }
+
+        // Simple AI: Try to attack adjacent players, otherwise move closer to nearest player
+        const playerUnits = Object.values(this.state.units).filter(u => u.alive && u.team === "player");
+        if (playerUnits.length === 0) {
+            this.endTurn();
+            return;
+        }
+
+        // Check if we can attack any adjacent player
+        for (const player of playerUnits) {
+            if (this.canMelee(player.id)) {
+                this.fight(player.id);
+                return;
+            }
+        }
+
+        // If no adjacent targets, try to move closer to the nearest player
+        const nearestPlayer = playerUnits.reduce((closest, player) => {
+            const distToCurrent = hexDistance({ q: currentUnit.q, r: currentUnit.r }, { q: player.q, r: player.r });
+            const distToClosest = hexDistance({ q: currentUnit.q, r: currentUnit.r }, { q: closest.q, r: closest.r });
+            return distToCurrent < distToClosest ? player : closest;
+        });
+
+        // Try to move toward the nearest player
+        this.beginMove();
+
+        // Find the best reachable hex that gets us closer to the target
+        let bestHex: HexCoord | null = null;
+        let bestDistance = Infinity;
+
+        for (const hexKey of Array.from(this.state.reachable)) {
+            const [q, r] = hexKey.split(",").map(Number);
+            const hex = { q, r };
+            const distance = hexDistance(hex, { q: nearestPlayer.q, r: nearestPlayer.r });
+
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                bestHex = hex;
+            }
+        }
+
+        if (bestHex) {
+            this.moveTo(bestHex);
+        } else {
+            // Can't move, just end turn
+            this.state.phase = "awaitAction";
+            this.state.reachable.clear();
+            this.state.pathPreview = {};
+            this.endTurn();
+        }
+    }
+
+    // Check if current unit is an enemy (for automatic AI turns)
+    get isCurrentUnitEnemy(): boolean {
+        return this.current.team === "enemy";
+    }
 }

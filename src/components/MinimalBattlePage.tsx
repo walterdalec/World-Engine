@@ -2,7 +2,7 @@
  * MinimalBattlePage.tsx - Simple battle using GameEngine with your reviewed types
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GameEngine } from '../battle/simple-engine';
 import { SimpleBattleHUD } from '../battle/SimpleBattleHUD';
 import SimpleBattleStage from '../battle/SimpleBattleStage';
@@ -24,6 +24,19 @@ export function MinimalBattlePage() {
     const triggerUpdate = () => {
         forceUpdate(prev => prev + 1);
     };
+
+    // Auto-handle enemy turns
+    useEffect(() => {
+        if (engine.isCurrentUnitEnemy && engine.state.phase === "awaitAction") {
+            // Add a small delay to make enemy actions visible
+            const timer = setTimeout(() => {
+                engine.doEnemyTurn();
+                triggerUpdate();
+            }, 800); // 800ms delay for enemy thinking time
+
+            return () => clearTimeout(timer);
+        }
+    }, [engine.current.id, engine.state.phase, engine]);
 
     const onAction = (action: "Move" | "Fight" | "Spells" | "Defend" | "Wait" | "EndTurn") => {
         switch (action) {
