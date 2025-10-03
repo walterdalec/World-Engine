@@ -156,22 +156,26 @@ function cloneState(state: BattleState): BattleState {
     const deployedCount = playerUnits.filter(u => u.pos).length;
 
     return (
-        <div className="h-screen bg-gray-900 text-white flex">
-            {/* Main battlefield */}
-            <div className="flex-1 p-4">
-                <div className="mb-4">
-                    <h2 className="text-2xl font-bold mb-2">Deploy Your Forces</h2>
-                    <p className="text-gray-300">
-                        Click on a unit, then click on a green deployment hex to place them.
-                    </p>
+        <div className="h-screen bg-gray-900 text-white flex overflow-hidden">
+            {/* Main battlefield - scrollable container */}
+            <div className="flex-1 relative overflow-auto">
+                <div className="p-4">
+                    <div className="mb-4">
+                        <h2 className="text-2xl font-bold mb-2">Deploy Your Forces</h2>
+                        <p className="text-gray-300">
+                            Click on a unit, then click on a green deployment hex to place them.
+                        </p>
+                    </div>
                 </div>
 
-                <BattleCanvas
-                    state={state}
-                    onTileClick={handleTileClick}
-                    selectedUnit={selectedUnit || undefined}
-                    showGrid={true}
-                />
+                <div className="px-4 min-w-full min-h-full flex items-center justify-center">
+                    <BattleCanvas
+                        state={state}
+                        onTileClick={handleTileClick}
+                        selectedUnit={selectedUnit || undefined}
+                        showGrid={true}
+                    />
+                </div>
             </div>
 
             {/* Right sidebar */}

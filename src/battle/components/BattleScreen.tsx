@@ -139,15 +139,17 @@ function cloneState(state: BattleState): BattleState {
     const isPlayerTurn = state.phase === 'HeroTurn' || state.phase === 'UnitsTurn';
 
     return (
-        <div className="h-screen bg-gray-900 text-white flex">
-            {/* Main battlefield */}
-            <div className="flex-1 p-4">
-                <BattleCanvas
-                    state={state}
-                    onTileClick={handleTileClick}
-                    selectedUnit={selectedUnit}
-                    showGrid={true}
-                />
+        <div className="h-screen bg-gray-900 text-white flex overflow-hidden">
+            {/* Main battlefield - scrollable container */}
+            <div className="flex-1 relative overflow-auto">
+                <div className="p-4 min-w-full min-h-full flex items-center justify-center">
+                    <BattleCanvas
+                        state={state}
+                        onTileClick={handleTileClick}
+                        selectedUnit={selectedUnit}
+                        showGrid={true}
+                    />
+                </div>
             </div>
 
             {/* Right sidebar */}

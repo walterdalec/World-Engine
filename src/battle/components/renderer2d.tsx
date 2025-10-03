@@ -319,11 +319,12 @@ export function BattleCanvas({
         setHoveredHex(null);
     }
 
-    const canvasWidth = Math.max(600, state.grid.width * hexSize * 1.5 + 100);
-    const canvasHeight = Math.max(400, state.grid.height * hexSize * 1.2 + 100);
+    // Make canvas size more reasonable
+    const canvasWidth = Math.min(1200, Math.max(600, state.grid.width * hexSize * 1.5 + 100));
+    const canvasHeight = Math.min(800, Math.max(400, state.grid.height * hexSize * 1.2 + 100));
 
     return (
-        <div className="relative">
+        <div className="relative flex justify-center items-center min-h-full overflow-auto">
             <canvas
                 ref={canvasRef}
                 width={canvasWidth}
@@ -331,7 +332,7 @@ export function BattleCanvas({
                 onClick={handleCanvasClick}
                 onMouseMove={handleCanvasMouseMove}
                 onMouseLeave={handleCanvasMouseLeave}
-                className="border border-gray-600 bg-gray-800 cursor-pointer"
+                className="border border-gray-600 bg-gray-800 cursor-pointer max-w-full max-h-full"
             />
 
             {/* Battle info overlay */}
