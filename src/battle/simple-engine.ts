@@ -1,0 +1,127 @@
+import { HexCoord, hexDistance, hexKey, hexRange } from "./hex";
+import { GameState, Unit, Bounds } from "./simple-types";
+
+export class GameEngine {
+    state: GameState;
+    size = 24; // hex pixel radius for drawing
+
+    constructor(initialUnits: Unit[], bounds: Bounds = { qMin: -8, qMax: 8, rMin: -8, rMax: 8 }) {
+        const units: Record<string, Unit> = {};
+        for (const u of initialUnits) units[u.id] = { ...u, alive: u.alive ?? true };
+        const order = initialUnits.map(u => u.id);
+
+        this.state = {
+            units,
+            order,
+            turnIndex: 0,
+            round: 1,
+            selectedUnitId: order[0],
+            phase: "awaitAction",
+            reachable: new Set(),
+            pathPreview: {},
+            worldBounds: bounds,
+        };
+    }
+
+    get current(): Unit { return this.state.units[this.state.selectedUnitId]; }
+
+    // ---- Turn control ---------------------------------------------------------
+    private advanceToNextLiving() {
+        const st = this.state;
+        let tries = 0;
+        do {
+            st.turnIndex = (st.turnIndex + 1) % st.order.length;
+            if (st.turnIndex === 0) st.round++;
+            st.selectedUnitId = st.order[st.turnIndex];
+            tries++;
+            if (tries > st.order.length) break;
+        } while (!this.state.units[st.selectedUnitId].alive);
+    }
+
+    endTurn() {
+        // reset flags on current (next unit will be selected)
+        this.advanceToNextLiving();
+        const u = this.current;
+        u.defended = false;
+        this.state.phase = "awaitAction";
+        this.state.reachable.clear();
+        this.state.pathPreview = {};
+    }
+
+    wait() {
+        const st = this.state;
+        const id = st.selectedUnitId;
+        st.order = st.order.filter(x => x !== id);
+        st.order.push(id);
+        st.turnIndex = st.order.indexOf(id);
+        this.endTurn();
+    }
+
+    defend() {
+        this.current.defended = true;
+        this.endTurn();
+    }
+
+    // ---- Movement -------------------------------------------------------------
+    beginMove() {
+        const u = this.current;
+        const occupied = new Set(Object.values(this.state.units)
+            .filter(v => v.alive && v.id !== u.id)
+            .map(v => hexKey({ q: v.q, r: v.r })));
+
+        // Simple implementation - just get all hexes within movement range
+        const validHexes = hexRange({ q: u.q, r: u.r }, u.move);
+        const reachable = new Set<string>();
+        const pathPreview: Record<string, { q: number; r: number }[]> = {};
+
+        for (const hex of validHexes) {
+            const b = this.state.worldBounds;
+            if (hex.q < b.qMin || hex.q > b.qMax || hex.r < b.rMin || hex.r > b.rMax) continue;
+            if (occupied.has(hexKey(hex))) continue;
+
+            const k = hexKey(hex);
+            reachable.add(k);
+            // Simple path - direct line (you can improve this with actual pathfinding later)
+            pathPreview[k] = [{ q: u.q, r: u.r }, hex];
+        }
+
+        this.state.phase = "moveSelect";
+        this.state.reachable = reachable;
+        this.state.pathPreview = pathPreview;
+    }
+
+    moveTo(target: HexCoord): boolean {
+        if (this.state.phase !== "moveSelect") return false;
+        const tk = hexKey(target);
+        if (!this.state.reachable.has(tk)) return false;
+        // snap to target
+        this.current.q = target.q;
+        this.current.r = target.r;
+        this.state.phase = "awaitAction";
+        this.state.reachable.clear();
+        this.state.pathPreview = {};
+        return true;
+    }    // ---- Combat (adjacent melee) ---------------------------------------------
+    canMelee(targetId: string) {
+        const a = this.current, b = this.state.units[targetId];
+        if (!b || !b.alive || a.team === b.team) return false;
+        return hexDistance({ q: a.q, r: a.r }, { q: b.q, r: b.r }) === 1;
+    }
+
+    fight(targetId: string) {
+        if (!this.canMelee(targetId)) return false;
+        const a = this.current, b = this.state.units[targetId];
+        const attack = a.atk;
+        const defense = b.def + (b.defended ? 2 : 0);
+        const dmg = Math.max(1, attack - defense);
+        b.hp -= dmg;
+        if (b.hp <= 0) { b.hp = 0; b.alive = false; }
+        this.endTurn();
+        return true;
+    }
+
+    // Utility
+    unitAt(q: number, r: number): Unit | undefined {
+        return Object.values(this.state.units).find(u => u.alive && u.q === q && u.r === r);
+    }
+}

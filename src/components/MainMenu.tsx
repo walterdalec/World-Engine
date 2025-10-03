@@ -32,9 +32,10 @@ interface Props {
   onPortraitTest: () => void;
   onBattleSystem: () => void;
   onBattlePage: () => void;
+  onMinimalBattle: () => void;
 }
 
-export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onPortraitTest, onBattleSystem, onBattlePage }: Props) {
+export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onPortraitTest, onBattleSystem, onBattlePage, onMinimalBattle }: Props) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [characters, setCharacters] = useState<SavedCharacter[]>([]);
   const [activeTab, setActiveTab] = useState<'campaigns' | 'characters'>('campaigns');
@@ -743,6 +744,12 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
                 <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🎯</div>
                 <h3 style={{ margin: '0 0 5px 0' }}>Battle Arena</h3>
                 <p style={{ margin: 0, opacity: 0.9 }}>Clean tactical battle interface</p>
+              </div>
+
+              <div style={newCardStyle} onClick={onMinimalBattle}>
+                <div style={{ fontSize: '3rem', marginBottom: '10px' }}>⚡</div>
+                <h3 style={{ margin: '0 0 5px 0' }}>Minimal Battle</h3>
+                <p style={{ margin: 0, opacity: 0.9 }}>Simple tactical combat engine</p>
               </div>
 
               <div style={newCardStyle} onClick={onPortraitTest}>

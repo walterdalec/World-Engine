@@ -13,6 +13,7 @@ import WorldMapEngine from "./components/WorldMapEngine";
 import { SimplePortraitTest } from "./components/SimplePortraitTest";
 import { BattleMockup } from "./components/BattleMockup";
 import { BattlePage } from "./components/BattlePage";
+import { MinimalBattlePage } from "./components/MinimalBattlePage";
 import { Engine } from "./engine.d";
 import { DEFAULT_WORLDS } from "./defaultWorlds";
 
@@ -37,7 +38,7 @@ function randomSeed(): string {
 }
 
 function App() {
-  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "charactercreate" | "portraittest" | "battlesystem" | "battle">("menu");
+  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "charactercreate" | "portraittest" | "battlesystem" | "battle" | "minimalBattle">("menu");
   const [party, setParty] = React.useState<Character[]>([]);
   const [currentCampaign, setCurrentCampaign] = React.useState<any>(null);
   const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0); // Force re-render hook
@@ -293,6 +294,11 @@ function App() {
     setStep("battle");
   };
 
+  const handleMinimalBattle = () => {
+    // Simple battle using GameEngine
+    setStep("minimalBattle");
+  };
+
   // fake engine stub for now
   // Engine stub - will be replaced with real engine
   const eng: Engine = {
@@ -390,6 +396,7 @@ function App() {
           onPortraitTest={handlePortraitTest}
           onBattleSystem={handleBattleSystem}
           onBattlePage={handleBattlePage}
+          onMinimalBattle={handleMinimalBattle}
         />
       )}
       {step === "world" && (
@@ -531,6 +538,30 @@ function App() {
             ← Back to Menu
           </button>
           <BattlePage />
+        </div>
+      )}
+      {step === "minimalBattle" && (
+        <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
+          <button
+            onClick={() => setStep("menu")}
+            style={{
+              position: 'absolute',
+              top: '20px',
+              left: '20px',
+              zIndex: 1000,
+              background: '#374151',
+              color: '#f8fafc',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '10px 15px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold'
+            }}
+          >
+            ← Back to Menu
+          </button>
+          <MinimalBattlePage />
         </div>
       )}
     </>
