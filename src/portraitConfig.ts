@@ -64,7 +64,7 @@ export const PORTRAIT_CONFIGS: AllPortraitConfigs = {
         },
         'Guardian': {
             genderLocked: 'female',
-            imagePath: '/World-Engine/assets/portraits-realistic/human-guardian-female.jpg',
+            imagePath: '/World-Engine/assets/portraits-realistic/human-guardian-female.png',
             description: 'Human nature protector and healer'
         },
         'Corsair': {
@@ -100,7 +100,7 @@ export const PORTRAIT_CONFIGS: AllPortraitConfigs = {
         },
         'Guardian': {
             genderLocked: 'female',
-            imagePath: '/World-Engine/assets/portraits-realistic/sylvanborn-guardian-female.jpg',
+            imagePath: '/World-Engine/assets/portraits-realistic/sylvanborn-guardian-female.png',
             description: 'Sylvanborn grove protector and life keeper'
         },
         'Corsair': {
@@ -136,7 +136,7 @@ export const PORTRAIT_CONFIGS: AllPortraitConfigs = {
         },
         'Guardian': {
             genderLocked: 'female',
-            imagePath: '/World-Engine/assets/portraits-realistic/nightborn-guardian-female.jpg',
+            imagePath: '/World-Engine/assets/portraits-realistic/nightborn-guardian-female.png',
             description: 'Nightborn dark protector and shadow healer'
         },
         'Corsair': {
@@ -172,7 +172,7 @@ export const PORTRAIT_CONFIGS: AllPortraitConfigs = {
         },
         'Guardian': {
             genderLocked: 'female',
-            imagePath: '/World-Engine/assets/portraits-realistic/stormcaller-guardian-female.jpg',
+            imagePath: '/World-Engine/assets/portraits-realistic/stormcaller-guardian-female.png',
             description: 'Stormcaller sky protector and storm keeper'
         },
         'Corsair': {
