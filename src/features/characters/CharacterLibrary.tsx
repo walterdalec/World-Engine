@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { storage } from "../../core/services/storage";
 import { Engine } from '../../engine.d';
 
 // Use the same Character type as CharacterCreate
@@ -92,16 +93,16 @@ export function CharacterLibrary({ eng, party, setParty, onStart, onCreateNew }:
     console.log("CharacterLibrary: Loading saved characters...");
     try {
       // Primary storage
-      let saved = JSON.parse(localStorage.getItem('world-engine-characters') || '[]');
+      let saved = JSON.parse(storage.local.getItem('world-engine-characters') || '[]');
 
       // If primary is empty, try backup
       if (saved.length === 0) {
-        const backup = JSON.parse(localStorage.getItem('world-engine-characters-backup') || '[]');
+        const backup = JSON.parse(storage.local.getItem('world-engine-characters-backup') || '[]');
         if (backup.length > 0) {
           console.log("Restoring from backup:", backup.length, "characters");
           saved = backup;
           // Restore primary storage
-          localStorage.setItem('world-engine-characters', JSON.stringify(saved));
+          storage.local.setItem('world-engine-characters', JSON.stringify(saved));
         }
       }
 
@@ -110,7 +111,7 @@ export function CharacterLibrary({ eng, party, setParty, onStart, onCreateNew }:
 
       // Create backup if we have data
       if (saved.length > 0) {
-        localStorage.setItem('world-engine-characters-backup', JSON.stringify(saved));
+        storage.local.setItem('world-engine-characters-backup', JSON.stringify(saved));
       }
     } catch (error) {
       console.error('Error loading saved characters:', error);
@@ -142,9 +143,9 @@ export function CharacterLibrary({ eng, party, setParty, onStart, onCreateNew }:
 
     const updated = savedCharacters.filter(c => c.id !== id);
     setSavedCharacters(updated);
-    localStorage.setItem('world-engine-characters', JSON.stringify(updated));
+    storage.local.setItem('world-engine-characters', JSON.stringify(updated));
     // Maintain backup
-    localStorage.setItem('world-engine-characters-backup', JSON.stringify(updated));
+    storage.local.setItem('world-engine-characters-backup', JSON.stringify(updated));
     console.log(`Deleted character ${id}, remaining:`, updated.length);
   };
 
@@ -170,8 +171,8 @@ export function CharacterLibrary({ eng, party, setParty, onStart, onCreateNew }:
         const imported = JSON.parse(e.target?.result as string);
         if (Array.isArray(imported)) {
           setSavedCharacters(imported);
-          localStorage.setItem('world-engine-characters', JSON.stringify(imported));
-          localStorage.setItem('world-engine-characters-backup', JSON.stringify(imported));
+          storage.local.setItem('world-engine-characters', JSON.stringify(imported));
+          storage.local.setItem('world-engine-characters-backup', JSON.stringify(imported));
           alert(`Successfully imported ${imported.length} characters!`);
         } else {
           alert('Invalid file format. Please select a valid character export file.');

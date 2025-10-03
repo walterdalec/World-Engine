@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { rng } from "../../core/services/random";
+import { storage } from "../../core/services/storage";
 
 // Import character and spell types
 interface Character {
@@ -110,7 +112,7 @@ export default function BattleSystem({
   // Load saved spells from localStorage
   useEffect(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem('world-engine-saved-spells') || '[]');
+      const saved = JSON.parse(storage.local.getItem('world-engine-saved-spells') || '[]');
       setAvailableSpells(saved);
     } catch (error) {
       console.error('Error loading saved spells:', error);
@@ -163,11 +165,11 @@ export default function BattleSystem({
   };
 
   const rollInitiative = (dexterity: number): number => {
-    return Math.floor(Math.random() * 20) + 1 + getModifier(dexterity);
+    return Math.floor(rng.next() * 20) + 1 + getModifier(dexterity);
   };
 
   const rollD20 = (): number => {
-    return Math.floor(Math.random() * 20) + 1;
+    return Math.floor(rng.next() * 20) + 1;
   };
 
   const rollDamage = (diceString: string): number => {
@@ -181,7 +183,7 @@ export default function BattleSystem({
 
     let total = bonus;
     for (let i = 0; i < numDice; i++) {
-      total += Math.floor(Math.random() * dieSize) + 1;
+      total += Math.floor(rng.next() * dieSize) + 1;
     }
     return total;
   };
@@ -499,7 +501,7 @@ export default function BattleSystem({
     
     if (playerTargets.length === 0) return;
 
-    const target = playerTargets[Math.floor(Math.random() * playerTargets.length)];
+    const target = playerTargets[Math.floor(rng.next() * playerTargets.length)];
     const attackAction: BattleAction = {
       type: 'attack',
       name: 'Attack',
@@ -548,7 +550,7 @@ export default function BattleSystem({
       // Calculate rewards here
       onBattleEnd('victory', { 
         experience: encounter.enemies.length * 100,
-        gold: Math.floor(Math.random() * 50) + 10
+        gold: Math.floor(rng.next() * 50) + 10
       });
     }
   };

@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { rng } from "../../core/services/random";
+import { storage } from "../../core/services/storage";
 
 interface NameGeneratorProps {
   onBack?: () => void;
@@ -67,7 +69,7 @@ export default function NameGenerator({ onBack }: NameGeneratorProps) {
   const [savedNames, setSavedNames] = useState<string[]>([]);
 
   const getRandomElement = <T,>(array: T[]): T => {
-    return array[Math.floor(Math.random() * array.length)];
+    return array[Math.floor(rng.next() * array.length)];
   };
 
   const generateCharacterName = () => {
@@ -89,7 +91,7 @@ export default function NameGenerator({ onBack }: NameGeneratorProps) {
   };
 
   const generateFantasyName = () => {
-    const syllableCount = Math.random() < 0.3 ? 2 : 3; // 30% chance for 2 syllables, 70% for 3
+    const syllableCount = rng.next() < 0.3 ? 2 : 3; // 30% chance for 2 syllables, 70% for 3
     let name = "";
     
     // Start syllable
@@ -137,14 +139,14 @@ export default function NameGenerator({ onBack }: NameGeneratorProps) {
     if (!savedNames.includes(name)) {
       const updated = [...savedNames, name];
       setSavedNames(updated);
-      localStorage.setItem('world-engine-saved-names', JSON.stringify(updated));
+      storage.local.setItem('world-engine-saved-names', JSON.stringify(updated));
     }
   };
 
   const removeSavedName = (name: string) => {
     const updated = savedNames.filter(n => n !== name);
     setSavedNames(updated);
-    localStorage.setItem('world-engine-saved-names', JSON.stringify(updated));
+    storage.local.setItem('world-engine-saved-names', JSON.stringify(updated));
   };
 
   const exportSavedNames = () => {
@@ -161,7 +163,7 @@ export default function NameGenerator({ onBack }: NameGeneratorProps) {
   // Load saved names on component mount
   React.useEffect(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem('world-engine-saved-names') || '[]');
+      const saved = JSON.parse(storage.local.getItem('world-engine-saved-names') || '[]');
       setSavedNames(saved);
     } catch (error) {
       console.error('Error loading saved names:', error);

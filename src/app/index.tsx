@@ -1,4 +1,5 @@
 import React from "react";
+import { rng } from "../core/services/random";
 import { createRoot } from "react-dom/client";
 import "../index.css";
 import { MainMenu, WorldSetupScreen, VersionDisplay } from "../features/ui";
@@ -27,7 +28,7 @@ type Character = {
 // Simple seed generator (base36 timestamp + random)
 function randomSeed(): string {
   const t = Date.now().toString(36);
-  const r = Math.random().toString(36).slice(2, 8);
+  const r = rng.next().toString(36).slice(2, 8);
   return `${t}-${r}`;
 }
 

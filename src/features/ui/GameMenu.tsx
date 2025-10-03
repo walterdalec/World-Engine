@@ -3,6 +3,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
+import { storage } from "../../core/services/storage";
 import { WorldEngine } from '../../core/engine';
 import { CLASS_DEFINITIONS } from '../../core/config';
 import { SimplePortraitPreview, SimpleUtils } from '../portraits';
@@ -873,7 +874,7 @@ export default function GameMenu({
                     <button
                       onClick={() => {
                         if (confirm('Are you sure you want to start a new game? This will delete your current progress.')) {
-                          localStorage.removeItem('world-engine-save');
+                          storage.local.removeItem('world-engine-save');
                           alert('Save data cleared! Refresh the page to start a new game.');
                         }
                       }}

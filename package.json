@@ -1,8 +1,10 @@
 {
   "name": "world-engine",
   "version": "1.0.3",
+  "description": "A fantasy RPG with tactical hex-based combat, character creation, and strategic world exploration",
+  "author": "Walter <walterdalec@github.com>",
   "private": true,
-  "homepage": "https://walterdalec.github.io/World-Engine",
+  "homepage": "./",
   "dependencies": {
     "electron-updater": "^6.6.2",
     "framer-motion": "^12.23.22",
@@ -21,7 +23,7 @@
     "start": "set NODE_OPTIONS=--max-old-space-size=2048 && react-scripts start",
     "start:full-mem": "react-scripts start",
     "start:low-mem": "set NODE_OPTIONS=--max-old-space-size=2048 && react-scripts start",
-    "build": "set NODE_OPTIONS=--max-old-space-size=2048 && react-scripts build",
+    "build": "set NODE_OPTIONS=--max-old-space-size=2048 && react-scripts build && copy electron.js build\\electron.js",
     "build:full-mem": "react-scripts build",
     "build:low-mem": "set NODE_OPTIONS=--max-old-space-size=2048 && react-scripts build",
     "build:analyze": "npm run build && npx webpack-bundle-analyzer build/static/js/*.js",
@@ -70,9 +72,7 @@
       "output": "dist"
     },
     "files": [
-      "build/**/*",
-      "electron.js",
-      "node_modules/**/*"
+      "build/**/*"
     ],
     "publish": {
       "provider": "github",
@@ -85,8 +85,7 @@
     },
     "win": {
       "target": "nsis",
-      "icon": "public/favicon.ico",
-      "publisherName": "World Engine Games"
+      "icon": "public/favicon.ico"
     },
     "linux": {
       "target": "AppImage",

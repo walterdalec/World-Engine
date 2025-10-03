@@ -1,5 +1,7 @@
 // src/components/CharacterCreate.tsx
 import React, { useMemo, useState } from "react";
+import { rng } from "../../core/services/random";
+import { storage } from "../../core/services/storage";
 import { CLASS_DEFINITIONS } from '../../core/config';
 // Visual System Integration - NEW Simple PNG System
 import { SimplePortraitPreview, SimpleUtils } from '../portraits';
@@ -405,7 +407,7 @@ const card: React.CSSProperties = {
 const sectionTitle: React.CSSProperties = { margin: "8px 0 4px", opacity: 0.9 };
 
 function randInt(min: number, max: number) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+  return Math.floor(rng.next() * (max - min + 1)) + min;
 }
 
 function roll4d6DropLowest() {
@@ -425,12 +427,12 @@ function download(filename: string, data: object) {
 }
 
 function generateBackground(): string {
-  const template = BACKGROUND_TEMPLATES[Math.floor(Math.random() * BACKGROUND_TEMPLATES.length)];
+  const template = BACKGROUND_TEMPLATES[Math.floor(rng.next() * BACKGROUND_TEMPLATES.length)];
 
   return template.replace(/\{(\w+)\}/g, (match, key) => {
     const options = BACKGROUND_WORDS[key as keyof typeof BACKGROUND_WORDS];
     if (options) {
-      return options[Math.floor(Math.random() * options.length)];
+      return options[Math.floor(rng.next() * options.length)];
     }
     return match;
   });
@@ -686,14 +688,14 @@ export default function CharacterCreate() {
     try {
       // Create snapshot without complex portrait binding
       const characterSnapshot = { ...char, createdAt: new Date().toISOString() };
-      localStorage.setItem("we:lastCharacter", JSON.stringify(characterSnapshot));
+      storage.local.setItem("we:lastCharacter", JSON.stringify(characterSnapshot));
       download(`${char.name.replace(/\s+/g, "_")}.json`, characterSnapshot);
       console.log("✅ Character saved successfully");
     } catch (error) {
       console.error('Error saving character:', error);
       // Fallback to saving without portrait
       const payload = { ...char, createdAt: new Date().toISOString() };
-      localStorage.setItem("we:lastCharacter", JSON.stringify(payload));
+      storage.local.setItem("we:lastCharacter", JSON.stringify(payload));
       download(`${char.name.replace(/\s+/g, "_")}.json`, payload);
     }
   }
@@ -718,7 +720,7 @@ export default function CharacterCreate() {
       const finalizedCharacter = await finalizeCharacter({ ...char });
 
       // Get existing character library
-      const existingCharacters = JSON.parse(localStorage.getItem('world-engine-characters') || '[]');
+      const existingCharacters = JSON.parse(storage.local.getItem('world-engine-characters') || '[]');
       console.log("Existing characters:", existingCharacters);
 
       // Create character data for library
@@ -736,9 +738,9 @@ export default function CharacterCreate() {
 
       // Add to library
       existingCharacters.push(characterData);
-      localStorage.setItem('world-engine-characters', JSON.stringify(existingCharacters));
+      storage.local.setItem('world-engine-characters', JSON.stringify(existingCharacters));
       // Create backup
-      localStorage.setItem('world-engine-characters-backup', JSON.stringify(existingCharacters));
+      storage.local.setItem('world-engine-characters-backup', JSON.stringify(existingCharacters));
       console.log("Saved to localStorage, total characters:", existingCharacters.length);
 
       alert(`${char.name} has been saved to your character library!`);
@@ -749,7 +751,7 @@ export default function CharacterCreate() {
   }
 
   function loadLast() {
-    const raw = localStorage.getItem("we:lastCharacter");
+    const raw = storage.local.getItem("we:lastCharacter");
     if (!raw) return alert("No saved character found.");
     try {
       setChar(JSON.parse(raw));
@@ -1204,7 +1206,7 @@ export default function CharacterCreate() {
               <h3 style={{ margin: "0 0 8px", color: "#8b5cf6", fontSize: "1.1rem" }}>Known Cantrips:</h3>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "8px" }}>
                 {(char.knownCantrips || []).map((cantripId, index) => {
-                  const cantrip = JSON.parse(localStorage.getItem('world-engine-saved-spells') || '[]')
+                  const cantrip = JSON.parse(storage.local.getItem('world-engine-saved-spells') || '[]')
                     .find((spell: any) => spell.name === cantripId && spell.level === 0);
                   return (
                     <span
@@ -1244,7 +1246,7 @@ export default function CharacterCreate() {
               </div>
               <button
                 onClick={() => {
-                  const savedSpells = JSON.parse(localStorage.getItem('world-engine-saved-spells') || '[]');
+                  const savedSpells = JSON.parse(storage.local.getItem('world-engine-saved-spells') || '[]');
                   const availableCantrips = savedSpells.filter((spell: any) =>
                     spell.level === 0 && !(char.knownCantrips || []).includes(spell.name)
                   );
@@ -1259,7 +1261,7 @@ export default function CharacterCreate() {
                     return;
                   }
 
-                  const randomCantrip = availableCantrips[Math.floor(Math.random() * availableCantrips.length)];
+                  const randomCantrip = availableCantrips[Math.floor(rng.next() * availableCantrips.length)];
                   const updated = [...(char.knownCantrips || []), randomCantrip.name];
                   setField("knownCantrips", updated);
                 }}
@@ -1284,7 +1286,7 @@ export default function CharacterCreate() {
                 <h3 style={{ margin: "0 0 8px", color: "#8b5cf6", fontSize: "1.1rem" }}>Known Spells:</h3>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "8px" }}>
                   {(char.knownSpells || []).map((spellId, index) => {
-                    const spell = JSON.parse(localStorage.getItem('world-engine-saved-spells') || '[]')
+                    const spell = JSON.parse(storage.local.getItem('world-engine-saved-spells') || '[]')
                       .find((s: any) => s.name === spellId && s.level > 0);
                     return (
                       <span
@@ -1324,7 +1326,7 @@ export default function CharacterCreate() {
                 </div>
                 <button
                   onClick={() => {
-                    const savedSpells = JSON.parse(localStorage.getItem('world-engine-saved-spells') || '[]');
+                    const savedSpells = JSON.parse(storage.local.getItem('world-engine-saved-spells') || '[]');
                     const maxLevel = calculateMaxSpellLevel(char.level || 1);
                     const availableSpells = savedSpells.filter((spell: any) =>
                       spell.level > 0 && spell.level <= maxLevel && !(char.knownSpells || []).includes(spell.name)
@@ -1340,7 +1342,7 @@ export default function CharacterCreate() {
                       return;
                     }
 
-                    const randomSpell = availableSpells[Math.floor(Math.random() * availableSpells.length)];
+                    const randomSpell = availableSpells[Math.floor(rng.next() * availableSpells.length)];
                     const updated = [...(char.knownSpells || []), randomSpell.name];
                     setField("knownSpells", updated);
                   }}

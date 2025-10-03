@@ -9,6 +9,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { rng } from "../../core/services/random";
 import { WorldEngine } from '../../core/engine';
 import { GameHUD } from '../ui';
 import { GameMenu } from '../ui';
@@ -158,13 +159,13 @@ export default function WorldMapEngine({ seedStr = "world-001", onBack }: WorldM
     let success = true;
     switch (action) {
       case 'fight':
-        success = Math.random() > 0.3; // 70% success rate for demo
+        success = rng.next() > 0.3; // 70% success rate for demo
         break;
       case 'flee':
-        success = Math.random() > 0.2; // 80% success rate
+        success = rng.next() > 0.2; // 80% success rate
         break;
       case 'negotiate':
-        success = Math.random() > 0.4; // 60% success rate
+        success = rng.next() > 0.4; // 60% success rate
         break;
       case 'explore':
         success = true; // Always succeeds

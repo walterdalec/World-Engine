@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { rng } from "../../core/services/random";
 import { BattleSystem } from '../battle';
 
 interface Character {
@@ -176,7 +177,7 @@ export default function ExplorationMode({
       'Moonlit Grove',
       'Shadow-touched Hollow'
     ];
-    return terrains[Math.floor(Math.random() * terrains.length)];
+    return terrains[Math.floor(rng.next() * terrains.length)];
   };
 
   const handleApproach = (choice: 'investigate' | 'combat' | 'flee') => {
@@ -208,7 +209,7 @@ export default function ExplorationMode({
           result = "Your careful investigation reveals hidden secrets. You successfully solve the mystery without danger!";
           foundRewards = {
             experience: 150,
-            gold: Math.floor(Math.random() * 30) + 10,
+            gold: Math.floor(rng.next() * 30) + 10,
             special: "Ancient Knowledge: +1 to your next spell attack roll"
           };
         } else {
@@ -221,7 +222,7 @@ export default function ExplorationMode({
       case 'treasure':
         result = "You carefully examine the area and discover valuable treasures hidden from plain sight!";
         foundRewards = {
-          gold: Math.floor(Math.random() * 100) + 50,
+          gold: Math.floor(rng.next() * 100) + 50,
           items: ["Magical Component Pouch", "Healing Potion"],
           experience: 100
         };

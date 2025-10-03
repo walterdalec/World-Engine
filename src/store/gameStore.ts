@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { rng } from "../core/services/random";
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { storage, storageAreaToWebStorage } from '../core/services/storage';
 import { Character, validateCharacter, createEmptyCharacter } from '../validation/character-simple';
@@ -175,7 +176,7 @@ export const useGameStore = create<GameState>()(
             },
 
             generateMapSeed: () => {
-                const seed = Math.random().toString(36).substring(2, 15);
+                const seed = rng.next().toString(36).substring(2, 15);
                 set((state) => ({
                     mapSettings: { ...state.mapSettings, seed }
                 }));

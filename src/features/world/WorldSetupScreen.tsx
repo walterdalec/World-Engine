@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { rng } from "../../core/services/random";
+import { storage } from "../../core/services/storage";
 import { Engine, Preset } from '../../engine.d';
 
 type Props = { eng: Engine; onNext: () => void };
@@ -45,7 +47,7 @@ export function WorldSetupScreen({ eng, onNext }: Props) {
   // Generate a new random seed
   const makeRandomSeed = useMemo(() => () => {
     const t = Date.now().toString(36);
-    const r = Math.random().toString(36).slice(2, 8);
+    const r = rng.next().toString(36).slice(2, 8);
     const s = `${t}-${r}`;
     setSeed(s);
     eng?.setSeed?.(s);

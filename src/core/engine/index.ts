@@ -10,6 +10,7 @@
  */
 
 import { storage } from "../services/storage";
+import { rng } from "../services/random";
 import { ChunkManager, Tile, WorldGenConfig, CHUNK_SIZE } from '../../proc/chunks';
 import { SeededRandom, WorldNoise, ValueNoise2D } from '../../proc/noise';
 import { ChokepointManager, Chokepoint, Fortification, RegionData } from '../../proc/chokepoints';
@@ -427,7 +428,7 @@ export class WorldEngine {
    * Generate a random seed
    */
   private generateSeed(): string {
-    return Math.random().toString(36).substring(2, 15);
+    return rng.next().toString(36).substring(2, 15);
   }
 
   /**
@@ -1306,16 +1307,16 @@ export class WorldEngine {
         // Failed combat - take significant damage based on danger level
         let damage = 0;
         switch (encounter.danger) {
-          case 'low': damage = 10 + Math.floor(Math.random() * 10); break;    // 10-20 damage
-          case 'medium': damage = 20 + Math.floor(Math.random() * 15); break; // 20-35 damage  
-          case 'high': damage = 30 + Math.floor(Math.random() * 20); break;   // 30-50 damage
-          default: damage = 15 + Math.floor(Math.random() * 10); break;       // 15-25 damage
+          case 'low': damage = 10 + Math.floor(rng.next() * 10); break;    // 10-20 damage
+          case 'medium': damage = 20 + Math.floor(rng.next() * 15); break; // 20-35 damage  
+          case 'high': damage = 30 + Math.floor(rng.next() * 20); break;   // 30-50 damage
+          default: damage = 15 + Math.floor(rng.next() * 10); break;       // 15-25 damage
         }
         this.takeDamage(damage);
         console.log(`Combat failed! Party takes ${damage} damage. HP: ${this.state.party.hitPoints}/${this.state.party.maxHitPoints}`);
       } else {
         // Successful combat - minimal damage
-        const damage = Math.floor(Math.random() * 5); // 0-5 damage
+        const damage = Math.floor(rng.next() * 5); // 0-5 damage
         if (damage > 0) {
           this.takeDamage(damage);
           console.log(`Combat won with minor injuries: ${damage} damage taken.`);
@@ -1410,13 +1411,13 @@ export class WorldEngine {
     let message = `Cast ${spellName}!`;
 
     if (spell.effects.healing) {
-      const healing = Math.floor(Math.random() * (spell.effects.healing.max - spell.effects.healing.min + 1)) + spell.effects.healing.min;
+      const healing = Math.floor(rng.next() * (spell.effects.healing.max - spell.effects.healing.min + 1)) + spell.effects.healing.min;
       this.heal(healing);
       message += ` Healed ${healing} HP.`;
     }
 
     if (spell.effects.damage) {
-      const damage = Math.floor(Math.random() * (spell.effects.damage.max - spell.effects.damage.min + 1)) + spell.effects.damage.min;
+      const damage = Math.floor(rng.next() * (spell.effects.damage.max - spell.effects.damage.min + 1)) + spell.effects.damage.min;
       message += ` Dealt ${damage} ${spell.effects.damage.type || 'magical'} damage.`;
     }
 
@@ -1471,13 +1472,13 @@ export class WorldEngine {
     let message = `Used ${abilityName}!`;
 
     if (ability.effects.healing) {
-      const healing = Math.floor(Math.random() * (ability.effects.healing.max - ability.effects.healing.min + 1)) + ability.effects.healing.min;
+      const healing = Math.floor(rng.next() * (ability.effects.healing.max - ability.effects.healing.min + 1)) + ability.effects.healing.min;
       this.heal(healing);
       message += ` Healed ${healing} HP.`;
     }
 
     if (ability.effects.damage) {
-      const damage = Math.floor(Math.random() * (ability.effects.damage.max - ability.effects.damage.min + 1)) + ability.effects.damage.min;
+      const damage = Math.floor(rng.next() * (ability.effects.damage.max - ability.effects.damage.min + 1)) + ability.effects.damage.min;
       message += ` Dealt ${damage} ${ability.effects.damage.type || 'damage'}.`;
     }
 
@@ -1548,7 +1549,7 @@ export class WorldEngine {
   addCharacter(characterData: Omit<Character, 'id' | 'hitPoints' | 'maxHitPoints' | 'stamina' | 'maxStamina' | 'ether' | 'maxEther' | 'knownAbilities' | 'knownSpells' | 'knownCantrips' | 'equipment'>): Character {
     const character: Character = {
       ...characterData,
-      id: `char_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `char_${Date.now()}_${rng.next().toString(36).substr(2, 9)}`,
       hitPoints: this.calculateMaxHitPoints(characterData.stats.constitution, characterData.level),
       maxHitPoints: this.calculateMaxHitPoints(characterData.stats.constitution, characterData.level),
       stamina: this.calculateMaxStamina(characterData.stats.constitution, characterData.level),

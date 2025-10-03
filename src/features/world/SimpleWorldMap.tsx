@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { storage } from "../../core/services/storage";
 import { SettlementGenerator, QuestGenerator, TreasureGenerator, SeededRandom } from "../../core/utils";
 import ExplorationMode from "./ExplorationMode";
 
@@ -43,7 +44,7 @@ export default function SimpleWorldMap({ seedStr = "verdance-seed-001", onBack }
   // Load player characters from localStorage on component mount
   useEffect(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem('world-engine-saved-characters') || '[]');
+      const saved = JSON.parse(storage.local.getItem('world-engine-saved-characters') || '[]');
       setPlayerCharacters(saved.slice(0, 4)); // Maximum of 4 characters for party
     } catch (error) {
       console.error('Error loading saved characters:', error);

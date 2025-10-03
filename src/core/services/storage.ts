@@ -36,7 +36,7 @@ class InMemoryStorageArea implements StorageArea {
 }
 
 class BrowserStorageArea implements StorageArea {
-  constructor(private readonly storage: Storage | undefined) {}
+  constructor(private readonly storage: Storage | undefined) { }
 
   private resolveStorage(): Storage | null {
     if (typeof window === "undefined") {

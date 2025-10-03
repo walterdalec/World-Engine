@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { rng } from "../../core/services/random";
+import { storage } from "../../core/services/storage";
 
 interface Character {
   name: string;
@@ -49,8 +51,8 @@ export default function HealingSystem({ onBack }: HealingSystemProps) {
   // Load characters and spells on component mount
   React.useEffect(() => {
     try {
-      const savedCharacters = JSON.parse(localStorage.getItem('world-engine-characters') || '[]');
-      const savedSpells = JSON.parse(localStorage.getItem('world-engine-saved-spells') || '[]');
+      const savedCharacters = JSON.parse(storage.local.getItem('world-engine-characters') || '[]');
+      const savedSpells = JSON.parse(storage.local.getItem('world-engine-saved-spells') || '[]');
       
       // Debug: Log the raw saved characters
       console.log('Raw saved characters:', savedCharacters);
@@ -163,7 +165,7 @@ export default function HealingSystem({ onBack }: HealingSystemProps) {
   };
 
   const rollDice = (sides: number): number => {
-    return Math.floor(Math.random() * sides) + 1;
+    return Math.floor(rng.next() * sides) + 1;
   };
 
   const getModifier = (stat: number): number => {

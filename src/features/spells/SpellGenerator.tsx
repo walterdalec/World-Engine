@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { storage } from "../../core/services/storage";
 import { PREMADE_SPELLS, getAllPremadeSpells, getPremadeSpellsBySchool } from './PremadeSpells';
 import CustomSpellCreator from './CustomSpellCreator';
 
@@ -42,7 +43,7 @@ export default function SpellGenerator({ onBack }: SpellGeneratorProps) {
   // Load saved spells on mount
   React.useEffect(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem('world-engine-saved-spells') || '[]');
+      const saved = JSON.parse(storage.local.getItem('world-engine-saved-spells') || '[]');
       setSavedSpells(saved);
     } catch (error) {
       console.error('Error loading saved spells:', error);
@@ -81,7 +82,7 @@ export default function SpellGenerator({ onBack }: SpellGeneratorProps) {
 
     const newSavedSpells = [...savedSpells, spell];
     setSavedSpells(newSavedSpells);
-    localStorage.setItem('world-engine-saved-spells', JSON.stringify(newSavedSpells));
+    storage.local.setItem('world-engine-saved-spells', JSON.stringify(newSavedSpells));
     console.log('Spell saved:', spell.name);
   };
 
@@ -89,7 +90,7 @@ export default function SpellGenerator({ onBack }: SpellGeneratorProps) {
   const removeSavedSpell = (spellName: string) => {
     const updated = savedSpells.filter(s => s.name !== spellName);
     setSavedSpells(updated);
-    localStorage.setItem('world-engine-saved-spells', JSON.stringify(updated));
+    storage.local.setItem('world-engine-saved-spells', JSON.stringify(updated));
   };
 
   // Render different modes

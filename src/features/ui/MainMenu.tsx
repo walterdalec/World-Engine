@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { storage } from "../../core/services/storage";
 import { SimplePortraitPreview, SimpleUtils } from '../portraits';
 
 interface Campaign {
@@ -56,8 +57,8 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
       setCampaigns(campaigns);
 
       // Show recovery message if campaigns were recovered from backup
-      const primarySaved = localStorage.getItem('world-engine-campaigns');
-      const backupSaved = localStorage.getItem('world-engine-campaigns-backup');
+      const primarySaved = storage.local.getItem('world-engine-campaigns');
+      const backupSaved = storage.local.getItem('world-engine-campaigns-backup');
 
       if (!primarySaved && backupSaved && campaigns.length > 0) {
         alert('⚠️ Primary save was missing, but your campaigns were recovered from backup!');
@@ -72,24 +73,24 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
   const recoverCampaigns = () => {
     try {
       // Try primary storage first
-      let campaigns = JSON.parse(localStorage.getItem('world-engine-campaigns') || '[]');
+      let campaigns = JSON.parse(storage.local.getItem('world-engine-campaigns') || '[]');
 
       if (campaigns.length === 0) {
         // Try backup storage
-        const backup = JSON.parse(localStorage.getItem('world-engine-campaigns-backup') || '{}');
+        const backup = JSON.parse(storage.local.getItem('world-engine-campaigns-backup') || '{}');
         if (backup.campaigns && backup.campaigns.length > 0) {
           campaigns = backup.campaigns;
-          localStorage.setItem('world-engine-campaigns', JSON.stringify(campaigns));
+          storage.local.setItem('world-engine-campaigns', JSON.stringify(campaigns));
           console.log('Recovered campaigns from backup storage');
         }
       }
 
       if (campaigns.length === 0) {
         // Try session storage
-        const sessionCampaigns = JSON.parse(sessionStorage.getItem('world-engine-campaigns-session') || '[]');
+        const sessionCampaigns = JSON.parse(storage.session.getItem('world-engine-campaigns-session') || '[]');
         if (sessionCampaigns.length > 0) {
           campaigns = sessionCampaigns;
-          localStorage.setItem('world-engine-campaigns', JSON.stringify(campaigns));
+          storage.local.setItem('world-engine-campaigns', JSON.stringify(campaigns));
           console.log('Recovered campaigns from session storage');
         }
       }
@@ -103,7 +104,7 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
 
   const loadCharacters = () => {
     try {
-      const saved = localStorage.getItem('world-engine-characters');
+      const saved = storage.local.getItem('world-engine-characters');
       if (saved) {
         setCharacters(JSON.parse(saved));
       }
@@ -115,13 +116,13 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
   const deleteCampaign = (campaignId: string) => {
     const updated = campaigns.filter(c => c.id !== campaignId);
     setCampaigns(updated);
-    localStorage.setItem('world-engine-campaigns', JSON.stringify(updated));
+    storage.local.setItem('world-engine-campaigns', JSON.stringify(updated));
   };
 
   const deleteCharacter = (characterId: string) => {
     const updated = characters.filter(c => c.id !== characterId);
     setCharacters(updated);
-    localStorage.setItem('world-engine-characters', JSON.stringify(updated));
+    storage.local.setItem('world-engine-characters', JSON.stringify(updated));
   };
 
   const formatDate = (dateStr: string) => {
@@ -175,15 +176,15 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
 
         if (backup.campaigns && Array.isArray(backup.campaigns)) {
           // Save campaigns
-          localStorage.setItem('world-engine-campaigns', JSON.stringify(backup.campaigns));
-          localStorage.setItem('world-engine-campaigns-backup', JSON.stringify(backup));
+          storage.local.setItem('world-engine-campaigns', JSON.stringify(backup.campaigns));
+          storage.local.setItem('world-engine-campaigns-backup', JSON.stringify(backup));
           setCampaigns(backup.campaigns);
         }
 
         if (backup.characters && Array.isArray(backup.characters)) {
           // Save characters
-          localStorage.setItem('world-engine-characters', JSON.stringify(backup.characters));
-          localStorage.setItem('world-engine-characters-backup', JSON.stringify(backup.characters));
+          storage.local.setItem('world-engine-characters', JSON.stringify(backup.characters));
+          storage.local.setItem('world-engine-characters-backup', JSON.stringify(backup.characters));
           setCharacters(backup.characters);
         }
 
@@ -205,11 +206,11 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
       setCampaigns(recovered);
 
       // Try to recover characters too
-      const backupChars = localStorage.getItem('world-engine-characters-backup');
+      const backupChars = storage.local.getItem('world-engine-characters-backup');
       if (backupChars) {
         const chars = JSON.parse(backupChars);
         if (Array.isArray(chars)) {
-          localStorage.setItem('world-engine-characters', JSON.stringify(chars));
+          storage.local.setItem('world-engine-characters', JSON.stringify(chars));
           setCharacters(chars);
         }
       }

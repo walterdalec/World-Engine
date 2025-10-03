@@ -9,6 +9,7 @@
  */
 
 import React, { useState, useCallback, useEffect } from 'react';
+import { rng } from "../../core/services/random";
 import { WorldEngine } from '../../core/engine';
 import type { WorldGenConfig } from '../../proc/chunks';
 
@@ -282,7 +283,7 @@ export default function DevPanel({ engine, onConfigChange }: DevPanelProps) {
             Regenerate
           </button>
           <button
-            onClick={() => setNewSeed(Math.random().toString(36).substring(2, 15))}
+            onClick={() => setNewSeed(rng.next().toString(36).substring(2, 15))}
             style={{
               flex: 1,
               padding: '6px',

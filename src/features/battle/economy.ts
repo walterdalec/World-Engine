@@ -1,4 +1,5 @@
 import type { Unit } from "./types";
+import { rng } from "../../core/services/random";
 
 export interface RevivalCost {
     gold: number;
@@ -81,7 +82,7 @@ export function calculateBattleRewards(
         gold += enemyValue.gold;
 
         // Chance for loot drops
-        const lootRoll = Math.random();
+        const lootRoll = rng.next();
         if (lootRoll < enemyValue.lootChance) {
             const drop = generateLootDrop(enemy, playerPartyLevel);
             if (drop) {
@@ -125,14 +126,14 @@ function calculateEnemyValue(enemy: Unit) {
 
 function generateLootDrop(enemy: Unit, playerLevel: number): LootDrop | null {
     const dropTables = getLootTableForEnemy(enemy);
-    const roll = Math.random();
+    const roll = rng.next();
     let cumulativeChance = 0;
 
     for (const item of dropTables) {
         cumulativeChance += item.chance;
         if (roll <= cumulativeChance) {
             return {
-                id: `loot_${Date.now()}_${Math.random()}`,
+                id: `loot_${Date.now()}_${rng.next()}`,
                 name: item.name,
                 type: item.type,
                 value: item.baseValue + Math.floor(playerLevel * item.scaling),
@@ -284,7 +285,7 @@ export function calculatePartyWealth(party: Unit[]): number {
     // This would integrate with the larger game economy
     // For now, return a placeholder based on party level
     const averageLevel = party.reduce((sum, unit) => sum + unit.level, 0) / party.length;
-    return Math.floor(averageLevel * 100 + Math.random() * 200);
+    return Math.floor(averageLevel * 100 + rng.next() * 200);
 }
 
 // Determine if player can afford a service

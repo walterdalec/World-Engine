@@ -4,6 +4,7 @@
  */
 
 import { getPortraitImagePath, isValidGenderForClass } from '../../core/config';
+import { rng } from "../../core/services/random";
 
 export interface PortraitLayer {
     type: 'base' | 'race' | 'class' | 'deco' | 'realistic';
@@ -53,7 +54,7 @@ function generatePlaceholderPortrait(species: string, archetype: string, gender:
     ctx.globalAlpha = 0.3;
     for (let i = 0; i < 200; i += 4) {
         for (let j = 0; j < 250; j += 4) {
-            if (Math.random() > 0.7) {
+            if (rng.next() > 0.7) {
                 ctx.fillRect(i, j, 1, 1);
             }
         }
@@ -405,9 +406,9 @@ function drawRealisticArmor(ctx: CanvasRenderingContext2D, x: number, y: number,
         ctx.fill();
 
         // Dents and scratches
-        if (Math.random() > 0.6) {
+        if (rng.next() > 0.6) {
             ctx.beginPath();
-            ctx.arc(x + i + 2, y + 15 + Math.random() * 10, 0.5, 0, 2 * Math.PI);
+            ctx.arc(x + i + 2, y + 15 + rng.next() * 10, 0.5, 0, 2 * Math.PI);
             ctx.fill();
         }
     }
@@ -504,8 +505,8 @@ function drawRealisticSword(ctx: CanvasRenderingContext2D, x: number, y: number,
     ctx.globalAlpha = 0.7;
     for (let i = 0; i < 5; i++) {
         ctx.beginPath();
-        ctx.moveTo(x + 2 + Math.random() * 2, y - 25 + i * 8);
-        ctx.lineTo(x + 1 + Math.random() * 2, y - 23 + i * 8);
+        ctx.moveTo(x + 2 + rng.next() * 2, y - 25 + i * 8);
+        ctx.lineTo(x + 1 + rng.next() * 2, y - 23 + i * 8);
         ctx.stroke();
     }
     ctx.globalAlpha = 1;
@@ -559,8 +560,8 @@ function drawAtmosphericLighting(ctx: CanvasRenderingContext2D, archetype: strin
     ctx.fillStyle = '#4a453f';
     ctx.globalAlpha = 0.2;
     for (let i = 0; i < 8; i++) {
-        const x = 60 + Math.random() * 80;
-        const y = 50 + Math.random() * 120;
+        const x = 60 + rng.next() * 80;
+        const y = 50 + rng.next() * 120;
         ctx.beginPath();
         ctx.arc(x, y, 0.5, 0, 2 * Math.PI);
         ctx.fill();
@@ -996,12 +997,12 @@ function drawDarkMagicalEffects(ctx: CanvasRenderingContext2D, color: string, ar
 
     // Cursed floating particles - sparse and ominous
     for (let i = 0; i < 6; i++) {
-        const x = 40 + Math.random() * 120;
-        const y = 40 + Math.random() * 160;
-        const size = 0.5 + Math.random() * 1.5;
+        const x = 40 + rng.next() * 120;
+        const y = 40 + rng.next() * 160;
+        const size = 0.5 + rng.next() * 1.5;
 
         ctx.fillStyle = '#1a1a1a';
-        ctx.globalAlpha = 0.4 + Math.random() * 0.3;
+        ctx.globalAlpha = 0.4 + rng.next() * 0.3;
         ctx.beginPath();
         ctx.arc(x, y, size, 0, 2 * Math.PI);
         ctx.fill();

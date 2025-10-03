@@ -6,6 +6,7 @@ import type {
     UnitStats,
     HexPosition
 } from "./types";
+import { rng } from "../../core/services/random";
 import { generateTacticalBattlefield } from "./generate";
 import { getSkillsForArchetype, getCommanderAbilities } from "./abilities";
 
@@ -39,7 +40,7 @@ export function characterToUnit(
     const skills = getSkillsForArchetype(character.archetype || "warrior");
 
     return {
-        id: character.id || `unit_${Date.now()}_${Math.random()}`,
+        id: character.id || `unit_${Date.now()}_${rng.next()}`,
         name: character.name || "Unknown",
         kind: isCommander ? "HeroCommander" : "Mercenary",
         faction,
@@ -116,16 +117,16 @@ export function generateEnemies(
     playerPartyLevel: number,
     playerPartySize: number,
     biome: string,
-    rng: () => number = Math.random
+    rngFn: () => number = () => rng.next()
 ): any[] {
     const enemies: any[] = [];
-    const enemyCount = Math.max(2, playerPartySize - 1 + Math.floor(rng() * 3));
+    const enemyCount = Math.max(2, playerPartySize - 1 + Math.floor(rngFn() * 3));
 
     const enemyTypes = getEnemyTypesForBiome(biome);
 
     for (let i = 0; i < enemyCount; i++) {
-        const enemyType = enemyTypes[Math.floor(rng() * enemyTypes.length)];
-        const levelVariance = Math.floor(rng() * 3) - 1; // -1 to +1
+        const enemyType = enemyTypes[Math.floor(rngFn() * enemyTypes.length)];
+        const levelVariance = Math.floor(rngFn() * 3) - 1; // -1 to +1
         const level = Math.max(1, playerPartyLevel + levelVariance);
 
         enemies.push({

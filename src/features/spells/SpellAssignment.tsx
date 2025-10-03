@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { storage } from "../../core/services/storage";
 
 interface Character {
   id?: string;
@@ -141,8 +142,8 @@ export default function SpellAssignment({ onBack }: SpellAssignmentProps) {
   // Load characters and spells on component mount
   useEffect(() => {
     try {
-      const savedCharacters = JSON.parse(localStorage.getItem('world-engine-characters') || '[]');
-      const savedSpells = JSON.parse(localStorage.getItem('world-engine-saved-spells') || '[]');
+      const savedCharacters = JSON.parse(storage.local.getItem('world-engine-characters') || '[]');
+      const savedSpells = JSON.parse(storage.local.getItem('world-engine-saved-spells') || '[]');
       
       // Always include test characters for easy testing
       const testCharacters = createTestCharacters();
@@ -232,7 +233,7 @@ export default function SpellAssignment({ onBack }: SpellAssignmentProps) {
     });
 
     setCharacters(updatedCharacters);
-    localStorage.setItem('world-engine-characters', JSON.stringify(updatedCharacters));
+    storage.local.setItem('world-engine-characters', JSON.stringify(updatedCharacters));
 
     // Reset selections
     setSelectedCharacter(-1);
@@ -258,7 +259,7 @@ export default function SpellAssignment({ onBack }: SpellAssignmentProps) {
     });
 
     setCharacters(updatedCharacters);
-    localStorage.setItem('world-engine-characters', JSON.stringify(updatedCharacters));
+    storage.local.setItem('world-engine-characters', JSON.stringify(updatedCharacters));
   };
 
   const getSpellcastingInfo = (character: Character) => {
