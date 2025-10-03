@@ -44,16 +44,19 @@ export interface Skill {
 export interface Unit {
     id: string;
     name: string;
-    kind: "HeroCommander" | "Mercenary" | "Monster" | "NPC";
+    kind: "HeroCommander" | "Mercenary" | "Monster" | "NPC" | "Boss";
     faction: "Player" | "Enemy" | "Neutral";
     race: string;
     archetype: string;
     level: number;
     stats: UnitStats;
     statuses: StatusEffect[];
-    skills: Skill[];
+    skills: string[]; // Changed to string[] to match ability IDs
     pos?: HexPosition;
     isCommander?: boolean;
+    isDead?: boolean; // Add isDead property
+    gear?: { gearScore?: number }; // Add gear property
+    facing?: number; // Add facing for hex directions (0-5)
 }
 
 export interface Ability {
@@ -110,6 +113,7 @@ export interface DeploymentZone {
 export interface BattleContext {
     seed: string;
     biome: string;
+    site?: "wilds" | "settlement" | "dungeon";
     weather?: string;
     timeOfDay?: "Dawn" | "Day" | "Dusk" | "Night";
 }

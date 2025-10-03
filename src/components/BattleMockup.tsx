@@ -5,10 +5,10 @@
  */
 
 import React, { useState } from "react";
-import { BattleCanvasHex } from "../battle/components/rendererHex";
+import { BattleCanvas } from "../battle/components/renderer2d";
 import { generateBattlefieldHex } from "../battle/generate_hex";
 import { BattleState, Unit, Commander } from "../battle/types";
-import { startBattle, nextPhase, execAbility, checkVictory } from "../battle/engine_hex";
+import { startBattle, nextPhase, executeAbility, checkVictoryConditions } from "../battle/engine";
 
 // --- Dummy Data
 const heroCommander: Commander = {
@@ -184,27 +184,23 @@ export function BattleMockup() {
         // Use selected target or default to center of enemy forces
         const target = selectedTarget || { q: 12, r: 6 };
 
-        const success = execAbility(state, heroUnit, abilityId, target);
+        const success = executeAbility(state, "hero-1", abilityId, target);
         if (success) {
             setSelectedTarget(null); // Clear target after use
         }
 
         // Check for victory/defeat
-        const result = checkVictory(state);
-        if (result) {
-            state.phase = result;
-            state.log.push(result === "Victory" ? "🎉 Victory achieved!" : "💀 Defeat...");
-        }
+        checkVictoryConditions(state);
 
         setState({ ...state });
     }
 
-    function handleHexClick(q: number, r: number) {
-        console.log("Hex clicked:", q, r);
-        setSelectedTarget({ q, r });
+    function handleHexClick(pos: { q: number; r: number }) {
+        console.log("Hex clicked:", pos.q, pos.r);
+        setSelectedTarget({ q: pos.q, r: pos.r });
 
         // Also allow unit selection
-        const unit = state.units.find(u => u.pos && u.pos.q === q && u.pos.r === r);
+        const unit = state.units.find(u => u.pos && u.pos.q === pos.q && u.pos.r === pos.r);
         if (unit && unit.faction === "Player") {
             setState({ ...state, selectedUnit: unit.id });
         } else {
@@ -249,11 +245,9 @@ export function BattleMockup() {
                     </p>
                 </div>
 
-                <BattleCanvasHex
+                <BattleCanvas
                     state={state}
-                    onHexClick={handleHexClick}
-                    width={700}
-                    height={500}
+                    onTileClick={handleHexClick}
                 />
 
                 <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center' }}>
