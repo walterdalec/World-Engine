@@ -57,6 +57,8 @@ export interface Unit {
     isDead: boolean; // Required property to avoid undefined issues
     gear?: { gearScore?: number }; // Add gear property
     facing?: number; // Add facing for hex directions (0-5)
+    hasMoved?: boolean; // Track if unit has moved this turn
+    hasActed?: boolean; // Track if unit has acted this turn
 }
 
 export interface Ability {
