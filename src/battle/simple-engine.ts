@@ -174,6 +174,7 @@ export class GameEngine {
 
         if (bestHex) {
             this.moveTo(bestHex);
+            this.endTurn(); // End turn after moving
         } else {
             // Can't move, just end turn
             this.state.phase = "awaitAction";
