@@ -241,7 +241,7 @@ export function calculateAdvancedAIAction(
 function calculateAggressiveAction(state: BattleState, unit: Unit): AIAction | null {
     // Always try to attack the weakest nearby enemy
     const targets = state.units.filter(u =>
-        u.faction === "Player" && !u.isDead && u.pos && !u.isCommander
+        u.faction === "Player" && u.isDead !== true && u.pos && !u.isCommander
     );
 
     if (targets.length === 0) {
@@ -261,7 +261,7 @@ function calculateDefensiveAction(state: BattleState, unit: Unit): AIAction | nu
     if (!unit.pos) return { type: "wait", unitId: unit.id };
 
     const threats = state.units.filter(u =>
-        u.faction === "Player" && !u.isDead && u.pos && !u.isCommander &&
+        u.faction === "Player" && u.isDead !== true && u.pos && !u.isCommander &&
         hexDistance(unit.pos!, u.pos) <= 3
     );
 
@@ -282,7 +282,7 @@ function calculateTacticalAction(state: BattleState, unit: Unit): AIAction | nul
 // Execute a full AI turn for all enemy units
 export function executeAITurn(state: BattleState): void {
     const enemyUnits = state.units.filter(u =>
-        u.faction === "Enemy" && !u.isDead && u.pos
+        u.faction === "Enemy" && u.isDead !== true && u.pos
     );
 
     for (const unit of enemyUnits) {

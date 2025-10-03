@@ -295,7 +295,7 @@ export function applyCommanderAura(state: BattleState) {
     if (!commander || !state.commander.aura) return;
 
     for (const unit of state.units) {
-        if (unit.faction === "Player" && !unit.isDead && !unit.isCommander) {
+        if (unit.faction === "Player" && unit.isDead !== true && !unit.isCommander) {
             // Apply aura bonuses (simplified - should track original stats)
             for (const [stat, bonus] of Object.entries(state.commander.aura.stats)) {
                 if (typeof bonus === 'number') {
@@ -309,7 +309,7 @@ export function applyCommanderAura(state: BattleState) {
 // Status effect processing
 function tickStatusEffects(state: BattleState) {
     for (const unit of state.units) {
-        if (unit.isDead) continue;
+        if (unit.isDead === true) continue;
 
         unit.statuses = unit.statuses.filter(status => {
             status.duration--;
