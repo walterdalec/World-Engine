@@ -33,9 +33,11 @@ interface Props {
   onBattleSystem: () => void;
   onBattlePage: () => void;
   onMinimalBattle: () => void;
+  onEnhancedMap: () => void;
+  onSimpleMap: () => void;
 }
 
-export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onPortraitTest, onBattleSystem, onBattlePage, onMinimalBattle }: Props) {
+export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onPortraitTest, onBattleSystem, onBattlePage, onMinimalBattle, onEnhancedMap, onSimpleMap }: Props) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [characters, setCharacters] = useState<SavedCharacter[]>([]);
   const [activeTab, setActiveTab] = useState<'campaigns' | 'characters'>('campaigns');
@@ -756,6 +758,18 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
                 <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🎭</div>
                 <h3 style={{ margin: '0 0 5px 0' }}>Portrait Test</h3>
                 <p style={{ margin: 0, opacity: 0.9 }}>Test all portrait combinations</p>
+              </div>
+
+              <div style={newCardStyle} onClick={onEnhancedMap}>
+                <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🗺️</div>
+                <h3 style={{ margin: '0 0 5px 0' }}>Strategic Map</h3>
+                <p style={{ margin: 0, opacity: 0.9 }}>Enhanced world map with factions</p>
+              </div>
+
+              <div style={newCardStyle} onClick={onSimpleMap}>
+                <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🌍</div>
+                <h3 style={{ margin: '0 0 5px 0' }}>Exploration Map</h3>
+                <p style={{ margin: 0, opacity: 0.9 }}>Simple campaign world map</p>
               </div>
 
               {characters.map(character => (

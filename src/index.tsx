@@ -14,6 +14,8 @@ import { SimplePortraitTest } from "./components/SimplePortraitTest";
 import { BattleMockup } from "./components/BattleMockup";
 import { BattlePage } from "./components/BattlePage";
 import { MinimalBattlePage } from "./components/MinimalBattlePage";
+import EnhancedWorldMap from "./components/EnhancedWorldMap";
+import SimpleWorldMap from "./components/SimpleWorldMap";
 import { Engine } from "./engine.d";
 import { DEFAULT_WORLDS } from "./defaultWorlds";
 
@@ -38,7 +40,7 @@ function randomSeed(): string {
 }
 
 function App() {
-  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "charactercreate" | "portraittest" | "battlesystem" | "battle" | "minimalBattle">("menu");
+  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "enhancedmap" | "simplemap" | "charactercreate" | "portraittest" | "battlesystem" | "battle" | "minimalBattle">("menu");
   const [party, setParty] = React.useState<Character[]>([]);
   const [currentCampaign, setCurrentCampaign] = React.useState<any>(null);
   const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0); // Force re-render hook
@@ -299,6 +301,16 @@ function App() {
     setStep("minimalBattle");
   };
 
+  const handleEnhancedMap = () => {
+    // Enhanced strategic world map
+    setStep("enhancedmap");
+  };
+
+  const handleSimpleMap = () => {
+    // Simple exploration world map
+    setStep("simplemap");
+  };
+
   // fake engine stub for now
   // Engine stub - will be replaced with real engine
   const eng: Engine = {
@@ -397,6 +409,8 @@ function App() {
           onBattleSystem={handleBattleSystem}
           onBattlePage={handleBattlePage}
           onMinimalBattle={handleMinimalBattle}
+          onEnhancedMap={handleEnhancedMap}
+          onSimpleMap={handleSimpleMap}
         />
       )}
       {step === "world" && (
@@ -562,6 +576,22 @@ function App() {
             ← Back to Menu
           </button>
           <MinimalBattlePage />
+        </div>
+      )}
+      {step === "enhancedmap" && (
+        <div style={{ position: 'relative' }}>
+          <EnhancedWorldMap
+            seedStr={eng?.state?.meta?.seed}
+            onBack={() => setStep("menu")}
+          />
+        </div>
+      )}
+      {step === "simplemap" && (
+        <div style={{ position: 'relative' }}>
+          <SimpleWorldMap
+            seedStr={eng?.state?.meta?.seed}
+            onBack={() => setStep("menu")}
+          />
         </div>
       )}
     </>
