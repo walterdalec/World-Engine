@@ -6,6 +6,8 @@
 
 import React, { useState } from "react";
 import { BattleCanvas } from "../battle/components/renderer2d";
+import { HoneycombBattleCanvas } from "../battle/components/HoneycombRenderer";
+import { RendererComparison } from "../battle/components/RendererComparison";
 import { generateBattlefieldHex } from "../battle/generate_hex";
 import { BattleState, Unit, Commander } from "../battle/types";
 import { startBattle, nextPhase, executeAbility, checkVictoryConditions } from "../battle/engine";
@@ -171,6 +173,8 @@ function createMockBattle(): BattleState {
 export function BattleMockup() {
     const [state, setState] = useState<BattleState>(createMockBattle());
     const [selectedTarget, setSelectedTarget] = useState<{ q: number; r: number } | null>(null);
+    const [useComparison, setUseComparison] = useState(false);
+    const [preferredRenderer, setPreferredRenderer] = useState<'original' | 'honeycomb'>('honeycomb');
 
     function handleHeroAbility(abilityId: string) {
         const heroUnit: Unit = {
@@ -234,145 +238,215 @@ export function BattleMockup() {
     return (
         <div style={{
             display: "grid",
-            gridTemplateColumns: "2fr 1fr",
+            gridTemplateColumns: useComparison ? "1fr" : "2fr 1fr",
             gap: 16,
             padding: 16,
-            maxWidth: "1200px",
-            margin: "0 auto"
+            maxWidth: useComparison ? "100%" : "1200px",
+            margin: "0 auto",
+            height: useComparison ? "100vh" : "auto"
         }}>
-            <div>
-                <div style={{ marginBottom: 12 }}>
-                    <h2 style={{ margin: 0, color: '#333' }}>
-                        Tactical Battle System
-                        {state.phase === "Victory" && " - 🎉 VICTORY!"}
-                        {state.phase === "Defeat" && " - 💀 DEFEAT"}
-                    </h2>
-                    <p style={{ margin: "4px 0", color: '#666', fontSize: '14px' }}>
-                        Click hexes to target abilities. Hero commands from off-field.
-                    </p>
-                </div>
-
-                <BattleCanvas
+            {useComparison ? (
+                <RendererComparison
                     state={state}
                     onTileClick={handleHexClick}
+                    selectedUnit={state.selectedUnit}
                 />
+            ) : (
+                <>
+                    <div>
+                        <div style={{ marginBottom: 12 }}>
+                            <h2 style={{ margin: 0, color: '#333' }}>
+                                Tactical Battle System
+                                {state.phase === "Victory" && " - 🎉 VICTORY!"}
+                                {state.phase === "Defeat" && " - 💀 DEFEAT"}
+                            </h2>
+                            <p style={{ margin: "4px 0", color: '#666', fontSize: '14px' }}>
+                                Click hexes to target abilities. Hero commands from off-field.
+                            </p>
+                        </div>
 
-                <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <button
-                        onClick={() => { nextPhase(state); setState({ ...state }); }}
-                        disabled={state.phase === "Victory" || state.phase === "Defeat"}
-                        style={{
-                            padding: '8px 16px',
-                            backgroundColor: state.phase === "Victory" || state.phase === "Defeat" ? '#ccc' : '#4caf50',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: state.phase === "Victory" || state.phase === "Defeat" ? 'default' : 'pointer'
-                        }}
-                    >
-                        Next Phase ({state.phase})
-                    </button>
+                        {/* Renderer Selection */}
+                        <div style={{ marginBottom: 12, display: 'flex', gap: 8, alignItems: 'center' }}>
+                            <label style={{ fontSize: '14px', color: '#666' }}>Renderer:</label>
+                            <button
+                                onClick={() => setPreferredRenderer('original')}
+                                style={{
+                                    padding: '4px 8px',
+                                    backgroundColor: preferredRenderer === 'original' ? '#2196f3' : '#f5f5f5',
+                                    color: preferredRenderer === 'original' ? 'white' : '#333',
+                                    border: '1px solid #ddd',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '12px'
+                                }}
+                            >
+                                Original
+                            </button>
+                            <button
+                                onClick={() => setPreferredRenderer('honeycomb')}
+                                style={{
+                                    padding: '4px 8px',
+                                    backgroundColor: preferredRenderer === 'honeycomb' ? '#4caf50' : '#f5f5f5',
+                                    color: preferredRenderer === 'honeycomb' ? 'white' : '#333',
+                                    border: '1px solid #ddd',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '12px'
+                                }}
+                            >
+                                🍯 Honeycomb
+                            </button>
+                            <button
+                                onClick={() => setUseComparison(!useComparison)}
+                                style={{
+                                    padding: '4px 8px',
+                                    backgroundColor: '#ff9800',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '12px'
+                                }}
+                            >
+                                Compare
+                            </button>
+                        </div>
 
-                    <button
-                        onClick={resetBattle}
-                        style={{
-                            padding: '8px 16px',
-                            backgroundColor: '#2196f3',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        Reset Battle
-                    </button>
+                        {/* Battle Canvas */}
+                        {preferredRenderer === 'original' ? (
+                            <BattleCanvas
+                                state={state}
+                                onTileClick={handleHexClick}
+                            />
+                        ) : (
+                            <div style={{ height: '500px', border: '1px solid #ddd', borderRadius: '8px' }}>
+                                <HoneycombBattleCanvas
+                                    state={state}
+                                    onTileClick={handleHexClick}
+                                    selectedUnit={state.selectedUnit}
+                                    showGrid={true}
+                                />
+                            </div>
+                        )}
 
-                    {selectedTarget && (
-                        <span style={{
-                            padding: '4px 8px',
-                            backgroundColor: '#fff3cd',
-                            border: '1px solid #ffeaa7',
-                            borderRadius: '4px',
+                        <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center' }}>
+                            <button
+                                onClick={() => { nextPhase(state); setState({ ...state }); }}
+                                disabled={state.phase === "Victory" || state.phase === "Defeat"}
+                                style={{
+                                    padding: '8px 16px',
+                                    backgroundColor: state.phase === "Victory" || state.phase === "Defeat" ? '#ccc' : '#4caf50',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: state.phase === "Victory" || state.phase === "Defeat" ? 'default' : 'pointer'
+                                }}
+                            >
+                                Next Phase ({state.phase})
+                            </button>
+
+                            <button
+                                onClick={resetBattle}
+                                style={{
+                                    padding: '8px 16px',
+                                    backgroundColor: '#2196f3',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Reset Battle
+                            </button>
+
+                            {selectedTarget && (
+                                <span style={{
+                                    padding: '4px 8px',
+                                    backgroundColor: '#fff3cd',
+                                    border: '1px solid #ffeaa7',
+                                    borderRadius: '4px',
+                                    fontSize: '12px'
+                                }}>
+                                    Target: ({selectedTarget.q}, {selectedTarget.r})
+                                </span>
+                            )}
+                        </div>
+                    </div>
+
+                    <div style={{ backgroundColor: '#f8f9fa', padding: 16, borderRadius: 8 }}>
+                        <h3 style={{ marginTop: 0, color: '#333' }}>Hero Commands</h3>
+                        <div style={{ marginBottom: 16 }}>
+                            {state.commander.abilities.map(ability => (
+                                <button
+                                    key={ability.id}
+                                    onClick={() => handleHeroAbility(ability.id)}
+                                    disabled={isAbilityOnCooldown(ability.id) || state.phase === "Victory" || state.phase === "Defeat"}
+                                    style={{
+                                        display: "block",
+                                        width: "100%",
+                                        marginBottom: 8,
+                                        padding: "8px 12px",
+                                        backgroundColor: isAbilityOnCooldown(ability.id) ? '#e0e0e0' : '#1976d2',
+                                        color: isAbilityOnCooldown(ability.id) ? '#666' : 'white',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        cursor: isAbilityOnCooldown(ability.id) ? 'default' : 'pointer',
+                                        textAlign: 'left'
+                                    }}
+                                    title={ability.description}
+                                >
+                                    <div style={{ fontWeight: 'bold' }}>
+                                        {ability.name}{getCooldownText(ability.id)}
+                                    </div>
+                                    <div style={{ fontSize: '11px', opacity: 0.8 }}>
+                                        {ability.description}
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+
+                        <h3 style={{ color: '#333' }}>Commander Aura</h3>
+                        <div style={{
+                            padding: 8,
+                            backgroundColor: '#e8f5e8',
+                            borderRadius: 4,
+                            marginBottom: 16,
                             fontSize: '12px'
                         }}>
-                            Target: ({selectedTarget.q}, {selectedTarget.r})
-                        </span>
-                    )}
-                </div>
-            </div>
+                            <strong>{state.commander.aura.name}</strong><br />
+                            ATK +{state.commander.aura.stats.atk}, DEF +{state.commander.aura.stats.def}
+                        </div>
 
-            <div style={{ backgroundColor: '#f8f9fa', padding: 16, borderRadius: 8 }}>
-                <h3 style={{ marginTop: 0, color: '#333' }}>Hero Commands</h3>
-                <div style={{ marginBottom: 16 }}>
-                    {state.commander.abilities.map(ability => (
-                        <button
-                            key={ability.id}
-                            onClick={() => handleHeroAbility(ability.id)}
-                            disabled={isAbilityOnCooldown(ability.id) || state.phase === "Victory" || state.phase === "Defeat"}
-                            style={{
-                                display: "block",
-                                width: "100%",
-                                marginBottom: 8,
-                                padding: "8px 12px",
-                                backgroundColor: isAbilityOnCooldown(ability.id) ? '#e0e0e0' : '#1976d2',
-                                color: isAbilityOnCooldown(ability.id) ? '#666' : 'white',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: isAbilityOnCooldown(ability.id) ? 'default' : 'pointer',
-                                textAlign: 'left'
-                            }}
-                            title={ability.description}
-                        >
-                            <div style={{ fontWeight: 'bold' }}>
-                                {ability.name}{getCooldownText(ability.id)}
-                            </div>
-                            <div style={{ fontSize: '11px', opacity: 0.8 }}>
-                                {ability.description}
-                            </div>
-                        </button>
-                    ))}
-                </div>
+                        <h3 style={{ color: '#333' }}>Battle Log</h3>
+                        <div style={{
+                            maxHeight: 200,
+                            overflowY: 'auto',
+                            backgroundColor: '#fff',
+                            border: '1px solid #ddd',
+                            borderRadius: 4,
+                            padding: 8
+                        }}>
+                            {state.log.length === 0 ? (
+                                <em style={{ color: '#666' }}>No events yet...</em>
+                            ) : (
+                                <ul style={{ margin: 0, paddingLeft: 20, fontSize: '12px' }}>
+                                    {state.log.slice(-10).map((entry, i) => (
+                                        <li key={i} style={{ marginBottom: 4 }}>{entry}</li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
 
-                <h3 style={{ color: '#333' }}>Commander Aura</h3>
-                <div style={{
-                    padding: 8,
-                    backgroundColor: '#e8f5e8',
-                    borderRadius: 4,
-                    marginBottom: 16,
-                    fontSize: '12px'
-                }}>
-                    <strong>{state.commander.aura.name}</strong><br />
-                    ATK +{state.commander.aura.stats.atk}, DEF +{state.commander.aura.stats.def}
-                </div>
-
-                <h3 style={{ color: '#333' }}>Battle Log</h3>
-                <div style={{
-                    maxHeight: 200,
-                    overflowY: 'auto',
-                    backgroundColor: '#fff',
-                    border: '1px solid #ddd',
-                    borderRadius: 4,
-                    padding: 8
-                }}>
-                    {state.log.length === 0 ? (
-                        <em style={{ color: '#666' }}>No events yet...</em>
-                    ) : (
-                        <ul style={{ margin: 0, paddingLeft: 20, fontSize: '12px' }}>
-                            {state.log.slice(-10).map((entry, i) => (
-                                <li key={i} style={{ marginBottom: 4 }}>{entry}</li>
-                            ))}
-                        </ul>
-                    )}
-                </div>
-
-                <div style={{ marginTop: 16, fontSize: '11px', color: '#666' }}>
-                    <strong>Battle Rules:</strong><br />
-                    • Hero fights from off-field with special abilities<br />
-                    • Mercenaries deploy on battlefield tactically<br />
-                    • On world map: only Hero token visible<br />
-                    • Mercenaries stay in party menu outside battle
-                </div>
-            </div>
+                        <div style={{ marginTop: 16, fontSize: '11px', color: '#666' }}>
+                            <strong>Battle Rules:</strong><br />
+                            • Hero fights from off-field with special abilities<br />
+                            • Mercenaries deploy on battlefield tactically<br />
+                            • On world map: only Hero token visible<br />
+                            • Mercenaries stay in party menu outside battle
+                        </div>
+                    </div>
+                </>
+            )}
         </div>
     );
 }
