@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { BattleState, Unit, HexPosition } from '../types';
+import { sanitizeBattleState } from '../typeGuards';
 import { BattleCanvas } from './renderer2d';
 import { startBattle } from '../engine';
 
@@ -9,19 +10,10 @@ interface BattleSetupScreenProps {
 }
 
 function cloneState(state: BattleState): BattleState {
-    // Deep clone with proper typing to maintain Unit interface
-    const cloned = JSON.parse(JSON.stringify(state)) as BattleState;
-
-    // Ensure all units have isDead property (in case of partial data)
-    cloned.units = cloned.units.map(unit => ({
-        ...unit,
-        isDead: unit.isDead ?? false // Fallback for any missing isDead
-    }));
-
-    return cloned;
-}
-
-export function BattleSetupScreen({ initialState, onReady }: BattleSetupScreenProps) {
+    // Deep clone and sanitize to ensure type safety
+    const cloned = JSON.parse(JSON.stringify(state));
+    return sanitizeBattleState(cloned);
+} export function BattleSetupScreen({ initialState, onReady }: BattleSetupScreenProps) {
     const [state, setState] = useState<BattleState>(cloneState(initialState));
     const [selectedUnit, setSelectedUnit] = useState<string | undefined>(undefined);
     const [draggedUnit, setDraggedUnit] = useState<string | null>(null);
