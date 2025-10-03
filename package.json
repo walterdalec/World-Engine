@@ -16,9 +16,11 @@
     "zustand": "^5.0.8"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "set NODE_OPTIONS=--max-old-space-size=2048 && react-scripts start",
+    "start:full-mem": "react-scripts start",
     "start:low-mem": "set NODE_OPTIONS=--max-old-space-size=2048 && react-scripts start",
-    "build": "react-scripts build",
+    "build": "set NODE_OPTIONS=--max-old-space-size=2048 && react-scripts build",
+    "build:full-mem": "react-scripts build",
     "build:low-mem": "set NODE_OPTIONS=--max-old-space-size=2048 && react-scripts build",
     "build:analyze": "npm run build && npx webpack-bundle-analyzer build/static/js/*.js",
     "preview": "npx --yes serve -s build -l 5000",
