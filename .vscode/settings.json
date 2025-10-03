@@ -3,5 +3,32 @@
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
         "source.fixAll.eslint": "explicit"
-    }
+    },
+    "typescript.preferences.includePackageJsonAutoImports": "off",
+    "typescript.suggest.autoImports": false,
+    "typescript.disableAutomaticTypeAcquisition": true,
+    "files.watcherExclude": {
+        "**/node_modules/**": true,
+        "**/build/**": true,
+        "**/dist/**": true,
+        "**/.git/**": true,
+        "**/.tsbuildinfo": true
+    },
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/build": true,
+        "**/dist": true,
+        "**/.tsbuildinfo": true
+    },
+    "files.exclude": {
+        "**/.tsbuildinfo": true
+    },
+    "extensions.autoUpdate": false,
+    "extensions.autoCheckUpdates": false,
+    "workbench.settings.enableNaturalLanguageSearch": false,
+    "workbench.enableExperiments": false,
+    "telemetry.telemetryLevel": "off",
+    "npm.fetchOnlinePackageInfo": false,
+    "terminal.integrated.enablePersistentSessions": false,
+    "explorer.incrementalNaming": "disabled"
 }
