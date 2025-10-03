@@ -22,7 +22,7 @@ Act as a proactive development assistant:
 - Always respect licensing and ensure compatibility with our MIT-style project
 
 ## Project Overview
-World Engine is a React-based character creation system with a simple PNG portrait generation system. It manages fantasy characters across three worlds (Verdance, Ashenreach, Skyvault) with species-specific archetypes and automated visual generation.
+World Engine is a React-based fantasy RPG with an integrated character creation system, tactical hex-based combat, and automated portrait generation. It features a comprehensive battle system using professional canvas rendering with Honeycomb Grid integration for smooth pan/zoom interactions.
 
 ## Architecture
 
@@ -31,6 +31,38 @@ World Engine is a React-based character creation system with a simple PNG portra
 - **Game Data**: `src/defaultWorlds.ts` - Class definitions with stat modifiers, abilities, equipment, and faction mappings
 - **Species**: Human, Sylvanborn, Nightborn, Stormcaller, Crystalborn, Draketh, Alloy, Voidkin
 - **Archetypes**: World-specific classes (Greenwarden, Thorn Knight, Ashblade, etc.)
+
+### Battle System (`src/battle/`) ✅ IMPLEMENTED
+**Professional hex-based tactical combat with modern canvas rendering**
+
+#### Core Components
+- **HexStage.tsx**: Professional canvas wrapper with pointer events, drag-to-pan, wheel zoom
+- **HoneycombRenderer.tsx**: Modern hex grid renderer using Honeycomb Grid library
+- **RendererComparison.tsx**: Side-by-side testing tool for renderer comparison
+- **types.ts**: Battle state interfaces, hex coordinates, unit definitions
+- **engine.ts**: Battle logic, turn management, combat resolution
+- **factory.ts**: Battle state creation and unit generation
+
+#### Key Features
+- **Hex Coordinates**: Axial (q,r) storage with cube math for distance/LOS calculations
+- **Professional Canvas**: Drag-to-pan only while mouse down, wheel zoom without page scroll
+- **No-Scroll Hover**: Page stays stable during mouse hover over battle map
+- **Honeycomb Grid**: Modern TypeScript hex grid library with optimized coordinate conversion
+- **Phase System**: Setup → HeroTurn → UnitsTurn → EnemyTurn with proper state management
+- **Camera Persistence**: Pan/zoom state maintained across interactions and re-renders
+
+#### CSS Integration
+```css
+.map-root {
+  overflow: hidden;
+  overscroll-behavior: none;   /* Prevent scroll chaining */
+}
+
+.map-canvas {
+  touch-action: none;          /* Disable browser touch gestures */
+  cursor: grab;
+}
+```
 
 ### Portrait System (`src/visuals/`)
 **Current Active System**: Simple PNG layered portrait generation
@@ -56,12 +88,35 @@ Key features:
 npm run build                    # Production build
 npm run preview                  # Static server at :5000
 npm run preview:ps -- -Port 6000 # PowerShell helper with custom port
+npm start                        # Development server at localhost:3000
+```
+
+### Battle System Testing
+```bash
+# Navigate to battle mockup at localhost:3000/World-Engine
+# Use renderer dropdown: Original | Honeycomb | Comparison
+# Test drag-to-pan, wheel zoom, hex interaction
 ```
 
 ### Portrait System
 ```bash
 npm run portraits:update  # Regenerate manifest.json from SVG assets
 npm run portraits:test   # Test portrait generation
+```
+
+### Canvas Integration
+Battle system uses professional canvas wrapper pattern:
+```tsx
+import HexStage from './HexStage';
+
+<HexStage
+  init={(ctx, canvas) => { /* Initialize */ }}
+  onRender={(ctx, t) => { /* Render loop */ }}
+  pan={(dx, dy) => { /* Handle pan */ }}
+  zoom={(delta, cx, cy) => { /* Handle zoom */ }}
+  onClick={(x, y) => { /* Handle click */ }}
+  onHover={(x, y) => { /* Handle hover */ }}
+/>
 ```
 
 ### Character Integration
@@ -112,13 +167,20 @@ Legacy SVG assets preserved in `public/assets/portraits/` for future use.
 - PNG optimization and canvas-based composition
 
 ## Testing
+- Navigate to `/battle-mockup` for comprehensive battle system testing  
+- Use renderer dropdown to compare Original vs Honeycomb vs Side-by-side
+- Test drag-to-pan (mouse down + drag), wheel zoom, hex hover/click
 - Navigate to `/portrait-test` for comprehensive portrait system testing
 - Use `DevTools.testPortraitGeneration()` in console for quick tests
 - Character creation has live validation and real-time portrait updates
 
 ## Critical Files
+- `src/battle/components/HexStage.tsx`: Professional canvas wrapper for maps
+- `src/battle/components/HoneycombRenderer.tsx`: Modern hex grid renderer
+- `src/battle/types.ts`: Battle system TypeScript interfaces
 - `src/visuals/types.ts`: Core interfaces for the visual system
 - `src/components/CharacterCreate.tsx`: Main character builder UI
+- `src/index.css`: Global CSS including map canvas styles
 - `PORTRAIT_SYSTEM.md`: Detailed portrait system documentation
 - `public/assets/portraits-new/catalog.json`: Asset catalog (auto-generated)
 
@@ -136,7 +198,32 @@ Legacy SVG assets preserved in `public/assets/portraits/` for future use.
   * Keep battle data pure (no rendering calls).
   * Keep visuals swappable: 2D canvas now, 3D renderer later.
 
-## Phase 1 — World Map: Hex Upgrade (from squares → hexes)
+## Phase 1 — Professional Canvas & Interaction ✅ COMPLETE
+
+* **HexStage Canvas Wrapper**
+  * Pointer events with `setPointerCapture` for smooth drag operations
+  * Wheel zoom without page scrolling using non-passive listeners
+  * Touch gesture prevention with `touch-action: none`
+  * Middle-click autoscroll blocking and context menu prevention
+  * Device pixel ratio support for crisp rendering on high-DPI displays
+* **Honeycomb Grid Integration**
+  * Modern TypeScript hex grid library with optimized coordinate conversion
+  * Professional hex-to-pixel and pixel-to-hex coordinate math
+  * Built-in grid bounds calculation and centering
+  * Efficient hex neighbor and distance calculations
+* **Camera System**
+  * Persistent pan/zoom state across interactions and re-renders
+  * Cursor-centered zoom with proper coordinate conversion
+  * Smooth drag-to-pan only while mouse is pressed down
+  * No unwanted camera resets on component re-renders
+* **CSS Integration**
+  * `.map-root` with `overscroll-behavior: none` to prevent scroll chaining
+  * `.map-canvas` with `touch-action: none` to disable browser gestures
+  * Proper cursor states: `grab` → `grabbing` during drag operations
+
+## Phase 2 — World Map: Hex Upgrade (from squares → hexes)
+
+## Phase 2 — World Map: Hex Upgrade (from squares → hexes)
 
 * **Hex render & input**
   * Pointy-top or flat-top decision (recommend **pointy-top** for nicer roads).
@@ -153,7 +240,9 @@ Legacy SVG assets preserved in `public/assets/portraits/` for future use.
 * **Encounter hooks**
   * On entering an "encounter hex" spawn a battle context (biome/site, enemy group seed).
 
-## Phase 2 — Battlefields on Hexes
+## Phase 3 — Battlefields on Hexes
+
+## Phase 3 — Battlefields on Hexes
 
 * **Battlefield generator (hex)**
   * Input: `{seed, biome, site, weather}`.
@@ -168,7 +257,9 @@ Legacy SVG assets preserved in `public/assets/portraits/` for future use.
   * **Cone** = fan from origin along facing dir (store 6 dirs).
   * **Line** = step along direction up to range; stop on block.
 
-## Phase 3 — Units, Hero (Commander), Abilities
+## Phase 4 — Units, Hero (Commander), Abilities
+
+## Phase 4 — Units, Hero (Commander), Abilities
 
 * **Unit schema (hex-ready)**
   * `pos: {q,r}`, `facing: 0..5`, `stats {hp,maxHp,atk,def,mag,res,spd,rng,move}`, `skills: string[]`, `statuses[]`.
@@ -192,7 +283,9 @@ Legacy SVG assets preserved in `public/assets/portraits/` for future use.
   * `EnemyTurn`: simple AI (approach nearest; use best available ability).
   * Rebuild initiative each round; victory/defeat checks.
 
-## Phase 4 — Battle UI/UX (Top-Down Now)
+## Phase 5 — Battle UI/UX (Top-Down Now)
+
+## Phase 5 — Battle UI/UX (Top-Down Now)
 
 * **Hex canvas renderer**
   * Draw hex grid with biome-based palette, cover/hazard symbols, deployment highlights.
@@ -210,7 +303,9 @@ Legacy SVG assets preserved in `public/assets/portraits/` for future use.
   * Tooltips for abilities (range, shape, cooldown, friendly fire).
   * "Your first battle" tips (inline callouts) for new players.
 
-## Phase 5 — Onboarding & "Playable for New Players"
+## Phase 6 — Onboarding & "Playable for New Players"
+
+## Phase 6 — Onboarding & "Playable for New Players"
 
 * **Main menu + New Game**
   * Start: create **Hero** (name, race, class, 2–3 starter abilities), seed set.
@@ -226,7 +321,9 @@ Legacy SVG assets preserved in `public/assets/portraits/` for future use.
 * **Saves**
   * Save after battle: hero stats, roster (alive/dead), gold, map reveal, quest flags.
 
-## Phase 6 — Near-Future Improvements (short horizon, high impact)
+## Phase 7 — Near-Future Improvements (short horizon, high impact)
+
+## Phase 7 — Near-Future Improvements (short horizon, high impact)
 
 * **Elevation & true LOS** (hex heights): partial cover, high-ground bonuses, fall damage on shove.
 * **Status depth**: stun/root/slow/bleed/burn/poison with icons & end-of-turn ticks.
@@ -239,7 +336,9 @@ Legacy SVG assets preserved in `public/assets/portraits/` for future use.
 * **Controller support** (navigable hex cursor).
 * **Accessibility**: colorblind palettes; text size; reduced motion toggle.
 
-## Phase 7 — 3D-Ready Hooks (no visuals yet)
+## Phase 8 — 3D-Ready Hooks (no visuals yet)
+
+## Phase 8 — 3D-Ready Hooks (no visuals yet)
 
 * **Renderer abstraction**: current React component uses `IBattleRenderer` interface; implement `CanvasHexRenderer` now, `ThreeHexRenderer` later.
 * **Animation model**: units expose action events (`move,start_cast,hit,die`) → renderer listens; skeletal clips in 3D later.
