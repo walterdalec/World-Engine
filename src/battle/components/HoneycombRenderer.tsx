@@ -54,17 +54,20 @@ export function HoneycombBattleCanvas({
 
     useEffect(() => {
         const canvas = canvasRef.current;
-        if (!canvas) return;
+        const container = containerRef.current;
+        if (!canvas || !container) return;
 
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        // Responsive canvas sizing
-        const container = containerRef.current;
-        if (container) {
-            const rect = container.getBoundingClientRect();
-            canvas.width = rect.width;
-            canvas.height = rect.height;
+        // Stable canvas sizing - only resize when container dimensions actually change
+        const rect = container.getBoundingClientRect();
+        const newWidth = Math.floor(rect.width);
+        const newHeight = Math.floor(rect.height);
+
+        if (canvas.width !== newWidth || canvas.height !== newHeight) {
+            canvas.width = newWidth;
+            canvas.height = newHeight;
         }
 
         // Clear and setup transform
@@ -151,53 +154,64 @@ export function HoneycombBattleCanvas({
         }
 
         ctx.restore();
-    }, [state, selectedUnit, targetHex, hoveredHex, showGrid, scale, offset, grid]);
+    }, [state, selectedUnit, targetHex, hoveredHex, showGrid, scale, offset]);
 
     // Handle mouse events with Honeycomb's built-in pixel-to-hex conversion
     const handleMouseEvent = useCallback((event: React.MouseEvent, eventType: 'click' | 'move') => {
         const canvas = canvasRef.current;
         if (!canvas) return;
 
+        // Prevent any default behavior that might cause scrolling
+        event.preventDefault();
+        event.stopPropagation();
+
         const rect = canvas.getBoundingClientRect();
 
-        // Get mouse position relative to canvas
-        const canvasX = event.clientX - rect.left;
-        const canvasY = event.clientY - rect.top;
+        // Get mouse position relative to canvas with bounds checking
+        const canvasX = Math.max(0, Math.min(canvas.width, event.clientX - rect.left));
+        const canvasY = Math.max(0, Math.min(canvas.height, event.clientY - rect.top));
 
-        // Convert to world coordinates by reversing the canvas transforms
-        // First, adjust for canvas center and offset
-        const worldX = (canvasX - canvas.width / 2 - offset.x) / scale;
-        const worldY = (canvasY - canvas.height / 2 - offset.y) / scale;
+        try {
+            // Convert to world coordinates by reversing the canvas transforms
+            // First, adjust for canvas center and offset
+            const worldX = (canvasX - canvas.width / 2 - offset.x) / scale;
+            const worldY = (canvasY - canvas.height / 2 - offset.y) / scale;
 
-        // Then adjust for grid centering (undo the grid translation)
-        const gridWidth = grid.pixelWidth;
-        const gridHeight = grid.pixelHeight;
-        const adjustedX = worldX + gridWidth / 2;
-        const adjustedY = worldY + gridHeight / 2;
+            // Then adjust for grid centering (undo the grid translation)
+            const gridWidth = grid.pixelWidth;
+            const gridHeight = grid.pixelHeight;
+            const adjustedX = worldX + gridWidth / 2;
+            const adjustedY = worldY + gridHeight / 2;
 
-        // Use Honeycomb's pointToHex conversion
-        const hex = grid.pointToHex({ x: adjustedX, y: adjustedY });
+            // Use Honeycomb's pointToHex conversion
+            const hex = grid.pointToHex({ x: adjustedX, y: adjustedY });
 
-        if (hex) {
-            const pos = getHexPosition(hex);
+            if (hex) {
+                const pos = getHexPosition(hex);
 
-            // Check if within grid bounds
-            if (pos.q >= 0 && pos.q < state.grid.width && pos.r >= 0 && pos.r < state.grid.height) {
-                if (eventType === 'click' && onTileClick) {
-                    onTileClick(pos);
-                } else if (eventType === 'move') {
-                    // Only update if the hex has actually changed
-                    if (!hoveredHex || hoveredHex.q !== pos.q || hoveredHex.r !== pos.r) {
-                        setHoveredHex(pos);
+                // Check if within grid bounds
+                if (pos.q >= 0 && pos.q < state.grid.width && pos.r >= 0 && pos.r < state.grid.height) {
+                    if (eventType === 'click' && onTileClick) {
+                        onTileClick(pos);
+                    } else if (eventType === 'move') {
+                        // Only update if the hex has actually changed
+                        if (!hoveredHex || hoveredHex.q !== pos.q || hoveredHex.r !== pos.r) {
+                            setHoveredHex(pos);
+                        }
                     }
+                } else if (eventType === 'move') {
+                    setHoveredHex(null);
                 }
             } else if (eventType === 'move') {
                 setHoveredHex(null);
             }
-        } else if (eventType === 'move') {
-            setHoveredHex(null);
+        } catch (error) {
+            // Silently handle any coordinate conversion errors
+            if (eventType === 'move') {
+                setHoveredHex(null);
+            }
         }
-    }, [grid, scale, offset, state.grid.width, state.grid.height, onTileClick, getHexPosition]);
+    }, [grid, scale, offset, state.grid.width, state.grid.height, onTileClick, getHexPosition, hoveredHex]);
 
     const handleClick = useCallback((event: React.MouseEvent) => {
         handleMouseEvent(event, 'click');
@@ -226,14 +240,15 @@ export function HoneycombBattleCanvas({
     }, []);
 
     return (
-        <div ref={containerRef} className="relative w-full h-full bg-gray-900">
+        <div ref={containerRef} className="relative w-full h-full bg-gray-900 overflow-hidden">
             <canvas
                 ref={canvasRef}
                 onClick={handleClick}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
                 onWheel={handleWheel}
-                className="w-full h-full cursor-pointer"
+                className="w-full h-full cursor-pointer touch-none"
+                style={{ touchAction: 'none', userSelect: 'none' }}
             />
 
             {/* Battle info overlay */}
