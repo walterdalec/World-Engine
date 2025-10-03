@@ -12,6 +12,7 @@ export interface Unit {
     maxHp: number;
     atk: number;
     def: number;
+    spd: number;            // speed for initiative order
     defended?: boolean;     // set when Defend is used (reset next turn)
     alive?: boolean;
     // Add missing properties for compatibility

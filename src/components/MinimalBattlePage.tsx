@@ -8,12 +8,12 @@ import { SimpleBattleHUD } from '../battle/SimpleBattleHUD';
 import SimpleBattleStage from '../battle/SimpleBattleStage';
 import { Unit } from '../battle/simple-types';
 
-// Create sample units for testing
+// Create sample units for testing - with varied speed for proper initiative
 const createSampleUnits = (): Unit[] => [
-    { id: "p1", name: "Dale", team: "player", q: 0, r: 0, move: 4, hp: 10, maxHp: 10, atk: 4, def: 1 },
-    { id: "p2", name: "Kaelen", team: "player", q: 1, r: 1, move: 3, hp: 10, maxHp: 10, atk: 3, def: 2 },
-    { id: "e1", name: "Bandit", team: "enemy", q: 3, r: 0, move: 3, hp: 8, maxHp: 8, atk: 3, def: 1 },
-    { id: "e2", name: "Raider", team: "enemy", q: 2, r: -1, move: 3, hp: 8, maxHp: 8, atk: 2, def: 2 },
+    { id: "p1", name: "Dale", team: "player", q: 0, r: 0, move: 4, hp: 10, maxHp: 10, atk: 4, def: 1, spd: 5 },
+    { id: "p2", name: "Kaelen", team: "player", q: 1, r: 1, move: 3, hp: 10, maxHp: 10, atk: 3, def: 2, spd: 4 },
+    { id: "e1", name: "Bandit", team: "enemy", q: 3, r: 0, move: 3, hp: 8, maxHp: 8, atk: 3, def: 1, spd: 6 },
+    { id: "e2", name: "Raider", team: "enemy", q: 2, r: -1, move: 3, hp: 8, maxHp: 8, atk: 2, def: 2, spd: 3 },
 ];
 
 export function MinimalBattlePage() {

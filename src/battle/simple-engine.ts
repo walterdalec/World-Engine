@@ -8,7 +8,9 @@ export class GameEngine {
     constructor(initialUnits: Unit[], bounds: Bounds = { qMin: -8, qMax: 8, rMin: -8, rMax: 8 }) {
         const units: Record<string, Unit> = {};
         for (const u of initialUnits) units[u.id] = { ...u, alive: u.alive ?? true };
-        const order = initialUnits.map(u => u.id);
+
+        // Build proper initiative order based on speed (like the main battle engine)
+        const order = this.buildInitiativeOrder(Object.values(units));
 
         this.state = {
             units,
@@ -21,6 +23,15 @@ export class GameEngine {
             pathPreview: {},
             worldBounds: bounds,
         };
+    }
+
+    // Speed-based initiative system (borrowed from main battle engine)
+    private buildInitiativeOrder(units: Unit[]): string[] {
+        const livingUnits = units.filter(u => u.alive);
+        // Higher SPD acts earlier; stable sort by spd desc, then name
+        return livingUnits
+            .sort((a, b) => (b.spd - a.spd) || a.name.localeCompare(b.name))
+            .map(u => u.id);
     }
 
     get current(): Unit { return this.state.units[this.state.selectedUnitId]; }
@@ -40,14 +51,24 @@ export class GameEngine {
 
     endTurn() {
         console.log(`🔄 ${this.current.name} ending turn...`);
-        // reset flags on current (next unit will be selected)
+
+        // Move to next unit in initiative order
         this.advanceToNextLiving();
         const u = this.current;
         console.log(`➡️ Next turn: ${u.name} (${u.team})`);
+
+        // Reset unit state for new turn
         u.defended = false;
         this.state.phase = "awaitAction";
         this.state.reachable.clear();
         this.state.pathPreview = {};
+
+        // If we've completed a full round, rebuild initiative order
+        if (this.state.turnIndex === 0) {
+            console.log(`🔄 New round ${this.state.round}: rebuilding initiative order`);
+            this.state.order = this.buildInitiativeOrder(Object.values(this.state.units));
+            this.state.selectedUnitId = this.state.order[0];
+        }
     }
 
     wait() {
