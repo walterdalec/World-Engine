@@ -11,6 +11,10 @@ export class GameEngine {
 
         // Build proper initiative order based on speed (like the main battle engine)
         const order = this.buildInitiativeOrder(Object.values(units));
+        console.log(`🎯 Initial initiative order: ${order.map(id => {
+            const unit = units[id];
+            return `${unit.name}(SPD:${unit.spd})`;
+        }).join(' → ')}`);
 
         this.state = {
             units,
@@ -40,35 +44,69 @@ export class GameEngine {
     private advanceToNextLiving() {
         const st = this.state;
         let tries = 0;
+        const maxTries = st.order.length * 2; // Safety limit to prevent infinite loops
+
         do {
             st.turnIndex = (st.turnIndex + 1) % st.order.length;
-            if (st.turnIndex === 0) st.round++;
             st.selectedUnitId = st.order[st.turnIndex];
             tries++;
-            if (tries > st.order.length) break;
-        } while (!this.state.units[st.selectedUnitId].alive);
+
+            // Safety check: if we've tried too many times, rebuild initiative
+            if (tries >= maxTries) {
+                console.log(`⚠️ Turn advancement stuck, rebuilding initiative order`);
+                st.order = this.buildInitiativeOrder(Object.values(st.units));
+                st.turnIndex = 0;
+                st.selectedUnitId = st.order[0];
+                break;
+            }
+        } while (!this.state.units[st.selectedUnitId]?.alive && st.order.length > 0);
+
+        // If no living units found, something is wrong
+        if (!this.state.units[st.selectedUnitId]?.alive) {
+            console.log(`❌ No living units found! Current order:`, st.order);
+        }
     }
 
     endTurn() {
         console.log(`🔄 ${this.current.name} ending turn...`);
 
+        // Store current index before advancing
+        const prevIndex = this.state.turnIndex;
+
         // Move to next unit in initiative order
         this.advanceToNextLiving();
+
+        // Check if we've completed a full round (wrapped around to start)
+        if (this.state.turnIndex <= prevIndex || this.state.turnIndex === 0) {
+            this.state.round++;
+            console.log(`🔄 New round ${this.state.round}: rebuilding initiative order`);
+
+            // Rebuild initiative order to handle dead units
+            const newOrder = this.buildInitiativeOrder(Object.values(this.state.units));
+
+            if (newOrder.length === 0) {
+                console.log(`🏁 No living units, battle should end`);
+                return;
+            }
+
+            this.state.order = newOrder;
+            this.state.turnIndex = 0;
+            this.state.selectedUnitId = this.state.order[0];
+        }
+
         const u = this.current;
-        console.log(`➡️ Next turn: ${u.name} (${u.team})`);
+        if (!u) {
+            console.log(`❌ No current unit found!`);
+            return;
+        }
+
+        console.log(`➡️ Next turn: ${u.name} (${u.team}) - Turn ${this.state.turnIndex + 1}/${this.state.order.length}`);
 
         // Reset unit state for new turn
         u.defended = false;
         this.state.phase = "awaitAction";
         this.state.reachable.clear();
         this.state.pathPreview = {};
-
-        // If we've completed a full round, rebuild initiative order
-        if (this.state.turnIndex === 0) {
-            console.log(`🔄 New round ${this.state.round}: rebuilding initiative order`);
-            this.state.order = this.buildInitiativeOrder(Object.values(this.state.units));
-            this.state.selectedUnitId = this.state.order[0];
-        }
     }
 
     wait() {
