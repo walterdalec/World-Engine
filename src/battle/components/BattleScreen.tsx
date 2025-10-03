@@ -18,7 +18,16 @@ interface BattleScreenProps {
 }
 
 function cloneState(state: BattleState): BattleState {
-    return JSON.parse(JSON.stringify(state));
+    // Deep clone with proper typing to maintain Unit interface
+    const cloned = JSON.parse(JSON.stringify(state)) as BattleState;
+
+    // Ensure all units have isDead property (in case of partial data)
+    cloned.units = cloned.units.map(unit => ({
+        ...unit,
+        isDead: unit.isDead ?? false // Fallback for any missing isDead
+    }));
+
+    return cloned;
 }
 
 export function BattleScreen({ initialState, onExit }: BattleScreenProps) {
