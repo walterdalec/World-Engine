@@ -9,6 +9,7 @@
  * - Save/load functionality
  */
 
+import { storage } from "../services/storage";
 import { ChunkManager, Tile, WorldGenConfig, CHUNK_SIZE } from '../../proc/chunks';
 import { SeededRandom, WorldNoise, ValueNoise2D } from '../../proc/noise';
 import { ChokepointManager, Chokepoint, Fortification, RegionData } from '../../proc/chokepoints';
@@ -160,14 +161,14 @@ export class WorldEngine {
   private magicalSpells!: MagicalSpellsGenerator;
   private rng!: SeededRandom;
   public state!: GameState;
-  private loadedFromSave: boolean = false; // Track if loaded from localStorage
+  private loadedFromSave: boolean = false; // Track if loaded from storage.local
 
   constructor(seed?: string, config?: Partial<EngineConfig>) {
-    // Try to load existing game from localStorage first
-    const existingSave = localStorage.getItem('world-engine-save');
+    // Try to load existing game from storage.local first
+    const existingSave = storage.local.getItem('world-engine-save');
     if (existingSave) {
       try {
-        console.log('Found existing save, loading from localStorage...');
+        console.log('Found existing save, loading from storage.local...');
         const success = this.loadFromStorage(existingSave);
         if (success) {
           console.log('Successfully loaded existing game!');
@@ -176,7 +177,7 @@ export class WorldEngine {
         }
       } catch (error) {
         console.warn('Failed to load existing save, creating new game:', error);
-        localStorage.removeItem('world-engine-save'); // Clear corrupted save
+        storage.local.removeItem('world-engine-save'); // Clear corrupted save
       }
     }
 
@@ -311,7 +312,7 @@ export class WorldEngine {
   }
 
   /**
-   * Load game state from localStorage
+   * Load game state from storage.local
    */
   private loadFromStorage(saveData: string): boolean {
     try {
@@ -357,13 +358,13 @@ export class WorldEngine {
   }
 
   /**
-   * Auto-save to localStorage
+   * Auto-save to storage.local
    */
   private autoSave(): void {
     try {
       const saveData = this.save();
-      localStorage.setItem('world-engine-save', saveData);
-      console.log('Game auto-saved to localStorage');
+      storage.local.setItem('world-engine-save', saveData);
+      console.log('Game auto-saved to storage.local');
     } catch (error) {
       console.error('Failed to auto-save game:', error);
     }

@@ -122,3 +122,16 @@ export function setStorageProvider(provider: StorageProvider): void {
 export function resetStorageProvider(): void {
   currentProvider = defaultProvider;
 }
+
+export function storageAreaToWebStorage(area: StorageArea): Storage {
+  return {
+    getItem: area.getItem.bind(area),
+    setItem: area.setItem.bind(area),
+    removeItem: area.removeItem.bind(area),
+    clear: area.clear.bind(area),
+    key: (_: number) => null,
+    get length() {
+      return 0;
+    }
+  } as unknown as Storage;
+}

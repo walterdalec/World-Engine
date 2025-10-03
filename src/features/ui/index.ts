@@ -5,5 +5,6 @@ export { default as GameHUD } from './GameHUD';
 export { default as GameModals } from './GameModals';
 export { ErrorBoundary } from './ErrorBoundary';
 export { default as DevPanel } from './DevPanel';
+export { default as VersionDisplay } from './VersionDisplay';
 export { WorldSetupScreen } from '../world/WorldSetupScreen';
 export * from './helpers';

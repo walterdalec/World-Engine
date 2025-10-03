@@ -42,6 +42,27 @@ npm run dist:linux  # Linux AppImage
 .\build-desktop.ps1
 ```
 
+### 🔄 Auto-Update System
+
+**Automatic Updates:**
+- App checks for updates on startup and in background
+- Downloads happen automatically with progress indicators
+- Users get notified when updates are ready to install
+- One-click update process with app restart
+
+**Manual Update Check:**
+- Help → Check for Updates (force check anytime)
+- Help → Version Info (see current version and build details)
+
+**For Developers:**
+```bash
+# Release new version with auto-update
+.\release.ps1 patch -ReleaseNotes "Bug fixes and improvements"
+
+# Emergency hotfix
+.\hotfix.ps1 "Fixed critical save game issue"
+```
+
 ### 🎮 Desktop Features
 
 **Application Menu:**

@@ -4,6 +4,7 @@
   "private": true,
   "homepage": "https://walterdalec.github.io/World-Engine",
   "dependencies": {
+    "electron-updater": "^6.6.2",
     "framer-motion": "^12.23.22",
     "honeycomb-grid": "^4.1.5",
     "konva": "^10.0.2",
@@ -34,6 +35,13 @@
     "dist:win": "npm run build && electron-builder --win",
     "dist:mac": "npm run build && electron-builder --mac",
     "dist:linux": "npm run build && electron-builder --linux",
+    "release": "npm run build && electron-builder --publish=always",
+    "release:win": "npm run build && electron-builder --win --publish=always",
+    "release:draft": "npm run build && electron-builder --publish=onTagOrDraft",
+    "version:patch": "npm version patch",
+    "version:minor": "npm version minor",
+    "version:major": "npm version major",
+    "version:prerelease": "npm version prerelease --preid=beta",
     "test": "react-scripts test --env=jsdom",
     "test:coverage": "react-scripts test --coverage --watchAll=false",
     "eject": "react-scripts eject",
@@ -66,13 +74,19 @@
       "electron.js",
       "node_modules/**/*"
     ],
+    "publish": {
+      "provider": "github",
+      "owner": "walterdalec",
+      "repo": "World-Engine"
+    },
     "mac": {
       "category": "public.app-category.games",
       "target": "dmg"
     },
     "win": {
       "target": "nsis",
-      "icon": "public/favicon.ico"
+      "icon": "public/favicon.ico",
+      "publisherName": "World Engine Games"
     },
     "linux": {
       "target": "AppImage",
@@ -82,7 +96,10 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
+      "createStartMenuShortcut": true,
+      "allowElevation": true,
+      "installerIcon": "public/favicon.ico",
+      "uninstallerIcon": "public/favicon.ico"
     }
   },
   "browserslist": {

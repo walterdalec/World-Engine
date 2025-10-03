@@ -1,8 +1,51 @@
-const { app, BrowserWindow, Menu } = require('electron');
+const { app, BrowserWindow, Menu, dialog, shell, ipcMain } = require('electron');
+const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const isDev = require('electron-is-dev');
 
 let mainWindow;
+
+// Configure auto-updater
+autoUpdater.checkForUpdatesAndNotify();
+
+// Auto-updater events
+autoUpdater.on('checking-for-update', () => {
+    console.log('Checking for update...');
+});
+
+autoUpdater.on('update-available', (info) => {
+    console.log('Update available:', info.version);
+    if (mainWindow) {
+        mainWindow.webContents.send('update-available', info);
+    }
+});
+
+autoUpdater.on('update-not-available', (info) => {
+    console.log('Update not available:', info.version);
+});
+
+autoUpdater.on('error', (err) => {
+    console.log('Error in auto-updater:', err);
+});
+
+autoUpdater.on('download-progress', (progressObj) => {
+    console.log(`Download progress: ${progressObj.percent}%`);
+    if (mainWindow) {
+        mainWindow.webContents.send('download-progress', progressObj);
+    }
+});
+
+autoUpdater.on('update-downloaded', (info) => {
+    console.log('Update downloaded:', info.version);
+    if (mainWindow) {
+        mainWindow.webContents.send('update-downloaded', info);
+    }
+});
+
+// IPC handlers
+ipcMain.on('restart-app', () => {
+    autoUpdater.quitAndInstall();
+});
 
 function createWindow() {
     // Create the browser window
@@ -141,9 +184,35 @@ function createMenu() {
             label: 'Help',
             submenu: [
                 {
+                    label: 'Check for Updates',
+                    click: () => {
+                        autoUpdater.checkForUpdatesAndNotify();
+                    }
+                },
+                {
+                    label: 'Version Info',
+                    click: () => {
+                        const version = app.getVersion();
+                        const electronVersion = process.versions.electron;
+                        const nodeVersion = process.versions.node;
+                        const chromeVersion = process.versions.chrome;
+
+                        const info = {
+                            version,
+                            electronVersion,
+                            nodeVersion,
+                            chromeVersion,
+                            platform: process.platform,
+                            arch: process.arch
+                        };
+
+                        mainWindow.webContents.send('version-info', info);
+                    }
+                },
+                { type: 'separator' },
+                {
                     label: 'About World Engine',
                     click: () => {
-                        // Could open an about dialog
                         mainWindow.webContents.send('menu-about');
                     }
                 }

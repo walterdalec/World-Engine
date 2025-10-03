@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { storage, storageAreaToWebStorage } from '../core/services/storage';
 import { Character, validateCharacter, createEmptyCharacter } from '../validation/character-simple';
 
 /**
@@ -183,7 +184,7 @@ export const useGameStore = create<GameState>()(
         }),
         {
             name: 'world-engine-game-state',
-            storage: createJSONStorage(() => localStorage),
+            storage: createJSONStorage(() => storageAreaToWebStorage(storage.local)),
             version: 1,
             // Only persist essential data
             partialize: (state) => ({
