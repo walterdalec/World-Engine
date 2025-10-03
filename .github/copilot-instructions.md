@@ -21,6 +21,76 @@ Act as a proactive development assistant:
 - **Look for community solutions** to complex problems before building from scratch
 - Always respect licensing and ensure compatibility with our MIT-style project
 
+## Open-Source Research & Integration (OSRI)
+
+**Purpose:** Define exactly how AI assistants will research, vet, and integrate open-source code to accelerate builds—without risking license conflicts, security issues, or messy glue code.
+
+### Default Policy (assumptions you can override)
+
+* **License posture:** Prefer **permissive** licenses (**MIT, Apache-2.0, BSD, ISC**). Use **MPL-2.0/LGPL** only with clear boundaries. **Avoid GPL/AGPL** unless explicitly approved.
+* **Attribution:** Always credit sources in code comments + a **CREDITS.md** and **THIRD-PARTY-LICENSES.txt**. Respect **Apache NOTICE** requirements.
+* **Integration style:** Wrap external code behind clean interfaces. Pin versions. Add tests before/after integrating.
+* **Security:** Prefer mature, maintained libs. Run basic auditing tools and skim for red flags.
+
+### Research Workflow (what AI will do each time)
+
+1. **Snapshot requirements.** 1–3 sentences: what problem, constraints, perf targets, platform.
+2. **Search plan.** Use multi-site queries (GitHub/GitLab, npm/PyPI/crates.io/Go, Maven Central, Awesome lists). Query patterns:
+   * `"<feature>" <language> library site:github.com stars:>50`
+   * `<framework> <feature> npm`, `pypi <keyword>`, `awesome <topic>`
+   * `"<protocol/standard>" reference implementation`
+3. **Shortlist 3–7 candidates** with comparison table: **Name/Link, License, Stars, Last Release, Maintainers, Activity (90d), Docs, Test coverage/badges, Size, Ecosystem**, quick pros/cons.
+4. **License check & compatibility.** Confirm SPDX tag and obligations (attribution, NOTICE, patents, static vs dynamic linking constraints).
+5. **Quality signals.** Commits trend, issue/PR hygiene, bus factor, CI badges, API stability, versioning policy.
+6. **Security pass.** Look for postinstall scripts, obfuscated blobs, risky dependencies, known CVE badges/issues. Run `npm audit` / `pip-audit` / `cargo audit` / `govulncheck` where applicable.
+7. **API fit + size/perf.** Check tree-shaking, bundle impact, memory/CPU basics, extensibility.
+8. **Recommendation.** Pick 1–2 with rationale and tradeoffs.
+9. **Integration plan.** Steps, wrapper interface, example usage, test plan, rollback plan.
+10. **Attribution artifacts.** Provide code comment blocks, CREDITS entry, and LICENSE notices.
+
+### License Compatibility Cheatsheet
+
+* **Permissive (MIT/Apache-2.0/BSD/ISC)** → Generally safe for proprietary/commercial. **Apache-2.0** includes patent grant; preserve **NOTICE**.
+* **MPL-2.0 (file-level copyleft)** → You must publish changes to MPL-covered files; OK if kept isolated. Good compromise when needed.
+* **LGPL-2.1/3 (weak copyleft)** → Dynamic linking typically OK; changes to the lib must be released. Avoid static linking unless you accept obligations.
+* **GPL-v2/v3 (strong copyleft)** → Derivative works must be GPL; mixing into proprietary core is incompatible. Normally **avoid** for your projects.
+* **AGPL-v3** → Extends copyleft over network use. Usually a **hard no** unless the entire server codebase is open.
+
+> When in doubt, isolate risky code behind a **process or network boundary** (separate service) or propose a clean-room re-implementation.
+
+### Code Attribution Template
+
+```javascript
+// Derived from: <repo URL>@<commit>
+// License: <SPDX>, see /THIRD-PARTY-LICENSES.txt
+// Adaptations: <brief note>
+```
+
+### Retro & Age Policy
+
+**Your preference:** You like old-style games and are fine using older code as long as it functions.
+
+**What changes for research & selection:**
+* **No age penalty.** No downranking projects for having old release dates.
+* **Function-first.** If code meets requirements and license is compatible, it's eligible—regardless of last update.
+* **Stars/activity flexible.** Low stars or quiet repos are acceptable if the code is readable, testable, and passes basic security checks.
+
+**Making older code safe in modern stack:**
+1. **Compatibility check:** Confirm target runtimes (Node 20+, modern browsers) and module format (ESM/CJS), add TypeScript types if missing.
+2. **Containment:** Wrap lib in adapter pattern. For heavy/legacy code, consider Web Worker or process boundary.
+3. **Modernization light-touch:** Add minimal shims/polyfills only when required; avoid invasive rewrites.
+4. **Security pass:** Run ecosystem audits; look for postinstall scripts, bundled binaries, or CVEs; manual skim for unsafe patterns.
+5. **Fork-and-freeze:** If upstream inactive, fork repo, pin commit, keep `/patches` folder + CHANGELOG for fixes.
+6. **Determinism & tests:** Add wrapper-level regression tests so behavior stays stable across updates.
+7. **Bundle & perf budget:** Measure impact; default soft budget ≤50KB brotli per integrated feature.
+8. **Exit plan:** Document how to swap/disable via adapter for quick replacement if needed.
+
+**Defaults assumed unless overridden:**
+* Accept any last-release date
+* Accept low-star libraries if license is clear and code passes audits
+* Prefer **permissive licenses** (MIT/Apache/BSD/ISC); **avoid GPL/AGPL** unless explicitly approved
+* Target: Canvas 2D + WebGL1 friendly where relevant to retro aesthetic
+
 ## Project Overview
 World Engine is a React-based fantasy RPG with an integrated character creation system, tactical hex-based combat, and automated portrait generation. It features a comprehensive battle system using professional canvas rendering with Honeycomb Grid integration for smooth pan/zoom interactions.
 
