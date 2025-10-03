@@ -12,12 +12,12 @@ export interface AIAction {
 // Simple AI that tries to engage the nearest player unit
 export function calculateAIAction(state: BattleState, unitId: string): AIAction | null {
     const unit = state.units.find(u => u.id === unitId);
-    if (!unit || !unit.pos || unit.isDead) {
+    if (!unit || !unit.pos || unit.isDead === true) {
         return null;
     }
 
     const playerUnits = state.units.filter(u =>
-        u.faction === "Player" && !u.isDead && u.pos && !u.isCommander
+        u.faction === "Player" && u.isDead !== true && u.pos && !u.isCommander
     );
 
     if (playerUnits.length === 0) {
@@ -223,7 +223,7 @@ export function calculateAdvancedAIAction(
     personality: "aggressive" | "defensive" | "tactical" = "tactical"
 ): AIAction | null {
     const unit = state.units.find(u => u.id === unitId);
-    if (!unit || !unit.pos || unit.isDead) {
+    if (!unit || !unit.pos || unit.isDead === true) {
         return null;
     }
 

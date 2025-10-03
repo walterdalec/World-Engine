@@ -268,7 +268,7 @@ export function calculateRevivalCost(unit: Unit): number {
 // Helper to get casualties after battle
 export function getCasualties(battleState: BattleState): Unit[] {
     return battleState.units.filter(unit =>
-        unit.isDead && unit.faction === "Player" && !unit.isCommander
+        unit.isDead === true && unit.faction === "Player" && !unit.isCommander
     );
 }
 

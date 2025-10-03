@@ -69,7 +69,8 @@ const mercs: Unit[] = [
         stats: { hp: 12, maxHp: 12, atk: 4, def: 2, mag: 0, res: 1, spd: 4, rng: 1, move: 3 },
         statuses: [],
         skills: [],
-        pos: { q: 2, r: 4 }
+        pos: { q: 2, r: 4 },
+        isDead: false
     },
     {
         id: "m2",
@@ -82,7 +83,8 @@ const mercs: Unit[] = [
         stats: { hp: 8, maxHp: 8, atk: 3, def: 1, mag: 0, res: 1, spd: 5, rng: 3, move: 3 },
         statuses: [],
         skills: [],
-        pos: { q: 2, r: 6 }
+        pos: { q: 2, r: 6 },
+        isDead: false
     },
     {
         id: "m3",
@@ -95,7 +97,8 @@ const mercs: Unit[] = [
         stats: { hp: 6, maxHp: 6, atk: 1, def: 0, mag: 4, res: 2, spd: 3, rng: 2, move: 3 },
         statuses: [],
         skills: [],
-        pos: { q: 1, r: 5 }
+        pos: { q: 1, r: 5 },
+        isDead: false
     }
 ];
 
@@ -111,7 +114,8 @@ const enemies: Unit[] = [
         stats: { hp: 6, maxHp: 6, atk: 2, def: 0, mag: 0, res: 0, spd: 4, rng: 1, move: 3 },
         statuses: [],
         skills: [],
-        pos: { q: 12, r: 5 }
+        pos: { q: 12, r: 5 },
+        isDead: false
     },
     {
         id: "e2",
@@ -124,7 +128,8 @@ const enemies: Unit[] = [
         stats: { hp: 5, maxHp: 5, atk: 2, def: 0, mag: 0, res: 0, spd: 5, rng: 3, move: 3 },
         statuses: [],
         skills: [],
-        pos: { q: 12, r: 7 }
+        pos: { q: 12, r: 7 },
+        isDead: false
     },
     {
         id: "e3",
@@ -137,7 +142,8 @@ const enemies: Unit[] = [
         stats: { hp: 8, maxHp: 8, atk: 1, def: 1, mag: 3, res: 2, spd: 3, rng: 2, move: 3 },
         statuses: [],
         skills: [],
-        pos: { q: 13, r: 6 }
+        pos: { q: 13, r: 6 },
+        isDead: false
     }
 ];
 
