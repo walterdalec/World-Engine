@@ -34,11 +34,13 @@ export function HoneycombBattleCanvas({
     const [scale, setScale] = useState(1);
     const [offset, setOffset] = useState({ x: 0, y: 0 });
 
-    // Create grid using Honeycomb
-    const grid = new Grid(BattleTile, rectangle({
-        width: state.grid.width,
-        height: state.grid.height
-    }));
+    // Create grid using Honeycomb (memoized to prevent recreation)
+    const grid = React.useMemo(() => {
+        return new Grid(BattleTile, rectangle({
+            width: state.grid.width,
+            height: state.grid.height
+        }));
+    }, [state.grid.width, state.grid.height]);
 
     // Convert our hex position to Honeycomb hex
     const getHoneycombHex = useCallback((pos: HexPosition): Hex => {
@@ -149,7 +151,7 @@ export function HoneycombBattleCanvas({
         }
 
         ctx.restore();
-    }, [state, selectedUnit, targetHex, hoveredHex, showGrid, scale, offset, grid, getHoneycombHex, getHexPosition]);
+    }, [state, selectedUnit, targetHex, hoveredHex, showGrid, scale, offset, grid]);
 
     // Handle mouse events with Honeycomb's built-in pixel-to-hex conversion
     const handleMouseEvent = useCallback((event: React.MouseEvent, eventType: 'click' | 'move') => {
@@ -157,14 +159,21 @@ export function HoneycombBattleCanvas({
         if (!canvas) return;
 
         const rect = canvas.getBoundingClientRect();
-        const mouseX = event.clientX - rect.left - canvas.width / 2 - offset.x;
-        const mouseY = event.clientY - rect.top - canvas.height / 2 - offset.y;
 
-        // Adjust for scale and centering
+        // Get mouse position relative to canvas
+        const canvasX = event.clientX - rect.left;
+        const canvasY = event.clientY - rect.top;
+
+        // Convert to world coordinates by reversing the canvas transforms
+        // First, adjust for canvas center and offset
+        const worldX = (canvasX - canvas.width / 2 - offset.x) / scale;
+        const worldY = (canvasY - canvas.height / 2 - offset.y) / scale;
+
+        // Then adjust for grid centering (undo the grid translation)
         const gridWidth = grid.pixelWidth;
         const gridHeight = grid.pixelHeight;
-        const adjustedX = (mouseX / scale) + gridWidth / 2;
-        const adjustedY = (mouseY / scale) + gridHeight / 2;
+        const adjustedX = worldX + gridWidth / 2;
+        const adjustedY = worldY + gridHeight / 2;
 
         // Use Honeycomb's pointToHex conversion
         const hex = grid.pointToHex({ x: adjustedX, y: adjustedY });
@@ -177,9 +186,16 @@ export function HoneycombBattleCanvas({
                 if (eventType === 'click' && onTileClick) {
                     onTileClick(pos);
                 } else if (eventType === 'move') {
-                    setHoveredHex(pos);
+                    // Only update if the hex has actually changed
+                    if (!hoveredHex || hoveredHex.q !== pos.q || hoveredHex.r !== pos.r) {
+                        setHoveredHex(pos);
+                    }
                 }
+            } else if (eventType === 'move') {
+                setHoveredHex(null);
             }
+        } else if (eventType === 'move') {
+            setHoveredHex(null);
         }
     }, [grid, scale, offset, state.grid.width, state.grid.height, onTileClick, getHexPosition]);
 
