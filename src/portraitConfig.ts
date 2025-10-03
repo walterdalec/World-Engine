@@ -59,7 +59,7 @@ export const PORTRAIT_CONFIGS: AllPortraitConfigs = {
         // Female classes
         'Mystic': {
             genderLocked: 'female',
-            imagePath: '/World-Engine/assets/portraits-realistic/human-mystic-female.jpg',
+            imagePath: '/World-Engine/assets/portraits-realistic/human-mystic-female.png',
             description: 'Human spellcaster with elemental magic'
         },
         'Guardian': {
@@ -95,7 +95,7 @@ export const PORTRAIT_CONFIGS: AllPortraitConfigs = {
         // Female classes
         'Mystic': {
             genderLocked: 'female',
-            imagePath: '/World-Engine/assets/portraits-realistic/sylvanborn-mystic-female.jpg',
+            imagePath: '/World-Engine/assets/portraits-realistic/sylvanborn-mystic-female.png',
             description: 'Sylvanborn nature mage with plant magic'
         },
         'Guardian': {
@@ -131,7 +131,7 @@ export const PORTRAIT_CONFIGS: AllPortraitConfigs = {
         // Female classes
         'Mystic': {
             genderLocked: 'female',
-            imagePath: '/World-Engine/assets/portraits-realistic/nightborn-mystic-female.jpg',
+            imagePath: '/World-Engine/assets/portraits-realistic/nightborn-mystic-female.png',
             description: 'Nightborn shadow mage with void magic'
         },
         'Guardian': {
@@ -167,7 +167,7 @@ export const PORTRAIT_CONFIGS: AllPortraitConfigs = {
         // Female classes
         'Mystic': {
             genderLocked: 'female',
-            imagePath: '/World-Engine/assets/portraits-realistic/stormcaller-mystic-female.jpg',
+            imagePath: '/World-Engine/assets/portraits-realistic/stormcaller-mystic-female.png',
             description: 'Stormcaller lightning mage with storm magic'
         },
         'Guardian': {
