@@ -283,3 +283,139 @@ Legacy SVG assets preserved in `public/assets/portraits/` for future use.
 4. HeroTurn command bar (Rally/Meteor Strike) + aura.
 5. Minimal AI + Aftermath (revive).
 6. Tutorial prompts + save/load.
+
+# UI/UX Development Roadmap
+
+## Phase 1 — Fast Wins (Day-one polish)
+
+* **Consistent layout grid**
+  * Adopt a 12-col responsive grid; standardize gaps (8/12/16/24px), radii (8/12), and shadows (xs/sm/md).
+* **Color & theme tokens**
+  * Define `--surface/--surface-2/--text/--text-muted/--accent/--danger` tokens; light/dark-compatible.
+* **Button hierarchy**
+  * Primary (accent), Secondary (outline), Tertiary (ghost). Disable state + loading spinners.
+* **Typography scale**
+  * `display, h1, h2, body, caption, mono` with consistent line-height. One font-family map.
+* **Interaction states**
+  * Hover/active/focus-visible rings everywhere (buttons, tabs, list items, hex cells).
+* **Toasts + inline alerts**
+  * Non-blocking toasts for saves/exports; inline alerts for validation errors.
+* **Universal hotkeys**
+  * `?` opens keymap, `Esc` cancel, `Ctrl+S` save, `G` grid toggle, `L` combat log, `T` end turn.
+
+## Phase 2 — Navigation & Shell
+
+* **Top-level nav**
+  * App shell with persistent header (Game / Characters / Battles / Settings). Breadcrumbs on subpages.
+* **Action bar pattern**
+  * Sticky bottom action bar in creation/battle setup with primary action on the right (e.g., "Start Battle").
+* **Panel layout**
+  * Left: primary work area; Right: contextual inspector (stats, tooltips, logs). Collapsible at <1024px.
+
+## Phase 3 — Character Creation UX
+
+* **Two-column "Builder + Preview"**
+  * Left: form wizard steps (Identity → Stats → Traits → Spells → Review). Right: live preview.
+* **Point-buy meter**
+  * Persistent meter with cost legend and error states (overbudget, below minimum).
+* **Trait chooser chips**
+  * Filterable list; badges for `Automatic / Recommended / Forbidden`. Explain why forbidden on hover.
+* **Spell capacity widget**
+  * Dynamic caps (cantrips/spells) with progress bars; disabled "Add" when capped (tooltip explains).
+* **Save/Load UX**
+  * "Save to Library" modal with thumbnail + tags; "Recent Characters" drawer.
+* **Empty states**
+  * Friendly guidance cards when name/species/class missing (no more void).
+
+## Phase 4 — Hex Battle UI (Top-Down)
+
+* **Battle HUD**
+  * Top: Phase pill (`Hero Turn / Units / Enemy`), Round counter, Objective hint.
+  * Left: Unit list with health bars, status icons, and initiative order (highlight active).
+  * Right: **Command bar** context-aware (unit abilities or Hero commands).
+* **Targeting previews**
+  * Path line with move cost; AOE footprints (blast/cone/line) with valid/invalid coloring; LOS rays on demand (hold `Alt`).
+* **Deployment screen**
+  * Drag-to-place with snap highlighting; illegal tiles are visibly "striped." "Auto-deploy" button.
+* **Combat log v2**
+  * Collapsible panel with icons for damage types; filters (All/Damage/Heals/Status).
+* **End-turn guardrails**
+  * If actions available, confirm dialog with "Don't warn me again this battle."
+* **Status tooltips**
+  * Hover any icon to see effect, remaining turns, and source.
+
+## Phase 5 — Accessibility & Input
+
+* **Keyboard-first**
+  * Tab order maps left→right; arrows move hex cursor; `Enter` confirm; `Backspace` cancel.
+* **Controller ready (scaffold)**
+  * Bumpers cycle targets, D-pad moves cursor, A confirm, B cancel, X ability menu.
+* **Colorblind-safe palette**
+  * Minimum 4.5:1 contrast; redundant shape encodings (e.g., stripes for enemy AOE).
+* **Screen reader labels**
+  * `aria-live` for toasts/log updates; semantic headings in panels.
+* **Motion toggle**
+  * Reduced motion disables screen shake and heavy particle loops.
+
+## Phase 6 — Settings & Persistence
+
+* **Settings modal**
+  * Tabs: Gameplay (tips on/off, confirm end turn), Video (VFX density), Audio (SFX/Music sliders), Accessibility (colorblind, font size, motion).
+* **Per-user prefs**
+  * Save settings to `localStorage` + version key; migrate on breaking changes.
+* **Keybind editor**
+  * Remap and save; display conflicts.
+
+## Phase 7 — Feedback & Onboarding
+
+* **First-time UX beacons**
+  * Pulsing markers on key UI regions with one-line explanations; dismissible.
+* **Inline tutorial steps**
+  * Micro-steps: "Place units → End Setup → Use Hero Command → Move → Attack." Progress at top.
+* **Empty/Loading/Skeleton states**
+  * Skeletons for lists/grids; spinners with specific messages ("Building battlefield…").
+
+## Phase 8 — Performance & Robustness
+
+* **Virtualized lists**
+  * Character library, logs, and long lists use windowing (react-virtual).
+* **Canvas rendering budget**
+  * Batch draws; only repaint changed hexes; throttle hover previews (`requestAnimationFrame`).
+* **Preload strategy**
+  * Preload key sprites/icons at main menu; cache battle UI sprites on encounter reveal.
+
+## Phase 9 — Visual Consistency
+
+* **Icon system**
+  * 24px grid, stroke-only monochrome icons; filled version for alerts/danger.
+* **Damage type colors**
+  * Physical, Fire, Frost, Nature, Shadow, Holy—consistent swatches + legend in log.
+* **Status badge library**
+  * Circular tokens with duration numerals (e.g., 🔥3, 💤1).
+
+## UI Dev Tasks (code implementation)
+
+* Introduce `ui/` design system (buttons, inputs, tabs, panel, toast, tooltip).
+* `useKeymap()` hook with global registry and in-UI cheat sheet.
+* `useCommandBar()` that swaps between Hero and Unit contexts.
+* `useAnnouncements()` for combat log + toast (one source of truth).
+* `HexCursor` component (keyboard/controller navigable) decoupled from mouse.
+* `useSettings()` with schema + migrations; persist to localStorage.
+* `TutorialCoachmarks` primitive (anchor by data-id, step definitions).
+
+## UI QA Checklist (definition of "good UI")
+
+* Nothing requires a mouse: full keyboard path to start/finish a battle.
+* All clickable elements have visible focus rings.
+* Errors explain *how to fix* ("Need 1 more cantrip slot. Raise level or INT/WIS.").
+* No action is destructive without undo or confirm (delete character, end turn with actions left).
+* First-time user can create a hero, recruit two mercs, and win the first fight without external help.
+* 60fps during hover previews on a mid laptop (throttle cost overlays if needed).
+
+## UI Suggested Sprint (one week, shippable UI upgrade)
+
+1. Design tokens + button/input components + toasts.
+2. Battle HUD shell (phase pill, round, objective) + command bar swap.
+3. Deployment screen polish + targeting previews with better colors.
+4. Keymap overlay (`?`) + standard hotkeys + focus rings everywhere.
+5. Settings modal (reduced motion; colorblind palette) + persistence.
