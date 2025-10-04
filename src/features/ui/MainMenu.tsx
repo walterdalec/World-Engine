@@ -61,7 +61,7 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
       const backupSaved = storage.local.getItem('world-engine-campaigns-backup');
 
       if (!primarySaved && backupSaved && campaigns.length > 0) {
-        alert('⚠️ Primary save was missing, but your campaigns were recovered from backup!');
+        alert('Warning: Primary save was missing, but your campaigns were recovered from backup!');
       }
     } catch (error) {
       console.error('Error loading campaigns:', error);
@@ -158,10 +158,10 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
       document.body.removeChild(link);
 
       URL.revokeObjectURL(url);
-      alert('✅ Backup downloaded successfully!');
+      alert('Backup downloaded successfully!');
     } catch (error) {
       console.error('Error downloading backup:', error);
-      alert('❌ Failed to download backup');
+      alert('Failed to download backup');
     }
   };
 
@@ -188,10 +188,12 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
           setCharacters(backup.characters);
         }
 
-        alert(`✅ Backup imported successfully!\nCampaigns: ${backup.campaigns?.length || 0}\nCharacters: ${backup.characters?.length || 0}`);
+        alert(`Backup imported successfully!
+Campaigns: ${backup.campaigns?.length || 0}
+Characters: ${backup.characters?.length || 0}`);
       } catch (error) {
         console.error('Error importing backup:', error);
-        alert('❌ Invalid backup file format');
+        alert('Invalid backup file format');
       }
     };
     reader.readAsText(file);
@@ -215,10 +217,11 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
         }
       }
 
-      alert(`🔄 Recovery attempt completed!\nRecovered ${recovered.length} campaigns`);
+      alert(`Recovery attempt completed!
+Recovered ${recovered.length} campaigns`);
     } catch (error) {
       console.error('Error during recovery:', error);
-      alert('❌ Recovery failed');
+      alert('Recovery failed');
     }
   };
 

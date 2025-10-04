@@ -970,10 +970,10 @@ export default function CharacterCreate() {
               <span>Portrait</span>
               <div style={{ padding: '12px', background: '#1e293b', borderRadius: '8px', border: '1px solid #475569' }}>
                 <div style={{ fontSize: '14px', color: '#e5e7eb', fontWeight: 'bold', marginBottom: '8px' }}>
-                  � Live Portrait Preview
+                  Live Portrait Preview
                 </div>
                 <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '8px' }}>
-                  Your character portrait is generated automatically and displayed in the preview panel →
+                  Your character portrait is generated automatically and displayed in the preview panel.
                 </div>
                 <div style={{ fontSize: '11px', color: '#64748b' }}>
                   Portrait updates live as you change name, species, and class.

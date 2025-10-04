@@ -407,7 +407,7 @@ export default function GameModals({
             overflowY: 'auto'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <h2 style={{ margin: 0, color: '#3b82f6' }}>� Party Characters</h2>
+              <h2 style={{ margin: 0, color: '#3b82f6' }}>Party Characters</h2>
               <button
                 onClick={onCloseCharacterModal}
                 style={{

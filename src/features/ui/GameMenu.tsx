@@ -487,12 +487,12 @@ export default function GameMenu({
         borderBottom: '2px solid #374151',
         backgroundColor: 'rgba(0, 0, 0, 0.3)'
       }}>
-        {[
-          { id: 'stats', label: '📊 Character Stats', icon: '📊' },
-          { id: 'abilities', label: '⚔️ Physical Abilities', icon: '⚔️' },
-          { id: 'spells', label: '✨ Magical Spells', icon: '✨' },
-          { id: 'creation', label: '� Create Character', icon: '�' },
-          { id: 'settings', label: '⚙️ Game Settings', icon: '⚙️' }
+        [
+          { id: 'stats', label: 'Character Stats' },
+          { id: 'abilities', label: 'Physical Abilities' },
+          { id: 'spells', label: 'Magical Spells' },
+          { id: 'creation', label: 'Create Character' },
+          { id: 'settings', label: 'Game Settings' }
         ].map(tab => (
           <button
             key={tab.id}
@@ -510,7 +510,7 @@ export default function GameMenu({
               transition: 'all 0.2s'
             }}
           >
-            {tab.icon} {tab.label.split(' ').slice(1).join(' ')}
+            {tab.label}
           </button>
         ))}
       </div>
@@ -524,7 +524,7 @@ export default function GameMenu({
       }}>
         {activeTab === 'stats' && (
           <div>
-            <h3 style={{ margin: '0 0 20px 0', color: '#3b82f6' }}>📊 Character Statistics</h3>
+            <h3 style={{ margin: '0 0 20px 0', color: '#3b82f6' }}>Character Statistics</h3>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
               {/* Basic Info */}
@@ -629,7 +629,7 @@ export default function GameMenu({
 
         {activeTab === 'abilities' && (
           <div>
-            <h3 style={{ margin: '0 0 20px 0', color: '#4ade80' }}>⚔️ Physical Abilities</h3>
+            <h3 style={{ margin: '0 0 20px 0', color: '#4ade80' }}>Physical Abilities</h3>
 
             {/* Known Abilities */}
             <div style={{ marginBottom: '24px' }}>
@@ -666,7 +666,7 @@ export default function GameMenu({
 
         {activeTab === 'spells' && (
           <div>
-            <h3 style={{ margin: '0 0 20px 0', color: '#8b5cf6' }}>✨ Magical Spells</h3>
+            <h3 style={{ margin: '0 0 20px 0', color: '#8b5cf6' }}>Magical Spells</h3>
 
             {/* Known Spells */}
             <div style={{ marginBottom: '24px' }}>
@@ -703,7 +703,7 @@ export default function GameMenu({
 
         {activeTab === 'creation' && (
           <div>
-            <h3 style={{ margin: '0 0 20px 0', color: '#f59e0b' }}>� Character Creation</h3>
+            <h3 style={{ margin: '0 0 20px 0', color: '#f59e0b' }}>Create Character</h3>
 
             <CharacterCreationForm engine={engine} />
           </div>
@@ -711,7 +711,7 @@ export default function GameMenu({
 
         {activeTab === 'settings' && (
           <div>
-            <h3 style={{ margin: '0 0 20px 0', color: '#6b7280' }}>⚙️ Game Settings</h3>
+            <h3 style={{ margin: '0 0 20px 0', color: '#6b7280' }}>Game Settings</h3>
 
             <div style={{ display: 'grid', gap: '20px' }}>
               <div style={{

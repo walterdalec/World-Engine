@@ -5,15 +5,22 @@ const fs = require('fs');
 const isDev = !app.isPackaged;
 
 const iconPath = (() => {
-    const devIcon = path.join(__dirname, 'resources', 'world-engine.ico');
-    const prodIcon = path.join(process.resourcesPath, 'world-engine.ico');
-    if (isDev && fs.existsSync(devIcon)) {
-        return devIcon;
+    try {
+        const devIcon = path.join(__dirname, 'public', 'logo512.png');
+        const prodIcon = path.join(__dirname, 'public', 'logo512.png');
+
+        if (isDev && fs.existsSync(devIcon)) {
+            return devIcon;
+        }
+        if (!isDev && fs.existsSync(prodIcon)) {
+            return prodIcon;
+        }
+        // Fallback to undefined, Electron will use default icon
+        return undefined;
+    } catch (error) {
+        console.warn('Icon loading error:', error);
+        return undefined;
     }
-    if (!isDev && fs.existsSync(prodIcon)) {
-        return prodIcon;
-    }
-    return path.join(__dirname, 'public', 'logo512.png');
 })();
 
 let mainWindow;
@@ -82,7 +89,9 @@ function createWindow() {
     if (isDev) {
         mainWindow.loadURL('http://localhost:3000');
     } else {
-        mainWindow.loadFile(path.join(__dirname, 'build', 'index.html'));
+        // In production, the build files are at the app root in the asar archive
+        const indexPath = path.join(__dirname, 'index.html');
+        mainWindow.loadFile(indexPath);
     }
 
     // Show window when ready to prevent visual flash

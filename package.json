@@ -73,7 +73,13 @@
       "output": "dist"
     },
     "files": [
-      "build/**/*",
+      {
+        "from": "build",
+        "to": ".",
+        "filter": [
+          "**/*"
+        ]
+      },
       "electron.js",
       "package.json",
       "node_modules/**/*"

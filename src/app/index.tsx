@@ -59,7 +59,7 @@ function App() {
         storage.local.setItem('world-engine-campaigns', JSON.stringify(campaigns));
         storage.session.removeItem('world-engine-emergency-save');
 
-        alert('🚨 Emergency save recovered from previous session!');
+        alert('Emergency save recovered from previous session!');
       } catch (error) {
         console.error('Failed to recover emergency save:', error);
       }
@@ -471,7 +471,7 @@ function App() {
               fontWeight: 'bold'
             }}
           >
-            ← Back to Menu
+            Back to Menu
           </button>
           <CharacterCreate />
         </div>
@@ -495,7 +495,7 @@ function App() {
               fontWeight: 'bold'
             }}
           >
-            ← Back to Menu
+            Back to Menu
           </button>
           <SimplePortraitTest />
         </div>
@@ -519,7 +519,7 @@ function App() {
               fontWeight: 'bold'
             }}
           >
-            ← Back to Menu
+            Back to Menu
           </button>
           <BattleMockup />
         </div>
@@ -543,7 +543,7 @@ function App() {
               fontWeight: 'bold'
             }}
           >
-            ← Back to Menu
+            Back to Menu
           </button>
           <BattlePage />
         </div>
@@ -567,7 +567,7 @@ function App() {
               fontWeight: 'bold'
             }}
           >
-            ← Back to Menu
+            Back to Menu
           </button>
           <MinimalBattlePage />
         </div>
