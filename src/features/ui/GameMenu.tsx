@@ -487,7 +487,7 @@ export default function GameMenu({
         borderBottom: '2px solid #374151',
         backgroundColor: 'rgba(0, 0, 0, 0.3)'
       }}>
-        [
+        {[
           { id: 'stats', label: 'Character Stats' },
           { id: 'abilities', label: 'Physical Abilities' },
           { id: 'spells', label: 'Magical Spells' },

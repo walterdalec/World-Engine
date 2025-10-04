@@ -98,7 +98,7 @@ function generatePlaceholderPortrait(species: string, archetype: string, gender:
     // Add character info
     drawRealisticCharacterInfo(ctx, species, archetype, gender);
 
-    console.log(`� Generated grimdark portrait: ${gender} ${species} ${archetype}`);
+    console.log(`Generated grimdark portrait: ${gender} ${species} ${archetype}`);
     return canvas.toDataURL('image/png');
 }
 
@@ -1256,15 +1256,15 @@ export async function generateSimplePortrait(options: SimplePortraitOptions): Pr
     try {
         const { gender, species, archetype } = options;
 
-        console.log(`� Generating portrait: ${gender} ${species} ${archetype}`);
+        console.log(`Generating portrait: ${gender} ${species} ${archetype}`);
 
         // First, check if we have a realistic image for this combination
         const imagePath = getPortraitImagePath(species, archetype, gender);
-        console.log(`🔍 Portrait lookup: species=${species}, archetype=${archetype}, gender=${gender}`);
-        console.log(`🖼️ Image path result: ${imagePath}`);
+        console.log(`Portrait lookup: species=${species}, archetype=${archetype}, gender=${gender}`);
+        console.log(`Image path result: ${imagePath}`);
 
         if (imagePath) {
-            console.log(`🖼️ Using realistic image: ${imagePath}`);
+            console.log(`Using realistic image: ${imagePath}`);
 
             // Try to load the realistic image
             try {
