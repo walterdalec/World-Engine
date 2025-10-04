@@ -76,6 +76,34 @@ This uses `npx gh-pages` to publish the `build/` folder to the `gh-pages` branch
 - `npm run build` — Production build to `build/`
 - `npm run preview` — Static preview at http://localhost:5000
 
+## Desktop Application
+
+World Engine can be run as a native desktop app using Electron!
+
+**Quick Start:**
+```bash
+npm run electron:dev     # Development mode with hot reload
+npm run electron:build   # Build and run production version
+```
+
+**Build Installers:**
+```bash
+npm run dist:win    # Windows installer (.exe)
+npm run dist:mac    # macOS disk image (.dmg)
+npm run dist:linux  # Linux AppImage
+```
+
+Or use the PowerShell helper on Windows:
+```powershell
+.\build-desktop.ps1
+```
+
+**Important:** Windows installers require either:
+- Building on a Windows machine (recommended), OR
+- Wine installed on Linux/Mac
+
+See [DESKTOP-SETUP.md](DESKTOP-SETUP.md) for complete desktop app documentation.
+
 ## Installable/Offline (PWA-lite)
 
 - In production (build + preview or deployed), a service worker caches the app shell for offline use.
