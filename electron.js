@@ -60,7 +60,7 @@ function createWindow() {
             enableRemoteModule: false,
             webSecurity: true
         },
-        icon: path.join(__dirname, 'public/favicon.ico'),
+        icon: path.join(__dirname, 'public/logo512.png'),
         title: 'World Engine',
         show: false // Don't show until ready
     });
