@@ -20,12 +20,12 @@
   },
   "main": "electron.js",
   "scripts": {
-    "start": "set NODE_OPTIONS=--max-old-space-size=2048 && react-scripts start",
+    "start": "node scripts/run-react-scripts.js start",
     "start:full-mem": "react-scripts start",
-    "start:low-mem": "set NODE_OPTIONS=--max-old-space-size=2048 && react-scripts start",
-    "build": "set NODE_OPTIONS=--max-old-space-size=2048 && react-scripts build && copy electron.js build\\electron.js",
+    "start:low-mem": "node scripts/run-react-scripts.js start",
+    "build": "node scripts/run-react-scripts.js build",
     "build:full-mem": "react-scripts build",
-    "build:low-mem": "set NODE_OPTIONS=--max-old-space-size=2048 && react-scripts build",
+    "build:low-mem": "node scripts/run-react-scripts.js build",
     "build:analyze": "npm run build && npx webpack-bundle-analyzer build/static/js/*.js",
     "preview": "npx --yes serve -s build -l 5000",
     "preview:ps": "powershell -ExecutionPolicy Bypass -File ./start-preview.ps1",
@@ -48,7 +48,8 @@
     "test:coverage": "react-scripts test --coverage --watchAll=false",
     "eject": "react-scripts eject",
     "portraits:update": "node scripts/updatePortraits.js",
-    "portraits:test": "node scripts/testPortraits.js"
+    "portraits:test": "node scripts/testPortraits.js",
+    "postbuild": "node scripts/postbuild.js"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^5.17.0",
