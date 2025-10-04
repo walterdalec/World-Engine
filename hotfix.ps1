@@ -16,7 +16,7 @@ Write-Host "Current version: $currentVersion" -ForegroundColor Yellow
 try {
     # Auto-bump patch version
     Write-Host "`n📦 Bumping patch version..." -ForegroundColor Green
-    npm version patch
+    npm version patch --no-git-tag-version
     
     if ($LASTEXITCODE -ne 0) {
         throw "Version bump failed"
@@ -60,7 +60,11 @@ This hotfix will be automatically delivered to existing installations.
     # Commit with hotfix message
     Write-Host "`n💾 Committing hotfix..." -ForegroundColor Green
     git add .
-    git commit -m "HOTFIX v$newVersion: $Description"
+    $commitMessage = "HOTFIX v{0}: {1}" -f $newVersion, $Description
+    git commit -m $commitMessage
+    if ($LASTEXITCODE -ne 0) {
+        throw "Git commit failed"
+    }
     git tag "v$newVersion"
     
     # Ask for confirmation before pushing
