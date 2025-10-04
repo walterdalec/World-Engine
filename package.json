@@ -73,7 +73,10 @@
       "output": "dist"
     },
     "files": [
-      "build/**/*"
+      "build/**/*",
+      "electron.js",
+      "package.json",
+      "node_modules/**/*"
     ],
     "publish": {
       "provider": "github",
@@ -115,3 +118,4 @@
     ]
   }
 }
+
