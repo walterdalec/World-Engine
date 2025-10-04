@@ -89,7 +89,7 @@
     },
     "win": {
       "target": "nsis",
-      "icon": "public/logo512.png",
+      "icon": "resources/world-engine.ico",
       "signAndEditExecutable": false,
       "verifyUpdateCodeSignature": false
     },
@@ -104,8 +104,16 @@
       "createStartMenuShortcut": true,
       "allowElevation": false,
       "deleteAppDataOnUninstall": false,
-      "runAfterFinish": true
-    }
+      "runAfterFinish": true,
+      "installerIcon": "resources/world-engine.ico",
+      "uninstallerIcon": "resources/world-engine.ico"
+    },
+    "extraResources": [
+      {
+        "from": "resources/world-engine.ico",
+        "to": "."
+      }
+    ]
   },
   "browserslist": {
     "production": [

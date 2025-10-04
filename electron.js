@@ -1,7 +1,20 @@
 const { app, BrowserWindow, Menu, dialog, shell, ipcMain } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
+const fs = require('fs');
 const isDev = !app.isPackaged;
+
+const iconPath = (() => {
+    const devIcon = path.join(__dirname, 'resources', 'world-engine.ico');
+    const prodIcon = path.join(process.resourcesPath, 'world-engine.ico');
+    if (isDev && fs.existsSync(devIcon)) {
+        return devIcon;
+    }
+    if (!isDev && fs.existsSync(prodIcon)) {
+        return prodIcon;
+    }
+    return path.join(__dirname, 'public', 'logo512.png');
+})();
 
 let mainWindow;
 
@@ -60,7 +73,7 @@ function createWindow() {
             enableRemoteModule: false,
             webSecurity: true
         },
-        icon: path.join(__dirname, 'public/logo512.png'),
+        icon: iconPath,
         title: 'World Engine',
         show: false // Don't show until ready
     });
@@ -247,3 +260,6 @@ app.on('web-contents-created', (event, contents) => {
         event.preventDefault();
     });
 });
+
+
+
