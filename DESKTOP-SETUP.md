@@ -42,6 +42,12 @@ npm run dist:linux  # Linux AppImage
 .\build-desktop.ps1
 ```
 
+**⚠️ Important Notes:**
+
+- **Windows installers require Windows or Wine**: Building `.exe` installers on Linux/Mac requires Wine to be installed. It's recommended to build Windows installers on a Windows machine or use GitHub Actions.
+- **Icon requirements**: Windows installers require icons to be at least 256x256 pixels. The project uses `public/icon.ico` which contains multiple resolutions (256, 128, 64, 48, 32, 16).
+- **Cross-platform builds**: The build scripts use Node.js for cross-platform compatibility.
+
 ### 🔄 Auto-Update System
 
 **Automatic Updates:**
