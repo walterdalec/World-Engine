@@ -122,7 +122,7 @@ Act as a proactive development assistant:
 * Target: Canvas 2D + WebGL1 friendly where relevant to retro aesthetic
 
 ## Project Overview
-World Engine is a strategic fantasy RPG inspired by **Might and Magic 4-6** and **Brigandine**, featuring modular feature architecture, tactical hex-based combat, character creation with real-time validation, and a sophisticated portrait generation system. The game combines classic turn-based exploration with strategic kingdom management and tactical battles. Built with TypeScript, Zustand for state management, and supports both web deployment (GitHub Pages/Netlify) and Electron desktop apps.
+World Engine is a strategic fantasy RPG inspired by **Might and Magic 4-6** and **Brigandine**, featuring modular feature architecture, tactical hex-based combat, character creation with real-time validation, and a sophisticated portrait generation system. The game combines classic turn-based exploration with strategic kingdom management and tactical battles. Built with TypeScript, Zustand for state management, and supports web deployment (GitHub Pages/Netlify) with future desktop deployment planned.
 
 ### Core Game Vision
 **Might & Magic 4-6 + Brigandine + Mount & Blade Hybrid**:
@@ -194,7 +194,7 @@ const { currentSeason, factionStatus } = useCampaignState(); // Strategic layer
 **Three deployment targets** with unified codebase:
 - **Web (localhost:3000)**: `npm start` for development and browser play
 - **Static sites**: `npm run build && npm run preview` for GitHub Pages/Netlify hosting
-- **Desktop**: Electron builds with auto-updater via `npm run dist:win` for offline campaigns
+- **Desktop**: Future desktop deployment planned for offline campaigns
 
 ### Game Design Philosophy
 **Strategic RPG Hybrid** - Combining the best of both inspirations:
@@ -280,9 +280,8 @@ npm run preview:ps -- -Port 6000  # PowerShell helper with custom port
 npm run deploy:gh                  # Deploy to GitHub Pages
 npm run build && netlify deploy   # Deploy to Netlify
 
-# Desktop apps
-npm run dist:win                   # Windows executable
-npm run electron                   # Run Electron app locally
+# Future desktop deployment
+# npm run dist:win                 # Windows executable (planned)
 ```
 
 ### Memory Management
@@ -498,7 +497,7 @@ eventBus.emit('trade-route-disrupted', { route, cause, economicImpact });
 - **Canvas**: Native Canvas 2D API with Honeycomb Grid for hex math
 - **UI Framework**: React 18+ with modern hooks patterns
 - **Build System**: Create React App with custom memory optimizations
-- **Desktop**: Electron with auto-updater for offline campaigns
+- **Desktop**: Future desktop deployment when the web version is complete
 
 # Battle System Development Roadmap
 
