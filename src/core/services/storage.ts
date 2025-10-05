@@ -1,6 +1,6 @@
 /**
  * Storage abstraction to decouple the app from direct Web Storage access.
- * Allows swapping in filesystem-backed implementations for Electron.
+ * Allows swapping in different implementations for testing or future platforms.
  */
 
 export interface StorageArea {

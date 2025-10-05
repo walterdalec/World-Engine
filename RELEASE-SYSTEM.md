@@ -1,27 +1,26 @@
 # World Engine Release Management
 
-## 🚀 Auto-Update System
+## 🚀 Web Deployment System
 
-World Engine now includes a sophisticated auto-update system that automatically delivers new versions to your brothers without manual downloads!
+World Engine is now a web-first strategic RPG that automatically deploys to GitHub Pages for easy access!
 
 ### ✅ Features Included
 
-**Auto-Update Notifications:**
-- ✅ Automatic update checking on app startup
-- ✅ Background download with progress indicators  
-- ✅ Non-intrusive notification system
-- ✅ User choice: "Update Now" or "Update Later"
+**Web Deployment:**
+- ✅ Automatic GitHub Pages deployment via GitHub Actions
+- ✅ Progressive Web App capabilities for offline play
+- ✅ Responsive design for desktop and tablet devices
+- ✅ Direct browser access with no installation required
 
 **Version Management:**
 - ✅ Semantic versioning (major.minor.patch)
-- ✅ Prerelease support (beta versions)
-- ✅ Build info display (Electron, Node, Chrome versions)
-- ✅ Platform detection and architecture info
+- ✅ Build info display (version, platform, environment)
+- ✅ Environment detection (development vs production)
 
 **Release Tools:**
-- ✅ Automated release script with rollback protection
-- ✅ Hotfix script for emergency patches
-- ✅ GitHub integration for automatic distribution
+- ✅ Automated build and deployment via GitHub Actions
+- ✅ GitHub integration for version control and distribution
+- ✅ Static asset optimization for web performance
 
 ## 🛠️ Release Workflow
 
@@ -83,105 +82,103 @@ World Engine now includes a sophisticated auto-update system that automatically 
 
 ### **Manual Downloads (Backup)**
 - GitHub Releases page has .exe installers
-- Direct download links for sharing
-- Offline installation support
+- Direct browser access via GitHub Pages
+- Progressive Web App installation support
 
 ### **Development Builds**
 ```powershell
 # Test locally
-npm run electron:build
+npm run build && npm run preview
 
-# Create installer without publishing
-npm run dist:win
+# Deploy to GitHub Pages
+git push origin main  # Triggers automatic deployment
 ```
 
-## 🎯 Brother Gaming Benefits
+## 🎯 Gaming Benefits
 
 ### **For You (Developer):**
-- ✅ **One-click releases** - Push updates instantly
-- ✅ **Automatic distribution** - No manual file sharing
-- ✅ **Version tracking** - See what everyone is running
-- ✅ **Rollback protection** - Scripts prevent broken releases
+- ✅ **Git-based releases** - Push updates via git workflow
+- ✅ **Automatic deployment** - GitHub Actions handle distribution
+- ✅ **Version tracking** - See deployment status and history
+- ✅ **Web performance** - Optimized static assets and caching
 
-### **For Your Brothers:**
-- ✅ **Automatic updates** - Always have the latest version
-- ✅ **No downloads** - Updates happen seamlessly
-- ✅ **Version info** - Check Help → Version Info anytime
-- ✅ **Stable experience** - Hotfixes deliver immediately
+### **For Players:**
+- ✅ **Browser access** - Play directly at your GitHub Pages URL
+- ✅ **No downloads** - Instant access to latest version
+- ✅ **Cross-platform** - Works on any device with a modern browser
+- ✅ **PWA support** - Install as app for offline play
 
 ## 🔧 Available Commands
 
-### **Release Scripts:**
+### **Development Scripts:**
 ```powershell
-.\release.ps1 patch           # Bug fixes (1.0.3 → 1.0.4)
-.\release.ps1 minor           # New features (1.0.4 → 1.1.0)  
-.\release.ps1 major           # Breaking changes (1.1.0 → 2.0.0)
-.\release.ps1 prerelease      # Beta versions (1.0.3 → 1.0.4-beta.1)
-.\hotfix.ps1 "Fix description"  # Emergency patches
+npm start                     # Development server
+npm run build                 # Production build
+npm run preview               # Static server for testing
+git add -A && git commit -m "Release update" && git push  # Deploy update
 ```
 
 ### **NPM Scripts:**
 ```bash
-npm run electron              # Run desktop app
-npm run electron:dev          # Development with hot reload
-npm run dist                  # Build installer
-npm run release               # Build and publish to GitHub
-npm run version:patch         # Bump version only
+npm start                     # React development server
+npm run build                 # Production build for deployment  
+npm run preview               # Test production build locally
+npm run deploy:gh             # Direct GitHub Pages deployment
+npm test                      # Run test suite
 ```
 
-### **App Menu Options:**
-- **Help → Check for Updates** - Manual update check
-- **Help → Version Info** - Show detailed version information
+### **Version Display:**
+- Version info shown in bottom-right corner of application
+- Shows version, platform, and build environment
+- Accessible for debugging and support
 
 ## 🔍 Version Information Display
 
-The app shows comprehensive version details:
+The app shows version details in the UI:
 
 ```
-App Version: 1.0.3
-Electron: 38.2.1
-Node.js: 20.9.0  
-Chrome: 120.0.6099.56
-Platform: win32 (x64)
+App Version: 1.0.6
+Platform: Win32
+Environment: Web  
 Build: Production
 ```
 
 ## 🚨 Emergency Procedures
 
-### **If Release Fails:**
-1. Scripts automatically rollback version changes
-2. Git history remains clean
-3. Try again after fixing the issue
+### **If Build Fails:**
+1. Check GitHub Actions workflow logs
+2. Fix issues in source code
+3. Commit fixes and push to trigger new build
 
-### **If Update Breaks Something:**
-1. Create immediate hotfix: `.\hotfix.ps1 "Rollback to stable version"`
-2. Users get automatic fix delivery
-3. No manual intervention needed
+### **If Deployment Breaks:**
+1. Previous version remains accessible at GitHub Pages
+2. Can rollback via git revert if needed
+3. GitHub Actions will redeploy automatically
 
-### **If GitHub Publishing Fails:**
-1. Installers are still created in `./dist/` folder
-2. Can manually share .exe files as backup
-3. Re-run release script when GitHub is accessible
+### **If GitHub Actions Fails:**
+1. Check workflow status in GitHub repository
+2. Verify GitHub Pages is enabled in repository settings
+3. Manually trigger workflow run from Actions tab
 
 ## 📋 Pre-Release Checklist
 
-Before releasing to your brothers:
+Before releasing updates:
 
-- [ ] **Test locally** with `npm run electron:build`
-- [ ] **Verify features** work as expected
+- [ ] **Test locally** with `npm run build && npm run preview`
+- [ ] **Verify features** work as expected in production build
 - [ ] **Check version display** shows correct info
-- [ ] **Test auto-update** notifications appear
-- [ ] **Run on clean machine** to verify installer works
-- [ ] **Document changes** in release notes
+- [ ] **Test responsive design** on different screen sizes
+- [ ] **Run accessibility checks** for web standards compliance
+- [ ] **Document changes** in commit messages and release notes
 
-## 🎮 Ready for Brotherhood Gaming!
+## 🎮 Ready for Web Gaming!
 
-Your World Engine now has enterprise-grade release management:
+Your World Engine now has modern web deployment:
 
-- ✅ **Professional auto-updates** like AAA games
-- ✅ **Instant hotfix delivery** for critical issues  
-- ✅ **Seamless brother distribution** - they always have latest version
-- ✅ **Version transparency** - everyone knows what they're running
-- ✅ **Developer confidence** - rollback protection and automated testing
+- ✅ **Professional GitHub Pages hosting** like modern web games
+- ✅ **Instant deployment** via git push workflow  
+- ✅ **Browser accessibility** - players access directly via URL
+- ✅ **Cross-platform compatibility** - works on any modern device
+- ✅ **Developer confidence** - automated deployment and version control
 
-Ship updates to your brothers with confidence! 🚀
+Ship updates to players with confidence! 🚀
