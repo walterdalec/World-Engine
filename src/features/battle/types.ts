@@ -136,6 +136,7 @@ export interface BattleState {
     log: string[];
     selectedUnit?: string;
     targetHex?: HexPosition;
+    turnLimit?: number; // Optional turn limit for timed battles
 }
 
 export interface BattleResult {

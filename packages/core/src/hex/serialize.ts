@@ -25,8 +25,14 @@ export function deserializeAxial(str: string): Axial {
         throw new Error(`Invalid axial coordinate string: "${str}"`);
     }
 
-    const q = parseInt(parts[0], 10);
-    const r = parseInt(parts[1], 10);
+    const qStr = parts[0];
+    const rStr = parts[1];
+    if (!qStr || !rStr) {
+        throw new Error(`Invalid axial coordinate parts: "${str}"`);
+    }
+
+    const q = parseInt(qStr, 10);
+    const r = parseInt(rStr, 10);
 
     if (isNaN(q) || isNaN(r)) {
         throw new Error(`Invalid axial coordinate numbers: "${str}"`);
@@ -54,9 +60,16 @@ export function deserializeCube(str: string): Cube {
         throw new Error(`Invalid cube coordinate string: "${str}"`);
     }
 
-    const x = parseInt(parts[0], 10);
-    const y = parseInt(parts[1], 10);
-    const z = parseInt(parts[2], 10);
+    const xStr = parts[0];
+    const yStr = parts[1];
+    const zStr = parts[2];
+    if (!xStr || !yStr || !zStr) {
+        throw new Error(`Invalid cube coordinate parts: "${str}"`);
+    }
+
+    const x = parseInt(xStr, 10);
+    const y = parseInt(yStr, 10);
+    const z = parseInt(zStr, 10);
 
     if (isNaN(x) || isNaN(y) || isNaN(z)) {
         throw new Error(`Invalid cube coordinate numbers: "${str}"`);
@@ -89,8 +102,14 @@ export function deserializeOffset(str: string): Offset {
         throw new Error(`Invalid offset coordinate string: "${str}"`);
     }
 
-    const col = parseInt(parts[0], 10);
-    const row = parseInt(parts[1], 10);
+    const colStr = parts[0];
+    const rowStr = parts[1];
+    if (!colStr || !rowStr) {
+        throw new Error(`Invalid offset coordinate parts: "${str}"`);
+    }
+
+    const col = parseInt(colStr, 10);
+    const row = parseInt(rowStr, 10);
 
     if (isNaN(col) || isNaN(row)) {
         throw new Error(`Invalid offset coordinate numbers: "${str}"`);
@@ -149,8 +168,14 @@ export function keyToAxial(key: string): Axial {
         throw new Error(`Invalid axial key format: "${key}"`);
     }
 
-    const q = parseInt(parts[0], 10);
-    const r = parseInt(parts[1], 10);
+    const qStr = parts[0];
+    const rStr = parts[1];
+    if (!qStr || !rStr) {
+        throw new Error(`Invalid axial key parts: "${key}"`);
+    }
+
+    const q = parseInt(qStr, 10);
+    const r = parseInt(rStr, 10);
 
     if (isNaN(q) || isNaN(r)) {
         throw new Error(`Invalid axial key numbers: "${key}"`);
@@ -191,9 +216,12 @@ export function serializeAxialBinary(hexes: Axial[]): Uint8Array {
     const view = new DataView(buffer);
 
     for (let i = 0; i < hexes.length; i++) {
+        const hex = hexes[i];
+        if (!hex) continue;
+
         const offset = i * 4;
-        view.setInt16(offset, hexes[i].q, true); // little-endian
-        view.setInt16(offset + 2, hexes[i].r, true);
+        view.setInt16(offset, hex.q, true); // little-endian
+        view.setInt16(offset + 2, hex.r, true);
     }
 
     return new Uint8Array(buffer);

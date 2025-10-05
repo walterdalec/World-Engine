@@ -36,6 +36,7 @@ export interface CampaignObjective {
         influence?: number;
         reputation?: Record<string, number>;
         unlocks?: string[]; // New units, technologies, etc.
+        recruitmentPoints?: number; // Additional recruitment capacity
     };
 
     deadline?: {

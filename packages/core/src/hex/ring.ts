@@ -19,9 +19,9 @@ export function hexRing(center: Axial, radius: number): Axial[] {
     const results: Axial[] = [];
 
     // Start at the "east" direction scaled by radius
-    let current = axialAdd(center, axialScale(AXIAL_DIRS[0], radius));
-
-    // Walk around the ring in 6 segments
+    const eastDir = AXIAL_DIRS[0];
+    if (!eastDir) throw new Error('AXIAL_DIRS[0] is undefined');
+    let current = axialAdd(center, axialScale(eastDir, radius));    // Walk around the ring in 6 segments
     for (let direction = 0; direction < 6; direction++) {
         for (let step = 0; step < radius; step++) {
             results.push(current);
@@ -86,9 +86,9 @@ export function hexRingWalk(
     const results: Axial[] = [];
 
     // Start at specified direction scaled by radius
-    let current = axialAdd(center, axialScale(AXIAL_DIRS[startDirection], radius));
-
-    // Walk around the ring starting from chosen direction
+    const startDir = AXIAL_DIRS[startDirection];
+    if (!startDir) throw new Error(`AXIAL_DIRS[${startDirection}] is undefined`);
+    let current = axialAdd(center, axialScale(startDir, radius));    // Walk around the ring starting from chosen direction
     for (let direction = 0; direction < 6; direction++) {
         for (let step = 0; step < radius; step++) {
             results.push(current);

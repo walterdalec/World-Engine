@@ -88,7 +88,8 @@ export function isLineBlocked(
 
     // Skip start and end points - check intermediate hexes
     for (let i = 1; i < line.length - 1; i++) {
-        if (isBlocked(line[i])) {
+        const hex = line[i];
+        if (hex && isBlocked(hex)) {
             return true;
         }
     }
@@ -106,11 +107,19 @@ export function axialLineToBlocked(
     isBlocked: (hex: Axial) => boolean
 ): Axial[] {
     const line = axialLine(a, b);
-    const results: Axial[] = [line[0]]; // Always include start
+    if (line.length === 0) return [];
+
+    const firstHex = line[0];
+    if (!firstHex) return [];
+
+    const results: Axial[] = [firstHex]; // Always include start
 
     for (let i = 1; i < line.length; i++) {
-        results.push(line[i]);
-        if (isBlocked(line[i])) {
+        const hex = line[i];
+        if (!hex) continue;
+
+        results.push(hex);
+        if (isBlocked(hex)) {
             break;
         }
     }

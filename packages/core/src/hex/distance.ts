@@ -66,7 +66,11 @@ export function neighbor(a: Axial, direction: number): Axial {
     if (direction < 0 || direction > 5) {
         throw new Error(`Direction must be 0-5, got ${direction}`);
     }
-    return axialAdd(a, AXIAL_DIRS[direction]);
+    const dir = AXIAL_DIRS[direction];
+    if (!dir) {
+        throw new Error(`Invalid direction: ${direction}`);
+    }
+    return axialAdd(a, dir);
 }
 
 /**

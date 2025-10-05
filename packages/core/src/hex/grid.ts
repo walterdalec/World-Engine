@@ -96,7 +96,10 @@ export function createHexCircle(center: Axial, radius: number): HexCircle {
  * Create custom bounds with predicate
  */
 export function createHexCustom(contains: (hex: Axial) => boolean, description?: string): HexCustom {
-    return { contains, description };
+    if (description !== undefined) {
+        return { contains, description };
+    }
+    return { contains };
 }
 
 /**
@@ -122,10 +125,15 @@ export function getHexBoundingRect(hexes: Axial[]): HexRect {
         return createHexRect(0, 0, 0, 0);
     }
 
-    let minQ = hexes[0].q;
-    let maxQ = hexes[0].q;
-    let minR = hexes[0].r;
-    let maxR = hexes[0].r;
+    const firstHex = hexes[0];
+    if (!firstHex) {
+        return createHexRect(0, 0, 0, 0);
+    }
+
+    let minQ = firstHex.q;
+    let maxQ = firstHex.q;
+    let minR = firstHex.r;
+    let maxR = firstHex.r;
 
     for (const hex of hexes) {
         minQ = Math.min(minQ, hex.q);

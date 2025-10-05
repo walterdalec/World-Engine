@@ -134,7 +134,7 @@ export class FactionAI {
         faction: Faction,
         worldState: WorldState
     ): Array<{ type: string; target: string; priority: number }> {
-        const opportunities = [];
+        const opportunities: Array<{ type: string; target: string; priority: number }> = [];
 
         // Evaluate each neighboring territory for conquest
         faction.territories.forEach(territoryId => {
@@ -395,7 +395,13 @@ export class FactionAI {
         reward: any;
         requirements?: any;
     }> {
-        const opportunities = [];
+        const opportunities: Array<{
+            type: 'mercenary' | 'diplomatic' | 'economic';
+            faction: string;
+            description: string;
+            reward: any;
+            requirements?: any;
+        }> = [];
 
         Object.values(worldState.factions).forEach(faction => {
             const rep = playerReputation[faction.id] || 0;
