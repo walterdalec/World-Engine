@@ -22,7 +22,7 @@ jobs:
     
     strategy:
       matrix:
-        node-version: [18]
+        node-version: [20]
     
     steps:
       - name: Checkout Repository 🛎️
@@ -34,20 +34,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
 
       - name: Clear npm cache completely 🧹
         run: |
           npm cache clean --force
-          rm -rf node_modules
-          rm -rf package-lock.json
 
       - name: Fresh install dependencies 📦
         run: |
-          npm install -g npm@8
-          npm install --legacy-peer-deps --force
-          npm ls typescript || true
+          rm -rf node_modules package-lock.json
+          npm install
 
       - name: Build production bundle 🧱
         run: |

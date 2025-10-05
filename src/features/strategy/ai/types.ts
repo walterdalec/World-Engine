@@ -25,6 +25,35 @@ export interface ArmyObjective {
 }
 
 
+
+export interface Personality {
+  aggression: number;
+  caution: number;
+  diplomacy: number;
+  greed: number;
+  honor: number;
+  zeal: number;
+}
+
+export interface ReputationTag {
+  id: ID;
+  kind: 'Betrayer' | 'Protector' | 'Zealot' | 'Merchant' | 'Peacemaker' | 'Warmonger';
+  stacks: number;
+  decay: number;
+}
+
+export interface Alliance {
+  id: ID;
+  name: string;
+  members: ID[];
+  startTurn: number;
+}
+
+export interface NewsItem {
+  turn: number;
+  text: string;
+}
+
 export interface Memory {
   grievances: Record<ID, number>;
   gratitude: Record<ID, number>;
@@ -131,6 +160,8 @@ export interface Faction {
   ai: FactionAI;
   memory?: Memory;
   supplyRadius?: number;
+  personality: Personality;
+  reputation?: ReputationTag[];
 }
 
 export interface TradeRoute {
@@ -285,6 +316,8 @@ export interface WorldState {
   conferences?: Record<ID, PeaceConference>;
   weatherGrid?: Record<ID, WeatherCell>;
   livingWorldEnabled?: boolean;
+  alliances?: Record<ID, Alliance>;
+  news?: NewsItem[];
 }
 
 export interface AIContext {
