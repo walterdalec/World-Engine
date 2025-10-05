@@ -6,7 +6,6 @@
   "private": true,
   "homepage": "./",
   "dependencies": {
-    "electron-updater": "^6.6.2",
     "framer-motion": "^12.23.22",
     "honeycomb-grid": "^4.1.5",
     "konva": "^10.0.2",
@@ -18,7 +17,6 @@
     "zod": "^4.1.11",
     "zustand": "^5.0.8"
   },
-  "main": "electron.js",
   "scripts": {
     "start": "node scripts/run-react-scripts.js start",
     "start:full-mem": "react-scripts start",
@@ -30,16 +28,6 @@
     "preview": "npx --yes serve -s build -l 5000",
     "preview:ps": "powershell -ExecutionPolicy Bypass -File ./start-preview.ps1",
     "deploy:gh": "npm run build && powershell -NoProfile -Command \"Copy-Item -Force build/index.html build/404.html\" && npx --yes gh-pages -d build",
-    "electron": "electron .",
-    "electron:dev": "concurrently \"npm start\" \"wait-on http://localhost:3000 && electron .\"",
-    "electron:build": "npm run build && electron .",
-    "dist": "npm run build && electron-builder",
-    "dist:win": "npm run build && electron-builder --win",
-    "dist:mac": "npm run build && electron-builder --mac",
-    "dist:linux": "npm run build && electron-builder --linux",
-    "release": "npm run build && electron-builder --publish=always",
-    "release:win": "npm run build && electron-builder --win --publish=always",
-    "release:draft": "npm run build && electron-builder --publish=onTagOrDraft",
     "version:patch": "npm version patch",
     "version:minor": "npm version minor",
     "version:major": "npm version major",
@@ -58,13 +46,11 @@
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "concurrently": "^9.2.1",
-    "electron": "^38.2.1",
-    "electron-builder": "^26.0.12",
     "gh-pages": "^6.3.0",
     "serve": "^14.2.1",
+    "vitest": "^1.6.0",
     "wait-on": "^9.0.1",
-    "webpack-bundle-analyzer": "^4.10.2",
-    "vitest": "^1.6.0"
+    "webpack-bundle-analyzer": "^4.10.2"
   },
   "build": {
     "appId": "com.worldengine.app",

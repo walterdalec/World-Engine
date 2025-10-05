@@ -8,7 +8,7 @@ import { SpellGenerator, SpellAssignment } from "../features/spells";
 import { HealingSystem, BattleMockup, BattlePage, MinimalBattlePage, BattleSystem } from "../features/battle";
 import { WorldMapEngine, EnhancedWorldMap, SimpleWorldMap } from "../features/world";
 import { SimplePortraitTest } from "../features/portraits";
-import AutoUpdaterTest from "../components/AutoUpdaterTest";
+import SimpleAutoUpdaterTest from "../components/SimpleAutoUpdaterTest";
 import { storage } from "../core/services/storage";
 import type { Engine } from "../engine.d";
 import { DEFAULT_WORLDS } from "../core/config";
@@ -528,7 +528,7 @@ function App() {
           >
             Back to Menu
           </button>
-          <AutoUpdaterTest />
+          <SimpleAutoUpdaterTest />
         </div>
       )}
       {step === "battlesystem" && (

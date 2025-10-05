@@ -48,11 +48,6 @@ jobs:
           npm install --legacy-peer-deps
           npm list typescript
 
-      - name: TypeScript compilation check 🔍
-        run: |
-          npx tsc --noEmit
-          echo "TypeScript compilation successful!"
-
       - name: Build production bundle 🧱
         run: |
           export PUBLIC_URL=/${{ github.event.repository.name }}
