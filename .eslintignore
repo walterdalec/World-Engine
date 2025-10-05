@@ -2,5 +2,6 @@ node_modules/
 build/
 dist/
 packages/
+planning/
 *.d.ts
 .tsbuildinfo

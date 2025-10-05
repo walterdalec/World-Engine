@@ -30,7 +30,8 @@
     "build",
     "dist",
     ".tsbuildinfo",
-    "packages"
+    "packages",
+    "planning"
   ],
   "ts-node": {
     "transpileOnly": true,
