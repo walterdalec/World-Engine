@@ -1,6 +1,7 @@
 /**
  * Campaign-Battle Integration
  * Connects world map encounters to tactical hex battles
+ * Updated: Force GitHub Actions cache refresh
  */
 
 import { BattleState, BattleContext } from '../types';
