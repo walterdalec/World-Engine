@@ -86,6 +86,14 @@ export { MinimalBattlePage } from './MinimalBattlePage';
 export { default as HealingSystem } from './HealingSystem';
 export { default as BattleSystem } from './BattleSystem';
 
+
+// Strategic bridge - TODO: Complete integration
+// export { createBattleContext } from './bridge/battle.factory';
+// export { initBattleFromContext } from './bridge/battle.init';
+// export { applyBattleModifiers } from './bridge/battle.adapt';
+// export { launchBattle } from './bridge/battle.bridge';
+// export { snapshotBridge } from './bridge/devtools.bridge';
+
 // Hex utilities (re-export from existing)
 export {
     cubeDistance,
