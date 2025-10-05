@@ -92,7 +92,89 @@ Act as a proactive development assistant:
 * Target: Canvas 2D + WebGL1 friendly where relevant to retro aesthetic
 
 ## Project Overview
-World Engine is a React-based fantasy RPG with an integrated character creation system, tactical hex-based combat, and automated portrait generation. It features a comprehensive battle system using professional canvas rendering with Honeycomb Grid integration for smooth pan/zoom interactions.
+World Engine is a strategic fantasy RPG inspired by **Might and Magic 4-6** and **Brigandine**, featuring modular feature architecture, tactical hex-based combat, character creation with real-time validation, and a sophisticated portrait generation system. The game combines classic turn-based exploration with strategic kingdom management and tactical battles. Built with TypeScript, Zustand for state management, and supports both web deployment (GitHub Pages/Netlify) and Electron desktop apps.
+
+### Core Game Vision
+**Might & Magic 4-6 + Brigandine + Mount & Blade Hybrid**:
+- **Exploration**: First-person party-based exploration of procedural worlds
+- **Strategic Layer**: Kingdom/faction management with seasonal campaigns  
+- **Dynamic Warfare**: Mount & Blade-style faction conflicts with shifting borders and emergent politics
+- **Tactical Combat**: Hex-based battles with commanders and mercenary units
+- **Character Progression**: Deep character customization with species, archetypes, and abilities
+- **World Persistence**: Seasonal progression with persistent consequences across campaigns
+
+## Current Architecture (v2.0+)
+
+### Modular Feature System (`src/features/`)
+**Clean separation by domain** - each feature is self-contained with types, components, and logic:
+
+- **`features/battle/`**: Complete hex-based tactical combat system with Honeycomb Grid
+- **`features/characters/`**: Character creation, validation, and management 
+- **`features/portraits/`**: PNG layering portrait system with fallbacks
+- **`features/ui/`**: Reusable UI components and design system
+- **`features/world/`**: Procedural world generation and map systems
+- **`features/spells/`**: Magic system and spell management
+
+Each feature exports through `index.ts` with clean interfaces:
+```tsx
+// Import from features with clean namespacing
+import { BattlePage, BattleDevTools } from '../features/battle';
+import { CharacterCreate, useCurrentCharacter } from '../features/characters';
+import { SimplePortraitPreview } from '../features/portraits';
+```
+
+### Core Services (`src/core/`)
+**Shared infrastructure** that all features can use:
+- **`core/engine/`**: Main game engine with character/party management and world state
+- **`core/services/`**: Random number generation, storage utilities, campaign persistence
+- **`core/types/`**: Global TypeScript interfaces for characters, factions, and world state
+- **`core/utils/`**: Cross-feature utility functions for game mechanics
+
+### Strategic Game Systems
+**Kingdom/Campaign Management** (Brigandine-inspired):
+- **Seasonal Progression**: Campaigns progress through seasons with timed objectives
+- **Faction Dynamics**: Multiple kingdoms with shifting alliances and territorial control
+- **Resource Management**: Gold, recruitment points, and magical resources
+- **Commander System**: Hero characters lead armies and have persistent progression
+
+**Dynamic Overworld Warfare** (Mount & Blade-inspired):
+- **Living World**: Factions wage war independently, with AI-driven expansion and contraction
+- **Emergent Politics**: Alliances form and break based on territorial pressure and opportunity
+- **Border Conflicts**: Contested territories change hands through ongoing battles
+- **Mercenary Opportunities**: Player can serve different factions or remain independent
+- **Economic Warfare**: Trade routes, sieges, and territorial control affect faction strength
+
+**Exploration Systems** (Might & Magic-inspired):
+- **Party-Based Adventure**: Classic first-person party exploration
+- **Procedural Worlds**: Hex-based overworld with dungeons, towns, and encounters
+- **Quest Networks**: Interconnected storylines across multiple locations
+- **Character Progression**: Traditional RPG leveling with modern skill systems
+
+### State Management (Zustand)
+**Centralized but feature-organized** state in `src/store/gameStore.ts`:
+```tsx
+// Multiple state hooks for different concerns
+const { currentCharacter, updateCurrentCharacter } = useCharacterActions();
+const { isCreatingCharacter, currentStep } = useUIState();
+const { mapSettings, generateMapSeed } = useMapActions();
+const { currentSeason, factionStatus } = useCampaignState(); // Strategic layer
+```
+
+### Multi-Platform Support
+**Three deployment targets** with unified codebase:
+- **Web (localhost:3000)**: `npm start` for development and browser play
+- **Static sites**: `npm run build && npm run preview` for GitHub Pages/Netlify hosting
+- **Desktop**: Electron builds with auto-updater via `npm run dist:win` for offline campaigns
+
+### Game Design Philosophy
+**Strategic RPG Hybrid** - Combining the best of both inspirations:
+- **Tactical Depth**: Every battle matters, with consequences for the strategic layer
+- **Character Investment**: Deep character customization with persistent party members
+- **World Agency**: Player choices shape faction relationships and world events
+- **Dynamic Warfare**: Factions fight each other independently, creating emergent storylines
+- **Exploration Rewards**: Discovery and exploration drive both character and strategic progression
+- **Seasonal Campaigns**: Time pressure creates meaningful strategic decisions
+- **Living Overworld**: Wars ebb and flow without player intervention, creating organic opportunities
 
 ## Architecture
 
@@ -153,106 +235,240 @@ Key features:
 
 ## Development Workflows
 
-### Build & Preview
-```bash
-npm run build                    # Production build
-npm run preview                  # Static server at :5000
-npm run preview:ps -- -Port 6000 # PowerShell helper with custom port
-npm start                        # Development server at localhost:3000
+### Build & Deployment
+```powershell
+# Development
+npm start                           # Dev server at localhost:3000
+$env:PORT=3004; npm start          # Custom port with PowerShell
+
+# Production builds  
+npm run build                      # Production build to /build
+npm run preview                    # Static server at localhost:5000
+npm run preview:ps -- -Port 6000  # PowerShell helper with custom port
+
+# Deployment
+npm run deploy:gh                  # Deploy to GitHub Pages
+npm run build && netlify deploy   # Deploy to Netlify
+
+# Desktop apps
+npm run dist:win                   # Windows executable
+npm run electron                   # Run Electron app locally
 ```
 
-### Battle System Testing
-```bash
-# Navigate to battle mockup at localhost:3000/World-Engine
-# Use renderer dropdown: Original | Honeycomb | Comparison
-# Test drag-to-pan, wheel zoom, hex interaction
+### Memory Management
+**For development environments with limited RAM** use optimized scripts:
+```powershell
+npm run start:low-mem              # Lower memory usage for dev
+npm run build:low-mem              # Lower memory builds
 ```
 
-### Portrait System
-```bash
-npm run portraits:update  # Regenerate manifest.json from SVG assets
-npm run portraits:test   # Test portrait generation
+### Performance & Optimization Guidelines
+**Critical for large-scale strategic RPG**:
+- **Lazy Loading**: Load campaign data, portraits, and maps only when needed
+- **Asset Streaming**: Preload common assets, defer rare combinations
+- **State Persistence**: Use Zustand's `persist` middleware for campaign saves
+- **Canvas Optimization**: Batch draw calls, use `requestAnimationFrame` for smooth 60fps
+- **Memory Budget**: Target ≤100MB RAM for web deployment, ≤500MB for desktop
+- **Bundle Size**: Keep core features ≤2MB, defer heavy systems like 3D rendering
+
+### Feature Development
+**Each feature is independently testable**:
+```powershell
+# Navigate to localhost:3000 for main app
+# Test specific features:
+# - Character Creation: Full validation and portrait preview
+# - Battle System: /battle-mockup for hex combat testing  
+# - Portrait System: Debug mode with 🐞 button for generation logs
+# - World Maps: Multiple renderer comparisons
 ```
 
-### Canvas Integration
-Battle system uses professional canvas wrapper pattern:
+### Data Persistence & Campaign Management
+**Multi-layered save system** for strategic campaign continuity:
 ```tsx
-import HexStage from './HexStage';
+// Campaign data flows through multiple backup layers
+// Layer 1: Primary localStorage for active campaigns
+// Layer 2: Backup localStorage with timestamps
+// Layer 3: SessionStorage for crash recovery  
+// Layer 4: Individual campaign backups
+// Layer 5: Auto-download every 10 saves
+
+// Access campaign state through hooks
+const { currentCampaign, saveCampaign } = useCampaignActions();
+const { factionStates, territoryControl } = useWorldState();
+```
+
+**Key persistence patterns**:
+- **Incremental Saves**: Save changes immediately, not just on exit
+- **Emergency Recovery**: SessionStorage backup for browser crashes
+- **Export/Import**: JSON-based campaign sharing and backups
+- **Version Migration**: Handle save file format changes gracefully
+
+### Strategic Systems Architecture
+**AI-driven faction simulation** for living world dynamics:
+```tsx
+// Faction AI runs independently of player actions
+const factionAI = {
+  economicDecisions: calculateTradeRoutes(faction, worldState),
+  militaryActions: planCampaigns(faction, enemies, allies),
+  diplomaticMoves: evaluateAlliances(faction, neighbors),
+  territorialExpansion: identifyTargets(faction, opportunities)
+};
+
+// World events cascade through interconnected systems
+faction.economy.tradeRoutes → faction.military.strength → faction.diplomacy.leverage
+```
+
+**Key strategic patterns**:
+- **Seasonal Cycles**: Events trigger based on calendar progression
+- **Cascading Effects**: Economic changes affect military capability
+- **Player Agency**: Actions influence but don't control world dynamics
+- **Emergent Narrative**: Faction conflicts create story opportunities
+
+### Canvas Development
+**Professional canvas patterns** for battle maps and world generation:
+```tsx
+// HexStage wrapper provides:
+// - Pointer capture for smooth dragging
+// - Wheel zoom without page scroll  
+// - Touch gesture prevention
+// - Device pixel ratio support
+import { HexStage } from '../features/battle';
 
 <HexStage
-  init={(ctx, canvas) => { /* Initialize */ }}
-  onRender={(ctx, t) => { /* Render loop */ }}
-  pan={(dx, dy) => { /* Handle pan */ }}
-  zoom={(delta, cx, cy) => { /* Handle zoom */ }}
-  onClick={(x, y) => { /* Handle click */ }}
-  onHover={(x, y) => { /* Handle hover */ }}
+  onRender={(ctx, dt) => { /* 60fps render loop */ }}
+  onPan={(dx, dy) => { /* Camera movement */ }}
+  onZoom={(delta, cx, cy) => { /* Zoom with cursor centering */ }}
 />
-```
-
-### Character Integration
-Characters automatically get portraits via:
-```tsx
-import { SimplePortraitPreview, SimpleUtils } from '../visuals';
-
-// Live preview
-<SimplePortraitPreview 
-  gender="female" 
-  species="human" 
-  archetype="greenwarden" 
-  size="large" 
-  showDebug={true} 
-/>
-
-// Convert character data
-const options = SimpleUtils.convertToSimpleOptions(character);
 ```
 
 ## Key Patterns
 
-### Visual System Integration
-- All character data flows through `CharacterVisualData` interface
-- Portrait generation uses `species + archetype + pronouns` for asset selection
-- Fallback chains: specific → generic → Human → procedural SVG
-- Debug mode: Click `🐞` button on any portrait for generation details
-
-### Asset Structure
-```
-public/assets/portraits-new/
-├── base/           # Gender-specific base bodies (male/female)
-├── race/           # Species overlay PNGs
-├── class/          # Archetype-specific clothing/equipment
-└── catalog.json    # Asset metadata
+### Modular Architecture
+**Feature isolation with clean exports**: Each `src/features/` directory has its own `index.ts`:
+```tsx
+// features/battle/index.ts exports all battle-related functionality
+export { BattlePage, BattleDevTools } from './components';
+export type { BattleState, Unit, HexPosition } from './types';
+export { startBattle, nextPhase } from './engine';
 ```
 
-Legacy SVG assets preserved in `public/assets/portraits/` for future use.
+### State Management Patterns  
+**Zustand with feature-specific hooks** in `src/store/gameStore.ts`:
+```tsx
+// Don't use the main store directly - use specific hooks
+const { currentCharacter, updateCurrentCharacter } = useCharacterActions();
+const { isCreatingCharacter, currentStep } = useUIState();
+const { mapSettings, generateMapSeed } = useMapActions();
+```
 
-### Error Handling
-- Portrait failures fallback gracefully through the three-tier system
-- Visual errors show in-component with specific error messages
-- Console logs use emoji prefixes: `🎭` (portraits), `🔍` (assets), `✅` (success)
+### Character Integration
+**Consistent character data flow** through standardized interfaces:
+```tsx
+// All character creation flows through these patterns
+import { SimplePortraitPreview, SimpleUtils } from '../features/portraits';
+import { validateCharacter, createEmptyCharacter } from '../validation/character-simple';
 
-### Performance
-- Portrait caching with `JSON.stringify` keys
-- Batch preloading for common species/archetype combinations  
-- PNG optimization and canvas-based composition
+// Convert character data for portraits
+const portraitOptions = SimpleUtils.convertToSimpleOptions(character);
+
+// Live preview with debug mode
+<SimplePortraitPreview 
+  {...portraitOptions}
+  size="large" 
+  showDebug={debugMode}  // Click 🐞 for generation logs
+/>
+```
+
+### Asset Management
+**Multi-tier fallback system** for portraits and assets:
+```
+public/assets/portraits-new/     # Primary PNG layered system
+├── base/                        # Gender-specific base bodies  
+├── race/                        # Species overlays
+├── class/                       # Archetype clothing/equipment
+└── catalog.json                 # Asset metadata (auto-generated)
+
+Fallback chain: Specific PNG → Generic PNG → Human → Procedural SVG
+```
+
+### Environment Awareness
+**Development vs Production asset loading**:
+```tsx
+// Assets automatically detect localhost vs GitHub Pages
+// No manual URL configuration needed
+const assetUrl = getAssetUrl('portraits-new/base/female.png');
+// localhost:3000/assets/... vs GitHub Pages subdirectory handling
+```
+
+### Error Handling & Debugging
+**Comprehensive logging with emoji prefixes**:
+```tsx
+console.log('🎭 Portrait generation:', options);  // Portraits
+console.log('🔍 Asset loading:', url);             // Assets  
+console.log('✅ Operation success:', result);      // Success
+console.log('⚔️ Battle state:', battleData);      // Battle system
+console.log('🎮 Game store:', stateUpdate);       // State management
+console.log('🏛️ Faction AI:', factionDecision);   // Strategic layer
+console.log('🗺️ World generation:', mapData);     // Procedural systems
+```
+
+### AI Development Guidelines
+**When implementing game systems, prioritize**:
+- **Modularity**: Each system should work independently and be testable in isolation
+- **Emergent Complexity**: Simple rules that create complex behaviors (Mount & Blade inspiration)
+- **Player Agency**: Systems should respond to but not revolve around player actions
+- **Performance**: Target 60fps for tactical battles, smooth campaign map interactions
+- **Save Compatibility**: Always consider save file migration when changing data structures
+- **Testing Hooks**: Export DevTools for each major system for debugging and balancing
+
+**System Integration Patterns**:
+```tsx
+// Each game system exports clean interfaces
+export const FactionAI = {
+  simulate: (factions, worldState, deltaTime) => newFactionStates,
+  getPlayerOpportunities: (factions, playerRep) => availableContracts,
+  triggerEvent: (eventType, params) => worldConsequences
+};
+
+// Systems communicate through events, not direct coupling
+eventBus.emit('territory-captured', { faction, territory, consequences });
+eventBus.emit('trade-route-disrupted', { route, cause, economicImpact });
+```
 
 ## Testing
-- Navigate to `/battle-mockup` for comprehensive battle system testing  
-- Use renderer dropdown to compare Original vs Honeycomb vs Side-by-side
-- Test drag-to-pan (mouse down + drag), wheel zoom, hex hover/click
-- Navigate to `/portrait-test` for comprehensive portrait system testing
-- Use `DevTools.testPortraitGeneration()` in console for quick tests
-- Character creation has live validation and real-time portrait updates
+- **Main Menu**: Navigate to localhost:3000 for full app with navigation
+- **Battle System**: Use Main Menu → Battle System for comprehensive hex combat testing  
+- **Character Creation**: Use Main Menu → Character Create for live validation and portrait updates
+- **Portrait System**: Use Main Menu → Portrait Test, click `🐞` for debug logs
+- **World Maps**: Use Main Menu → Enhanced Map or Simple Map for world generation
+- **Canvas Interaction**: Test drag-to-pan (mouse down + drag), wheel zoom, hex hover/click
+- **DevTools Integration**: Use browser console with feature-specific DevTools exports
 
 ## Critical Files
-- `src/battle/components/HexStage.tsx`: Professional canvas wrapper for maps
-- `src/battle/components/HoneycombRenderer.tsx`: Modern hex grid renderer
-- `src/battle/types.ts`: Battle system TypeScript interfaces
-- `src/visuals/types.ts`: Core interfaces for the visual system
-- `src/components/CharacterCreate.tsx`: Main character builder UI
-- `src/index.css`: Global CSS including map canvas styles
-- `PORTRAIT_SYSTEM.md`: Detailed portrait system documentation
+- `src/features/*/index.ts`: Clean feature exports and public APIs
+- `src/core/index.ts`: Shared infrastructure and cross-feature utilities
+- `src/store/gameStore.ts`: Zustand state management with feature-specific hooks
+- `src/app/index.tsx`: Main application routing and campaign management
+- `src/features/battle/types.ts`: Battle system TypeScript interfaces
+- `src/features/portraits/simple-portraits.ts`: PNG layering portrait generation
+- `src/validation/character-simple.ts`: Character validation and creation utilities
 - `public/assets/portraits-new/catalog.json`: Asset catalog (auto-generated)
+- `package.json`: Build scripts including memory-optimized variants
+
+## Technology Constraints & Preferences
+**Browser Compatibility**: Target modern browsers (ES2020+), Chrome/Firefox/Safari latest 2 versions
+**Mobile Support**: Responsive design for tablets, phone UI is secondary priority
+**Offline Capability**: Core game must work offline after initial load (PWA-style)
+**Asset Loading**: Lazy load heavy assets, prioritize fast initial page load
+**TypeScript**: Strict mode enabled, prefer type safety over convenience
+**Dependencies**: Minimize bundle size, prefer lightweight alternatives when possible
+
+**Key Libraries in Use**:
+- **State Management**: Zustand with persistence middleware
+- **Canvas**: Native Canvas 2D API with Honeycomb Grid for hex math
+- **UI Framework**: React 18+ with modern hooks patterns
+- **Build System**: Create React App with custom memory optimizations
+- **Desktop**: Electron with auto-updater for offline campaigns
 
 # Battle System Development Roadmap
 
