@@ -1,51 +1,98 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';import React, { useState, useEffect } from 'react';
 
-interface VersionInfo {
-    version: string;
-    electronVersion: string;
-    nodeVersion: string;
-    chromeVersion: string;
+
+
+interface VersionInfo {interface VersionInfo {
+
+    version: string;    version: string;
+
+    platform: string;    electronVersion: string;
+
+    userAgent: string;    nodeVersion: string;
+
+}    chromeVersion: string;
+
     platform: string;
-    arch: string;
-}
 
-interface UpdateInfo {
-    version: string;
-    releaseDate?: string;
+const VersionDisplay: React.FC = () => {    arch: string;
+
+    const versionInfo: VersionInfo = {}
+
+        version: process.env.REACT_APP_VERSION || '1.0.6',
+
+        platform: navigator.platform,interface UpdateInfo {
+
+        userAgent: navigator.userAgent    version: string;
+
+    };    releaseDate?: string;
+
     releaseName?: string;
-    releaseNotes?: string;
-}
 
-interface DownloadProgress {
-    bytesPerSecond: number;
-    percent: number;
-    transferred: number;
-    total: number;
-}
+    return (    releaseNotes?: string;
 
-// Helper to safely check if we're in Electron
-const isElectron = () => {
-    return typeof window !== 'undefined' && window.navigator?.userAgent?.includes('Electron');
-};
+        <div className="fixed bottom-4 right-4 z-50">}
 
-// Helper to safely access electron APIs
-const getElectronAPI = () => {
-    if (typeof window !== 'undefined' && (window as any).electron) {
-        return (window as any).electron;
-    }
-    return null;
-}; const VersionDisplay: React.FC = () => {
-    const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
-    const [updateAvailable, setUpdateAvailable] = useState<UpdateInfo | null>(null);
-    const [downloadProgress, setDownloadProgress] = useState<DownloadProgress | null>(null);
-    const [updateDownloaded, setUpdateDownloaded] = useState<UpdateInfo | null>(null);
-    const [showVersionModal, setShowVersionModal] = useState(false);
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 max-w-md">
 
-    const restartAndUpdate = () => {
-        const electron = getElectronAPI();
-        if (electron?.ipcRenderer) {
+                <div className="mb-4">interface DownloadProgress {
+
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">    bytesPerSecond: number;
+
+                        World Engine    percent: number;
+
+                    </h3>    transferred: number;
+
+                    <div className="space-y-2 text-sm">    total: number;
+
+                        <div className="flex justify-between items-center">}
+
+                            <span className="text-gray-600 dark:text-gray-400">Version:</span>
+
+                            <span className="text-gray-900 dark:text-white">{versionInfo.version}</span>// Helper to safely check if we're in Electron
+
+                        </div>const isElectron = () => {
+
+                        <div className="flex justify-between items-center">    return typeof window !== 'undefined' && window.navigator?.userAgent?.includes('Electron');
+
+                            <span className="text-gray-600 dark:text-gray-400">Platform:</span>};
+
+                            <span className="text-gray-900 dark:text-white">{versionInfo.platform}</span>
+
+                        </div>// Helper to safely access electron APIs
+
+                        <div className="flex justify-between items-center">const getElectronAPI = () => {
+
+                            <span className="text-gray-600 dark:text-gray-400">Environment:</span>    if (typeof window !== 'undefined' && (window as any).electron) {
+
+                            <span className="text-gray-900 dark:text-white">Web</span>        return (window as any).electron;
+
+                        </div>    }
+
+                    </div>    return null;
+
+                </div>}; const VersionDisplay: React.FC = () => {
+
+                    const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
+
+                <div className="text-xs text-gray-500 dark:text-gray-400 mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">    const [updateAvailable, setUpdateAvailable] = useState<UpdateInfo | null>(null);
+
+                    <p>Web-first strategic RPG</p>    const [downloadProgress, setDownloadProgress] = useState<DownloadProgress | null>(null);
+
+                    <p>Build: {process.env.NODE_ENV || 'development'}</p>    const [updateDownloaded, setUpdateDownloaded] = useState<UpdateInfo | null>(null);
+
+                </div>    const [showVersionModal, setShowVersionModal] = useState(false);
+
+            </div>
+
+        </div>    const restartAndUpdate = () => {
+
+    );        const electron = getElectronAPI();
+
+};        if (electron?.ipcRenderer) {
+
             electron.ipcRenderer.send('restart-app');
-        }
+
+export default VersionDisplay;        }
     };
 
     useEffect(() => {
