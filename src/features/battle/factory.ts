@@ -252,7 +252,8 @@ export function buildBattle(
         initiative: [],
         friendlyDeployment: battlefield.friendlyDeployment,
         enemyDeployment: battlefield.enemyDeployment,
-        log: ["Battle preparations complete. Deploy your forces!"]
+        log: ["Battle preparations complete. Deploy your forces!"],
+        turnLimit: undefined // Will be set by campaign system if needed
     };
 
     return battleState;

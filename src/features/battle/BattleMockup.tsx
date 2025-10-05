@@ -163,7 +163,8 @@ function createMockBattle(): BattleState {
         initiative: [],
         friendlyDeployment: friendly,
         enemyDeployment: enemy,
-        log: []
+        log: [],
+        turnLimit: undefined // No time limit for demo battles
     };
     startBattle(state);
     return state;

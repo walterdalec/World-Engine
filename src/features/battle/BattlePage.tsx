@@ -185,7 +185,8 @@ function createQuickBattle(): BattleState {
         initiative: [],
         friendlyDeployment: friendly,
         enemyDeployment: enemy,
-        log: []
+        log: [],
+        turnLimit: undefined // No time limit for quick battles
     };
 
     startBattle(state);
