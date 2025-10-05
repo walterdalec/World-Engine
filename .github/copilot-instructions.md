@@ -12,6 +12,36 @@ AI agents have full permissions to edit, create, modify, and refactor any code i
 
 Never leave changes uncommitted. The user relies on GitHub Pages deployment for testing.
 
+## Git Safety & Collaboration
+**CRITICAL: Always check what files are being staged before committing** to avoid accidentally committing work-in-progress code from other developers:
+
+### Pre-Commit Safety Checks
+1. **Check status first**: `git status` to see what files are modified
+2. **Review staged files**: `git diff --cached` to see exactly what will be committed
+3. **Selective staging**: Use `git add <specific-files>` instead of `git add -A` when there are WIP files
+4. **Exclude patterns**: Be aware of common WIP directories like:
+   - `src/features/*/ai/` (AI development in progress)
+   - `src/experimental/` 
+   - Files with `.wip`, `.draft`, or `.tmp` extensions
+   - Any files mentioned as "work in progress" by the user
+
+### Safe Git Workflow
+```bash
+# Safer alternative to git add -A:
+git status                    # See what's changed
+git add package.json         # Add specific files
+git add .github/workflows/   # Add specific directories  
+git add src/components/MyComponent.tsx  # Add individual files
+git commit -m "descriptive message"
+git push origin main
+```
+
+### Recovery from Accidental Commits
+If you accidentally commit work-in-progress files:
+1. Use `git rm --cached <file>` to remove from tracking while keeping locally
+2. Commit the removal with clear explanation
+3. Push immediately to fix the public repository
+
 ## Assistant Role
 Act as a proactive development assistant:
 - **Research open source solutions** that could enhance our project without compromising originality
