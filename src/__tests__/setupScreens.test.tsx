@@ -1,4 +1,4 @@
-import { pointBuyRemaining, clamp } from "../components/helpers";
+import { pointBuyRemaining, clamp } from "../features/ui/helpers";
 
 test("pointBuyRemaining base 10s = 10", () => {
   expect(pointBuyRemaining({ A: 10, B: 10, C: 10 })).toBe(10);

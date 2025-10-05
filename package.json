@@ -1,6 +1,6 @@
 {
   "name": "world-engine",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A fantasy RPG with tactical hex-based combat, character creation, and strategic world exploration",
   "author": "Walter <walterdalec@github.com>",
   "private": true,
