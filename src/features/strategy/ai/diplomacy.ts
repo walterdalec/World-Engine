@@ -2,6 +2,7 @@ import { rngBool } from './rng';
 import { computeFactionScores } from './scoring';
 import { AIContext, Faction, ID, WarTerms, WorldState } from './types';
 import { acceptPeace, proposePeaceDeal } from './peace.variants';
+import { getModifiedRelation } from './memory';
 
 export function evaluateDiplomacy(ctx: AIContext, faction: Faction) {
   const { world, rand } = ctx;
@@ -9,15 +10,18 @@ export function evaluateDiplomacy(ctx: AIContext, faction: Faction) {
 
   for (const other of Object.values(world.factions)) {
     if (other.id === faction.id) continue;
-    const relation = faction.relations[other.id] ?? 0;
+    const effectiveRelation = getModifiedRelation(faction, other.id);
+    const baseRelation = faction.relations[other.id] ?? 0;
     const borderFriction = sharedBorderCount(world, faction.id, other.id) * -5;
     const otherScores = computeFactionScores(world, other.id);
     const powerDiff = scores.power - otherScores.power;
 
     let delta = borderFriction + Math.sign(powerDiff) * 2;
+    if (effectiveRelation > 60) delta += 2;
+    if (effectiveRelation < -60) delta -= 2;
     delta += rngBool(rand, 0.3) ? 1 : -1;
 
-    faction.relations[other.id] = clamp(relation + delta, -100, 100);
+    faction.relations[other.id] = clamp(baseRelation + delta, -100, 100);
   }
 }
 
@@ -48,7 +52,7 @@ export function considerWarAndPeace(ctx: AIContext, faction: Faction) {
 
   for (const other of Object.values(world.factions)) {
     if (other.id === faction.id) continue;
-    const attitude = faction.relations[other.id] ?? 0;
+    const attitude = getModifiedRelation(faction, other.id);
     const atWar = Boolean(faction.wars[other.id]);
 
     if (

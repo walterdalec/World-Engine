@@ -8,6 +8,7 @@ import { SpellGenerator, SpellAssignment } from "../features/spells";
 import { HealingSystem, BattleMockup, BattlePage, MinimalBattlePage, BattleSystem } from "../features/battle";
 import { WorldMapEngine, EnhancedWorldMap, SimpleWorldMap } from "../features/world";
 import { SimplePortraitTest } from "../features/portraits";
+import AutoUpdaterTest from "../components/AutoUpdaterTest";
 import { storage } from "../core/services/storage";
 import type { Engine } from "../engine.d";
 import { DEFAULT_WORLDS } from "../core/config";
@@ -33,7 +34,7 @@ function randomSeed(): string {
 }
 
 function App() {
-  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "enhancedmap" | "simplemap" | "charactercreate" | "portraittest" | "battlesystem" | "battle" | "minimalBattle">("menu");
+  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "enhancedmap" | "simplemap" | "charactercreate" | "portraittest" | "battlesystem" | "battle" | "minimalBattle" | "autoupdater">("menu");
   const [party, setParty] = React.useState<Character[]>([]);
   const [currentCampaign, setCurrentCampaign] = React.useState<any>(null);
   const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0); // Force re-render hook
@@ -279,6 +280,11 @@ function App() {
     setStep("portraittest");
   };
 
+  const handleAutoUpdater = () => {
+    // Auto-updater test page
+    setStep("autoupdater");
+  };
+
   const handleBattleSystem = () => {
     // Battle system demo
     setStep("battlesystem");
@@ -400,6 +406,7 @@ function App() {
           onHealingSystem={handleHealingSystem}
           onCharacterCreate={handleCharacterCreate}
           onPortraitTest={handlePortraitTest}
+          onAutoUpdater={handleAutoUpdater}
           onBattleSystem={handleBattleSystem}
           onBattlePage={handleBattlePage}
           onMinimalBattle={handleMinimalBattle}
@@ -498,6 +505,30 @@ function App() {
             Back to Menu
           </button>
           <SimplePortraitTest />
+        </div>
+      )}
+      {step === "autoupdater" && (
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={() => setStep("menu")}
+            style={{
+              position: 'absolute',
+              top: '20px',
+              left: '20px',
+              zIndex: 1000,
+              background: '#374151',
+              color: '#f8fafc',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '10px 15px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold'
+            }}
+          >
+            Back to Menu
+          </button>
+          <AutoUpdaterTest />
         </div>
       )}
       {step === "battlesystem" && (

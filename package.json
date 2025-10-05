@@ -1,6 +1,6 @@
 {
   "name": "world-engine",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "A fantasy RPG with tactical hex-based combat, character creation, and strategic world exploration",
   "author": "Walter <walterdalec@github.com>",
   "private": true,
@@ -63,7 +63,8 @@
     "gh-pages": "^6.3.0",
     "serve": "^14.2.1",
     "wait-on": "^9.0.1",
-    "webpack-bundle-analyzer": "^4.10.2"
+    "webpack-bundle-analyzer": "^4.10.2",
+    "vitest": "^1.6.0"
   },
   "build": {
     "appId": "com.worldengine.app",

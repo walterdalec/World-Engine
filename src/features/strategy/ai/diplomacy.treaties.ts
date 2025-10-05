@@ -1,4 +1,4 @@
-
+import { getModifiedRelation } from './memory';
 import { rngBool } from './rng';
 import { AIContext, Faction, ID, TradeTreaty, WorldState } from './types';
 
@@ -9,7 +9,7 @@ export function considerTradeTreaties(ctx: AIContext, faction: Faction) {
   for (const other of Object.values(world.factions)) {
     if (other.id === faction.id) continue;
     if (other.wars[faction.id]) continue;
-    const relation = faction.relations[other.id] ?? 0;
+    const relation = getModifiedRelation(faction, other.id);
     if (relation < 25) continue;
 
     if (hasTreaty(world, faction.id, other.id)) continue;

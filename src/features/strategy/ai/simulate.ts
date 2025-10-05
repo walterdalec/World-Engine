@@ -30,6 +30,7 @@ import { computeFrontlines } from './frontline';
 import { assignArmyObjectives, scoreObjectiveProgress } from './objectives';
 import { tickReparations } from './peace.variants';
 import { rollSeasonalEconomyEvents } from './economy.events';
+import { livingWorldActive, simulateLivingTick } from './integrations';
 
 export function createAIContext(world: WorldState): AIContext {
   return {
@@ -74,6 +75,10 @@ export function simulateTick(world: WorldState) {
   moveCaravans(world);
   moveSmugglers(world);
   rollSmugglerAmbush(world, ctx.rand);
+
+  if (livingWorldActive(world)) {
+    simulateLivingTick(world);
+  }
 
   for (const army of Object.values(world.armies)) {
     if (!army.objective) continue;

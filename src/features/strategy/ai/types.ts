@@ -24,6 +24,36 @@ export interface ArmyObjective {
   reward?: number;
 }
 
+
+export interface Memory {
+  grievances: Record<ID, number>;
+  gratitude: Record<ID, number>;
+  decayRate: number;
+}
+
+export interface Depot {
+  id: ID;
+  regionId: ID;
+  factionId: ID;
+  stock: number;
+  capacity: number;
+}
+
+export interface WeatherCell {
+  temperature: number;
+  precipitation: number;
+  wind: number;
+}
+
+export interface PeaceConference {
+  id: ID;
+  factions: ID[];
+  proposals: PeaceDeal[];
+  hostId: ID;
+  turnStart: number;
+  resolved?: boolean;
+}
+
 export interface Region {
   id: ID;
   name: string;
@@ -99,6 +129,8 @@ export interface Faction {
   relations: Record<ID, number>;
   wars: Record<ID, War>;
   ai: FactionAI;
+  memory?: Memory;
+  supplyRadius?: number;
 }
 
 export interface TradeRoute {
@@ -249,6 +281,10 @@ export interface WorldState {
   smugglers?: Record<ID, Smuggler>;
   frontlines?: Frontline[];
   activeReparations?: ReparationPayment[];
+  depots?: Record<ID, Depot>;
+  conferences?: Record<ID, PeaceConference>;
+  weatherGrid?: Record<ID, WeatherCell>;
+  livingWorldEnabled?: boolean;
 }
 
 export interface AIContext {

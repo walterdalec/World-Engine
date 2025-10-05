@@ -31,6 +31,7 @@ interface Props {
   onHealingSystem: () => void;
   onCharacterCreate: () => void;
   onPortraitTest: () => void;
+  onAutoUpdater: () => void;
   onBattleSystem: () => void;
   onBattlePage: () => void;
   onMinimalBattle: () => void;
@@ -38,7 +39,7 @@ interface Props {
   onSimpleMap: () => void;
 }
 
-export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onPortraitTest, onBattleSystem, onBattlePage, onMinimalBattle, onEnhancedMap, onSimpleMap }: Props) {
+export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onPortraitTest, onAutoUpdater, onBattleSystem, onBattlePage, onMinimalBattle, onEnhancedMap, onSimpleMap }: Props) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [characters, setCharacters] = useState<SavedCharacter[]>([]);
   const [activeTab, setActiveTab] = useState<'campaigns' | 'characters'>('campaigns');
@@ -762,6 +763,12 @@ Recovered ${recovered.length} campaigns`);
                 <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🎭</div>
                 <h3 style={{ margin: '0 0 5px 0' }}>Portrait Test</h3>
                 <p style={{ margin: 0, opacity: 0.9 }}>Test all portrait combinations</p>
+              </div>
+
+              <div style={newCardStyle} onClick={onAutoUpdater}>
+                <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🔄</div>
+                <h3 style={{ margin: '0 0 5px 0' }}>Auto-Updater Test</h3>
+                <p style={{ margin: 0, opacity: 0.9 }}>Test desktop app auto-updater</p>
               </div>
 
               <div style={newCardStyle} onClick={onEnhancedMap}>
