@@ -36,8 +36,7 @@
     "test:coverage": "react-scripts test --coverage --watchAll=false",
     "eject": "react-scripts eject",
     "portraits:update": "node scripts/updatePortraits.js",
-    "portraits:test": "node scripts/testPortraits.js",
-    "postbuild": "node scripts/postbuild.js"
+    "portraits:test": "node scripts/testPortraits.js"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^5.17.0",
@@ -45,68 +44,9 @@
     "@testing-library/user-event": "^14.6.1",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
-    "concurrently": "^9.2.1",
     "gh-pages": "^6.3.0",
     "serve": "^14.2.1",
-    "vitest": "^1.6.0",
-    "wait-on": "^9.0.1",
     "webpack-bundle-analyzer": "^4.10.2"
-  },
-  "build": {
-    "appId": "com.worldengine.app",
-    "productName": "WorldEngine",
-    "executableName": "WorldEngine",
-    "directories": {
-      "output": "dist"
-    },
-    "files": [
-      {
-        "from": "build",
-        "to": ".",
-        "filter": [
-          "**/*"
-        ]
-      },
-      "electron.js",
-      "package.json",
-      "node_modules/**/*"
-    ],
-    "publish": {
-      "provider": "github",
-      "owner": "walterdalec",
-      "repo": "World-Engine"
-    },
-    "mac": {
-      "category": "public.app-category.games",
-      "target": "dmg"
-    },
-    "win": {
-      "target": "nsis",
-      "icon": "resources/world-engine.ico",
-      "signAndEditExecutable": false,
-      "verifyUpdateCodeSignature": false
-    },
-    "linux": {
-      "target": "AppImage",
-      "category": "Game"
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "allowElevation": false,
-      "deleteAppDataOnUninstall": false,
-      "runAfterFinish": true,
-      "installerIcon": "resources/world-engine.ico",
-      "uninstallerIcon": "resources/world-engine.ico"
-    },
-    "extraResources": [
-      {
-        "from": "resources/world-engine.ico",
-        "to": "."
-      }
-    ]
   },
   "browserslist": {
     "production": [
