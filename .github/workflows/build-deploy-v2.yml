@@ -1,0 +1,78 @@
+name: Build & Deploy World Engine
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [20]
+    
+    steps:
+      - name: Checkout Repository 🛎️
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js ${{ matrix.node-version }} ⚙️
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Clear npm cache completely 🧹
+        run: |
+          npm cache clean --force
+          rm -rf node_modules
+          rm -rf package-lock.json
+
+      - name: Fresh install dependencies 📦
+        run: |
+          npm install --legacy-peer-deps
+          npm list typescript
+
+      - name: TypeScript compilation check 🔍
+        run: |
+          npx tsc --noEmit
+          echo "TypeScript compilation successful!"
+
+      - name: Build production bundle 🧱
+        run: |
+          export PUBLIC_URL=/${{ github.event.repository.name }}
+          npm run build
+        env:
+          CI: false
+          GENERATE_SOURCEMAP: false
+
+      - name: Verify build output 📁
+        run: |
+          ls -la build/
+          echo "Build directory contents verified"
+
+      - name: Deploy to GitHub Pages 🚀
+        if: github.ref == 'refs/heads/main'
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: build
+          token: ${{ secrets.GITHUB_TOKEN }}
+          clean: true
+          clean-exclude: |
+            .nojekyll
+            CNAME
