@@ -31,7 +31,10 @@
     "dist",
     ".tsbuildinfo",
     "packages",
-    "planning"
+    "planning",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/test/**/*"
   ],
   "ts-node": {
     "transpileOnly": true,
