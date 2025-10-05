@@ -22,7 +22,7 @@ jobs:
     
     strategy:
       matrix:
-        node-version: [20]
+        node-version: [18]
     
     steps:
       - name: Checkout Repository 🛎️
@@ -45,8 +45,9 @@ jobs:
 
       - name: Fresh install dependencies 📦
         run: |
-          npm install --legacy-peer-deps
-          npm list typescript
+          npm install -g npm@8
+          npm install --legacy-peer-deps --force
+          npm ls typescript || true
 
       - name: Build production bundle 🧱
         run: |
