@@ -26,6 +26,13 @@ const iconPath = (() => {
 let mainWindow;
 
 // Configure auto-updater
+if (isDev) {
+    // In development, check local server
+    autoUpdater.setFeedURL({
+        provider: 'generic',
+        url: 'http://localhost:8080'
+    });
+}
 autoUpdater.checkForUpdatesAndNotify();
 
 // Auto-updater events
@@ -67,6 +74,10 @@ ipcMain.on('restart-app', () => {
     autoUpdater.quitAndInstall();
 });
 
+ipcMain.on('check-for-updates', () => {
+    autoUpdater.checkForUpdatesAndNotify();
+});
+
 function createWindow() {
     // Create the browser window
     mainWindow = new BrowserWindow({
@@ -78,7 +89,8 @@ function createWindow() {
             nodeIntegration: false,
             contextIsolation: true,
             enableRemoteModule: false,
-            webSecurity: true
+            webSecurity: true,
+            preload: path.join(__dirname, 'preload.js')
         },
         icon: iconPath,
         title: 'World Engine',
