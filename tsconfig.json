@@ -29,7 +29,8 @@
     "node_modules",
     "build",
     "dist",
-    ".tsbuildinfo"
+    ".tsbuildinfo",
+    "packages"
   ],
   "ts-node": {
     "transpileOnly": true,
