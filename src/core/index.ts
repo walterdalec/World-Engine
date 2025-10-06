@@ -86,3 +86,6 @@ export {
     CombatLog,
     logEvt
 } from './action';
+
+// Unit Model, Stats & Damage (TODO #06)
+export * from './unit';
