@@ -51,7 +51,8 @@ export {
     validateMoveCollision,
     validatePassable,
     validateMana,
-    validateAlive
+    validateAlive,
+    validateZoC
 } from './validators';
 
 // Effects

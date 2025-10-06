@@ -5,6 +5,7 @@
 
 import { axialDistance } from './hex';
 import { los } from './hex';
+import { violatesZoC } from '../formation/zoc';
 import type { WorldState, PlannedAction, ValidationResult, Axial } from './types';
 
 export function validateAP(state: WorldState, a: PlannedAction): ValidationResult {
@@ -64,4 +65,27 @@ export function validateAlive(state: WorldState, a: PlannedAction): ValidationRe
     const u = state.units.get(a.actor);
     if (!u) return { ok: false, reasons: ['no_actor'] };
     return { ok: u.hp > 0, reasons: u.hp > 0 ? undefined : ['actor_dead'] };
+}
+
+export function validateZoC(state: WorldState, a: PlannedAction): ValidationResult {
+    if (a.kind !== 'move') return { ok: true }; // ZoC only applies to movement
+
+    const destination = a.targets[0];
+    if (!destination) return { ok: false, reasons: ['no_destination'] };
+
+    const actor = state.units.get(a.actor);
+    if (!actor) return { ok: false, reasons: ['no_actor'] };
+
+    // Simple path from current position to destination
+    const path = [actor.pos, destination];
+
+    // Check if movement violates ZoC
+    if (violatesZoC(state, a.actor, path)) {
+        // Check if disengage flag is set
+        if (!a.data?.disengage) {
+            return { ok: false, reasons: ['zoc_blocked'] };
+        }
+    }
+
+    return { ok: true };
 }

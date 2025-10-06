@@ -7,6 +7,7 @@ import type { WorldState, PlannedAction, ResolutionReport } from './types';
 import type { DeltaBatch, Delta } from './deltas';
 import { applyDelta } from './deltas';
 import { adjacentEnemiesOf } from './adjacency';
+import { enemiesAdjacentTo, violatesZoC } from '../formation/zoc';
 import {
     effectMove,
     effectAttack,
@@ -93,12 +94,51 @@ export function resolveSimultaneous(state: WorldState, actions: PlannedAction[])
         }
     }
 
-    // Phase 2: Reactions - Opportunity Attacks for flee/disengage moves
+    // Phase 2: Reactions - Enhanced Opportunity Attacks for ZoC violations
     const preDamage = new Map<string, number>();
     for (const b of batches) {
         const a = actionsByActor.get(b.byActor);
-        if (!a) continue;
+        if (!a || (a.kind !== 'move' && a.kind !== 'flee')) continue;
 
+        const unit = state.units.get(a.actor);
+        if (!unit) continue;
+
+        // Check for ZoC violations (leaving adjacency without disengage)
+        if (a.kind === 'move' && !a.data?.disengage) {
+            const destination = a.targets[0];
+            if (destination) {
+                const path = [unit.pos, destination];
+                if (violatesZoC(state, a.actor, path)) {
+                    // Get enemies that were adjacent before movement
+                    const adjacentEnemies = enemiesAdjacentTo(state, a.actor);
+
+                    for (const enemyId of adjacentEnemies) {
+                        const enemy = state.units.get(enemyId);
+                        if (!enemy) continue;
+
+                        // Check if this enemy will no longer be adjacent after movement
+                        const distanceAfter = Math.max(
+                            Math.abs(destination.q - enemy.pos.q),
+                            Math.abs(destination.r - enemy.pos.r),
+                            Math.abs((destination.q + destination.r) - (enemy.pos.q + enemy.pos.r))
+                        );
+
+                        if (distanceAfter > 1) {
+                            // This enemy loses adjacency - trigger OA
+                            const oa = effectOpportunityAttack(state, enemyId, a.actor);
+                            for (const d of oa.deltas) {
+                                if (d.kind === 'hp') {
+                                    preDamage.set(d.id, (preDamage.get(d.id) || 0) + d.delta);
+                                    applied.push(d);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Handle explicit disengage moves (flee or move with disengage flag)
         if ((a.kind === 'flee' && a.data?.disengage) || (a.kind === 'move' && a.data?.disengage)) {
             const adjEnemies: string[] = adjacentEnemiesOf(state, b.byActor);
             for (const eid of adjEnemies) {

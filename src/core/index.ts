@@ -92,3 +92,6 @@ export * from './unit';
 
 // Terrain System (TODO #05)
 export * from './terrain';
+
+// Formation & Positioning System (TODO #09)
+export * from './formation';

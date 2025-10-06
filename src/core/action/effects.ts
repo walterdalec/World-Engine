@@ -8,6 +8,8 @@ import type { WorldState, PlannedAction } from './types';
 import type { DeltaBatch } from './deltas';
 import { logEvt } from './log';
 import { adjacentEnemiesOf } from './adjacency';
+import { flankInfo, flankModifiers } from '../formation/flanking';
+import { getFormation, Backline } from '../formation/formation';
 
 // --- Movement ---
 export function effectMove(state: WorldState, a: PlannedAction, origin: Axial): DeltaBatch {
@@ -71,10 +73,11 @@ export function effectFlee(state: WorldState, a: PlannedAction, origin: Axial): 
     };
 }
 
-// --- Simple Attack (placeholder until damage system integrated) ---
+// --- Enhanced Attack (with flanking and formation bonuses) ---
 export function effectAttack(state: WorldState, a: PlannedAction, origin: Axial): DeltaBatch {
     const deltas: any[] = [];
-    const power = (a.data?.power || 0) || 6;
+    const basePower = (a.data?.power || 0) || 6;
+    const isRangedAttack = a.data?.isRanged || false;
     let hits = 0;
 
     for (const t of a.targets) {
@@ -87,19 +90,51 @@ export function effectAttack(state: WorldState, a: PlannedAction, origin: Axial)
         });
 
         if (targetUnit) {
-            // Simple damage calculation
-            const damage = Math.floor(power * state.rng() + 1);
+            // Get flanking information and modifiers
+            const flankingInfo = flankInfo(state, a.actor, targetUnit.id);
+            const flankMods = flankModifiers(flankingInfo);
+
+            // Get formation bonuses
+            const attackerFormation = getFormation(state.units.get(a.actor));
+            const isBackRowAttack = attackerFormation?.row === 'back';
+            const formationBonus = isBackRowAttack && isRangedAttack ? Backline.rangedAccuracyBonus / 2 : 0;
+
+            // Calculate total damage multiplier
+            const totalMultiplier = 100 + flankMods.multBonus + formationBonus;
+
+            // Calculate damage with bonuses
+            const enhancedPower = Math.floor(basePower * totalMultiplier / 100);
+            const damage = Math.floor(enhancedPower * state.rng() + 1);
+
             if (damage > 0) {
                 deltas.push({ kind: 'hp', id: targetUnit.id, delta: -damage });
                 hits++;
             }
+
+            // Log detailed attack information
+            const logData = {
+                actor: a.actor,
+                target: targetUnit.id,
+                basePower,
+                finalPower: enhancedPower,
+                damage,
+                flanking: flankingInfo.arc,
+                isFlanked: flankingInfo.isFlanked,
+                isRanged: isRangedAttack,
+                isBackRow: isBackRowAttack
+            };
+
+            deltas.push({
+                kind: 'log',
+                data: logEvt('attack_detailed', logData)
+            });
         }
     }
 
     return {
         byActor: a.actor,
         deltas,
-        log: [logEvt('attack', { actor: a.actor, power, hits })]
+        log: [logEvt('attack', { actor: a.actor, power: basePower, hits })]
     };
 }
 
