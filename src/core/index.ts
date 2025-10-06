@@ -18,3 +18,71 @@ export type {
 
 // Turn system (TODO #03)
 export * from './turn';
+
+// Action system (TODO #04) - explicit exports to avoid conflicts
+export {
+    // Core types (prefixed to avoid conflicts with turn system)
+    type Axial,
+    type ActionKind,
+    type TargetPattern,
+    type ValidationResult,
+    type WorldUnit,
+
+    // Delta system
+    type Delta,
+    type DeltaBatch,
+    applyDelta,
+
+    // Hex utilities
+    axial,
+    axialDistance,
+    hexLine,
+    hexRingAt,
+    hexBlastAt,
+    neighbors,
+    los,
+
+    // Targeting selectors
+    selectSingle,
+    selectLine,
+    selectBlast,
+    selectCone,
+    selectRing,
+    selectSelf,
+    selectMulti,
+
+    // Validators
+    validateAP,
+    validateLOS,
+    validateRange,
+    validateStatus,
+    validateMoveCollision,
+    validatePassable,
+    validateMana,
+    validateAlive,
+
+    // Effects
+    effectMove,
+    effectAttack,
+    effectDefend,
+    effectCast,
+    effectCommand,
+    effectRally,
+    effectFlee,
+    effectWait,
+    effectUse,
+    effectOpportunityAttack,
+
+    // Adjacency helpers
+    adjacentEnemiesOf,
+    adjacentAlliesOf,
+    adjacentUnitsOf,
+
+    // Resolution system
+    resolveSimultaneous,
+    applyResolution,
+
+    // Logging
+    CombatLog,
+    logEvt
+} from './action';
