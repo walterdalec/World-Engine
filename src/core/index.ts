@@ -89,3 +89,6 @@ export {
 
 // Unit Model, Stats & Damage (TODO #06)
 export * from './unit';
+
+// Terrain System (TODO #05)
+export * from './terrain';
