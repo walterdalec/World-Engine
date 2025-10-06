@@ -80,3 +80,13 @@ public
 # Storybook build outputs
 .out
 .storybook-out
+
+# AI Development (work in progress)
+src/features/ai/
+src/features/*/ai/
+src/experimental/
+*.wip
+*.draft
+*.tmp
+**/ai-dev/
+**/ai-experiments/
