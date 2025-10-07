@@ -1,6 +1,28 @@
 import type { BattleState, Unit, HexPosition, Ability } from "./types";
 import { hexDistance, findPath, getTargetsInShape, canUseAbility } from "./engine";
 import { ABILITIES } from "./abilities";
+import { seedRng } from '../strategy/ai/rng';
+import { CommanderBrain } from '../ai/tactical/commander';
+import type { CommanderIntent } from '../ai/tactical/commander';
+import { attachV24, commanderTickV24, onOutcomeDelta } from '../ai/tactical/commander_v24';
+import * as UnitAI from '../ai/tactical/unit';
+import { Learning, counterplayAdjust, specialistIntent, adaptToEnvironment } from '../ai/tactical/adaptation';
+import type { Archetype } from '../ai/tactical/adaptation';
+import { commanderManeuverTick } from '../ai/tactical/formations_v25';
+import { attachV26, v26Tick } from '../ai/tactical/v26';
+import { attachV27, v27Tick } from '../ai/tactical/v27';
+import { attachV28, v28Tick } from '../ai/tactical/v28';
+import { attachV29, v29Tick } from '../ai/tactical/v29';
+
+const TICK_INTERVAL_MS = 500;
+
+interface TacticalRuntime {
+  commander: CommanderBrain;
+  learn: ReturnType<typeof Learning.createLearnState>;
+  unitBoards: Map<string, UnitAI.UnitBlackboard>;
+}
+
+const tacticalRuntimes = new Map<string, TacticalRuntime>();
 
 // AI system for battle unit behavior
 export interface AIAction {
@@ -280,24 +302,142 @@ function calculateTacticalAction(state: BattleState, unit: Unit): AIAction | nul
     return calculateAIAction(state, unit.id);
 }
 
-// Execute a full AI turn for all enemy units
+// Execute a full AI turn for all enemy units using tactical commanders and unit AI
 export function executeAITurn(state: BattleState): void {
-    const enemyUnits = state.units.filter(u =>
-        u.faction === "Enemy" && !u.isDead && u.pos
-    );
+  const runtime = ensureRuntime(state);
+  ensureEventArray(state);
+  commanderTickV24(runtime.commander, state as any);
+  v26Tick(runtime.commander, state as any);
+  v27Tick(runtime.commander, state as any);
+  v28Tick(runtime.commander, state as any);
+  v29Tick(runtime.commander, state as any);
 
-    for (const unit of enemyUnits) {
-        const action = calculateAIAction(state, unit.id);
-        if (action) {
-            executeAIAction(state, action);
-        }
+  const nowMs = (state.turn ?? 0) * TICK_INTERVAL_MS;
+  const signals = runtime.commander.tick(state, nowMs);
+  const orders = signals.map((signal) => signal.order);
+
+  const enemyUnits = state.units.filter((unit) => unit.faction === 'Enemy' && !unit.isDead);
+  const maneuverUnits = enemyUnits.map((unit) => ({ id: unit.id, role: deriveArchetype(unit) }));
+  commanderManeuverTick(runtime.commander, state as any, maneuverUnits);
+  const boards: UnitAI.UnitBlackboard[] = [] as UnitAI.UnitBlackboard[];
+
+  const activeIds = new Set<string>();
+  for (const unit of enemyUnits) {
+    activeIds.add(unit.id);
+    let bb = runtime.unitBoards.get(unit.id);
+    if (!bb) {
+      bb = UnitAI.buildUnitBB(state, unit.id) ?? undefined;
+      if (!bb) continue;
+      runtime.unitBoards.set(unit.id, bb);
     }
+    UnitAI.refreshUnitBB(bb, state);
+    tickOrder(bb);
+    boards.push(bb);
+  }
+
+  for (const key of Array.from(runtime.unitBoards.keys())) {
+    if (!activeIds.has(key)) runtime.unitBoards.delete(key);
+  }
+
+  UnitAI.assignOrdersToUnits(orders, boards);
+
+  for (const bb of boards) {
+    UnitAI.refreshUnitBB(bb, state);
+    let intent = UnitAI.decideIntent(state, bb);
+    intent = Learning.applyLearnedBias(runtime.learn, bb.myId, intent);
+    intent = counterplayAdjust(state, bb, intent);
+    const unit = findUnit(state, bb.myId);
+    const archetype = deriveArchetype(unit);
+    intent = specialistIntent(archetype, state, bb, intent);
+    intent = adaptToEnvironment(state, bb, intent);
+    UnitAI.executeIntent(state, bb, intent);
+  }
+
+  onOutcomeDelta(runtime.commander, { dmgFor: 0, dmgAgainst: 0, objProgress: 0 });
 }
 
-function executeAIAction(state: BattleState, action: AIAction): void {
-    // This would integrate with the main battle engine
-    // For now, just log the intended action
-    state.log.push(`AI ${action.type} for unit ${action.unitId}`);
+function ensureRuntime(state: BattleState): TacticalRuntime {
+  let runtime = tacticalRuntimes.get(state.id);
+  if (!runtime) {
+    ensureUnitStats(state);
+    const intent = deriveCommanderIntent(state);
+    const commander = new CommanderBrain(intent, { tickMs: TICK_INTERVAL_MS, maxSignalsPerTick: 2 });
+    const anchor = { q: Math.floor(state.grid.width / 2), r: Math.floor(state.grid.height / 2) };
+    attachV24(commander, anchor, 0);
+    attachV26(commander, state, {
+      regionTags: state.region?.tags ?? [],
+      isAmbush: Boolean(state.flags?.ambush),
+      anchor,
+      facing: 0,
+    });
+    attachV27(commander, state);
+    attachV28(commander, state, {
+      cultureId: state.context?.cultureId,
+      rng: seedRng(Number(state.context?.seed ?? Date.now())),
+    });
+    attachV29(commander, undefined, state, {
+      enemyFactionId: state.context?.enemyFactionId,
+      enemyPlaybookId: state.context?.enemyPlaybookId,
+    });
+    runtime = { commander, learn: Learning.createLearnState(), unitBoards: new Map() };
+    tacticalRuntimes.set(state.id, runtime);
+  }
+  return runtime;
+}
 
-    // TODO: Actually execute the action using battle engine functions
+function ensureUnitStats(state: BattleState) {
+  if (state.unitStatsById) return;
+  const map: Record<string, { atk: number; def: number; spd: number; rng: number; hp: number; traits?: string[] }> = {};
+  for (const unit of state.units ?? []) {
+    const stats = unit.stats ?? {};
+    map[unit.id] = {
+      atk: stats.atk ?? 6,
+      def: stats.def ?? 4,
+      spd: stats.spd ?? stats.move ?? 4,
+      rng: stats.rng ?? unit.range ?? 1,
+      hp: stats.hp ?? stats.maxHp ?? 10,
+      traits: unit.traits ?? [],
+    };
+  }
+  state.unitStatsById = map;
+}
+
+function deriveCommanderIntent(state: BattleState): CommanderIntent {
+  const intent = state.context.commanderIntent;
+  if (intent) {
+    return {
+      stance: intent.stance ?? 'Aggressive',
+      objective: intent.objective ?? 'Seize',
+      riskTolerance: intent.riskTolerance ?? 50,
+      focusRegionId: intent.focusRegionId,
+    };
+  }
+  return { stance: 'Aggressive', objective: 'Seize', riskTolerance: 50 };
+}
+
+function ensureEventArray(state: BattleState) {
+  const asAny = state as any;
+  if (!Array.isArray(asAny.events)) asAny.events = [];
+}
+
+function tickOrder(bb: UnitAI.UnitBlackboard) {
+  if (!bb.currentOrder) return;
+  bb.currentOrder.ttl -= 1;
+  if (bb.currentOrder.ttl <= 0) bb.currentOrder = undefined;
+}
+
+function findUnit(state: BattleState, unitId: string): Unit | undefined {
+  return state.units.find((unit) => unit.id === unitId);
+}
+
+function deriveArchetype(unit: Unit | undefined): Archetype {
+  if (!unit) return 'Infantry';
+  const arche = (unit.archetype ?? '').toLowerCase();
+  if (arche.includes('shield') || arche.includes('guard') || arche.includes('paladin')) return 'Shield';
+  if (arche.includes('archer') || arche.includes('ranger') || arche.includes('bow')) return 'Archer';
+  if (arche.includes('skirm') || arche.includes('rogue') || arche.includes('assassin') || arche.includes('scout')) return 'Skirmisher';
+  if (arche.includes('cavalry') || arche.includes('rider') || arche.includes('knight')) return 'Cavalry';
+  if (arche.includes('mage') || arche.includes('wizard') || arche.includes('sorcer')) return 'Mage';
+  if (arche.includes('siege') || arche.includes('artillery')) return 'Siege';
+  return 'Infantry';
 }

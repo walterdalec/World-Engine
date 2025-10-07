@@ -18,6 +18,9 @@ export type {
     BattleResult
 } from './types';
 
+// Morale & Psychology System (TODO #10)
+export * from './morale';
+
 // Battle engine functions
 export {
     startBattle,

@@ -38,3 +38,13 @@ function withinDepotRange(world: WorldState, army: Army, radius: number) {
   }
   return false;
 }
+
+export function getArmyMoraleMod(world: WorldState, army: Army): number {
+  const morale = army.morale ?? 50;
+  return Math.round(morale - 50);
+}
+
+export function getArmySupplyMod(world: WorldState, army: Army): number {
+  const supplies = army.supplies ?? 50;
+  return Math.round((supplies / 100) * 2 - 1);
+}

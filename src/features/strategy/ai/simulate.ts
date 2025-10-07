@@ -31,6 +31,7 @@ import { assignArmyObjectives, scoreObjectiveProgress } from './objectives';
 import { tickReparations } from './peace.variants';
 import { rollSeasonalEconomyEvents } from './economy.events';
 import { livingWorldActive, simulateLivingTick } from './integrations';
+import { spawnCampaignEvents, applyEventEffects } from '../ai/tactical/v29';
 
 export function createAIContext(world: WorldState): AIContext {
   return {
@@ -70,6 +71,10 @@ export function simulateTick(world: WorldState) {
   advanceMarch(ctx);
   resolveArrivalsAndConflicts(ctx);
   tickSieges(ctx);
+  const campaignEvents = spawnCampaignEvents(world, world.turn);
+  for (const ev of campaignEvents) {
+    applyEventEffects(world, ev);
+  }
 
   checkCaravanAmbushes(ctx);
   moveCaravans(world);

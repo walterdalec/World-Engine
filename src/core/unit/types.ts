@@ -59,6 +59,7 @@ export interface EquipmentSlots {
 export interface StatusInst {
     name: string;
     turns: number;
+    amount?: number;
     stacks?: number;
     data?: any;
 }

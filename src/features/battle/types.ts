@@ -32,6 +32,14 @@ export interface StatusEffect {
     name: string;
     duration: number;
     effects: Partial<UnitStats>;
+    payload?: { // Additional data for complex effects
+        amount?: number; // Morale bonus/penalty
+        stacks?: number; // Fear stacks
+        maxStacks?: number; // Fear stack limit
+        source?: string; // Effect source
+        type?: string; // Effect type
+        [key: string]: any;
+    };
 }
 
 export interface Skill {
@@ -67,6 +75,10 @@ export interface Unit {
     facing?: number; // Add facing for hex directions (0-5)
     hasMoved?: boolean; // Track if unit has moved this turn
     hasActed?: boolean; // Track if unit has acted this turn
+    meta?: { // Metadata for systems like morale
+        morale?: any; // MoraleBlock from morale system
+        [key: string]: any;
+    };
 }
 
 export interface Ability {
@@ -134,6 +146,8 @@ export interface BattleContext {
     site?: 'wilds' | 'settlement' | 'dungeon';
     personality?: Personality;
     cultureId?: string;
+    enemyFactionId?: string;
+    enemyPlaybookId?: string;
     weather?: string;
     timeOfDay?: 'Dawn' | 'Day' | 'Dusk' | 'Night';
     weatherDetail?: WeatherCell;

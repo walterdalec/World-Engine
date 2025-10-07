@@ -83,8 +83,8 @@ export function applySpell(world: WorldState, casterId: string, spell: Spell, ta
                     break;
                 }
                 case 'terrain': {
-                    deltas.push({ kind: 'terrain', at: hex, change: eff.change });
-                    logs.push(JSON.stringify({ k: 'terrain', spell: spell.id, change: eff.change, q: hex.q, r: hex.r }));
+                    deltas.push({ kind: 'terrain', at: hex, change: eff.change, tile: eff.tile, duration: eff.duration });
+                    logs.push(JSON.stringify({ k: 'terrain', spell: spell.id, change: eff.change, tile: eff.tile, duration: eff.duration ?? null, q: hex.q, r: hex.r }));
                     break;
                 }
                 case 'damage': {

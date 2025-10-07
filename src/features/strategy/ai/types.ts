@@ -159,9 +159,16 @@ export interface Faction {
   wars: Record<ID, War>;
   ai: FactionAI;
   memory?: Memory;
+  cultureId?: string;
   supplyRadius?: number;
   personality: Personality;
   reputation?: ReputationTag[];
+  ledger?: {
+    wins: number;
+    losses: number;
+    routes: number;
+    objSwings: number;
+  };
 }
 
 export interface TradeRoute {

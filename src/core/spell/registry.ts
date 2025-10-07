@@ -216,7 +216,7 @@ const BaseSpells: Record<string, Spell> = {
         range: 5,
         aoe: 'line',
         width: 3,
-        effects: [{ kind: 'terrain', change: 'create', tiles: 'wall', duration: 2 }],
+        effects: [{ kind: 'terrain', change: 'create', tile: 'wall', duration: 2 }],
         tags: ['terrain', 'projectile']
     },
     'air.chain_spark': {
@@ -243,7 +243,7 @@ const BaseSpells: Record<string, Spell> = {
         range: 4,
         aoe: 'line',
         width: 3,
-        effects: [{ kind: 'terrain', change: 'create', tiles: 'fortress', duration: 2 }],
+        effects: [{ kind: 'terrain', change: 'create', tile: 'fortress', duration: 2 }],
         tags: ['hazard']
     },
     'earth.barkskin': {
@@ -268,7 +268,7 @@ const BaseSpells: Record<string, Spell> = {
         range: 5,
         aoe: 'line',
         width: 3,
-        effects: [{ kind: 'terrain', change: 'create', tiles: 'wall', duration: 3 }],
+        effects: [{ kind: 'terrain', change: 'create', tile: 'wall', duration: 3 }],
         tags: ['terrain']
     },
     'earth.quake': {
@@ -574,7 +574,7 @@ const BaseSpells: Record<string, Spell> = {
         aoe: 'blast',
         width: 1,
         exclusiveTo: 'hero',
-        effects: [{ kind: 'terrain', change: 'create', tiles: 'wall', duration: 2 }],
+        effects: [{ kind: 'terrain', change: 'create', tile: 'wall', duration: 2 }],
         tags: ['hero', 'terrain']
     },
     'hero.air.sky_strider': {

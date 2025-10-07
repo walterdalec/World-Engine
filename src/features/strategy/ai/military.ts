@@ -11,6 +11,7 @@ import { chooseConquestTarget } from './expansion';
 import { applyCaptureWarScore, applyWarScore } from './diplomacy';
 import { getDifficulty } from './difficulty';
 import { applyStanceEffects } from './military.stance';
+import { recordBattle } from '../ai/tactical/v29';
 
 export function recomputeArmyStrength(army: Army) {
   if (!army.units || !army.units.length) return;
@@ -162,6 +163,17 @@ export function resolveArrivalsAndConflicts(ctx: AIContext) {
     const defenderStrength = garrisonStrength + relief.totalStrength;
 
     const outcome = autoResolve(army.strength, defenderStrength, rand);
+    const winnerFactionId = outcome.winner === 'A' ? army.factionId : defenderId;
+    const loserFactionId = outcome.winner === 'A' ? defenderId : army.factionId;
+    recordBattle(world, {
+      winnerFactionId,
+      loserFactionId,
+      routs: outcome.delta > 20 ? [loserFactionId] : [],
+      objectivesHeldByFaction: {
+        [army.factionId]: outcome.winner === 'A' ? 1 : 0,
+        [defenderId]: outcome.winner === 'B' ? 1 : 0,
+      },
+    });
 
     world.events.push({
       id: `evt_${world.events.length}`,

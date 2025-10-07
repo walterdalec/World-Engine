@@ -10,10 +10,10 @@ export type Delta =
     | { kind: 'mp'; id: string; delta: number }
     | { kind: 'ap'; id: string; delta: number }
     | { kind: 'pos'; id: string; from: Axial; to: Axial }
-    | { kind: 'status-add'; id: string; name: string; turns: number }
+    | { kind: 'status-add'; id: string; name: string; turns: number; amount?: number }
     | { kind: 'status-rem'; id: string; name: string }
     | { kind: 'unit-dead'; id: string }
-    | { kind: 'terrain'; at: Axial; change: string };
+    | { kind: 'terrain'; at: Axial; change: string; tile?: string; duration?: number };
 
 export interface DeltaBatch {
     byActor: string;

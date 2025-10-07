@@ -48,7 +48,9 @@ export function applySteps(world: WorldState, steps: EffectStep[]): void {
                 const u = world.units.get(p.id);
                 if (u) {
                     u.statuses = u.statuses || [];
-                    u.statuses.push({ name: p.name, turns: p.turns });
+                    const status: any = { name: p.name, turns: p.turns };
+                    if (p.amount != null) status.amount = p.amount;
+                    u.statuses.push(status);
                 }
                 break;
             }

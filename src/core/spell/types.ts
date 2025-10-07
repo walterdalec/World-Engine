@@ -1,14 +1,16 @@
 // packages/core/src/spell/types.ts
 import type { Axial } from '../action/types';
-import type { School } from '../unit/types';
+import type { School, DamageKind } from '../unit/types';
 
 export type SpellLevel = 1 | 2 | 3 | 4; // Basic, Expert, Master, Grandmaster
 export type MasteryLevel = 1 | 2 | 3 | 4; // caster's mastery in a school
 export type AOE = 'single' | 'line' | 'cone' | 'blast';
 
+export type TerrainTile = 'fire' | 'wall' | 'fortress' | 'scorched';
+
 export interface SpellEffectDamage {
     kind: 'damage';
-    damageKind: 'Physical' | 'Magical';
+    damageKind: DamageKind;
     school?: School;
     power: number;
     multiplier: number;
@@ -52,7 +54,7 @@ export interface SpellEffectHoT {
 export interface SpellEffectTerrain {
     kind: 'terrain';
     change: 'create' | 'destroy';
-    tiles: 'fire' | 'wall' | 'fortress' | 'scorched';
+    tile: TerrainTile;
     duration?: number;
 }
 

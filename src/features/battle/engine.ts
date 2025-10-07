@@ -8,7 +8,15 @@ import {
     neighborsHex as hexNeighbors,
     hexRing,
     hexSpiral
-} from "./generate_hex";// Grid utilities
+} from "./generate_hex";
+// Morale system integration
+import {
+    initializeMoraleSystem,
+    processTurnStartMorale,
+    processTurnEndMorale,
+    processUnitDeath,
+    getMoraleStatus
+} from "./morale";// Grid utilities
 export function tileAt(grid: BattleGrid, pos: HexPosition): HexTile | undefined {
     return grid.tiles.find(t => t.q === pos.q && t.r === pos.r);
 }
@@ -41,10 +49,27 @@ export function lineOfSight(grid: BattleGrid, start: HexPosition, end: HexPositi
 // Initiative and turn order
 export function buildInitiative(state: BattleState): string[] {
     const units = state.units.filter(u => !u.isDead && u.pos && !u.isCommander);
+
+    // Apply morale modifiers to initiative (SPD)
+    const unitsWithMorale = units.map(u => {
+        let adjustedSpd = u.stats.spd;
+
+        // Apply morale initiative penalty
+        const moraleStatus = getMoraleStatus(state, u.id);
+        if (moraleStatus.needsAttention) {
+            // Simple morale penalty to initiative
+            if (moraleStatus.state === 'shaken') adjustedSpd -= 2;
+            else if (moraleStatus.state === 'wavering') adjustedSpd -= 5;
+            else if (moraleStatus.state === 'routing') adjustedSpd -= 8;
+        }
+
+        return { unit: u, adjustedSpd: Math.max(1, adjustedSpd) };
+    });
+
     // Higher SPD acts earlier; stable sort by spd desc, then name
-    return units
-        .sort((a, b) => (b.stats.spd - a.stats.spd) || a.name.localeCompare(b.name))
-        .map(u => u.id);
+    return unitsWithMorale
+        .sort((a, b) => (b.adjustedSpd - a.adjustedSpd) || a.unit.name.localeCompare(b.unit.name))
+        .map(u => u.unit.id);
 }
 
 export function startBattle(state: BattleState) {
@@ -52,6 +77,10 @@ export function startBattle(state: BattleState) {
     state.phase = "HeroTurn";
     state.initiative = buildInitiative(state);
     applyCommanderAura(state);
+
+    // Initialize morale system
+    initializeMoraleSystem(state);
+
     state.log.push("Battle has begun!");
 }
 
@@ -59,6 +88,10 @@ export function nextPhase(state: BattleState) {
     if (state.phase === "HeroTurn") {
         state.phase = "UnitsTurn";
         state.selectedUnit = undefined;
+
+        // Process morale at start of units turn
+        processTurnStartMorale(state);
+
     } else if (state.phase === "UnitsTurn") {
         state.phase = "EnemyTurn";
         state.selectedUnit = undefined;
@@ -70,6 +103,9 @@ export function nextPhase(state: BattleState) {
         // Process end-of-turn effects
         tickStatusEffects(state);
         decrementCooldowns(state);
+
+        // Process morale at end of turn
+        processTurnEndMorale(state);
     }
 
     checkVictoryConditions(state);
@@ -246,6 +282,9 @@ export function executeAbility(
                 if (target.stats.hp <= 0) {
                     target.isDead = true;
                     state.log.push(`${target.name} has fallen!`);
+
+                    // Process morale consequences of death
+                    processUnitDeath(state, target.id);
                 }
             }
         }

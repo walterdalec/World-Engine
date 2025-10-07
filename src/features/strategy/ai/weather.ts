@@ -1,6 +1,6 @@
 
 import { rngInt, seedRng } from './rng';
-import { Army, WeatherCell, WorldState } from './types';
+import { Army, ID, WeatherCell, WorldState } from './types';
 
 export function rollWeatherGrid(world: WorldState) {
   const rand = seedRng(world.rngSeed + world.turn * 31);
@@ -40,4 +40,26 @@ function adjustMarchSpeed(army: Army, weather: WeatherCell) {
     speed = Math.max(1, speed - 1);
   }
   army.marchSpeed = speed;
+}
+
+export function getRegionWeather(world: WorldState, regionId: ID): WeatherCell {
+  const weather = world.weatherGrid?.[regionId];
+  if (weather) return weather;
+  const region = world.regions[regionId];
+  if (!region) {
+    return { temperature: 15, precipitation: 20, wind: 10 };
+  }
+  switch (region.biome) {
+    case 'Forest':
+      return { temperature: 18, precipitation: 60, wind: 15 };
+    case 'Desert':
+      return { temperature: 32, precipitation: 5, wind: 20 };
+    case 'Swamp':
+      return { temperature: 22, precipitation: 80, wind: 10 };
+    case 'Taiga':
+    case 'Snow':
+      return { temperature: -5, precipitation: 30, wind: 25 };
+    default:
+      return { temperature: 20, precipitation: 40, wind: 12 };
+  }
 }
