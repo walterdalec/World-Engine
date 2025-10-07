@@ -10,6 +10,7 @@ import { generateChunk, type Chunk, type ChunkId, worldToChunk, chunkToWorld } f
 import { ChunkCache, globalChunkCache } from './cache';
 import type { SeededRng } from './rng';
 import { splitmix32 } from './rng';
+import { getWorldSizeConfig, type WorldSizeConfig } from './worldSizes';
 
 export interface WorldConfig {
     globalSeed: number;
@@ -17,6 +18,13 @@ export interface WorldConfig {
     streamRadius: number;    // Chunks to keep loaded around player
     preloadRadius: number;   // Chunks to preload ahead of player
     generateAsync: boolean;  // Generate chunks in background
+    worldSizeId?: string;    // World size configuration ID
+    worldBounds?: {          // Hard world boundaries (overrides worldSizeId bounds)
+        minChunkX: number;
+        maxChunkX: number;
+        minChunkY: number;
+        maxChunkY: number;
+    };
 }
 
 export interface PlayerPosition {
@@ -77,7 +85,8 @@ const DEFAULT_CONFIG: WorldConfig = {
     chunkSize: 64,
     streamRadius: 2,
     preloadRadius: 1,
-    generateAsync: true
+    generateAsync: true,
+    worldSizeId: 'medium'  // Default to medium world
 };
 
 /**
@@ -85,6 +94,7 @@ const DEFAULT_CONFIG: WorldConfig = {
  */
 export class WorldManager {
     private config: WorldConfig;
+    private worldSizeConfig: WorldSizeConfig;
     private cache: ChunkCache;
     private playerPos: PlayerPosition;
     private loadedChunks = new Set<string>();
@@ -100,6 +110,13 @@ export class WorldManager {
 
     constructor(config: Partial<WorldConfig> = {}, cache?: ChunkCache) {
         this.config = { ...DEFAULT_CONFIG, ...config };
+
+        // Load world size configuration
+        this.worldSizeConfig = getWorldSizeConfig(this.config.worldSizeId || 'medium');
+
+        // Apply world size settings to config
+        this.applyWorldSizeSettings();
+
         this.cache = cache || globalChunkCache;
         this.rng = splitmix32(this.config.globalSeed);
 
@@ -109,8 +126,63 @@ export class WorldManager {
         console.log('🗺️ World Manager initialized:', {
             seed: this.config.globalSeed,
             chunkSize: this.config.chunkSize,
+            worldSize: this.worldSizeConfig.displayName,
+            bounds: this.getEffectiveWorldBounds(),
             initialPosition: this.playerPos
         });
+    }
+
+    /**
+     * Apply world size configuration settings to manager config
+     */
+    private applyWorldSizeSettings(): void {
+        // Override config with world size settings where appropriate
+        if (!this.config.chunkSize || this.config.chunkSize === DEFAULT_CONFIG.chunkSize) {
+            this.config.chunkSize = this.worldSizeConfig.chunkSize;
+        }
+
+        if (!this.config.streamRadius || this.config.streamRadius === DEFAULT_CONFIG.streamRadius) {
+            this.config.streamRadius = this.worldSizeConfig.streamRadius;
+        }
+
+        if (!this.config.preloadRadius || this.config.preloadRadius === DEFAULT_CONFIG.preloadRadius) {
+            this.config.preloadRadius = this.worldSizeConfig.preloadRadius;
+        }
+
+        if (this.config.generateAsync === undefined) {
+            this.config.generateAsync = this.worldSizeConfig.generateAsync;
+        }
+
+        // Update cache settings
+        this.cache = new ChunkCache({
+            maxChunks: this.worldSizeConfig.maxCachedChunks,
+            maxMemoryMB: this.worldSizeConfig.maxMemoryMB,
+            persistToDisk: true,
+            trackStats: true
+        });
+    }
+
+    /**
+     * Get effective world bounds (config override or world size bounds)
+     */
+    private getEffectiveWorldBounds(): WorldBounds | null {
+        if (this.config.worldBounds) {
+            return this.config.worldBounds;
+        }
+        return this.worldSizeConfig.worldBounds || null;
+    }
+
+    /**
+     * Check if a chunk is within world bounds
+     */
+    private isChunkInBounds(chunkId: ChunkId): boolean {
+        const bounds = this.getEffectiveWorldBounds();
+        if (!bounds) return true; // No bounds = infinite world
+
+        return chunkId.cx >= bounds.minChunkX &&
+            chunkId.cx <= bounds.maxChunkX &&
+            chunkId.cy >= bounds.minChunkY &&
+            chunkId.cy <= bounds.maxChunkY;
     }    /**
      * Update player position and manage chunk streaming
      */
@@ -129,11 +201,26 @@ export class WorldManager {
      * Get chunk at specified coordinates, generating if needed
      */
     async getChunk(chunkId: ChunkId): Promise<Chunk> {
+        // Check if chunk is within world bounds
+        if (!this.isChunkInBounds(chunkId)) {
+            throw new Error(`Chunk ${chunkId.cx},${chunkId.cy} is outside world bounds`);
+        }
+
         // Check cache first
         let chunk = this.cache.get(chunkId);
 
         if (chunk) {
             return chunk;
+        }
+
+        // Check if we've hit the chunk limit
+        if (this.loadedChunks.size >= this.worldSizeConfig.maxChunks) {
+            console.warn('🚫 World size limit reached. Cleaning up distant chunks...');
+            const cleaned = this.cleanupDistantChunks();
+
+            if (this.loadedChunks.size >= this.worldSizeConfig.maxChunks) {
+                throw new Error(`World size limit reached (${this.worldSizeConfig.maxChunks} chunks). Cannot generate more chunks.`);
+            }
         }
 
         // Generate new chunk
@@ -199,6 +286,48 @@ export class WorldManager {
      */
     getConfig(): WorldConfig {
         return { ...this.config };
+    }
+
+    /**
+     * Get world size configuration
+     */
+    getWorldSizeConfig(): WorldSizeConfig {
+        return this.worldSizeConfig;
+    }
+
+    /**
+     * Get world bounds information
+     */
+    getWorldBounds(): WorldBounds | null {
+        return this.getEffectiveWorldBounds();
+    }
+
+    /**
+     * Get world size statistics
+     */
+    getWorldSizeStats(): {
+        currentChunks: number;
+        maxChunks: number;
+        memoryUsage: number;
+        maxMemory: number;
+        boundsInfo: string;
+        utilizationPercent: number;
+    } {
+        const bounds = this.getEffectiveWorldBounds();
+        const stats = this.cache.getStats();
+
+        return {
+            currentChunks: this.loadedChunks.size,
+            maxChunks: this.worldSizeConfig.maxChunks,
+            memoryUsage: stats.totalMemoryBytes / (1024 * 1024), // MB
+            maxMemory: this.worldSizeConfig.maxMemoryMB,
+            boundsInfo: bounds
+                ? `${bounds.maxChunkX - bounds.minChunkX + 1}×${bounds.maxChunkY - bounds.minChunkY + 1} chunks`
+                : 'Infinite',
+            utilizationPercent: this.worldSizeConfig.maxChunks === Infinity
+                ? 0
+                : (this.loadedChunks.size / this.worldSizeConfig.maxChunks) * 100
+        };
     }
 
     /**

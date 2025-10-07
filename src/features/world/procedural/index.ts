@@ -45,6 +45,17 @@ export type {
     RegionalData
 } from './manager';
 
+// World size configuration system
+export {
+    WORLD_SIZE_CONFIGS,
+    type WorldSizeConfig,
+    detectRecommendedWorldSize,
+    getWorldSizeConfig,
+    getWorldSizeOptions,
+    validateWorldSizeForSystem,
+    calculateWorldCoverage
+} from './worldSizes'; export { WorldSizeSelection } from './WorldSizeSelection';
+
 // Utilities
 export {
     chunkToWorld,
