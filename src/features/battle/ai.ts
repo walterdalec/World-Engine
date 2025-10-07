@@ -1,6 +1,50 @@
-import type { BattleState, Unit, HexPosition } from "./types";
+import type { BattleState, HexPosition } from "./types";
+import {
+    attachV30,
+    v30Tick,
+    scoreHex,
+    type Hex as ThreatHex,
+} from "../ai/tactical/v30";
 
-// AI system for battle unit behavior
+const NEIGHBOR_DIRS: readonly ThreatHex[] = [
+    { q: 1, r: 0 },
+    { q: 1, r: -1 },
+    { q: 0, r: -1 },
+    { q: -1, r: 0 },
+    { q: -1, r: 1 },
+    { q: 0, r: 1 },
+];
+
+interface TacticalRuntime {
+    brain: any;
+    lastTickTurn: number;
+}
+
+const runtimes = new Map<string, TacticalRuntime>();
+
+function ensureRuntime(state: BattleState): TacticalRuntime {
+    let runtime = runtimes.get(state.id);
+    if (!runtime) {
+        const anchor = {
+            q: Math.floor(state.grid.width / 2),
+            r: Math.floor(state.grid.height / 2),
+        };
+        const brain: any = {
+            v24: { formation: { anchor, facing: 0 as 0 } },
+        };
+        attachV30(brain, state as any);
+        runtime = { brain, lastTickTurn: -1 };
+        runtimes.set(state.id, runtime);
+    }
+    return runtime;
+}
+
+function tickField(runtime: TacticalRuntime, state: BattleState) {
+    if (runtime.lastTickTurn === state.turn) return;
+    v30Tick(runtime.brain, state as any);
+    runtime.lastTickTurn = state.turn;
+}
+
 export interface AIAction {
     type: "move" | "ability" | "wait";
     unitId: string;
@@ -8,35 +52,72 @@ export interface AIAction {
     abilityId?: string;
 }
 
-// Simplified AI for build compatibility while advanced AI is developed
 export function calculateAIAction(state: BattleState, unitId: string): AIAction | null {
-    // Basic AI stub - just wait for now
-    // The morale system works independently of AI complexity
-    return { type: "wait", unitId };
+    const unit = state.units.find((u) => u.id === unitId);
+    if (!unit || !unit.pos || unit.isDead) {
+        return null;
+    }
+
+    const runtime = ensureRuntime(state);
+    tickField(runtime, state);
+    const field = runtime.brain?.v30?.field;
+    if (!field) {
+        return { type: "wait", unitId };
+    }
+
+    const currentScore = scoreHex(field, unit.pos as ThreatHex);
+    let bestScore = currentScore.pull - currentScore.danger;
+    let bestPos: ThreatHex = unit.pos as ThreatHex;
+
+    for (const dir of NEIGHBOR_DIRS) {
+        const candidate = { q: unit.pos.q + dir.q, r: unit.pos.r + dir.r };
+        if (!isPassable(state, candidate)) continue;
+        const { danger, pull } = scoreHex(field, candidate);
+        const score = pull - danger;
+        if (score > bestScore) {
+            bestScore = score;
+            bestPos = candidate;
+        }
+    }
+
+    if (bestPos.q === unit.pos.q && bestPos.r === unit.pos.r) {
+        return { type: "wait", unitId };
+    }
+
+    return {
+        type: "move",
+        unitId,
+        targetPos: bestPos,
+    };
 }
 
-// Placeholder for advanced AI (to be implemented by Codex)
 export function calculateAdvancedAIAction(state: BattleState, unitId: string): AIAction | null {
-    // TODO: Advanced AI that considers morale states:
-    // - unit.meta?.morale?.state ('steady' | 'shaken' | 'wavering' | 'routing')
-    // - unit.meta?.morale?.value (0-100)
-    // - Routing units should prioritize escape
-    // - Shaken units should be more defensive
     return calculateAIAction(state, unitId);
 }
 
-// Placeholder for executing AI turns (to be implemented by Codex)
 export function executeAITurn(state: BattleState): void {
-    // TODO: Execute AI decision making for all enemy units
-    // Should integrate with morale system to make appropriate decisions
+    const runtime = ensureRuntime(state);
+    tickField(runtime, state);
+    const enemyUnits = state.units.filter(
+        (u) => !u.isDead && (u.faction === "Enemy" || u.team === "Enemy"),
+    );
+    for (const unit of enemyUnits) {
+        calculateAIAction(state, unit.id);
+    }
 }
 
-// Placeholder for AI initialization (to be implemented by Codex)
 export function initializeTacticalAI(state: BattleState): void {
-    // TODO: Initialize advanced AI systems that use morale data
+    ensureRuntime(state);
 }
 
-// Placeholder for AI tick updates (to be implemented by Codex)
 export function tickTacticalAI(state: BattleState): void {
-    // TODO: Update AI decision making based on current morale states
+    const runtime = ensureRuntime(state);
+    tickField(runtime, state);
+}
+
+function isPassable(state: BattleState, hex: ThreatHex): boolean {
+    const tile = state.grid.tiles.find((t) => t.q === hex.q && t.r === hex.r);
+    if (!tile) return false;
+    if (tile.occupied) return tile.occupied === "";
+    return tile.passable !== false;
 }
