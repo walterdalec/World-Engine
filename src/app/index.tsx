@@ -6,7 +6,7 @@ import { MainMenu, WorldSetupScreen, VersionDisplay } from "../features/ui";
 import { CharacterLibrary, CharacterCreate, NameGenerator } from "../features/characters";
 import { SpellGenerator, SpellAssignment } from "../features/spells";
 import { HealingSystem, BattleMockup, BattlePage, MinimalBattlePage, BattleSystem } from "../features/battle";
-import { WorldMapEngine, EnhancedWorldMap, SimpleWorldMap } from "../features/world";
+import { WorldMapEngine, EnhancedWorldMap, SimpleWorldMap, ProceduralDevTools } from "../features/world";
 import { SimplePortraitTest } from "../features/portraits";
 import { storage } from "../core/services/storage";
 import type { Engine } from "../engine.d";
@@ -33,7 +33,7 @@ function randomSeed(): string {
 }
 
 function App() {
-  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "enhancedmap" | "simplemap" | "charactercreate" | "portraittest" | "battlesystem" | "battle" | "minimalBattle" | "autoupdater">("menu");
+  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "enhancedmap" | "simplemap" | "charactercreate" | "portraittest" | "battlesystem" | "battle" | "minimalBattle" | "autoupdater" | "procedural">("menu");
   const [party, setParty] = React.useState<Character[]>([]);
   const [currentCampaign, setCurrentCampaign] = React.useState<any>(null);
   const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0); // Force re-render hook
@@ -309,6 +309,11 @@ function App() {
     setStep("simplemap");
   };
 
+  const handleProcedural = () => {
+    // Procedural generation dev tools
+    setStep("procedural");
+  };
+
   // fake engine stub for now
   // Engine stub - will be replaced with real engine
   const eng: Engine = {
@@ -411,6 +416,7 @@ function App() {
           onMinimalBattle={handleMinimalBattle}
           onEnhancedMap={handleEnhancedMap}
           onSimpleMap={handleSimpleMap}
+          onProcedural={handleProcedural}
         />
       )}
       {step === "world" && (
@@ -615,6 +621,27 @@ function App() {
             seedStr={eng?.state?.meta?.seed}
             onBack={() => setStep("menu")}
           />
+        </div>
+      )}
+      {step === "procedural" && (
+        <div style={{ position: 'relative' }}>
+          <ProceduralDevTools />
+          <button
+            onClick={() => setStep("menu")}
+            style={{
+              position: 'absolute',
+              top: '20px',
+              right: '20px',
+              padding: '10px 20px',
+              backgroundColor: '#4f46e5',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer'
+            }}
+          >
+            ← Back to Menu
+          </button>
         </div>
       )}
     </>
