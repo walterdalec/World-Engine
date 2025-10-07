@@ -81,8 +81,8 @@ public
 .out
 .storybook-out
 
-# AI Development (work in progress)
-src/features/ai/
+# AI Development (work in progress) - temporarily enabled for feature branch
+# src/features/ai/
 src/features/*/ai/
 src/experimental/
 *.wip
