@@ -90,3 +90,8 @@ src/experimental/
 *.tmp
 **/ai-dev/
 **/ai-experiments/
+
+# Allow tracked tactical AI modules
+!src/features/ai/
+!src/features/ai/tactical/
+!src/features/ai/tactical/**
