@@ -11,7 +11,8 @@ import { chooseConquestTarget } from './expansion';
 import { applyCaptureWarScore, applyWarScore } from './diplomacy';
 import { getDifficulty } from './difficulty';
 import { applyStanceEffects } from './military.stance';
-import { recordBattle } from '../../ai/tactical/v29';
+// TODO: AI tactical module temporarily disabled for build fix
+// import { recordBattle } from '../../ai/tactical/v29';
 
 export function recomputeArmyStrength(army: Army) {
   if (!army.units || !army.units.length) return;

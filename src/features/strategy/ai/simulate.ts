@@ -31,8 +31,7 @@ import { assignArmyObjectives, scoreObjectiveProgress } from './objectives';
 import { tickReparations } from './peace.variants';
 import { rollSeasonalEconomyEvents } from './economy.events';
 import { livingWorldActive, simulateLivingTick } from './integrations';
-// TODO: AI tactical module temporarily disabled for build fix
-// import { spawnCampaignEvents, applyEventEffects } from '../ai/tactical/v29/campaign.events';
+import { spawnCampaignEvents, applyEventEffects } from '../../ai/tactical/v29';
 
 export function createAIContext(world: WorldState): AIContext {
   return {

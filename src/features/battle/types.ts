@@ -1,9 +1,7 @@
 import type { WeatherCell, Personality } from '../strategy/ai/types';
-// TODO: AI tactical module temporarily disabled for build fix
-// import type { PlaybookId } from '../ai/tactical/v29';
+import type { PlaybookId as TacticalPlaybookId } from '../ai/tactical/v29';
 
-// Temporary type until AI system is complete
-export type PlaybookId = string;
+export type PlaybookId = TacticalPlaybookId;
 
 /**
  * Battle System Types

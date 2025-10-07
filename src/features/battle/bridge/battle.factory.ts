@@ -3,9 +3,9 @@ import { seedRng } from '../../strategy/ai/rng';
 import { getRegionWeather } from '../../strategy/ai/weather';
 import type { WorldState, Army, Region } from '../../strategy/ai/types';
 import type { BattleContext, CommanderIntent, PlaybookId } from '../types';
-// TODO: AI tactical module temporarily disabled for build fix
-// import type { PlaybookId } from '../../ai/tactical/v29';
 import type { BattleBridgeContext } from './types';
+
+const KNOWN_PLAYBOOK_IDS: readonly PlaybookId[] = ['knightly_order', 'desert_raiders', 'siege_engineers', 'unknown'];
 
 export function createBattleContext(world: WorldState, armyA: Army, armyB: Army): BattleBridgeContext {
   const region = world.regions[armyA.locationRegionId];
@@ -123,6 +123,5 @@ function describeWeather(weather: ReturnType<typeof getRegionWeather>): string {
 
 function normalizePlaybookId(raw?: string | null): PlaybookId {
   if (!raw) return 'unknown';
-  const candidates: PlaybookId[] = ['knightly_order', 'desert_raiders', 'siege_engineers', 'unknown'];
-  return (candidates as readonly string[]).includes(raw) ? (raw as PlaybookId) : 'unknown';
+  return (KNOWN_PLAYBOOK_IDS as readonly string[]).includes(raw) ? (raw as PlaybookId) : 'unknown';
 }
