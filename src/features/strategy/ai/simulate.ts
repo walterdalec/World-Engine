@@ -72,13 +72,10 @@ export function simulateTick(world: WorldState) {
   resolveArrivalsAndConflicts(ctx);
   tickSieges(ctx);
 
-  // TODO: Restore when AI tactical system is complete
-  /*
   const campaignEvents = spawnCampaignEvents(world, world.turn);
   for (const ev of campaignEvents) {
     applyEventEffects(world, ev);
   }
-  */
 
   checkCaravanAmbushes(ctx);
   moveCaravans(world);
