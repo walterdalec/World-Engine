@@ -56,6 +56,9 @@ export {
     calculateWorldCoverage
 } from './worldSizes'; export { WorldSizeSelection } from './WorldSizeSelection';
 
+// Demo component for testing world size system
+export { WorldSizeDemo } from './WorldSizeDemo';
+
 // Utilities
 export {
     chunkToWorld,
