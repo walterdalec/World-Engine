@@ -31,7 +31,8 @@ import { assignArmyObjectives, scoreObjectiveProgress } from './objectives';
 import { tickReparations } from './peace.variants';
 import { rollSeasonalEconomyEvents } from './economy.events';
 import { livingWorldActive, simulateLivingTick } from './integrations';
-import { spawnCampaignEvents, applyEventEffects } from '../../ai/tactical/v29';
+// TODO: AI tactical system is on feature/ai-tactical-system branch
+// import { spawnCampaignEvents, applyEventEffects } from '../../ai/tactical/v29';
 
 export function createAIContext(world: WorldState): AIContext {
   return {
@@ -72,10 +73,13 @@ export function simulateTick(world: WorldState) {
   resolveArrivalsAndConflicts(ctx);
   tickSieges(ctx);
 
+  // TODO: Available on feature/ai-tactical-system branch
+  /*
   const campaignEvents = spawnCampaignEvents(world, world.turn);
   for (const ev of campaignEvents) {
     applyEventEffects(world, ev);
   }
+  */
 
   checkCaravanAmbushes(ctx);
   moveCaravans(world);
