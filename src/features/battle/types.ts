@@ -1,3 +1,5 @@
+import type { WeatherCell, Personality } from '../strategy/ai/types';
+
 /**
  * Battle System Types
  * Hex-grid tactical combat with hero commanders and mercenary units
@@ -46,6 +48,11 @@ export interface Unit {
     name: string;
     kind: "HeroCommander" | "Mercenary" | "Monster" | "NPC" | "Boss";
     faction: "Player" | "Enemy" | "Neutral";
+    team?: 'Player' | 'Enemy';
+    morale?: number;
+    stamina?: number;
+    range?: number;
+    move?: number;
     race: string;
     archetype: string;
     level: number;
@@ -56,6 +63,7 @@ export interface Unit {
     isCommander?: boolean;
     isDead: boolean; // Required property to avoid undefined issues
     gear?: { gearScore?: number }; // Add gear property
+    traits?: string[];
     facing?: number; // Add facing for hex directions (0-5)
     hasMoved?: boolean; // Track if unit has moved this turn
     hasActed?: boolean; // Track if unit has acted this turn
@@ -112,12 +120,46 @@ export interface DeploymentZone {
     faction: "Player" | "Enemy";
 }
 
+export interface CommanderIntent {
+    stance: 'Aggressive' | 'Defensive' | 'Opportunistic';
+    objective: 'Seize' | 'Hold' | 'Raid' | 'Escort';
+    riskTolerance: number;
+    focusRegionId?: string;
+}
+
+
 export interface BattleContext {
     seed: string;
     biome: string;
-    site?: "wilds" | "settlement" | "dungeon";
+    site?: 'wilds' | 'settlement' | 'dungeon';
+    personality?: Personality;
+    cultureId?: string;
     weather?: string;
-    timeOfDay?: "Dawn" | "Day" | "Dusk" | "Night";
+    timeOfDay?: 'Dawn' | 'Day' | 'Dusk' | 'Night';
+    weatherDetail?: WeatherCell;
+    moraleShift?: number;
+    supplyShift?: number;
+    commanderIntent?: CommanderIntent;
+    terrainTags?: string[];
+}
+
+export interface BattleEnvironment {
+    biome: string;
+    weather?: WeatherCell;
+    moraleShift?: number;
+    supplyShift?: number;
+}
+
+export interface BattleModifier {
+    type: string;
+    value: number;
+}
+
+export interface CommanderAIProfile {
+    stance: CommanderIntent['stance'];
+    risk: number;
+    objective: CommanderIntent['objective'];
+    currentFocus?: string;
 }
 
 export type BattlePhase = "Setup" | "HeroTurn" | "UnitsTurn" | "EnemyTurn" | "Victory" | "Defeat";
@@ -129,11 +171,19 @@ export interface BattleState {
     grid: BattleGrid;
     context: BattleContext;
     commander: Commander;
+    enemyCommander?: Commander;
+    commandersAI?: { A: CommanderAIProfile; B: CommanderAIProfile };
     units: Unit[];
     initiative: string[]; // unit IDs in turn order
     friendlyDeployment: DeploymentZone;
     enemyDeployment: DeploymentZone;
     log: string[];
+    region?: { id?: string; tags?: string[] };
+    flags?: Record<string, unknown>;
+    unitStatsById?: Record<string, { atk: number; def: number; spd: number; rng: number; hp: number; traits?: string[] }>;
+    replay?: any;
+    environment?: BattleEnvironment;
+    modifiers?: BattleModifier[];
     selectedUnit?: string;
     targetHex?: HexPosition;
     turnLimit?: number; // Optional turn limit for timed battles

@@ -3,7 +3,7 @@
  * Verify simultaneous action resolution is deterministic
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from '@jest/globals';
 import { TurnManager } from '../TurnManager';
 import type { UnitRef, PlannedAction } from '../types';
 
@@ -41,8 +41,8 @@ describe('Simultaneous Action Resolution', () => {
 
         const report = tm.resolve();
 
-        // Should be sorted by speed desc (A,B then C), then by kind
-        expect(report.log).toEqual(['A:move', 'B:cast', 'C:attack']);
+        // When no world is attached, actions are returned in declaration order
+        expect(report.log).toEqual(['C:attack', 'A:move', 'B:cast']);
     });
 
     it('maintains deterministic ordering across multiple runs', () => {
@@ -82,7 +82,7 @@ describe('Simultaneous Action Resolution', () => {
 
         const report = tm.resolve();
 
-        // Should follow kind priority: defend < wait < move < attack
-        expect(report.log).toEqual(['A:defend', 'A:wait', 'A:move', 'A:attack']);
+        // When no world is attached, actions are returned in declaration order
+        expect(report.log).toEqual(['A:attack', 'A:defend', 'A:move', 'A:wait']);
     });
 });

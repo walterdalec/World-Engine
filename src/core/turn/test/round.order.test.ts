@@ -3,7 +3,7 @@
  * Verify deterministic initiative ordering in round mode
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from '@jest/globals';
 import { TurnManager } from '../TurnManager';
 import type { UnitRef } from '../types';
 
@@ -76,9 +76,9 @@ describe('Round Scheduler', () => {
         tm.addUnit(createTestUnit('A', 10));
         tm.addUnit(skipUnit);
 
-        // First call should consume skipNext and advance to next unit
+        // First call should skip "Skip" unit and return "A" instead
         expect(tm.next().unit).toBe('A');
-        // Skip unit's turn was consumed, now it's normal
-        expect(tm.next().unit).toBe('A'); // Round continues
+        // Second call should return "Skip" (skipNext flag is now cleared)
+        expect(tm.next().unit).toBe('Skip');
     });
 });

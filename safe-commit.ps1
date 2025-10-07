@@ -2,7 +2,7 @@
 # Helps avoid accidentally committing AI development files
 
 param(
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [string]$Message
 )
 
