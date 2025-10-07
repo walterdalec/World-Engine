@@ -1,4 +1,9 @@
 import type { WeatherCell, Personality } from '../strategy/ai/types';
+// TODO: AI tactical module temporarily disabled for build fix
+// import type { PlaybookId } from '../ai/tactical/v29';
+
+// Temporary type until AI system is complete
+export type PlaybookId = string;
 
 /**
  * Battle System Types
@@ -147,7 +152,7 @@ export interface BattleContext {
     personality?: Personality;
     cultureId?: string;
     enemyFactionId?: string;
-    enemyPlaybookId?: string;
+    enemyPlaybookId?: PlaybookId;
     weather?: string;
     timeOfDay?: 'Dawn' | 'Day' | 'Dusk' | 'Night';
     weatherDetail?: WeatherCell;

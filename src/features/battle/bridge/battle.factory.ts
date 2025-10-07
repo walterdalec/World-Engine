@@ -2,7 +2,9 @@
 import { seedRng } from '../../strategy/ai/rng';
 import { getRegionWeather } from '../../strategy/ai/weather';
 import type { WorldState, Army, Region } from '../../strategy/ai/types';
-import type { BattleContext, CommanderIntent } from '../types';
+import type { BattleContext, CommanderIntent, PlaybookId } from '../types';
+// TODO: AI tactical module temporarily disabled for build fix
+// import type { PlaybookId } from '../../ai/tactical/v29';
 import type { BattleBridgeContext } from './types';
 
 export function createBattleContext(world: WorldState, armyA: Army, armyB: Army): BattleBridgeContext {
@@ -16,7 +18,7 @@ export function createBattleContext(world: WorldState, armyA: Army, armyB: Army)
   const commanderPersonality = faction?.personality;
   const cultureId = faction?.cultureId;
   const enemyFaction = world.factions?.[armyB.factionId];
-  const enemyCultureId = enemyFaction?.cultureId;
+  const enemyPlaybookId = normalizePlaybookId(enemyFaction?.cultureId);
 
   const moraleShift = getMoraleAverage([armyA, armyB]);
   const supplyShift = getSupplyAverage([armyA, armyB]);
@@ -34,7 +36,7 @@ export function createBattleContext(world: WorldState, armyA: Army, armyB: Army)
     personality: commanderPersonality,
     cultureId,
     enemyFactionId: armyB.factionId,
-    enemyPlaybookId: enemyCultureId,
+    enemyPlaybookId,
   };
 
   return {
@@ -49,7 +51,7 @@ export function createBattleContext(world: WorldState, armyA: Army, armyB: Army)
     baseContext,
     cultureId,
     enemyFactionId: armyB.factionId,
-    enemyCultureId,
+    enemyCultureId: enemyFaction?.cultureId,
   };
 }
 
@@ -117,4 +119,10 @@ function describeWeather(weather: ReturnType<typeof getRegionWeather>): string {
   if (weather.temperature > 30) return 'Scorching';
   if (weather.wind > 40) return 'Windy';
   return 'Mild';
+}
+
+function normalizePlaybookId(raw?: string | null): PlaybookId {
+  if (!raw) return 'unknown';
+  const candidates: PlaybookId[] = ['knightly_order', 'desert_raiders', 'siege_engineers', 'unknown'];
+  return (candidates as readonly string[]).includes(raw) ? (raw as PlaybookId) : 'unknown';
 }

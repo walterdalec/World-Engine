@@ -11,7 +11,7 @@ import { chooseConquestTarget } from './expansion';
 import { applyCaptureWarScore, applyWarScore } from './diplomacy';
 import { getDifficulty } from './difficulty';
 import { applyStanceEffects } from './military.stance';
-import { recordBattle } from '../ai/tactical/v29';
+import { recordBattle } from '../../ai/tactical/v29';
 
 export function recomputeArmyStrength(army: Army) {
   if (!army.units || !army.units.length) return;
@@ -22,12 +22,12 @@ export function recomputeArmyStrength(army: Army) {
       unit.kind === 'Cavalry'
         ? 1.2
         : unit.kind === 'Mage'
-        ? 1.4
-        : unit.kind === 'Siege'
-        ? 1.6
-        : unit.kind === 'Archer'
-        ? 1.1
-        : 1;
+          ? 1.4
+          : unit.kind === 'Siege'
+            ? 1.6
+            : unit.kind === 'Archer'
+              ? 1.1
+              : 1;
     strength += (10 + unit.gearScore * 0.6 + unit.level * 8) * roleMultiplier;
     upkeep += unit.upkeep;
   }
@@ -165,6 +165,9 @@ export function resolveArrivalsAndConflicts(ctx: AIContext) {
     const outcome = autoResolve(army.strength, defenderStrength, rand);
     const winnerFactionId = outcome.winner === 'A' ? army.factionId : defenderId;
     const loserFactionId = outcome.winner === 'A' ? defenderId : army.factionId;
+
+    // TODO: Restore when AI tactical system is complete
+    /*
     recordBattle(world, {
       winnerFactionId,
       loserFactionId,
@@ -174,6 +177,7 @@ export function resolveArrivalsAndConflicts(ctx: AIContext) {
         [defenderId]: outcome.winner === 'B' ? 1 : 0,
       },
     });
+    */
 
     world.events.push({
       id: `evt_${world.events.length}`,
