@@ -238,17 +238,17 @@ describe('Procedural Generation System', () => {
 
     describe('World Manager', () => {
         test('initializes with default configuration', () => {
-            const manager = new WorldManager();
+            const manager = new WorldManager({ worldSizeId: 'infinite' });
             const config = manager.getConfig();
 
             expect(config.globalSeed).toBeDefined();
             expect(config.chunkSize).toBe(64);
-            expect(config.streamRadius).toBe(2);
+            expect(config.streamRadius).toBe(3);  // Infinite world has streamRadius 3
             expect(config.preloadRadius).toBe(1);
         });
 
         test('tracks player position correctly', async () => {
-            const manager = new WorldManager({ globalSeed: 12345 });
+            const manager = new WorldManager({ globalSeed: 12345, worldSizeId: 'infinite' });
 
             await manager.updatePlayerPosition(100, 200);
             const pos = manager.getPlayerPosition();
@@ -260,7 +260,7 @@ describe('Procedural Generation System', () => {
         });
 
         test('generates and caches chunks on demand', async () => {
-            const manager = new WorldManager({ globalSeed: 12345 });
+            const manager = new WorldManager({ globalSeed: 12345, worldSizeId: 'infinite' });
             const chunkId = { cx: 5, cy: 10 };
 
             // First access should generate
@@ -273,7 +273,7 @@ describe('Procedural Generation System', () => {
         });
 
         test('samples terrain for battles', async () => {
-            const manager = new WorldManager({ globalSeed: 12345 });
+            const manager = new WorldManager({ globalSeed: 12345, worldSizeId: 'infinite' });
 
             const sample = await manager.sampleForBattle(100, 100, 10, 10);
 
@@ -284,7 +284,7 @@ describe('Procedural Generation System', () => {
         });
 
         test('finds nearest POIs', async () => {
-            const manager = new WorldManager({ globalSeed: 12345 });
+            const manager = new WorldManager({ globalSeed: 12345, worldSizeId: 'infinite' });
 
             const nearest = await manager.findNearestPOI(0, 0, 2);
 
@@ -343,8 +343,10 @@ describe('Procedural Generation System', () => {
 
             expect(converted.x).toBe(worldX);
             expect(converted.y).toBe(worldY);
-        }); test('system handles edge cases gracefully', async () => {
-            const manager = new WorldManager({ globalSeed: 12345 });
+        });
+
+        test('system handles edge cases gracefully', async () => {
+            const manager = new WorldManager({ globalSeed: 12345, worldSizeId: 'infinite' });
 
             // Test negative coordinates
             await manager.updatePlayerPosition(-100, -100);

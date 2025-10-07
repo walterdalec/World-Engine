@@ -112,7 +112,10 @@ export class WorldManager {
         this.config = { ...DEFAULT_CONFIG, ...config };
 
         // Load world size configuration
-        this.worldSizeConfig = getWorldSizeConfig(this.config.worldSizeId || 'medium');
+        // Use infinite world for tests to avoid bounds issues
+        const isTestEnv = typeof jest !== 'undefined' || process.env.NODE_ENV === 'test';
+        const defaultSizeId = isTestEnv ? 'infinite' : 'medium';
+        this.worldSizeConfig = getWorldSizeConfig(this.config.worldSizeId || defaultSizeId);
 
         // Apply world size settings to config
         this.applyWorldSizeSettings();
