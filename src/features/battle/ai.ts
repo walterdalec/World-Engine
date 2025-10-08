@@ -5,6 +5,10 @@ import {
     scoreHex,
     type Hex as ThreatHex,
 } from "../ai/tactical/v30";
+import {
+    attachV31,
+    v31Tick,
+} from "../ai/tactical/v31";
 
 const NEIGHBOR_DIRS: readonly ThreatHex[] = [
     { q: 1, r: 0 },
@@ -33,6 +37,7 @@ function ensureRuntime(state: BattleState): TacticalRuntime {
             v24: { formation: { anchor, facing: 0 as 0 } },
         };
         attachV30(brain, state as any);
+        attachV31(brain, state as any);
         runtime = { brain, lastTickTurn: -1 };
         runtimes.set(state.id, runtime);
     }
@@ -42,6 +47,7 @@ function ensureRuntime(state: BattleState): TacticalRuntime {
 function tickField(runtime: TacticalRuntime, state: BattleState) {
     if (runtime.lastTickTurn === state.turn) return;
     v30Tick(runtime.brain, state as any);
+    v31Tick(runtime.brain, state as any);
     runtime.lastTickTurn = state.turn;
 }
 
