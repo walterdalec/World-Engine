@@ -9,25 +9,25 @@ export * from './economy';
 export * from './time';
 
 // Re-export key functions for easy access
-export { 
-  routeExists, 
-  isInSupply, 
-  recomputeSupply, 
-  findChokepoints, 
-  calculateStrategicValue 
+export {
+    routeExists,
+    isInSupply,
+    recomputeSupply,
+    findChokepoints,
+    calculateStrategicValue
 } from './world';
 
-export { 
-  calcIncome, 
-  applyIncome, 
-  settleUpkeep, 
-  resolveDeficits 
+export {
+    calcIncome,
+    applyIncome,
+    settleUpkeep,
+    resolveDeficits
 } from './economy';
 
-export { 
-  nextSeason, 
-  runSeasonStart, 
-  runSeasonEnd, 
-  getSeasonalModifier, 
-  isGoodSeasonFor 
+export {
+    nextSeason,
+    runSeasonStart,
+    runSeasonEnd,
+    getSeasonalModifier,
+    isGoodSeasonFor
 } from './time';

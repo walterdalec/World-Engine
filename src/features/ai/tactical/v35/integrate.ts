@@ -6,9 +6,10 @@ export interface V35Runtime {
   root: ReturnType<typeof CommanderRoot>;
   orders: ReturnType<typeof buildOrders>;
   blackboard: ReturnType<typeof createBlackboard>;
+  world?: any;
 }
 
-export function attachV35(brain: any, _world: any | undefined, state: any): void {
+export function attachV35(brain: any, world: any | undefined, state: any): void {
   if (!brain) return;
   const primaryLane: 'Left' | 'Center' | 'Right' =
     brain.v30?.lanes?.find((lane: any) => lane?.id)?.id ?? 'Center';
@@ -17,6 +18,7 @@ export function attachV35(brain: any, _world: any | undefined, state: any): void
     root: CommanderRoot(),
     orders: buildOrders(),
     blackboard,
+    world,
   } as V35Runtime;
 }
 
@@ -28,6 +30,7 @@ export function v35Tick(brain: any, state: any): void {
     state,
     brain,
     blackboard: brain.v35.blackboard,
+    world: brain.v35.world,
   };
   const status = brain.v35.root.tick(ctx);
   if (status === 'Failure') {

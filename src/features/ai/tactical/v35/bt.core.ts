@@ -6,6 +6,7 @@ export interface BTNodeContext {
   state: any;
   brain: any;
   blackboard: any;
+  world?: any;
 }
 
 export interface BTNode {

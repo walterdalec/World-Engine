@@ -1,5 +1,5 @@
 import { Sequence, Selector, Leaf, type BTNode, type BTNodeContext, type TickStatus } from './bt.core';
-import { scorePlans, type Plan } from './scoring';
+import { scorePlans, applyLearnedBias, type Plan } from './scoring';
 import { nextPhase } from './phases';
 import { buildOrders } from './orders';
 
@@ -66,7 +66,7 @@ function collectScores(ctx: BTNodeContext) {
   const dangerCenter = laneDanger(ctx, 'Center');
   const dangerRight = laneDanger(ctx, 'Right');
   const advantage = computeAdvantage(ctx.state);
-  return scorePlans({
+  const scores = scorePlans({
     stance,
     risk,
     moraleAvg,
@@ -78,6 +78,10 @@ function collectScores(ctx: BTNodeContext) {
     psyche: ctx.brain.v27?.psyche,
     counters: ctx.brain.v29?.counters,
     scenario: ctx.brain.v26?.scenario ? { Siege: ctx.brain.v26.scenario === 'Siege' } : {},
+  });
+  return applyLearnedBias(scores, {
+    world: ctx.world ?? ctx.brain?.world,
+    scenarioKey: () => buildScenarioKey(ctx),
   });
 }
 
@@ -108,4 +112,14 @@ function sum(values: number[]): number {
 function average(values: number[]): number {
   if (!values.length) return 0;
   return sum(values) / values.length;
+}
+
+function buildScenarioKey(ctx: BTNodeContext): string {
+  const factionA = ctx.state?.context?.factionA ?? ctx.state?.factionA ?? 'A';
+  const factionB = ctx.state?.context?.factionB ?? ctx.state?.factionB ?? 'B';
+  const cultureA = ctx.state?.context?.cultureA ?? ctx.state?.cultureA ?? ctx.brain?.v28?.culture ?? 'unknown';
+  const cultureB = ctx.state?.context?.cultureB ?? ctx.state?.cultureB ?? 'unknown';
+  const biome = ctx.state?.context?.biome ?? ctx.state?.environment?.biome ?? 'Any';
+  const scenario = ctx.brain?.v26?.scenario ?? 'Battle';
+  return [cultureA, cultureB, biome, scenario].join('|');
 }

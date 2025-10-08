@@ -68,3 +68,17 @@ export function scorePlans(inputs: ScoreInputs): Record<Plan, number> {
 
   return scores;
 }
+
+export function applyLearnedBias(scores: Record<string, number>, ctx: { world?: any; scenarioKey?: () => string; enabled?: boolean }) {
+  const config = ctx.world?.learnConfig;
+  if (!config?.enabled) return scores;
+  const key = ctx.scenarioKey ? ctx.scenarioKey() : 'global';
+  const learned = ctx.world?.learn?.planBias?.[key];
+  if (!learned) return scores;
+  for (const plan in learned) {
+    if (scores[plan] != null) {
+      scores[plan] += learned[plan];
+    }
+  }
+  return scores;
+}
