@@ -3,12 +3,19 @@
 ## Development Authority
 AI agents have full permissions to edit, create, modify, and refactor any code in this repository. Feel free to make direct changes to improve functionality, fix bugs, optimize performance, or implement new features without asking for permission.
 
+## 🎯 INITIAL GAME SCOPE (Priority #1)
+**Current simplified design for initial release:**
+- **4 Species**: human, sylvanborn, nightborn, stormcaller (complete portrait coverage)
+- **6 Archetypes**: knight/ranger/chanter (male), mystic/guardian/corsair (female)
+- **7-Stat System**: STR/DEX/INT/CON/WIS/CHA/LCK with 27-point budget
+- **Expansion Later**: Additional species (crystalborn, draketh, alloy, voidkin) and archetypes to be added in future updates
+
 ## Critical Development Guidelines
 
 ### Character System Compatibility
 **ALWAYS use the working implementations** when updating character systems:
 - **Stat System**: Use 27-point budget with proper cost scaling (1/2/3 points), MIN_STAT=8, MAX_STAT=20
-- **Species**: Use specialized races ('human', 'sylvanborn', 'nightborn') that match portrait assets
+- **Species**: Use specialized races ('human', 'sylvanborn', 'nightborn', 'stormcaller') that match portrait assets
 - **Archetypes**: Use gender-locked classes ('knight', 'ranger', 'chanter', 'mystic', 'guardian', 'corsair') 
 - **Portrait Props**: Always use `.toLowerCase()` for species/archetype compatibility
 
@@ -229,12 +236,12 @@ const { currentSeason, factionStatus } = useCampaignState(); // Strategic layer
 - **Character Creation**: `src/components/CharacterCreate.tsx` - Main character builder with point-buy stats, trait selection, and live portrait preview
 - **Classic Creator**: `src/features/characters/creator/ClassicCharacterCreator.tsx` - Enhanced M&M 1-2 style 6-step wizard with merged functionality
 - **Game Data**: `src/defaultWorlds.ts` - Class definitions with stat modifiers, abilities, equipment, and faction mappings
-- **Species**: Human, Sylvanborn, Nightborn, Stormcaller, Crystalborn, Draketh, Alloy, Voidkin
+- **Species**: Human, Sylvanborn, Nightborn, Stormcaller (initial 4 with portrait assets)
 - **Archetypes**: Gender-locked classes (Knight/Ranger/Chanter = male, Mystic/Guardian/Corsair = female)
 - **Stat System**: 27-point budget with cost scaling (1 for 9-14, 2 for 15-16, 3 for 17+), range 8-20
 
 **Working Portrait Integration**:
-- Use specialized species names: 'human', 'sylvanborn', 'nightborn' 
+- Use initial 4 species: 'human', 'sylvanborn', 'nightborn', 'stormcaller' 
 - Use gender-locked archetypes: 'knight', 'ranger', 'chanter', 'mystic', 'guardian', 'corsair'
 - Always apply `.toLowerCase()` to species/archetype props for compatibility
 
