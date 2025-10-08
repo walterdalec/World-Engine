@@ -10,6 +10,7 @@ import {
     v31Tick,
 } from "../ai/tactical/v31";
 import * as TacticalV32 from "../ai/tactical/v32";
+import * as TacticalV33 from "../ai/tactical/v33";
 
 const NEIGHBOR_DIRS: readonly ThreatHex[] = [
     { q: 1, r: 0 },
@@ -40,6 +41,7 @@ function ensureRuntime(state: BattleState): TacticalRuntime {
         attachV30(brain, state as any);
         attachV31(brain, state as any);
         TacticalV32.attachV32(brain, undefined, state as any);
+        TacticalV33.attachV33(brain, undefined, state as any);
         runtime = { brain, lastTickTurn: -1 };
         runtimes.set(state.id, runtime);
     }
@@ -51,6 +53,7 @@ function tickField(runtime: TacticalRuntime, state: BattleState) {
     v30Tick(runtime.brain, state as any);
     v31Tick(runtime.brain, state as any);
     TacticalV32.v32Tick(runtime.brain, undefined, state as any);
+    TacticalV33.v33Tick(runtime.brain, undefined, state as any);
     runtime.lastTickTurn = state.turn;
 }
 
