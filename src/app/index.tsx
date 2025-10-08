@@ -3,7 +3,7 @@ import { rng } from "../core/services/random";
 import { createRoot } from "react-dom/client";
 import "../index.css";
 import { MainMenu, WorldSetupScreen, VersionDisplay } from "../features/ui";
-import { CharacterLibrary, CharacterCreate, NameGenerator } from "../features/characters";
+import { CharacterLibrary, CharacterCreate, NameGenerator, ClassicCharacterCreator } from "../features/characters";
 import { SpellGenerator, SpellAssignment } from "../features/spells";
 import { HealingSystem, BattleMockup, BattlePage, MinimalBattlePage, BattleSystem } from "../features/battle";
 import { WorldMapEngine, EnhancedWorldMap, SimpleWorldMap, ProceduralDevTools } from "../features/world";
@@ -33,7 +33,7 @@ function randomSeed(): string {
 }
 
 function App() {
-  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "enhancedmap" | "simplemap" | "charactercreate" | "portraittest" | "battlesystem" | "battle" | "minimalBattle" | "autoupdater" | "procedural">("menu");
+  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "enhancedmap" | "simplemap" | "charactercreate" | "classiccharacter" | "portraittest" | "battlesystem" | "battle" | "minimalBattle" | "autoupdater" | "procedural">("menu");
   const [party, setParty] = React.useState<Character[]>([]);
   const [currentCampaign, setCurrentCampaign] = React.useState<any>(null);
   const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0); // Force re-render hook
@@ -274,6 +274,11 @@ function App() {
     setStep("charactercreate");
   };
 
+  const handleClassicCharacterCreate = () => {
+    // Classic M&M-style character creator
+    setStep("classiccharacter");
+  };
+
   const handlePortraitTest = () => {
     // Portrait test page
     setStep("portraittest");
@@ -409,6 +414,7 @@ function App() {
           onSpellAssignment={handleSpellAssignment}
           onHealingSystem={handleHealingSystem}
           onCharacterCreate={handleCharacterCreate}
+          onClassicCharacterCreate={handleClassicCharacterCreate}
           onPortraitTest={handlePortraitTest}
           onAutoUpdater={handleAutoUpdater}
           onBattleSystem={handleBattleSystem}
@@ -487,6 +493,16 @@ function App() {
           </button>
           <CharacterCreate />
         </div>
+      )}
+      {step === "classiccharacter" && (
+        <ClassicCharacterCreator
+          onCharacterCreated={(character) => {
+            console.log('Character created:', character);
+            // TODO: Add to party or save to library
+            setStep("menu");
+          }}
+          onCancel={() => setStep("menu")}
+        />
       )}
       {step === "portraittest" && (
         <div style={{ position: 'relative' }}>

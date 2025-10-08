@@ -30,6 +30,7 @@ interface Props {
   onSpellAssignment: () => void;
   onHealingSystem: () => void;
   onCharacterCreate: () => void;
+  onClassicCharacterCreate?: () => void;
   onPortraitTest: () => void;
   onAutoUpdater: () => void;
   onBattleSystem: () => void;
@@ -40,7 +41,7 @@ interface Props {
   onProcedural: () => void;
 }
 
-export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onPortraitTest, onAutoUpdater, onBattleSystem, onBattlePage, onMinimalBattle, onEnhancedMap, onSimpleMap, onProcedural }: Props) {
+export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onClassicCharacterCreate, onPortraitTest, onAutoUpdater, onBattleSystem, onBattlePage, onMinimalBattle, onEnhancedMap, onSimpleMap, onProcedural }: Props) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [characters, setCharacters] = useState<SavedCharacter[]>([]);
   const [activeTab, setActiveTab] = useState<'campaigns' | 'characters'>('campaigns');
@@ -717,6 +718,14 @@ Recovered ${recovered.length} campaigns`);
                 <h3 style={{ margin: '0 0 5px 0' }}>Character Creator</h3>
                 <p style={{ margin: 0, opacity: 0.9 }}>Create new characters</p>
               </div>
+
+              {onClassicCharacterCreate && (
+                <div style={newCardStyle} onClick={onClassicCharacterCreate}>
+                  <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🏰</div>
+                  <h3 style={{ margin: '0 0 5px 0' }}>Classic Creator</h3>
+                  <p style={{ margin: 0, opacity: 0.9 }}>M&M 1-2 style creator</p>
+                </div>
+              )}
 
               <div style={newCardStyle} onClick={onNameGenerator}>
                 <div style={{ fontSize: '3rem', marginBottom: '10px' }}>📜</div>
