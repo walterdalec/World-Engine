@@ -27,14 +27,9 @@ interface EnhancedCharacter extends CreatorInput {
 }
 
 const SPECIES_DATA = {
-    human: { name: 'Human', bonus: '+1 to all stats' },
-    sylvanborn: { name: 'Elf', bonus: '+2 DEX, +1 WIS, -1 CON' },
-    nightborn: { name: 'Dark Elf', bonus: '+2 INT, +1 DEX, -1 CON' },
-    stormcaller: { name: 'Storm Giant', bonus: '+3 STR, +1 CON, -2 INT' },
-    crystalborn: { name: 'Crystal Dwarf', bonus: '+2 CON, +1 WIS, -1 DEX' },
-    draketh: { name: 'Dragonkin', bonus: '+2 STR, +1 CHA, -1 WIS' },
-    alloy: { name: 'Construct', bonus: '+2 CON, +1 STR, -1 CHA' },
-    voidkin: { name: 'Void Walker', bonus: '+2 INT, +1 LCK, -1 STR' }
+    human: { name: 'Human', bonus: 'Adaptable and versatile' },
+    sylvanborn: { name: 'Sylvanborn', bonus: 'Nature magic affinity' },
+    nightborn: { name: 'Nightborn', bonus: 'Shadow magic mastery' }
 };
 
 const BACKGROUND_DATA = {
@@ -49,16 +44,12 @@ const BACKGROUND_DATA = {
 };
 
 const ARCHETYPE_DATA = {
-    warrior: { name: 'Fighter', role: 'Melee Combat' },
-    ranger: { name: 'Ranger', role: 'Ranged Combat' },
-    mage: { name: 'Sorcerer', role: 'Arcane Magic' },
-    priest: { name: 'Cleric', role: 'Divine Magic' },
-    commander: { name: 'Paladin', role: 'Leadership' },
-    knight: { name: 'Knight', role: 'Heavy Combat' },
-    mystic: { name: 'Druid', role: 'Nature Magic' },
-    guardian: { name: 'Barbarian', role: 'Berserker' },
-    chanter: { name: 'Bard', role: 'Support Magic' },
-    corsair: { name: 'Thief', role: 'Stealth & Speed' }
+    knight: { name: 'Knight', role: 'Heavy Combat', gender: 'male' },
+    ranger: { name: 'Ranger', role: 'Ranged Combat', gender: 'male' },
+    chanter: { name: 'Chanter', role: 'Divine Magic', gender: 'male' },
+    mystic: { name: 'Mystic', role: 'Arcane Magic', gender: 'female' },
+    guardian: { name: 'Guardian', role: 'Nature Magic', gender: 'female' },
+    corsair: { name: 'Corsair', role: 'Stealth & Speed', gender: 'female' }
 };
 
 const MAGIC_SCHOOLS = [
@@ -115,7 +106,7 @@ export const ClassicCharacterCreator: React.FC<ClassicCharacterCreatorProps> = (
         team: 'Player',
         species: 'human',
         background: 'commoner',
-        archetype: 'warrior',
+        archetype: 'knight',
         level: 1,
         stats: { str: 8, dex: 8, con: 8, int: 8, wis: 8, cha: 8, spd: 8, lck: 8 },
         masteries: [],
@@ -125,38 +116,56 @@ export const ClassicCharacterCreator: React.FC<ClassicCharacterCreatorProps> = (
         formation: { row: 'front', slot: 0, facing: 0 }
     });
 
-    const validation = useMemo(() => validateInput(character), [character]);
-    const statBudget = StatBudgetByLevel(character.level);
-    const usedPoints = Object.values(character.stats).reduce((sum, stat) => {
-        let cost = 0;
-        for (let i = 8; i < stat; i++) {
-            cost += StatPointCost(i + 1);
-        }
-        return sum + cost;
-    }, 0);
-    const remainingPoints = statBudget - usedPoints;
-
-    const handleStatChange = (stat: keyof StatAllocation, delta: number) => {
-        const newValue = character.stats[stat] + delta;
-        if (newValue < MinPerStat || newValue > MaxPerStat) return;
-
-        const newStats = { ...character.stats, [stat]: newValue };
-
-        // Calculate if this change is affordable
-        const newUsedPoints = Object.values(newStats).reduce((sum, statVal) => {
-            let cost = 0;
-            for (let i = 8; i < statVal; i++) {
-                cost += StatPointCost(i + 1);
-            }
-            return sum + cost;
-        }, 0);
-
-        if (newUsedPoints <= statBudget) {
-            setCharacter(prev => ({ ...prev, stats: newStats }));
+    // Handle gender-locked archetype selection
+    const handleArchetypeChange = (newArchetype: string) => {
+        const archetypeData = ARCHETYPE_DATA[newArchetype as keyof typeof ARCHETYPE_DATA];
+        if (archetypeData) {
+            setCharacter(prev => ({
+                ...prev,
+                archetype: newArchetype as ArchetypeId,
+                gender: archetypeData.gender as 'male' | 'female'
+            }));
         }
     };
 
-    const handleMasteryChange = (school: string, rank: number) => {
+    const validation = useMemo(() => validateInput(character), [character]);
+
+    // Use the old system's 27-point budget and stat calculation
+    const POINTS_POOL = 27;
+    const usedPoints = Object.values(character.stats).reduce((sum, stat) => {
+        return sum + calculateOldStatCost(stat);
+    }, 0);
+    const remainingPoints = POINTS_POOL - usedPoints;
+
+    // Old system's stat cost calculation (much better for gameplay)
+    function calculateOldStatCost(value: number): number {
+        let cost = 0;
+        for (let statValue = 9; statValue <= value; statValue++) {
+            if (statValue <= 14) cost += 1;      // Values 9-14: 1 point each
+            else if (statValue <= 16) cost += 2; // Values 15-16: 2 points each  
+            else cost += 3;                      // Values 17+: 3 points each
+        }
+        return cost;
+    }
+
+    const handleStatChange = (stat: keyof StatAllocation, delta: number) => {
+        const newValue = character.stats[stat] + delta;
+        const MIN_STAT = 8;
+        const MAX_STAT = 20;
+
+        if (newValue < MIN_STAT || newValue > MAX_STAT) return;
+
+        const newStats = { ...character.stats, [stat]: newValue };
+
+        // Calculate if this change is affordable using old system
+        const newUsedPoints = Object.values(newStats).reduce((sum, statVal) => {
+            return sum + calculateOldStatCost(statVal);
+        }, 0);
+
+        if (newUsedPoints <= POINTS_POOL) {
+            setCharacter(prev => ({ ...prev, stats: newStats }));
+        }
+    }; const handleMasteryChange = (school: string, rank: number) => {
         const newMasteries = [...character.masteries];
         const existingIndex = newMasteries.findIndex(m => m.school === school);
 
@@ -234,8 +243,8 @@ export const ClassicCharacterCreator: React.FC<ClassicCharacterCreatorProps> = (
                         {character.name && character.species && character.archetype && (
                             <SimplePortraitPreview
                                 gender={character.gender}
-                                species={character.species}
-                                archetype={character.archetype}
+                                species={character.species.toLowerCase()}
+                                archetype={character.archetype.toLowerCase()}
                                 size="large"
                                 showDebug={false}
                             />
@@ -279,10 +288,11 @@ export const ClassicCharacterCreator: React.FC<ClassicCharacterCreatorProps> = (
                         <div
                             key={id}
                             className={`selection-item ${character.archetype === id ? 'selected' : ''}`}
-                            onClick={() => setCharacter(prev => ({ ...prev, archetype: id as ArchetypeId }))}
+                            onClick={() => handleArchetypeChange(id)}
                         >
                             <div className="item-name">{data.name}</div>
                             <div className="item-role">{data.role}</div>
+                            <div className="item-gender">({data.gender})</div>
                         </div>
                     ))}
                 </div>
@@ -295,17 +305,15 @@ export const ClassicCharacterCreator: React.FC<ClassicCharacterCreatorProps> = (
             <h2>ATTRIBUTES</h2>
 
             <div className="points-display">
-                Points Remaining: <span className="points-value">{remainingPoints}</span>
-            </div>
-
-            <div className="stats-grid">
+                Points Remaining: <span className="points-value">{remainingPoints}</span> / {POINTS_POOL}
+            </div>            <div className="stats-grid">
                 {Object.entries(character.stats).map(([stat, value]) => (
                     <div key={stat} className="stat-row">
                         <label className="stat-label">{stat.toUpperCase()}:</label>
                         <button
                             className="stat-button"
                             onClick={() => handleStatChange(stat as keyof StatAllocation, -1)}
-                            disabled={value <= MinPerStat}
+                            disabled={value <= 8}
                         >
                             -
                         </button>
@@ -313,12 +321,12 @@ export const ClassicCharacterCreator: React.FC<ClassicCharacterCreatorProps> = (
                         <button
                             className="stat-button"
                             onClick={() => handleStatChange(stat as keyof StatAllocation, 1)}
-                            disabled={value >= MaxPerStat || StatPointCost(value + 1) > remainingPoints}
+                            disabled={value >= 20 || calculateOldStatCost(value + 1) > remainingPoints}
                         >
                             +
                         </button>
                         <span className="stat-cost">
-                            (Cost: {value < MaxPerStat ? StatPointCost(value + 1) : 'MAX'})
+                            (Cost: {value < 20 ? calculateOldStatCost(value + 1) - calculateOldStatCost(value) : 'MAX'})
                         </span>
                     </div>
                 ))}
@@ -520,9 +528,9 @@ export const ClassicCharacterCreator: React.FC<ClassicCharacterCreatorProps> = (
                     <h3>Identity</h3>
                     <div>Name: {character.name || 'Unnamed'}</div>
                     <div>Gender: {character.gender}</div>
-                    <div>Race: {SPECIES_DATA[character.species].name}</div>
-                    <div>Background: {BACKGROUND_DATA[character.background].name}</div>
-                    <div>Class: {ARCHETYPE_DATA[character.archetype].name}</div>
+                    <div>Race: {SPECIES_DATA[character.species as keyof typeof SPECIES_DATA]?.name || character.species}</div>
+                    <div>Background: {BACKGROUND_DATA[character.background]?.name || character.background}</div>
+                    <div>Class: {ARCHETYPE_DATA[character.archetype as keyof typeof ARCHETYPE_DATA]?.name || character.archetype}</div>
                     <div>Level: {character.level}</div>
                 </div>
 
