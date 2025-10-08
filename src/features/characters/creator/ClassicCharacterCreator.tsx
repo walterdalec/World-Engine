@@ -1,12 +1,14 @@
 /**
  * Classic Character Creator
- * Might & Magic 1-2 inspired interface
+ * Might & Magic 1-2 inspired interface with modern functionality
  */
 
 import React, { useState, useMemo } from 'react';
 import type { CreatorInput, SpeciesId, BackgroundId, ArchetypeId, StatAllocation, MasteryPick } from '../../../core/creator/types';
 import { buildCharacter, validateInput, CharacterCreator } from '../../../core/creator';
 import { StatBudgetByLevel, StatPointCost, MaxPerStat, MinPerStat } from '../../../core/creator/rules';
+import { SimplePortraitPreview, SimpleUtils } from '../../portraits';
+import { storage } from "../../../core/services/storage";
 import './ClassicCharacterCreator.css';
 
 interface ClassicCharacterCreatorProps {
@@ -14,7 +16,15 @@ interface ClassicCharacterCreatorProps {
     onCancel?: () => void;
 }
 
-type CreationStep = 'identity' | 'stats' | 'magic' | 'review';
+type CreationStep = 'identity' | 'stats' | 'traits' | 'magic' | 'spells' | 'review';
+
+// Enhanced character state to match the old system
+interface EnhancedCharacter extends CreatorInput {
+    gender: 'male' | 'female';
+    traits: string[];
+    knownSpells: string[];
+    knownCantrips: string[];
+}
 
 const SPECIES_DATA = {
     human: { name: 'Human', bonus: '+1 to all stats' },
@@ -55,13 +65,53 @@ const MAGIC_SCHOOLS = [
     'Fire', 'Air', 'Water', 'Earth', 'Spirit', 'Shadow', 'Nature', 'Arcane', 'Divine'
 ] as const;
 
+// Trait System from the old character creator
+const TRAIT_DEFINITIONS = {
+    "Brave": { name: "Brave", description: "Resistant to fear and intimidation effects", bonus: "courage +2" },
+    "Clever": { name: "Clever", description: "Quick thinking in complex situations", bonus: "investigation +2" },
+    "Cunning": { name: "Cunning", description: "Skilled at deception and misdirection", bonus: "stealth +2" },
+    "Empathic": { name: "Empathic", description: "Deeply understands others' emotions", bonus: "persuasion +2" },
+    "Stoic": { name: "Stoic", description: "Unshaken by pain or hardship", bonus: "endurance +2" },
+    "Lucky": { name: "Lucky", description: "Fortune favors you", bonus: "reroll once per encounter" },
+    "Observant": { name: "Observant", description: "Notice details others miss", bonus: "perception +2" },
+    "Silver Tongue": { name: "Silver Tongue", description: "Naturally persuasive speaker", bonus: "social +2" },
+    "Iron Will": { name: "Iron Will", description: "Mental fortitude against magical effects", bonus: "mental defense +2" },
+    "Swift": { name: "Swift", description: "Faster movement and reflexes", bonus: "speed +2" },
+    "Nature's Friend": { name: "Nature's Friend", description: "Animals and plants respond favorably", bonus: "nature +2" },
+    "Keen Senses": { name: "Keen Senses", description: "Enhanced sensory perception", bonus: "detection +2" },
+    "Patient": { name: "Patient", description: "Calm and methodical approach", bonus: "concentration +2" },
+    "Resilient": { name: "Resilient", description: "Exceptionally tough constitution", bonus: "+2 HP per level" },
+    "Hardy": { name: "Hardy", description: "Natural toughness and endurance", bonus: "+1 HP per level" },
+    "Frail": { name: "Frail", description: "Delicate constitution, but often comes with other gifts", bonus: "-2 HP per level" }
+};
+
+// Spell calculation functions from old system
+function calculateMaxCantrips(level: number, intScore: number, wisScore: number): number {
+    const baseCantrips = Math.floor(level / 2) + 1;
+    const abilityBonus = Math.floor((Math.max(intScore, wisScore) - 10) / 2);
+    return Math.max(1, baseCantrips + Math.max(0, abilityBonus));
+}
+
+function calculateMaxSpells(level: number, intScore: number, wisScore: number): number {
+    if (level < 2) return 0;
+    const baseSpells = Math.max(0, level - 1);
+    const abilityBonus = Math.floor((Math.max(intScore, wisScore) - 12) / 2);
+    return Math.max(0, baseSpells + Math.max(0, abilityBonus));
+}
+
+function calculateMaxSpellLevel(level: number): number {
+    if (level < 2) return 0;
+    return Math.min(9, Math.floor((level + 1) / 2));
+}
+
 export const ClassicCharacterCreator: React.FC<ClassicCharacterCreatorProps> = ({
     onCharacterCreated,
     onCancel
 }) => {
     const [step, setStep] = useState<CreationStep>('identity');
-    const [character, setCharacter] = useState<CreatorInput>({
+    const [character, setCharacter] = useState<EnhancedCharacter>({
         name: '',
+        gender: 'male',
         team: 'Player',
         species: 'human',
         background: 'commoner',
@@ -69,6 +119,9 @@ export const ClassicCharacterCreator: React.FC<ClassicCharacterCreatorProps> = (
         level: 1,
         stats: { str: 8, dex: 8, con: 8, int: 8, wis: 8, cha: 8, spd: 8, lck: 8 },
         masteries: [],
+        traits: [],
+        knownSpells: [],
+        knownCantrips: [],
         formation: { row: 'front', slot: 0, facing: 0 }
     });
 
@@ -136,28 +189,59 @@ export const ClassicCharacterCreator: React.FC<ClassicCharacterCreatorProps> = (
         <div className="creation-step">
             <h2>CHARACTER IDENTITY</h2>
 
-            <div className="field-row">
-                <label>Name:</label>
-                <input
-                    type="text"
-                    value={character.name}
-                    onChange={(e) => setCharacter(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Enter character name"
-                    className="text-input"
-                />
-            </div>
+            <div className="identity-layout">
+                <div className="identity-left">
+                    <div className="field-row">
+                        <label>Name:</label>
+                        <input
+                            type="text"
+                            value={character.name}
+                            onChange={(e) => setCharacter(prev => ({ ...prev, name: e.target.value }))}
+                            placeholder="Enter character name"
+                            className="text-input"
+                        />
+                    </div>
 
-            <div className="field-row">
-                <label>Level:</label>
-                <select
-                    value={character.level}
-                    onChange={(e) => setCharacter(prev => ({ ...prev, level: parseInt(e.target.value) }))}
-                    className="dropdown"
-                >
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(level => (
-                        <option key={level} value={level}>Level {level}</option>
-                    ))}
-                </select>
+                    <div className="field-row">
+                        <label>Gender:</label>
+                        <select
+                            value={character.gender}
+                            onChange={(e) => setCharacter(prev => ({ ...prev, gender: e.target.value as 'male' | 'female' }))}
+                            className="dropdown"
+                        >
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                        </select>
+                    </div>
+
+                    <div className="field-row">
+                        <label>Level:</label>
+                        <select
+                            value={character.level}
+                            onChange={(e) => setCharacter(prev => ({ ...prev, level: parseInt(e.target.value) }))}
+                            className="dropdown"
+                        >
+                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(level => (
+                                <option key={level} value={level}>Level {level}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+
+                <div className="identity-right">
+                    <div className="portrait-preview">
+                        <h3>PORTRAIT</h3>
+                        {character.name && character.species && character.archetype && (
+                            <SimplePortraitPreview
+                                gender={character.gender}
+                                species={character.species}
+                                archetype={character.archetype}
+                                size="large"
+                                showDebug={false}
+                            />
+                        )}
+                    </div>
+                </div>
             </div>
 
             <div className="selection-grid">
@@ -246,6 +330,52 @@ export const ClassicCharacterCreator: React.FC<ClassicCharacterCreatorProps> = (
         </div>
     );
 
+    const renderTraitsStep = () => (
+        <div className="creation-step">
+            <h2>CHARACTER TRAITS</h2>
+
+            <div className="traits-info">
+                Choose up to 3 personality traits that define your character.
+                These provide both roleplay guidance and mechanical benefits.
+            </div>
+
+            <div className="traits-grid">
+                {Object.entries(TRAIT_DEFINITIONS).map(([traitId, trait]) => {
+                    const isSelected = character.traits.includes(traitId);
+                    const isDisabled = !isSelected && character.traits.length >= 3;
+
+                    return (
+                        <div
+                            key={traitId}
+                            className={`trait-item ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}`}
+                            onClick={() => {
+                                if (isSelected) {
+                                    setCharacter(prev => ({
+                                        ...prev,
+                                        traits: prev.traits.filter(t => t !== traitId)
+                                    }));
+                                } else if (!isDisabled) {
+                                    setCharacter(prev => ({
+                                        ...prev,
+                                        traits: [...prev.traits, traitId]
+                                    }));
+                                }
+                            }}
+                        >
+                            <div className="trait-name">{trait.name}</div>
+                            <div className="trait-description">{trait.description}</div>
+                            <div className="trait-bonus">{trait.bonus}</div>
+                        </div>
+                    );
+                })}
+            </div>
+
+            <div className="traits-selected">
+                Selected: {character.traits.length} / 3
+            </div>
+        </div>
+    );
+
     const renderMagicStep = () => (
         <div className="creation-step">
             <h2>MAGIC SCHOOLS</h2>
@@ -281,6 +411,106 @@ export const ClassicCharacterCreator: React.FC<ClassicCharacterCreatorProps> = (
         </div>
     );
 
+    const renderSpellsStep = () => {
+        const maxCantrips = calculateMaxCantrips(character.level, character.stats.int, character.stats.wis);
+        const maxSpells = calculateMaxSpells(character.level, character.stats.int, character.stats.wis);
+        const maxSpellLevel = calculateMaxSpellLevel(character.level);
+
+        return (
+            <div className="creation-step">
+                <h2>SPELLS & CANTRIPS</h2>
+
+                <div className="spells-info">
+                    <div>Cantrips: {character.knownCantrips.length} / {maxCantrips}</div>
+                    <div>Spells: {character.knownSpells.length} / {maxSpells}</div>
+                    <div>Max Spell Level: {maxSpellLevel}</div>
+                </div>
+
+                <div className="spells-note">
+                    Spell selection is simplified for this demo.
+                    In the full game, you'll choose from your class's spell list.
+                    For now, this shows your spellcasting capacity.
+                </div>
+
+                <div className="spells-actions">
+                    <button
+                        className="spell-button"
+                        onClick={() => {
+                            if (character.knownCantrips.length < maxCantrips) {
+                                setCharacter(prev => ({
+                                    ...prev,
+                                    knownCantrips: [...prev.knownCantrips, `Cantrip ${prev.knownCantrips.length + 1}`]
+                                }));
+                            }
+                        }}
+                        disabled={character.knownCantrips.length >= maxCantrips}
+                    >
+                        Add Cantrip ({character.knownCantrips.length}/{maxCantrips})
+                    </button>
+
+                    <button
+                        className="spell-button"
+                        onClick={() => {
+                            if (character.knownSpells.length < maxSpells && character.level >= 2) {
+                                setCharacter(prev => ({
+                                    ...prev,
+                                    knownSpells: [...prev.knownSpells, `Spell ${prev.knownSpells.length + 1}`]
+                                }));
+                            }
+                        }}
+                        disabled={character.knownSpells.length >= maxSpells || character.level < 2}
+                    >
+                        Add Spell ({character.knownSpells.length}/{maxSpells})
+                    </button>
+                </div>
+
+                <div className="known-spells">
+                    {character.knownCantrips.length > 0 && (
+                        <div className="spell-list">
+                            <h4>Cantrips:</h4>
+                            {character.knownCantrips.map((cantrip, index) => (
+                                <div key={index} className="spell-item">
+                                    {cantrip}
+                                    <button
+                                        onClick={() => {
+                                            setCharacter(prev => ({
+                                                ...prev,
+                                                knownCantrips: prev.knownCantrips.filter((_, i) => i !== index)
+                                            }));
+                                        }}
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {character.knownSpells.length > 0 && (
+                        <div className="spell-list">
+                            <h4>Spells:</h4>
+                            {character.knownSpells.map((spell, index) => (
+                                <div key={index} className="spell-item">
+                                    {spell}
+                                    <button
+                                        onClick={() => {
+                                            setCharacter(prev => ({
+                                                ...prev,
+                                                knownSpells: prev.knownSpells.filter((_, i) => i !== index)
+                                            }));
+                                        }}
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    };
+
     const renderReviewStep = () => (
         <div className="creation-step">
             <h2>CHARACTER SUMMARY</h2>
@@ -289,6 +519,7 @@ export const ClassicCharacterCreator: React.FC<ClassicCharacterCreatorProps> = (
                 <div className="summary-section">
                     <h3>Identity</h3>
                     <div>Name: {character.name || 'Unnamed'}</div>
+                    <div>Gender: {character.gender}</div>
                     <div>Race: {SPECIES_DATA[character.species].name}</div>
                     <div>Background: {BACKGROUND_DATA[character.background].name}</div>
                     <div>Class: {ARCHETYPE_DATA[character.archetype].name}</div>
@@ -303,6 +534,17 @@ export const ClassicCharacterCreator: React.FC<ClassicCharacterCreatorProps> = (
                 </div>
 
                 <div className="summary-section">
+                    <h3>Traits</h3>
+                    {character.traits.length > 0 ? (
+                        character.traits.map(traitId => (
+                            <div key={traitId}>{TRAIT_DEFINITIONS[traitId as keyof typeof TRAIT_DEFINITIONS].name}</div>
+                        ))
+                    ) : (
+                        <div>No traits selected</div>
+                    )}
+                </div>
+
+                <div className="summary-section">
                     <h3>Magic Schools</h3>
                     {character.masteries.length > 0 ? (
                         character.masteries.map(mastery => (
@@ -313,6 +555,12 @@ export const ClassicCharacterCreator: React.FC<ClassicCharacterCreatorProps> = (
                     ) : (
                         <div>No magic training</div>
                     )}
+                </div>
+
+                <div className="summary-section">
+                    <h3>Spells</h3>
+                    <div>Cantrips: {character.knownCantrips.length}</div>
+                    <div>Spells: {character.knownSpells.length}</div>
                 </div>
             </div>
 
@@ -332,14 +580,22 @@ export const ClassicCharacterCreator: React.FC<ClassicCharacterCreatorProps> = (
             <div className="creator-header">
                 <h1>CREATE CHARACTER</h1>
                 <div className="step-indicator">
-                    Step {step === 'identity' ? 1 : step === 'stats' ? 2 : step === 'magic' ? 3 : 4} of 4
+                    Step {
+                        step === 'identity' ? 1 :
+                            step === 'stats' ? 2 :
+                                step === 'traits' ? 3 :
+                                    step === 'magic' ? 4 :
+                                        step === 'spells' ? 5 : 6
+                    } of 6
                 </div>
             </div>
 
             <div className="creator-content">
                 {step === 'identity' && renderIdentityStep()}
                 {step === 'stats' && renderStatsStep()}
+                {step === 'traits' && renderTraitsStep()}
                 {step === 'magic' && renderMagicStep()}
+                {step === 'spells' && renderSpellsStep()}
                 {step === 'review' && renderReviewStep()}
             </div>
 
@@ -355,7 +611,7 @@ export const ClassicCharacterCreator: React.FC<ClassicCharacterCreatorProps> = (
                     <button
                         className="nav-button"
                         onClick={() => {
-                            const steps: CreationStep[] = ['identity', 'stats', 'magic', 'review'];
+                            const steps: CreationStep[] = ['identity', 'stats', 'traits', 'magic', 'spells', 'review'];
                             const currentIndex = steps.indexOf(step);
                             setStep(steps[currentIndex - 1]);
                         }}
@@ -368,7 +624,7 @@ export const ClassicCharacterCreator: React.FC<ClassicCharacterCreatorProps> = (
                     <button
                         className="nav-button primary"
                         onClick={() => {
-                            const steps: CreationStep[] = ['identity', 'stats', 'magic', 'review'];
+                            const steps: CreationStep[] = ['identity', 'stats', 'traits', 'magic', 'spells', 'review'];
                             const currentIndex = steps.indexOf(step);
                             setStep(steps[currentIndex + 1]);
                         }}

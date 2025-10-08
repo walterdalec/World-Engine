@@ -46,6 +46,33 @@
 }
 
 /* Identity Step */
+.identity-layout {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.identity-left {
+    flex: 2;
+}
+
+.identity-right {
+    flex: 1;
+}
+
+.portrait-preview {
+    border: 1px solid #666;
+    padding: 15px;
+    background: #222;
+    text-align: center;
+}
+
+.portrait-preview h3 {
+    color: #ff0;
+    margin: 0 0 10px 0;
+    font-size: 14px;
+}
+
 .field-row {
     margin-bottom: 15px;
     display: flex;
@@ -122,6 +149,68 @@
     font-size: 12px;
     color: #ccc;
     margin-top: 3px;
+}
+
+/* Traits Step */
+.traits-info {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #ccc;
+    font-style: italic;
+}
+
+.traits-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.trait-item {
+    border: 1px solid #666;
+    padding: 10px;
+    background: #222;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.trait-item:hover:not(.disabled) {
+    border-color: #fff;
+    background: #333;
+}
+
+.trait-item.selected {
+    border-color: #ff0;
+    background: #440;
+}
+
+.trait-item.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.trait-name {
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 5px;
+}
+
+.trait-description {
+    font-size: 12px;
+    color: #ccc;
+    margin-bottom: 5px;
+}
+
+.trait-bonus {
+    font-size: 11px;
+    color: #ff0;
+    font-style: italic;
+}
+
+.traits-selected {
+    text-align: center;
+    color: #ff0;
+    font-weight: bold;
 }
 
 /* Stats Step */
@@ -263,11 +352,89 @@
     color: #ff00ff;
 }
 
+/* Spells Step */
+.spells-info {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 20px;
+    color: #ff0;
+    font-weight: bold;
+}
+
+.spells-note {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #ccc;
+    font-style: italic;
+    border: 1px solid #666;
+    padding: 10px;
+    background: #222;
+}
+
+.spells-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.spell-button {
+    background: #006600;
+    color: #fff;
+    border: 2px solid #00ff00;
+    padding: 10px 15px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.spell-button:hover:not(:disabled) {
+    background: #00aa00;
+}
+
+.spell-button:disabled {
+    background: #333;
+    color: #666;
+    border-color: #666;
+    cursor: not-allowed;
+}
+
+.known-spells {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.spell-list h4 {
+    color: #ff0;
+    margin: 10px 0 5px 0;
+}
+
+.spell-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #222;
+    border: 1px solid #666;
+    padding: 5px 10px;
+    margin-bottom: 5px;
+}
+
+.spell-item button {
+    background: #ff0000;
+    color: #fff;
+    border: none;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
 /* Review Step */
 .character-summary {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
     margin-bottom: 20px;
 }
 
