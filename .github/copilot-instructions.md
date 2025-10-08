@@ -3,6 +3,22 @@
 ## Development Authority
 AI agents have full permissions to edit, create, modify, and refactor any code in this repository. Feel free to make direct changes to improve functionality, fix bugs, optimize performance, or implement new features without asking for permission.
 
+## Critical Development Guidelines
+
+### Character System Compatibility
+**ALWAYS use the working implementations** when updating character systems:
+- **Stat System**: Use 27-point budget with proper cost scaling (1/2/3 points), MIN_STAT=8, MAX_STAT=20
+- **Species**: Use specialized races ('human', 'sylvanborn', 'nightborn') that match portrait assets
+- **Archetypes**: Use gender-locked classes ('knight', 'ranger', 'chanter', 'mystic', 'guardian', 'corsair') 
+- **Portrait Props**: Always use `.toLowerCase()` for species/archetype compatibility
+
+### Original Lore Enforcement  
+**Avoid D&D placeholders** in TODO files and implementations:
+- Replace generic races (Elf, Dwarf) → Our species (Sylvanborn, Crystalborn, Draketh, etc.)
+- Replace standard classes (Fighter, Wizard, Rogue) → Our archetypes (Knight, Mystic, Corsair, etc.)
+- Replace D&D mechanics → Our 7-stat system (STR/DEX/INT/CON/WIS/CHA/LCK)
+- Maintain World Engine's unique fantasy setting and original faction lore
+
 ## Required Workflow
 **ALWAYS push changes to GitHub after making code modifications.** Use this sequence:
 1. Make code changes
@@ -208,11 +224,21 @@ const { currentSeason, factionStatus } = useCampaignState(); // Strategic layer
 
 ## Architecture
 
-### Character System
+### Character System (`src/features/characters/`)
+**Professional character creation with M&M 1-2 retro aesthetic**
 - **Character Creation**: `src/components/CharacterCreate.tsx` - Main character builder with point-buy stats, trait selection, and live portrait preview
+- **Classic Creator**: `src/features/characters/creator/ClassicCharacterCreator.tsx` - Enhanced M&M 1-2 style 6-step wizard with merged functionality
 - **Game Data**: `src/defaultWorlds.ts` - Class definitions with stat modifiers, abilities, equipment, and faction mappings
 - **Species**: Human, Sylvanborn, Nightborn, Stormcaller, Crystalborn, Draketh, Alloy, Voidkin
-- **Archetypes**: World-specific classes (Greenwarden, Thorn Knight, Ashblade, etc.)
+- **Archetypes**: Gender-locked classes (Knight/Ranger/Chanter = male, Mystic/Guardian/Corsair = female)
+- **Stat System**: 27-point budget with cost scaling (1 for 9-14, 2 for 15-16, 3 for 17+), range 8-20
+
+**Working Portrait Integration**:
+- Use specialized species names: 'human', 'sylvanborn', 'nightborn' 
+- Use gender-locked archetypes: 'knight', 'ranger', 'chanter', 'mystic', 'guardian', 'corsair'
+- Always apply `.toLowerCase()` to species/archetype props for compatibility
+
+**CRITICAL LESSON LEARNED**: Always use the working implementations. Previous attempts to "improve" the stat system made it too weak. The 27-point budget with proper cost scaling is balanced and proven.
 
 ### Battle System (`src/battle/`) ✅ IMPLEMENTED
 **Professional hex-based tactical combat with modern canvas rendering**
@@ -246,10 +272,11 @@ const { currentSeason, factionStatus } = useCampaignState(); // Strategic layer
 }
 ```
 
-### Portrait System (`src/visuals/`)
+### Portrait System (`src/features/portraits/`)
 **Current Active System**: Simple PNG layered portrait generation
 - **SimplePortraitPreview.tsx**: React component with debug overlay (`🐞` button)
 - **simple-portraits.ts**: Core PNG layering and canvas composition
+- **portraitConfig.ts**: Working portrait system with specialized races and gender-locked classes
 - **index.ts**: Clean exports and utility functions
 
 **Legacy System**: Complex SVG system preserved in `src/visuals/legacy-svg-system/`
@@ -262,6 +289,8 @@ Key features:
 - Environment-aware asset URL handling (localhost vs GitHub Pages)
 - Comprehensive debugging with emoji-prefixed console logs
 - Caching system for performance
+- **CRITICAL**: Use specialized species ('human', 'sylvanborn', 'nightborn') and gender-locked archetypes
+- **CRITICAL**: Always use `.toLowerCase()` for species/archetype compatibility
 
 ## Development Workflows
 
