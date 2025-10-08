@@ -1,11 +1,11 @@
 {
   "files": {
-    "main.css": "/World-Engine/static/css/main.01530ec3.css",
-    "main.js": "/World-Engine/static/js/main.00ac4be1.js",
+    "main.css": "/World-Engine/static/css/main.921abdf0.css",
+    "main.js": "/World-Engine/static/js/main.ce02de17.js",
     "index.html": "/World-Engine/index.html"
   },
   "entrypoints": [
-    "static/css/main.01530ec3.css",
-    "static/js/main.00ac4be1.js"
+    "static/css/main.921abdf0.css",
+    "static/js/main.ce02de17.js"
   ]
 }
