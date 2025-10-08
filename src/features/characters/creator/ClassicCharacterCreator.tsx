@@ -30,11 +30,7 @@ const SPECIES_DATA = {
     human: { name: 'Human', bonus: 'Adaptable and versatile' },
     sylvanborn: { name: 'Sylvanborn', bonus: 'Nature magic affinity' },
     nightborn: { name: 'Nightborn', bonus: 'Shadow magic mastery' },
-    stormcaller: { name: 'Stormcaller', bonus: 'Lightning and storm magic' },
-    crystalborn: { name: 'Crystalborn', bonus: 'Earth magic and durability' },
-    draketh: { name: 'Draketh', bonus: 'Fire magic and strength' },
-    alloy: { name: 'Alloy', bonus: 'Construct resilience' },
-    voidkin: { name: 'Voidkin', bonus: 'Void magic mastery' }
+    stormcaller: { name: 'Stormcaller', bonus: 'Lightning and storm magic' }
 };
 
 const BACKGROUND_DATA = {

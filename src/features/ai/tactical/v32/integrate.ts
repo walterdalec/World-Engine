@@ -18,7 +18,7 @@ type AttachOpts = {
   defenderFactionId?: string;
 };
 
-export function attachV32(brain: any, world: any, state: any, opts: AttachOpts = {}): void {
+export function attachV32(brain: any, world: any | undefined, state: any, opts: AttachOpts = {}): void {
   if (!brain) return;
   const buckets = ensureAutoBuckets(world);
   brain.v32 = {
@@ -44,7 +44,7 @@ export function attachV32(brain: any, world: any, state: any, opts: AttachOpts =
   }
 }
 
-export function v32Tick(brain: any, world: any, state: any): void {
+export function v32Tick(brain: any, world: any | undefined, state: any): void {
   if (!brain?.v32) return;
   const runtime: V32Runtime = brain.v32;
 

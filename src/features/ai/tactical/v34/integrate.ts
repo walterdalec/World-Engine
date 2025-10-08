@@ -10,7 +10,7 @@ export interface V34Runtime {
   shooters: ShooterState[];
 }
 
-export function attachV34(brain: any, world: any, state: any): void {
+export function attachV34(brain: any, world: any | undefined, state: any): void {
   if (!brain) return;
   const scars: MoraleScar[] = (world?.moraleScars ?? []).map((scar: any) => ({ ...scar }));
   const runtime: V34Runtime = {
@@ -28,7 +28,7 @@ export function attachV34(brain: any, world: any, state: any): void {
   brain.v34 = runtime;
 }
 
-export function v34Tick(brain: any, world: any, state: any): void {
+export function v34Tick(brain: any, world: any | undefined, state: any): void {
   if (!brain?.v34) return;
   const runtime: V34Runtime = brain.v34;
   runtime.scars = tickScars(runtime.scars);

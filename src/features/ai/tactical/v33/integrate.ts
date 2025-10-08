@@ -11,7 +11,7 @@ export interface V33Runtime {
   aura: AuraSpec;
 }
 
-export function attachV33(brain: any, _world: any, state: any): void {
+export function attachV33(brain: any, _world: any | undefined, state: any): void {
   if (!brain) return;
   const aura: AuraSpec = { radius: 4, strength: 0.8 };
   const seed = resolveSeed(state);
@@ -21,7 +21,7 @@ export function attachV33(brain: any, _world: any, state: any): void {
   brain.v33 = { escorts: [], lastRally: -999, aura } as V33Runtime;
 }
 
-export function v33Tick(brain: any, _world: any, state: any): void {
+export function v33Tick(brain: any, _world: any | undefined, state: any): void {
   if (!brain?.v33) return;
   const runtime: V33Runtime = brain.v33;
   const friendly = (state.units ?? []).filter((unit: any) => unit.team === 'A' || unit.faction === 'Player');
