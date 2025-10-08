@@ -1,9 +1,15 @@
 /**
  * World Manager - Coordinated Procedural Generation
- * TODO #11 — Overworld Procedural Generation
+ * TODO #11 — Overworld Procedural Generation (Cache Refresh: v2.1 - Oct 8, 2025)
  * 
  * High-level manager for world generation, streaming, and persistence.
  * Coordinates chunks, cache, regional graphs, and encounter systems.
+ * 
+ * System Status: ✅ ACTIVE & VERIFIED
+ * - 64×64 chunk generation with deterministic seeding
+ * - Performance-based world size configurations (6 tiers)
+ * - Streaming chunk management with memory optimization
+ * - Integration with v32 tactical AI systems
  */
 
 import { generateChunk, type Chunk, type ChunkId, worldToChunk, chunkToWorld } from './chunk';
