@@ -1,15 +1,6 @@
-export type ScenarioKey = string;
+import type { ScenarioKey } from './scenario';
 
-export interface StyleStats {
-  flank: number;
-  volley: number;
-  push: number;
-  collapse: number;
-}
+export type { ScenarioKey };
 
-export interface LearnableParams {
-  planBias: Record<ScenarioKey, Record<string, number>>;
-  styleEma: Record<ScenarioKey, StyleStats>;
-  updatedAtTurn: number;
-  version: string;
-}
+export interface StyleStats { flank: number; volley: number; push: number; collapse: number }
+export interface LearnableParams { planBias: Record<ScenarioKey, Record<string, number>>; styleEma: Record<ScenarioKey, StyleStats>; updatedAtTurn: number; version: string }

@@ -1,5 +1,7 @@
 import { Sequence, Selector, Leaf, type BTNode, type BTNodeContext, type TickStatus } from './bt.core';
 import { scorePlans, applyLearnedBias, type Plan } from './scoring';
+import { tickTelemetry } from '../../learn/telemetry';
+import { choosePlanWithBandit, scenarioKeyFromState } from '../../learn/gateway';
 import { nextPhase } from './phases';
 import { buildOrders } from './orders';
 
@@ -21,11 +23,11 @@ function evaluatePhase(ctx: BTNodeContext): TickStatus {
 
 function pickPlan(ctx: BTNodeContext): TickStatus {
   const scores = collectScores(ctx);
-  const entries = Object.entries(scores) as Array<[Plan, number]>;
-  entries.sort((a, b) => b[1] - a[1]);
-  const best = entries[0]?.[0];
-  ctx.blackboard.lastPick = best;
-  return best ? 'Success' : 'Failure';
+  const pick = choosePlanWithBandit(scores, ctx);
+  if (!pick) return 'Failure';
+  ctx.blackboard.lastPick = pick as Plan;
+  if (ctx.brain?.v35?.telemetry) tickTelemetry(ctx.brain.v35.telemetry, ctx.state, ctx);
+  return 'Success';
 }
 
 function issueOrders(ctx: BTNodeContext): TickStatus {
@@ -79,10 +81,11 @@ function collectScores(ctx: BTNodeContext) {
     counters: ctx.brain.v29?.counters,
     scenario: ctx.brain.v26?.scenario ? { Siege: ctx.brain.v26.scenario === 'Siege' } : {},
   });
-  return applyLearnedBias(scores, {
-    world: ctx.world ?? ctx.brain?.world,
-    scenarioKey: () => buildScenarioKey(ctx),
+  applyLearnedBias(scores, {
+    world: ctx.world ?? ctx.brain?.v35?.world ?? ctx.brain?.world,
+    scenarioKey: () => scenarioKeyFromState(ctx.state),
   });
+  return scores;
 }
 
 function laneDanger(ctx: BTNodeContext, id: 'Left' | 'Center' | 'Right'): number {
@@ -114,12 +117,4 @@ function average(values: number[]): number {
   return sum(values) / values.length;
 }
 
-function buildScenarioKey(ctx: BTNodeContext): string {
-  const factionA = ctx.state?.context?.factionA ?? ctx.state?.factionA ?? 'A';
-  const factionB = ctx.state?.context?.factionB ?? ctx.state?.factionB ?? 'B';
-  const cultureA = ctx.state?.context?.cultureA ?? ctx.state?.cultureA ?? ctx.brain?.v28?.culture ?? 'unknown';
-  const cultureB = ctx.state?.context?.cultureB ?? ctx.state?.cultureB ?? 'unknown';
-  const biome = ctx.state?.context?.biome ?? ctx.state?.environment?.biome ?? 'Any';
-  const scenario = ctx.brain?.v26?.scenario ?? 'Battle';
-  return [cultureA, cultureB, biome, scenario].join('|');
-}
+
