@@ -87,16 +87,16 @@ function generatePlaceholderPortrait(species: string, archetype: string, gender:
     const data = speciesData[species.toLowerCase()] || speciesData['human'];
 
     // Draw hyper-realistic character with painterly techniques
-    drawRealisticCharacter(ctx, data, _archetype, _gender);
+    drawRealisticCharacter(ctx, data, archetype, gender);
 
     // Add atmospheric lighting effects
-    drawAtmosphericLighting(ctx, _archetype);
+    drawAtmosphericLighting(ctx, archetype);
 
     // Add weathered frame
     drawWeatheredFrame(ctx);
 
     // Add character info
-    drawRealisticCharacterInfo(ctx, species, _archetype, _gender);
+    drawRealisticCharacterInfo(ctx, species, archetype, gender);
 
     console.log(`Generated grimdark portrait: ${gender} ${species} ${archetype}`);
     return canvas.toDataURL('image/png');
@@ -114,13 +114,13 @@ function drawRealisticCharacter(ctx: CanvasRenderingContext2D, data: any, archet
     const lightSourceY = 50;
 
     // Draw realistic head with proper proportions and detailed features
-    drawRealisticHead(ctx, centerX, centerY - 40, data, _gender, lightSourceX, lightSourceY);
+    drawRealisticHead(ctx, centerX, centerY - 40, data, gender, lightSourceX, lightSourceY);
 
     // Draw detailed armor/clothing with realistic metal textures
-    drawRealisticArmor(ctx, centerX, centerY, data, _archetype, lightSourceX, lightSourceY);
+    drawRealisticArmor(ctx, centerX, centerY, data, archetype, lightSourceX, lightSourceY);
 
     // Add archetype-specific realistic equipment
-    drawRealisticEquipment(ctx, centerX, centerY, _archetype, data, lightSourceX, lightSourceY);
+    drawRealisticEquipment(ctx, centerX, centerY, archetype, data, lightSourceX, lightSourceY);
 }
 
 /**
@@ -132,7 +132,7 @@ function drawRealisticHead(ctx: CanvasRenderingContext2D, x: number, y: number, 
     const _lightIntensity = Math.max(0.2, 1 - distance / 150);
 
     // Create realistic skin gradient with proper light fall-off
-    const skinGradient = ctx.createRadialGradient(_lightX, _lightY, 20, x, y, 60);
+    const skinGradient = ctx.createRadialGradient(lightX, lightY, 20, x, y, 60);
     skinGradient.addColorStop(0, data.skinBase);
     skinGradient.addColorStop(0.3, data.skinMid);
     skinGradient.addColorStop(0.7, data.skinShadow);
@@ -169,7 +169,7 @@ function drawRealisticHead(ctx: CanvasRenderingContext2D, x: number, y: number, 
     drawRealisticNose(ctx, x, y + 2, data, _lightIntensity);
 
     // Draw grim mouth with realistic lip detail
-    drawRealisticMouth(ctx, x, y + 12, data, _gender);
+    drawRealisticMouth(ctx, x, y + 12, data, gender);
 
     // Add deep wrinkles and battle scars
     drawFacialDetails(ctx, x, y, data, _lightIntensity);
@@ -299,7 +299,7 @@ function drawRealisticNose(ctx: CanvasRenderingContext2D, x: number, y: number, 
 /**
  * Draw realistic mouth with weathered features
  */
-function drawRealisticMouth(ctx: CanvasRenderingContext2D, x: number, y: number, data: any, gender: string) {
+function drawRealisticMouth(ctx: CanvasRenderingContext2D, x: number, y: number, data: any, _gender: string) {
     // Lip line - grim and weathered
     ctx.strokeStyle = data.skinShadow;
     ctx.lineWidth = 2;
@@ -320,7 +320,7 @@ function drawRealisticMouth(ctx: CanvasRenderingContext2D, x: number, y: number,
 /**
  * Draw detailed facial weathering, scars, and wrinkles
  */
-function drawFacialDetails(ctx: CanvasRenderingContext2D, x: number, y: number, data: any, lightIntensity: number) {
+function drawFacialDetails(ctx: CanvasRenderingContext2D, x: number, y: number, data: any, _lightIntensity: number) {
     ctx.strokeStyle = data.skinShadow;
     ctx.lineWidth = 1;
     ctx.globalAlpha = 0.7;
@@ -372,7 +372,7 @@ function drawRealisticArmor(ctx: CanvasRenderingContext2D, x: number, y: number,
     const _lightIntensity = Math.max(0.1, 1 - distance / 200);
 
     // Create metallic gradient
-    const armorGradient = ctx.createRadialGradient(_lightX, _lightY, 30, x, y, 80);
+    const armorGradient = ctx.createRadialGradient(lightX, lightY, 30, x, y, 80);
     armorGradient.addColorStop(0, data.metalHighlight);
     armorGradient.addColorStop(0.3, data.armorBase);
     armorGradient.addColorStop(0.7, data.armorMid);
@@ -428,7 +428,7 @@ function drawRealisticArmor(ctx: CanvasRenderingContext2D, x: number, y: number,
 /**
  * Draw realistic archetype-specific equipment
  */
-function drawRealisticEquipment(ctx: CanvasRenderingContext2D, x: number, y: number, archetype: string, data: any, lightX: number, lightY: number) {
+function drawRealisticEquipment(ctx: CanvasRenderingContext2D, x: number, y: number, archetype: string, data: any, _lightX: number, _lightY: number) {
     switch (archetype.toLowerCase()) {
         case 'ashblade':
         case 'thorn knight':
@@ -555,7 +555,7 @@ function drawRealisticStaff(ctx: CanvasRenderingContext2D, x: number, y: number,
 /**
  * Draw atmospheric lighting effects
  */
-function drawAtmosphericLighting(ctx: CanvasRenderingContext2D, archetype: string) {
+function drawAtmosphericLighting(ctx: CanvasRenderingContext2D, _archetype: string) {
     // Subtle dust motes in light beam
     ctx.fillStyle = '#4a453f';
     ctx.globalAlpha = 0.2;
@@ -605,7 +605,7 @@ function drawRealisticCharacterInfo(ctx: CanvasRenderingContext2D, species: stri
 /**
  * Draw menacing, weathered archetype-specific equipment
  */
-function drawGrimdarkArchetypeDetails(ctx: CanvasRenderingContext2D, x: number, y: number, archetype: string, data: any) {
+function _drawGrimdarkArchetypeDetails(ctx: CanvasRenderingContext2D, x: number, y: number, archetype: string, data: any) {
     ctx.strokeStyle = data.special;
     ctx.fillStyle = data.special;
     ctx.lineWidth = 3;
@@ -715,7 +715,7 @@ function drawGrimdarkArchetypeDetails(ctx: CanvasRenderingContext2D, x: number, 
 /**
  * Draw elegant archetype-specific equipment and symbols
  */
-function drawArchetypeDetails(ctx: CanvasRenderingContext2D, x: number, y: number, archetype: string, data: any) {
+function _drawArchetypeDetails(ctx: CanvasRenderingContext2D, x: number, y: number, archetype: string, data: any) {
     ctx.strokeStyle = data.special;
     ctx.fillStyle = data.special;
     ctx.lineWidth = 2;
@@ -817,7 +817,7 @@ function drawArchetypeDetails(ctx: CanvasRenderingContext2D, x: number, y: numbe
 /**
  * Draw elegant facial features with gender differences
  */
-function drawFaceDetails(ctx: CanvasRenderingContext2D, x: number, y: number, gender: string, data: any) {
+function _drawFaceDetails(ctx: CanvasRenderingContext2D, x: number, y: number, gender: string, data: any) {
     // Subtle eyes with highlights
     ctx.fillStyle = '#2C3E50';
     ctx.beginPath();
@@ -895,7 +895,7 @@ function drawFaceDetails(ctx: CanvasRenderingContext2D, x: number, y: number, ge
 /**
  * Draw weathered, battle-hardened facial features
  */
-function drawGrimdarkFaceDetails(ctx: CanvasRenderingContext2D, x: number, y: number, gender: string, data: any) {
+function _drawGrimdarkFaceDetails(ctx: CanvasRenderingContext2D, x: number, y: number, gender: string, data: any) {
     // Harsh, shadowed eyes
     ctx.fillStyle = '#1a1a1a';
     ctx.beginPath();
@@ -990,7 +990,7 @@ function drawGrimdarkFaceDetails(ctx: CanvasRenderingContext2D, x: number, y: nu
 /**
  * Draw ominous dark magical effects and curses
  */
-function drawDarkMagicalEffects(ctx: CanvasRenderingContext2D, color: string, archetype: string) {
+function _drawDarkMagicalEffects(ctx: CanvasRenderingContext2D, color: string, archetype: string) {
     ctx.strokeStyle = color;
     ctx.lineWidth = 1;
     ctx.globalAlpha = 0.3;
@@ -1071,7 +1071,7 @@ function drawDarkMagicalEffects(ctx: CanvasRenderingContext2D, color: string, ar
 /**
  * Draw weathered, ancient frame with battle damage
  */
-function drawAncientFrame(ctx: CanvasRenderingContext2D) {
+function _drawAncientFrame(ctx: CanvasRenderingContext2D) {
     // Weathered outer frame - cracked and worn
     ctx.strokeStyle = '#3a3a2a';
     ctx.lineWidth = 5;
@@ -1140,7 +1140,7 @@ function drawAncientFrame(ctx: CanvasRenderingContext2D) {
 /**
  * Draw elegant ornate fantasy frame
  */
-function drawOrnateFrame(ctx: CanvasRenderingContext2D) {
+function _drawOrnateFrame(ctx: CanvasRenderingContext2D) {
     // Elegant outer frame with gradient
     const frameGradient = ctx.createLinearGradient(0, 0, 200, 250);
     frameGradient.addColorStop(0, '#D4AF37');
@@ -1202,7 +1202,7 @@ function drawOrnateFrame(ctx: CanvasRenderingContext2D) {
 /**
  * Draw character information with fantasy styling
  */
-function drawCharacterInfo(ctx: CanvasRenderingContext2D, species: string, archetype: string, gender: string) {
+function _drawCharacterInfo(ctx: CanvasRenderingContext2D, species: string, archetype: string, gender: string) {
     // Background for text
     ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
     ctx.fillRect(10, 220, 180, 25);
@@ -1220,7 +1220,7 @@ function drawCharacterInfo(ctx: CanvasRenderingContext2D, species: string, arche
 /**
  * Draw character information with grimdark, weathered styling
  */
-function drawGrimdarkCharacterInfo(ctx: CanvasRenderingContext2D, species: string, archetype: string, gender: string) {
+function _drawGrimdarkCharacterInfo(ctx: CanvasRenderingContext2D, species: string, archetype: string, gender: string) {
     // Dark, oppressive background for text
     ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
     ctx.fillRect(8, 218, 184, 27);
@@ -1259,7 +1259,7 @@ export async function generateSimplePortrait(options: SimplePortraitOptions): Pr
         console.log(`Generating portrait: ${gender} ${species} ${archetype}`);
 
         // First, check if we have a realistic image for this combination
-        const imagePath = getPortraitImagePath(species, _archetype, _gender);
+        const imagePath = getPortraitImagePath(species, archetype, gender);
         console.log(`Portrait lookup: species=${species}, archetype=${archetype}, gender=${gender}`);
         console.log(`Image path result: ${imagePath}`);
 
@@ -1291,7 +1291,7 @@ export async function generateSimplePortrait(options: SimplePortraitOptions): Pr
 
         // Fallback to placeholder generation
         console.log(`🎭 Generating placeholder portrait: ${gender} ${species} ${archetype}`);
-        const dataUrl = generatePlaceholderPortrait(species, _archetype, _gender);
+        const dataUrl = generatePlaceholderPortrait(species, archetype, gender);
 
         return {
             success: true,

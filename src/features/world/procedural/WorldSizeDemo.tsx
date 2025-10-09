@@ -11,8 +11,7 @@ import {
     detectRecommendedWorldSize,
     getWorldSizeConfig,
     validateWorldSizeForSystem,
-    calculateWorldCoverage,
-    type _WorldSizeConfig 
+    calculateWorldCoverage 
 } from './worldSizes';
 
 export const WorldSizeDemo: React.FC = () => {

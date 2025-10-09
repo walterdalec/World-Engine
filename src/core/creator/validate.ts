@@ -87,7 +87,7 @@ export function validateStatAllocation(stats: StatAllocation, level: number): Va
     const reasons: string[] = [];
     const warnings: string[] = [];
 
-    const budget = StatBudgetByLevel(_level);
+    const budget = StatBudgetByLevel(level);
     let totalCost = 0;
 
     // Calculate total point cost and check individual stat limits

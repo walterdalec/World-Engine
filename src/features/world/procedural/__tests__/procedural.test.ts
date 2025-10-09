@@ -341,7 +341,7 @@ describe('Procedural Generation System', () => {
 
     describe('Integration', () => {
         test('world coordinates convert correctly', () => {
-            const manager = new WorldManager({ chunkSize: 64 });
+            const _manager = new WorldManager({ chunkSize: 64 });
 
             // Test coordinate conversion round trip
             const worldX = 150;

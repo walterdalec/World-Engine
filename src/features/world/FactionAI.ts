@@ -68,21 +68,21 @@ export class FactionAI {
      * Simulate one turn of faction actions
      */
     static simulateTurn(worldState: WorldState): WorldEvent[] {
-        const _events: WorldEvent[] = [];
+        const events: WorldEvent[] = [];
 
-        Object.values(worldState.factions).forEach(_faction => {
+        Object.values(worldState.factions).forEach(faction => {
             // Update ongoing actions
-            this.updateFactionActions(_faction, _worldState, _events);
+            this.updateFactionActions(faction, worldState, events);
 
             // Plan new actions based on AI personality and situation
-            this.planNewActions(_faction, _worldState, _events);
+            this.planNewActions(faction, worldState, events);
 
             // Economic and military updates
-            this.updateFactionStrength(_faction, _worldState);
+            this.updateFactionStrength(faction, worldState);
         });
 
         // Update relationships based on actions
-        this.updateDiplomacy(_worldState, _events);
+        this.updateDiplomacy(worldState, events);
 
         return events;
     }
@@ -96,10 +96,10 @@ export class FactionAI {
         events: WorldEvent[]
     ) {
         faction.currentActions.forEach(action => {
-            action.progress += this.calculateActionProgress(_action, _faction, _worldState);
+            action.progress += this.calculateActionProgress(action, faction, worldState);
 
             if (action.progress >= 100) {
-                this.resolveAction(_action, _faction, _worldState, _events);
+                this.resolveAction(action, faction, worldState, events);
             }
         });
 
@@ -113,17 +113,17 @@ export class FactionAI {
     private static planNewActions(
         faction: Faction,
         worldState: WorldState,
-        events: WorldEvent[]
+        _events: WorldEvent[]
     ) {
         // Don't overcommit - limit concurrent actions
         if (faction.currentActions.length >= 3) return;
 
-        const opportunities = this.evaluateOpportunities(_faction, _worldState);
+        const opportunities = this.evaluateOpportunities(faction, worldState);
         const bestOpportunity = opportunities
             .sort((a, b) => b.priority - a.priority)[0];
 
         if (bestOpportunity && bestOpportunity.priority > 50) {
-            faction.currentActions.push(this.createAction(bestOpportunity, _faction));
+            faction.currentActions.push(this.createAction(bestOpportunity, faction));
         }
     }
 
@@ -144,7 +144,12 @@ export class FactionAI {
                 const neighbor = worldState.territories[neighborId];
 
                 if (neighbor.owner !== faction.id) {
-                    const priority = this.calculateConquestPriority(_faction, neighbor, worldState.factions[neighbor.owner], _worldState);
+                    const priority = this.calculateConquestPriority(
+                        faction,
+                        neighbor,
+                        worldState.factions[neighbor.owner],
+                        worldState
+                    );
 
                     opportunities.push({
                         type: 'siege',
@@ -282,13 +287,13 @@ export class FactionAI {
     ) {
         switch (action.type) {
             case 'siege':
-                this.resolveSiege(_action, _faction, _worldState, _events);
+                this.resolveSiege(action, faction, worldState, events);
                 break;
             case 'war':
-                this.resolveWarDeclaration(_action, _faction, _worldState, _events);
+                this.resolveWarDeclaration(action, faction, worldState, events);
                 break;
             case 'alliance':
-                this.resolveAlliance(_action, _faction, _worldState, _events);
+                this.resolveAlliance(action, faction, worldState, events);
                 break;
         }
     }
@@ -365,7 +370,7 @@ export class FactionAI {
     /**
      * Update diplomatic relationships
      */
-    private static updateDiplomacy(worldState: WorldState, events: WorldEvent[]) {
+    private static updateDiplomacy(worldState: WorldState, _events: WorldEvent[]) {
         // Relationship decay over time
         Object.values(worldState.factions).forEach(faction => {
             Object.keys(faction.relationships).forEach(otherId => {
@@ -433,11 +438,11 @@ export class FactionAI {
     }
 
     // Additional helper methods for war declarations, alliances, etc.
-    private static resolveWarDeclaration(action: FactionAction, faction: Faction, worldState: WorldState, events: WorldEvent[]) {
+    private static resolveWarDeclaration(_action: FactionAction, _faction: Faction, _worldState: WorldState, _events: WorldEvent[]) {
         // Implementation for war declaration resolution
     }
 
-    private static resolveAlliance(action: FactionAction, faction: Faction, worldState: WorldState, events: WorldEvent[]) {
+    private static resolveAlliance(_action: FactionAction, _faction: Faction, _worldState: WorldState, _events: WorldEvent[]) {
         // Implementation for alliance formation
     }
 }

@@ -15,8 +15,7 @@ import {
     type Chunk,
     type POI,
     type RiverSegment,
-    getChunkTile,
-    _getChunkBiome
+    getChunkTile
 } from './index';
 
 interface ProceduralDevToolsProps {

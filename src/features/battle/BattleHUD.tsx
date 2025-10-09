@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { BattleState, Unit, _Ability } from './types';
+import { BattleState, Unit } from './types';
 
 interface BattleHUDProps {
     state: BattleState;

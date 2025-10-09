@@ -5,19 +5,18 @@
  * UI for selecting world size with performance recommendations and warnings.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
     getWorldSizeOptions,
     detectRecommendedWorldSize,
     validateWorldSizeForSystem,
     calculateWorldCoverage,
-    getWorldSizeConfig,
-    type _WorldSizeConfig
+    getWorldSizeConfig
 } from './worldSizes';
 
 interface WorldSizeSelectionProps {
     selectedSize: string;
-    onSizeChange: (sizeId: string) => void;
+    onSizeChange: (_sizeId: string) => void;
     className?: string;
 }
 
@@ -32,7 +31,7 @@ export function WorldSizeSelection({
     const sizeOptions = getWorldSizeOptions();
 
     const handleSizeSelect = (sizeId: string) => {
-        onSizeChange(_sizeId);
+        onSizeChange(sizeId);
     };
 
     const toggleExpanded = (sizeId: string) => {

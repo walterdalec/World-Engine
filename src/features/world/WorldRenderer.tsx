@@ -249,7 +249,7 @@ export default function WorldRenderer({ engine, showGrid, width, height, canvasR
           if (hour >= 6 && hour < 18) {
             // Day
             return 'rgba(255, 255, 255, 0.1)';
-          } else if (hour >= 18 && hour < 20 || hour >= 5 && hour < 7) {
+          } else if ((hour >= 18 && hour < 20) || (hour >= 5 && hour < 7)) {
             // Twilight
             return 'rgba(234, 179, 8, 0.2)';
           } else {

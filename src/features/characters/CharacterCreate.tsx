@@ -1501,7 +1501,7 @@ export default function CharacterCreate() {
   );
 }
 
-function TextRow(props: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
+function TextRow(props: { label: string; value: string; onChange: (_v: string) => void; placeholder?: string }) {
   const { label, value, onChange, placeholder } = props;
   return (
     <label style={{ display: "grid", gap: 4 }}>
@@ -1516,7 +1516,7 @@ function TextRow(props: { label: string; value: string; onChange: (v: string) =>
   );
 }
 
-function TextAreaRow(props: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
+function _TextAreaRow(props: { label: string; value: string; onChange: (_v: string) => void; placeholder?: string }) {
   const { label, value, onChange, placeholder } = props;
   return (
     <label style={{ display: "grid", gap: 4 }}>
@@ -1532,7 +1532,7 @@ function TextAreaRow(props: { label: string; value: string; onChange: (v: string
   );
 }
 
-function SelectRow(props: { label: string; value: string; onChange: (v: string) => void; options: string[] }) {
+function SelectRow(props: { label: string; value: string; onChange: (_v: string) => void; options: string[] }) {
   const { label, value, onChange, options } = props;
   return (
     <label style={{ display: "grid", gap: 4 }}>

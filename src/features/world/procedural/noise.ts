@@ -6,7 +6,7 @@
  * using a simple but effective noise algorithm until FastNoiseLite is integrated.
  */
 
-import type { SeededRng } from './rng';
+// import type { SeededRng } from './rng'; // Currently unused
 import { splitmix32 } from './rng';
 
 export interface NoiseConfig {

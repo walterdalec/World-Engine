@@ -8,9 +8,9 @@
 
 export interface SeededRng {
     next(): number;           // Returns 0-1 float
-    pick<T>(arr: T[]): T;     // Pick random element
-    range(min: number, max: number): number;  // Random integer in range
-    bool(chance?: number): boolean;           // Random boolean (default 50%)
+    pick<T>(_arr: T[]): T;     // Pick random element
+    range(_min: number, _max: number): number;  // Random integer in range
+    bool(_chance?: number): boolean;           // Random boolean (default 50%)
     seed: number;             // Current seed state for debugging
 }
 

@@ -7,7 +7,6 @@ import type { Axial } from './types';
 import type { WorldState, PlannedAction } from './types';
 import type { DeltaBatch } from './deltas';
 import { logEvt } from './log';
-import { _adjacentEnemiesOf } from './adjacency';
 import { flankInfo, flankModifiers } from '../formation/flanking';
 import { getFormation, Backline } from '../formation/formation';
 
