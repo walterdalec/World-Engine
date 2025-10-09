@@ -42,10 +42,10 @@ export default defineConfig({
                 'src/reportWebVitals.ts'
             ],
             thresholds: {
-                branches: 50,   // Current actual: 76.27%
-                functions: 60,  // Current actual: 76.92%  
-                lines: 3,       // Current actual: 3.84% - very low due to excluded tests
-                statements: 3   // Current actual: 3.84% - very low due to excluded tests
+                branches: 70,   // Spec target: 70%
+                functions: 80,  // Spec target: 80%
+                lines: 80,      // Spec target: 80%
+                statements: 80  // Spec target: 80%
             }
         },
         // Deterministic test environment
