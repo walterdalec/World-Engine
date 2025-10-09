@@ -82,8 +82,8 @@ export function hexRing(center: HexCoord, radius: number): HexCoord[] {
 
     for (let direction = 0; direction < 6; direction++) {
         for (let step = 0; step < radius; step++) {
-            results.push({ ...hex });
-            hex = hexDirection(_hex, direction);
+            results.push({ ..._hex });
+            _hex = hexDirection(_hex, direction);
         }
     }
 

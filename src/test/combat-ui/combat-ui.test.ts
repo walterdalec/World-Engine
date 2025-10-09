@@ -200,8 +200,9 @@ describe('Combat UI System', () => {
             selectionManager.enterMoveMode();
 
             expect(notificationCount).toBe(2);
-            expect(lastState?.mode).toBe('move');
-            expect(lastState?.selectedUnit).toBe('knight_1');
+            expect(lastState).not.toBeNull();
+            expect(lastState!.mode).toBe('move');
+            expect(lastState!.selectedUnit).toBe('knight_1');
 
             unsubscribe();
 

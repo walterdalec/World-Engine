@@ -21,7 +21,7 @@ interface StatBarProps {
     icon?: string;
 }
 
-const StatBar: React.FC<StatBarProps> = ({ label, current, max, _color, icon }) => {
+const StatBar: React.FC<StatBarProps> = ({ label, current, max, color, icon }) => {
     const percentage = max > 0 ? (current / max) * 100 : 0;
     const isLow = percentage < 25;
     const isCritical = percentage < 10;
@@ -64,7 +64,7 @@ const MoraleBadge: React.FC<MoraleBadgeProps> = ({ morale, className = '' }) => 
         return { status: 'Routing', color: '#9b2c2c', icon: '😱' };
     };
 
-    const { status, _color, icon } = getMoraleStatus(morale);
+    const { status, color: _color, icon } = getMoraleStatus(morale);
 
     return (
         <div className={`morale-badge morale-badge--${status.toLowerCase()} ${className}`}>
