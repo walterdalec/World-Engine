@@ -30,38 +30,38 @@ const SCHOOLS = [
 ];
 
 const CASTING_TIMES = [
-  "1 action", "1 bonus action", "1 reaction", "2 actions", "3 actions", 
+  "1 action", "1 bonus action", "1 reaction", "2 actions", "3 actions",
   "1 full round", "2 rounds", "3 rounds", "1 minute", "10 minutes", "1 hour"
 ];
 
 const RANGES = [
-  "Self", "Touch", "10 feet", "30 feet", "60 feet", "120 feet", 
+  "Self", "Touch", "10 feet", "30 feet", "60 feet", "120 feet",
   "300 feet", "500 feet", "1 mile", "Sight", "Special"
 ];
 
 const DURATIONS = [
-  "Instantaneous", "1 round", "2 rounds", "3 rounds", "5 rounds", 
-  "10 rounds", "1 minute (10 rounds)", "10 minutes", "1 hour", "8 hours", 
+  "Instantaneous", "1 round", "2 rounds", "3 rounds", "5 rounds",
+  "10 rounds", "1 minute (10 rounds)", "10 minutes", "1 hour", "8 hours",
   "24 hours", "Until dispelled", "Permanent", "Concentration, up to 1 round",
-  "Concentration, up to 3 rounds", "Concentration, up to 10 rounds", 
+  "Concentration, up to 3 rounds", "Concentration, up to 10 rounds",
   "Concentration, up to 10 minutes", "Concentration, up to 1 hour"
 ];
 
 // Component options for different spell levels
 const COMPONENT_OPTIONS = {
   verbal: [
-    "Simple word", "Quick chant", "Whispered phrase", "Ancient incantation", 
-    "Mystical chant", "Power word", "Arcane phrase", "Sacred prayer", 
+    "Simple word", "Quick chant", "Whispered phrase", "Ancient incantation",
+    "Mystical chant", "Power word", "Arcane phrase", "Sacred prayer",
     "Elemental call", "Divine invocation"
   ],
   somatic: [
-    "Quick gesture", "Simple motion", "Finger snap", "Hand wave", 
-    "Precise gestures", "Complex hand movements", "Ritualistic dance", 
+    "Quick gesture", "Simple motion", "Finger snap", "Hand wave",
+    "Precise gestures", "Complex hand movements", "Ritualistic dance",
     "Finger patterns", "Sweeping motions", "Sacred signs"
   ],
   material: [
-    "Small focus", "Tiny crystal", "Bit of string", "Drop of water", 
-    "Crystal focus", "Rare herbs", "Precious metals", "Ancient runes", 
+    "Small focus", "Tiny crystal", "Bit of string", "Drop of water",
+    "Crystal focus", "Rare herbs", "Precious metals", "Ancient runes",
     "Elemental essence", "Sacred symbols", "Diamond dust", "Silver wire"
   ]
 };
@@ -81,14 +81,14 @@ const SPELL_GUIDELINES = {
     limitations: "Limited targets, moderate range and duration"
   },
   2: {
-    damage: "2d8 to 5d6", 
+    damage: "2d8 to 5d6",
     healing: "2d8 + modifier",
     effects: "Enhanced effects, larger areas, significant bonuses (+3-4)",
     limitations: "Multiple targets, good range and duration"
   },
   3: {
     damage: "3d8 to 8d6",
-    healing: "3d8 + modifier", 
+    healing: "3d8 + modifier",
     effects: "Powerful effects, condition removal, major bonuses (+4-5)",
     limitations: "Large areas, long duration, powerful utility"
   }
@@ -118,31 +118,31 @@ export default function CustomSpellCreator({ onBack, onSpellCreated }: CustomSpe
 
   const validateSpell = (): string[] => {
     const errors: string[] = [];
-    
+
     if (!spellData.name.trim()) {
       errors.push("Spell name is required");
     }
-    
+
     if (spellData.name.length > 50) {
       errors.push("Spell name too long (max 50 characters)");
     }
-    
+
     if (!spellData.description.trim()) {
       errors.push("Spell description is required");
     }
-    
+
     if (spellData.description.length < 20) {
       errors.push("Spell description too short (minimum 20 characters)");
     }
-    
+
     if (spellData.description.length > 500) {
       errors.push("Spell description too long (max 500 characters)");
     }
-    
+
     if (!spellData.components.verbal && !spellData.components.somatic && !spellData.components.material) {
       errors.push("Spell must have at least one component (Verbal, Somatic, or Material)");
     }
-    
+
     // Level-based validation
     if (spellData.level === 0) {
       if (spellData.duration.includes("hour") || spellData.duration.includes("day")) {
@@ -152,7 +152,7 @@ export default function CustomSpellCreator({ onBack, onSpellCreated }: CustomSpe
         errors.push("Cantrips should have limited range (max 120 feet)");
       }
     }
-    
+
     return errors;
   };
 
@@ -162,9 +162,9 @@ export default function CustomSpellCreator({ onBack, onSpellCreated }: CustomSpe
       setValidationErrors(errors);
       return null;
     }
-    
+
     setValidationErrors([]);
-    
+
     const components: string[] = [];
     if (spellData.components.verbal) {
       components.push(`V (${spellData.components.verbalDetail})`);
@@ -175,9 +175,9 @@ export default function CustomSpellCreator({ onBack, onSpellCreated }: CustomSpe
     if (spellData.components.material) {
       components.push(`M (${spellData.components.materialDetail})`);
     }
-    
+
     const school = SCHOOLS.find(s => s.name === spellData.school) || SCHOOLS[0];
-    
+
     return {
       name: spellData.name,
       level: spellData.level,
@@ -406,7 +406,7 @@ export default function CustomSpellCreator({ onBack, onSpellCreated }: CustomSpe
             <label style={{ display: "block", marginBottom: "0.75rem", color: "#cbd5e1" }}>
               Components
             </label>
-            
+
             {/* Verbal Component */}
             <div style={{ marginBottom: "0.75rem" }}>
               <label style={{ display: "flex", alignItems: "center", marginBottom: "0.5rem" }}>
@@ -617,7 +617,7 @@ export default function CustomSpellCreator({ onBack, onSpellCreated }: CustomSpe
             <p style={{ margin: "0 0 1rem", color: "#cbd5e1", fontStyle: "italic" }}>
               {getSelectedSchool().description}
             </p>
-            
+
             <div style={{ marginBottom: "1rem" }}>
               <h4 style={{ margin: "0 0 0.5rem", color: "#f1f5f9" }}>
                 Level {spellData.level} {spellData.level === 0 ? "Cantrip" : ""} Limits:
@@ -664,7 +664,7 @@ export default function CustomSpellCreator({ onBack, onSpellCreated }: CustomSpe
               border: `2px solid ${previewSpell.color}`
             }}>
               <h2 style={{ margin: "0 0 1rem", color: "#f1f5f9" }}>👁️ Spell Preview</h2>
-              
+
               <div style={{
                 background: "rgba(15, 23, 42, 0.8)",
                 borderRadius: "6px",

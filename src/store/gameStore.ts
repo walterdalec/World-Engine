@@ -163,12 +163,12 @@ export const useGameStore = create<GameState>()(
             },
 
             // Map actions
-            setCurrentWorld: (_world) => {
-                console.log('🗺️ Setting current world:', _world);
+            setCurrentWorld: (world) => {
+                console.log('🗺️ Setting current world:', world);
                 set({ currentWorld: world });
             },
 
-            updateMapSettings: (_settings) => {
+            updateMapSettings: (settings) => {
                 set((state) => ({
                     mapSettings: { ...state.mapSettings, ...settings }
                 }));
