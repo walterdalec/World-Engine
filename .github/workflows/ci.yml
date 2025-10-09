@@ -29,10 +29,10 @@ jobs:
         run: npm ci --prefer-offline --no-audit
 
       - name: Type check
-        run: npx tsc --noEmit --skipLibCheck
+        run: npm run typecheck
 
       - name: Lint code
-        run: npx eslint . --max-warnings=0 --format=github
+        run: npx eslint . --max-warnings=0 --format=stylish
         continue-on-error: true  # Don't fail build on lint errors initially
 
       - name: Run unit tests
