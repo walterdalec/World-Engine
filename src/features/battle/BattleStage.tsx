@@ -10,8 +10,8 @@ import { HoneycombBattleCanvas } from './components/HoneycombRenderer';
 interface BattleStageProps {
     state: BattleState;
     selectedUnit?: Unit | null;
-    onHexClick: (pos: HexPosition) => void;
-    onUnitSelect: (unit: Unit | null) => void;
+    onHexClick: (_pos: HexPosition) => void;
+    onUnitSelect: (_unit: Unit | null) => void;
     showGrid?: boolean;
     className?: string;
     style?: React.CSSProperties;
@@ -24,7 +24,7 @@ interface BattleStageProps {
     className,
     style
 }: BattleStageProps) {
-    const [hoveredHex, setHoveredHex] = useState<HexPosition | null>(null);
+    const [_hoveredHex, _setHoveredHex] = useState<HexPosition | null>(null);
 
     // Handle tile clicks with unit selection logic
     const handleTileClick = useCallback((pos: HexPosition) => {

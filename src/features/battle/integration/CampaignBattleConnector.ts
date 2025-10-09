@@ -5,7 +5,7 @@
  */
 
 import { BattleState, BattleContext } from '../types';
-import { _generateBattlefieldHex } from '../generate_hex';
+// import { generateBattlefieldHex } from '../generate_hex'; // Currently unused
 import { buildBattle } from '../factory';
 
 export interface CampaignEncounter {
@@ -76,7 +76,7 @@ export function createBattleFromEncounter(
 export function processBattleResults(
     battleResult: any,
     encounter: CampaignEncounter,
-    party: CampaignParty
+    _party: CampaignParty
 ): CampaignConsequences {
     const consequences: CampaignConsequences = {
         resourceChanges: {},

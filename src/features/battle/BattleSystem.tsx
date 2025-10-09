@@ -89,7 +89,7 @@ interface BattleSystemProps {
     enemies: Enemy[];
     terrain: string;
   };
-  onBattleEnd: (result: 'victory' | 'defeat' | 'flee', rewards?: any) => void;
+  onBattleEnd: (_result: 'victory' | 'defeat' | 'flee', _rewards?: any) => void;
   onBack?: () => void;
 }
 
@@ -105,7 +105,7 @@ export default function BattleSystem({
   const [participants, setParticipants] = useState<BattleParticipant[]>([]);
   const [turnOrder, setTurnOrder] = useState<string[]>([]);
   const [selectedAction, setSelectedAction] = useState<BattleAction | null>(null);
-  const [selectedTarget, setSelectedTarget] = useState<string | null>(null);
+  const [_selectedTarget, setSelectedTarget] = useState<string | null>(null);
   const [battleLog, setBattleLog] = useState<string[]>([]);
   const [availableSpells, setAvailableSpells] = useState<GeneratedSpell[]>([]);
 

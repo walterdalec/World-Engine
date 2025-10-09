@@ -1,10 +1,10 @@
 import React, { useRef, useEffect, useState } from 'react';
 import type { BattleState, HexPosition, Unit, HexTile } from '../types';
-import { _hexDistance, _tileAt } from '../engine';
+// import { hexDistance, tileAt } from '../engine'; // Currently unused
 
 interface BattleCanvasProps {
     state: BattleState;
-    onTileClick?: (pos: HexPosition) => void;
+    onTileClick?: (_pos: HexPosition) => void;
     selectedUnit?: string;
     targetHex?: HexPosition;
     showGrid?: boolean;

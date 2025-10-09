@@ -4,13 +4,13 @@
  */
 
 import React, { useState } from 'react';
-import type { BattleState } from '../types';
+import type { BattleState, HexPosition } from '../types';
 import { BattleCanvas } from './renderer2d';
 import { HoneycombBattleCanvas } from './HoneycombRenderer';
 
 interface RendererComparisonProps {
     state: BattleState;
-    onTileClick?: (pos: { q: number; r: number }) => void;
+    onTileClick?: (_pos: HexPosition) => void;
     selectedUnit?: string;
 }
 

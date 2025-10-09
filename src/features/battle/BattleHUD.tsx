@@ -9,10 +9,10 @@ import { BattleState, Unit } from './types';
 interface BattleHUDProps {
     state: BattleState;
     selectedUnit?: Unit | null;
-    onAbilityUse: (abilityId: string, unitId: string) => void;
+    onAbilityUse: (_abilityId: string, _unitId: string) => void;
     onEndTurn: () => void;
-    onDefend: (unitId: string) => void;
-    onWait: (unitId: string) => void;
+    onDefend: (_unitId: string) => void;
+    onWait: (_unitId: string) => void;
 }export function BattleHUD({
     state,
     selectedUnit,
