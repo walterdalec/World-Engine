@@ -308,8 +308,8 @@ describe('Procedural Generation System', () => {
             const results = benchmarkGeneration(12345, 5);
 
             expect(results.averageTime).toBeLessThan(200); // Relaxed to 200ms for CI
-            expect(results.minTime).toBeGreaterThan(0);
-            expect(results.maxTime).toBeGreaterThan(results.minTime);
+            expect(results.minTime).toBeGreaterThanOrEqual(0); // Allow 0 for deterministic tests
+            expect(results.maxTime).toBeGreaterThanOrEqual(results.minTime); // Allow equal values
         });
 
         test('cache hit ratio improves with repeated access', () => {

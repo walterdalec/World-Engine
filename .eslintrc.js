@@ -18,7 +18,16 @@ module.exports = {
         'no-console': 'off',
 
         // Allow unused variables that start with underscore
-        'no-unused-vars': ['error', { 'argsIgnorePattern': '^_' }],
+        'no-unused-vars': ['error', {
+            'argsIgnorePattern': '^_',
+            'varsIgnorePattern': '^_',
+            'ignoreRestSiblings': true
+        }],
+        '@typescript-eslint/no-unused-vars': ['error', {
+            'argsIgnorePattern': '^_',
+            'varsIgnorePattern': '^_',
+            'ignoreRestSiblings': true
+        }],
 
         // More lenient rules for our codebase
         'no-restricted-globals': 'off'
