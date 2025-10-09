@@ -8,7 +8,7 @@ import type {
 } from "./types";
 import { rng } from "../../core/services/random";
 import { generateTacticalBattlefield } from "./generate";
-import { getSkillsForArchetype, getCommanderAbilities } from "./abilities";
+import { getSkillsForArchetype, _getCommanderAbilities } from "./abilities";
 
 // Convert our character system to battle unit stats
 export function characterToBattleStats(character: any): UnitStats {

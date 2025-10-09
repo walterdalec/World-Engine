@@ -3,7 +3,6 @@
  * Tests the complete spell casting workflow
  */
 
-import { describe, it, expect } from '@jest/globals';
 import type { Unit } from '../../unit/types';
 import type { WorldState } from '../../action/types';
 import { checkGating, checkFullGating, ALLOWED } from '../../spell/gating';

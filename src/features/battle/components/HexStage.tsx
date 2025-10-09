@@ -29,8 +29,8 @@ export default function HexStage({
     const rafRef = useRef<number>();
 
     useEffect(() => {
-        const canvas = canvasRef.current!;
-        const ctx = canvas.getContext("2d")!;
+        const _canvas = canvasRef.current!;
+        const _ctx = canvas.getContext("2d")!;
 
         // Fit canvas to CSS size with device pixel ratio
         const resize = () => {
@@ -46,13 +46,13 @@ export default function HexStage({
         };
 
         const ro = new ResizeObserver(resize);
-        ro.observe(canvas);
+        ro.observe(_canvas);
         resize();
 
-        init?.(ctx, canvas);
+        init?.(_ctx, _canvas);
 
         const loop = (t: number) => {
-            onRender?.(ctx, t);
+            onRender?.(_ctx, _t);
             rafRef.current = requestAnimationFrame(loop);
         };
         rafRef.current = requestAnimationFrame(loop);
@@ -76,17 +76,17 @@ export default function HexStage({
         const onPointerMove = (e: PointerEvent) => {
             if (dragging) {
                 // ONLY pan while dragging
-                const dx = e.clientX - lastX;
-                const dy = e.clientY - lastY;
+                const _dx = e.clientX - lastX;
+                const _dy = e.clientY - lastY;
                 lastX = e.clientX;
                 lastY = e.clientY;
-                pan?.(dx, dy);
+                pan?.(_dx, _dy);
             } else if (onHover) {
                 // Handle hover when not dragging
                 const rect = canvas.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                onHover(x, y);
+                const _x = e.clientX - rect.left;
+                const _y = e.clientY - rect.top;
+                onHover(_x, _y);
             }
         };
 
@@ -100,9 +100,9 @@ export default function HexStage({
             } else if (onClick) {
                 // Handle click when not dragging
                 const rect = canvas.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                onClick(x, y);
+                const _x = e.clientX - rect.left;
+                const _y = e.clientY - rect.top;
+                onClick(_x, _y);
             }
         };
 
@@ -116,9 +116,9 @@ export default function HexStage({
             // Cancel page scroll; use wheel for map zoom
             e.preventDefault();                     // requires non-passive listener
             const rect = canvas.getBoundingClientRect();
-            const cx = e.clientX - rect.left;
-            const cy = e.clientY - rect.top;
-            zoom?.(-e.deltaY, cx, cy);
+            const _cx = e.clientX - rect.left;
+            const _cy = e.clientY - rect.top;
+            zoom?.(-e.deltaY, _cx, _cy);
         };
 
         // Prevent middle-click autoscroll explicitly

@@ -3,7 +3,6 @@
  * Verify simultaneous action resolution is deterministic
  */
 
-import { describe, it, expect } from '@jest/globals';
 import { TurnManager } from '../TurnManager';
 import type { UnitRef, PlannedAction } from '../types';
 

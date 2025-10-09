@@ -1,5 +1,5 @@
 import type { BattleState, Unit, HexPosition, Ability } from "./types";
-import { hexDistance, findPath, getTargetsInShape, canUseAbility } from "./engine";
+import { hexDistance, findPath, canUseAbility } from "./engine";
 import { ABILITIES } from "./abilities";
 import { seedRng } from '../strategy/ai/rng';
 import { CommanderBrain } from '../ai/tactical/commander';
@@ -271,8 +271,8 @@ function calculateAggressiveAction(state: BattleState, unit: Unit): AIAction | n
         return { type: "wait", unitId: unit.id };
     }
 
-    // Find weakest target
-    const weakestTarget = targets.reduce((weakest, current) =>
+    // Find weakest target (calculated but not used in current impl)
+    const _weakestTarget = targets.reduce((weakest, current) =>
         current.stats.hp < weakest.stats.hp ? current : weakest
     );
 

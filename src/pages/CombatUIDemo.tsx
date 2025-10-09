@@ -162,7 +162,7 @@ export const CombatUIDemo: React.FC = () => {
         console.log('🎮 Unit selected:', unitId);
     }, []);
 
-    const handleAbilityUse = useCallback((ability: WorldEngineAbility) => {
+    const _handleAbilityUse = useCallback((ability: WorldEngineAbility) => {
         console.log('⚔️ Ability used:', ability);
 
         // Add to log
@@ -179,7 +179,7 @@ export const CombatUIDemo: React.FC = () => {
         console.log('📝 New log entry:', newEntry);
     }, [selectedUnitData]);
 
-    const handleModeChange = useCallback((mode: CombatMode) => {
+    const _handleModeChange = useCallback((mode: CombatMode) => {
         console.log('🔄 Combat mode changed:', mode);
     }, []);
 

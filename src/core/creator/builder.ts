@@ -18,7 +18,7 @@ import type { CreatorInput, CreatorResult, CharacterSummary } from './types';
 import type { Unit, UnitStats, StatusEffect, Skill } from '../../features/battle/types';
 import { validateInput } from './validate';
 import { seedLoadout } from './seed';
-import { SpeciesMods, BackgroundMods, ArchetypeDefaults, BaseStatValue } from './rules';
+import { SpeciesMods, BackgroundMods, ArchetypeDefaults, _BaseStatValue } from './rules';
 
 /**
  * Main character builder function
@@ -118,7 +118,7 @@ function calculateFinalStats(input: CreatorInput): UnitStats {
  * Build the core Unit structure
  */
 function buildCoreUnit(input: CreatorInput, stats: UnitStats): Unit {
-    const archetype = ArchetypeDefaults[input.archetype];
+    const _archetype = ArchetypeDefaults[input.archetype];
 
     const unit: Unit = {
         id: generateUnitId('HERO'),
@@ -234,7 +234,7 @@ function applyCommanderPath(unit: Unit, input: CreatorInput): void {
 function generateCharacterSummary(unit: Unit, input: CreatorInput): CharacterSummary {
     const species = SpeciesMods[input.species];
     const background = BackgroundMods[input.background];
-    const archetype = ArchetypeDefaults[input.archetype];
+    const _archetype = ArchetypeDefaults[input.archetype];
 
     // Generate title
     let title = `${species.name} ${archetype.name}`;

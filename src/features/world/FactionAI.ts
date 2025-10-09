@@ -68,21 +68,21 @@ export class FactionAI {
      * Simulate one turn of faction actions
      */
     static simulateTurn(worldState: WorldState): WorldEvent[] {
-        const events: WorldEvent[] = [];
+        const _events: WorldEvent[] = [];
 
-        Object.values(worldState.factions).forEach(faction => {
+        Object.values(worldState.factions).forEach(_faction => {
             // Update ongoing actions
-            this.updateFactionActions(faction, worldState, events);
+            this.updateFactionActions(_faction, _worldState, _events);
 
             // Plan new actions based on AI personality and situation
-            this.planNewActions(faction, worldState, events);
+            this.planNewActions(_faction, _worldState, _events);
 
             // Economic and military updates
-            this.updateFactionStrength(faction, worldState);
+            this.updateFactionStrength(_faction, _worldState);
         });
 
         // Update relationships based on actions
-        this.updateDiplomacy(worldState, events);
+        this.updateDiplomacy(_worldState, _events);
 
         return events;
     }
@@ -96,10 +96,10 @@ export class FactionAI {
         events: WorldEvent[]
     ) {
         faction.currentActions.forEach(action => {
-            action.progress += this.calculateActionProgress(action, faction, worldState);
+            action.progress += this.calculateActionProgress(_action, _faction, _worldState);
 
             if (action.progress >= 100) {
-                this.resolveAction(action, faction, worldState, events);
+                this.resolveAction(_action, _faction, _worldState, _events);
             }
         });
 
@@ -118,12 +118,12 @@ export class FactionAI {
         // Don't overcommit - limit concurrent actions
         if (faction.currentActions.length >= 3) return;
 
-        const opportunities = this.evaluateOpportunities(faction, worldState);
+        const opportunities = this.evaluateOpportunities(_faction, _worldState);
         const bestOpportunity = opportunities
             .sort((a, b) => b.priority - a.priority)[0];
 
         if (bestOpportunity && bestOpportunity.priority > 50) {
-            faction.currentActions.push(this.createAction(bestOpportunity, faction));
+            faction.currentActions.push(this.createAction(bestOpportunity, _faction));
         }
     }
 
@@ -144,9 +144,7 @@ export class FactionAI {
                 const neighbor = worldState.territories[neighborId];
 
                 if (neighbor.owner !== faction.id) {
-                    const priority = this.calculateConquestPriority(
-                        faction, neighbor, worldState.factions[neighbor.owner], worldState
-                    );
+                    const priority = this.calculateConquestPriority(_faction, neighbor, worldState.factions[neighbor.owner], _worldState);
 
                     opportunities.push({
                         type: 'siege',
@@ -284,13 +282,13 @@ export class FactionAI {
     ) {
         switch (action.type) {
             case 'siege':
-                this.resolveSiege(action, faction, worldState, events);
+                this.resolveSiege(_action, _faction, _worldState, _events);
                 break;
             case 'war':
-                this.resolveWarDeclaration(action, faction, worldState, events);
+                this.resolveWarDeclaration(_action, _faction, _worldState, _events);
                 break;
             case 'alliance':
-                this.resolveAlliance(action, faction, worldState, events);
+                this.resolveAlliance(_action, _faction, _worldState, _events);
                 break;
         }
     }

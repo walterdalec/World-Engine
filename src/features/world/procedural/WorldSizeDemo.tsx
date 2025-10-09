@@ -12,7 +12,7 @@ import {
     getWorldSizeConfig,
     validateWorldSizeForSystem,
     calculateWorldCoverage,
-    type WorldSizeConfig 
+    type _WorldSizeConfig 
 } from './worldSizes';
 
 export const WorldSizeDemo: React.FC = () => {

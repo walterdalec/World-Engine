@@ -1,20 +1,20 @@
 import type { Ability, StatusEffect } from "./types";
 
-const burn: StatusEffect = {
+const _burn: StatusEffect = {
     id: "burn",
     name: "Burning",
     duration: 2,
     effects: { hp: -2 }
 };
 
-const rally: StatusEffect = {
+const _rally: StatusEffect = {
     id: "rally",
     name: "Rallied",
     duration: 2,
     effects: { spd: 2, def: 1 }
 };
 
-const root: StatusEffect = {
+const _root: StatusEffect = {
     id: "root",
     name: "Rooted",
     duration: 2,

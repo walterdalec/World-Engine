@@ -164,14 +164,13 @@ export function resolveArrivalsAndConflicts(ctx: AIContext) {
     const defenderStrength = garrisonStrength + relief.totalStrength;
 
     const outcome = autoResolve(army.strength, defenderStrength, rand);
-    const winnerFactionId = outcome.winner === 'A' ? army.factionId : defenderId;
-    const loserFactionId = outcome.winner === 'A' ? defenderId : army.factionId;
+    const _winnerFactionId = outcome.winner === 'A' ? army.factionId : defenderId;
+    const _loserFactionId = outcome.winner === 'A' ? defenderId : army.factionId;
 
     // TODO: Available on feature/ai-tactical-system branch
     /*
     recordBattle(world, {
-      winnerFactionId,
-      loserFactionId,
+      winnerFactionId, _loserFactionId,
       routs: outcome.delta > 20 ? [loserFactionId] : [],
       objectivesHeldByFaction: {
         [army.factionId]: outcome.winner === 'A' ? 1 : 0,

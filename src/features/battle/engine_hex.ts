@@ -122,12 +122,12 @@ function executeAbilityEffect(state: BattleState, ability: Ability, target: HexP
     const affectedHexes = getAbilityAffectedHexes(ability, target);
 
     for (const hex of affectedHexes) {
-        const unit = state.units.find(u => u.pos && u.pos.q === hex.q && u.pos.r === hex.r);
+        const _unit = state.units.find(u => u.pos && u.pos.q === hex.q && u.pos.r === hex.r);
 
-        if (unit) {
+        if (_unit) {
             if (ability.damage) {
                 // Deal damage
-                const damage = calculateDamage(ability.damage.amount, unit);
+                const damage = calculateDamage(ability.damage.amount, _unit);
                 unit.stats.hp = Math.max(0, unit.stats.hp - damage);
                 state.log.push(`${unit.name} takes ${damage} ${ability.damage.type} damage!`);
 
@@ -185,7 +185,7 @@ function calculateDamage(baseDamage: number, target: Unit): number {
  * Move unit to new position
  */
 export function moveUnit(state: BattleState, unitId: string, target: HexPosition): boolean {
-    const unit = state.units.find(u => u.id === unitId);
+    const _unit = state.units.find(u => u.id === unitId);
     if (!unit || !unit.pos) return false;
 
     // Check if target is valid and in movement range
@@ -239,7 +239,7 @@ export function applyCommanderAura(state: BattleState): void {
     const friendlyUnits = state.units.filter(u => u.faction === "Player");
 
     // Simple aura: affects all friendly units
-    for (const unit of friendlyUnits) {
+    for (const _unit of friendlyUnits) {
         // Apply aura bonuses (this would need more sophisticated stat modification system)
         if (aura.stats.atk) {
             // Temporary bonus tracking would go here

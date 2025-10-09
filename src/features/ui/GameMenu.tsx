@@ -6,7 +6,7 @@ import React, { useState, useMemo } from 'react';
 import { storage } from "../../core/services/storage";
 import { WorldEngine } from '../../core/engine';
 import { CLASS_DEFINITIONS } from '../../core/config';
-import { SimplePortraitPreview, SimpleUtils } from '../portraits';
+import { _SimplePortraitPreview, _SimpleUtils } from '../portraits';
 
 // Species and trait definitions for character creation
 const SPECIES_OPTIONS = [
@@ -278,7 +278,7 @@ function calculateHPAndAC(
 
 
 // Species definitions with trait rules
-const SPECIES_DEFINITIONS = {
+const _SPECIES_DEFINITIONS = {
   "Human": {
     name: "Human",
     description: "Adaptable and versatile, humans can develop any traits through experience.",
@@ -398,7 +398,7 @@ const CLASS_OPTIONS = Object.keys(CLASS_DEFINITIONS);
 const BACKGROUND_OPTIONS = ["Commoner", "Noble", "Soldier", "Scholar", "Merchant", "Artisan", "Criminal", "Folk Hero", "Hermit", "Entertainer"];
 const MAX_TRAITS = 2; // Maximum number of selectable traits (excluding automatic traits)
 
-const DEFAULT_STATS: Record<Stats, number> = {
+const _DEFAULT_STATS: Record<Stats, number> = {
   STR: 8, DEX: 8, CON: 8, INT: 8, WIS: 8, CHA: 8,
 };
 
@@ -1012,7 +1012,7 @@ function AbilitiesBySchool({ engine, characterId }: { engine: WorldEngine; chara
     );
   }
 
-  const toggleSchool = (school: string) => {
+  const _toggleSchool = (school: string) => {
     const newOpen = new Set(openSchools);
     if (newOpen.has(school)) {
       newOpen.delete(school);
@@ -1147,7 +1147,7 @@ function SpellsBySchool({ engine, characterId }: { engine: WorldEngine; characte
     );
   }
 
-  const toggleSchool = (school: string) => {
+  const _toggleSchool = (school: string) => {
     const newOpen = new Set(openSchools);
     if (newOpen.has(school)) {
       newOpen.delete(school);
@@ -1217,13 +1217,13 @@ function CharacterCreationForm({ engine }: { engine: WorldEngine }) {
     return calculateStatCost(value);
   };
 
-  const handleAddTrait = (trait: string) => {
+  const _handleAddTrait = (trait: string) => {
     if (!selectedTraits.includes(trait)) {
       setSelectedTraits(prev => [...prev, trait]);
     }
   };
 
-  const handleRemoveTrait = (trait: string) => {
+  const _handleRemoveTrait = (trait: string) => {
     setFormData(prev => ({
       ...prev,
       traits: prev.traits.filter(t => t !== trait)

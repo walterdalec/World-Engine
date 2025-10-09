@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { storage } from "../../core/services/storage";
-import { SimplePortraitPreview, SimpleUtils } from '../portraits';
+import { SimplePortraitPreview, _SimpleUtils } from '../portraits';
 
 interface Campaign {
   id: string;
@@ -683,7 +683,7 @@ Recovered ${recovered.length} campaigns`);
                   <div>
                     <button
                       style={buttonStyle}
-                      onClick={() => onLoadCampaign(campaign)}
+                      onClick={() => onLoadCampaign(_campaign)}
                     >
                       Load Campaign
                     </button>

@@ -2,7 +2,6 @@
  * Simultaneous Resolution Tests
  */
 
-import { describe, it, expect } from '@jest/globals';
 import { axial } from '../../action/hex';
 import { resolveSimultaneous } from '../../action/resolver';
 import type { WorldState, PlannedAction } from '../../action/types';

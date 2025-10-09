@@ -155,7 +155,7 @@ export const SimplePortraitPreview: React.FC<SimplePortraitPreviewProps> = ({
                 alt={`${species} ${archetype} portrait`}
                 className="rounded border border-gray-300"
                 style={{ width: dimensions.width, height: dimensions.height }}
-                onError={(e) => {
+                onError={(_e) => {
                     console.error('🎭 Portrait image failed to display');
                 }}
             />

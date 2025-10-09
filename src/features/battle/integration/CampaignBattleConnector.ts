@@ -5,7 +5,7 @@
  */
 
 import { BattleState, BattleContext } from '../types';
-import { generateBattlefieldHex } from '../generate_hex';
+import { _generateBattlefieldHex } from '../generate_hex';
 import { buildBattle } from '../factory';
 
 export interface CampaignEncounter {

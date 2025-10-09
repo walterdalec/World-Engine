@@ -49,7 +49,7 @@ export function HoneycombBattleCanvas({
     }, [state.grid.width, state.grid.height]);
 
     // Convert our hex position to Honeycomb hex
-    const getHoneycombHex = useCallback((pos: HexPosition): Hex => {
+    const _getHoneycombHex = useCallback((pos: HexPosition): Hex => {
         return new BattleTile({ col: pos.q, row: pos.r });
     }, []);
 
@@ -80,11 +80,11 @@ export function HoneycombBattleCanvas({
     // Get hex position from screen coordinates
     const getHexFromScreen = useCallback((canvasX: number, canvasY: number, canvas: HTMLCanvasElement): HexPosition | null => {
         try {
-            const worldPos = screenToWorld(canvasX, canvasY, canvas);
+            const worldPos = screenToWorld(canvasX, canvasY, _canvas);
             const hex = grid.pointToHex({ x: worldPos.x, y: worldPos.y });
 
             if (hex) {
-                const pos = getHexPosition(hex);
+                const _pos = getHexPosition(hex);
                 // Check if within grid bounds
                 if (pos.q >= 0 && pos.q < state.grid.width && pos.r >= 0 && pos.r < state.grid.height) {
                     return pos;
@@ -110,7 +110,7 @@ export function HoneycombBattleCanvas({
 
     // Main render function (stabilized to prevent resets)
     const handleRender = useCallback((ctx: CanvasRenderingContext2D, t: number) => {
-        const canvas = ctx.canvas;
+        const _canvas = ctx.canvas;
         const camera = cameraRef.current;
 
         // Clear canvas
@@ -135,19 +135,19 @@ export function HoneycombBattleCanvas({
 
             grid.forEach(hex => {
                 const { x, y } = hex;
-                drawHexagon(ctx, x, y, hex.dimensions.xRadius);
+                drawHexagon(_ctx, x, y, hex.dimensions.xRadius);
             });
         }
 
         // Draw terrain tiles
         grid.forEach(hex => {
-            const pos = { q: hex.col, r: hex.row }; // Direct conversion instead of function call
+            const _pos = { q: hex.col, r: hex.row }; // Direct conversion instead of function call
             const tile = state.grid.tiles.find(t => t.q === pos.q && t.r === pos.r);
 
             if (tile) {
                 ctx.fillStyle = getTerrainColor(tile.terrain);
                 const { x, y } = hex;
-                fillHexagon(ctx, x, y, hex.dimensions.xRadius);
+                fillHexagon(_ctx, x, y, hex.dimensions.xRadius);
             }
         });
 
@@ -158,7 +158,7 @@ export function HoneycombBattleCanvas({
             state.friendlyDeployment.hexes.forEach(hexPos => {
                 const hex = new BattleTile({ col: hexPos.q, row: hexPos.r }); // Direct creation instead of function call
                 const { x, y } = hex;
-                fillHexagon(ctx, x, y, hex.dimensions.xRadius);
+                fillHexagon(_ctx, x, y, hex.dimensions.xRadius);
             });
 
             // Enemy deployment (red)
@@ -166,7 +166,7 @@ export function HoneycombBattleCanvas({
             state.enemyDeployment.hexes.forEach(hexPos => {
                 const hex = new BattleTile({ col: hexPos.q, row: hexPos.r }); // Direct creation instead of function call
                 const { x, y } = hex;
-                fillHexagon(ctx, x, y, hex.dimensions.xRadius);
+                fillHexagon(_ctx, x, y, hex.dimensions.xRadius);
             });
         }
 
@@ -176,7 +176,7 @@ export function HoneycombBattleCanvas({
                 const hex = new BattleTile({ col: unit.pos.q, row: unit.pos.r }); // Direct creation instead of function call
                 const { x, y } = hex;
                 const isSelected = selectedUnit === unit.id;
-                drawUnit(ctx, x, y, unit, isSelected);
+                drawUnit(_ctx, x, y, unit, isSelected);
             }
         });
 
@@ -185,7 +185,7 @@ export function HoneycombBattleCanvas({
             const hex = new BattleTile({ col: hoveredHex.q, row: hoveredHex.r }); // Direct creation instead of function call
             const { x, y } = hex;
             ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-            fillHexagon(ctx, x, y, hex.dimensions.xRadius);
+            fillHexagon(_ctx, x, y, hex.dimensions.xRadius);
         }
 
         // Highlight target hex
@@ -193,7 +193,7 @@ export function HoneycombBattleCanvas({
             const hex = new BattleTile({ col: targetHex.q, row: targetHex.r }); // Direct creation instead of function call
             const { x, y } = hex;
             ctx.fillStyle = 'rgba(239, 68, 68, 0.5)';
-            fillHexagon(ctx, x, y, hex.dimensions.xRadius);
+            fillHexagon(_ctx, x, y, hex.dimensions.xRadius);
         }
 
         ctx.restore();
@@ -213,8 +213,8 @@ export function HoneycombBattleCanvas({
 
         if (newScale !== camera.scale) {
             // Zoom towards cursor position
-            const canvas = document.querySelector('.map-canvas') as HTMLCanvasElement;
-            if (canvas) {
+            const _canvas = document.querySelector('.map-canvas') as HTMLCanvasElement;
+            if (_canvas) {
                 const centerX = canvas.width / (2 * window.devicePixelRatio);
                 const centerY = canvas.height / (2 * window.devicePixelRatio);
 
@@ -231,9 +231,9 @@ export function HoneycombBattleCanvas({
 
     // Click handler
     const handleClick = useCallback((x: number, y: number) => {
-        const canvas = document.querySelector('.map-canvas') as HTMLCanvasElement;
+        const _canvas = document.querySelector('.map-canvas') as HTMLCanvasElement;
         if (canvas && onTileClick) {
-            const hexPos = getHexFromScreen(x, y, canvas);
+            const hexPos = getHexFromScreen(x, y, _canvas);
             if (hexPos) {
                 onTileClick(hexPos);
             }
@@ -242,9 +242,9 @@ export function HoneycombBattleCanvas({
 
     // Hover handler
     const handleHover = useCallback((x: number, y: number) => {
-        const canvas = document.querySelector('.map-canvas') as HTMLCanvasElement;
-        if (canvas) {
-            const hexPos = getHexFromScreen(x, y, canvas);
+        const _canvas = document.querySelector('.map-canvas') as HTMLCanvasElement;
+        if (_canvas) {
+            const hexPos = getHexFromScreen(x, y, _canvas);
             if (!hoveredHex || !hexPos || hoveredHex.q !== hexPos.q || hoveredHex.r !== hexPos.r) {
                 setHoveredHex(hexPos);
             }

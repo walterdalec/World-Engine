@@ -66,7 +66,7 @@ export default function DevPanel({ engine, onConfigChange }: DevPanelProps) {
 
   const regenerateWorld = useCallback(() => {
     // Create new engine with different seed
-    const newEngine = new WorldEngine(newSeed, { world: config });
+    const _newEngine = new WorldEngine(newSeed, { world: config });
     // In a real app, you'd update the parent component's engine
     console.log('Would regenerate world with seed:', newSeed);
   }, [newSeed, config]);

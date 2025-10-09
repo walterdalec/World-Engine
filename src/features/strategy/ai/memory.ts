@@ -1,5 +1,5 @@
 
-import { Faction, ID, Memory, WorldState } from './types';
+import { Faction, ID, _Memory, WorldState } from './types';
 
 const TICKS_PER_SEASON = 12;
 

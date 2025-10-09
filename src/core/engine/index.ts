@@ -11,21 +11,21 @@
 
 import { storage } from "../services/storage";
 import { rng } from "../services/random";
-import { ChunkManager, Tile, WorldGenConfig, CHUNK_SIZE } from '../../proc/chunks';
-import { SeededRandom, WorldNoise, ValueNoise2D } from '../../proc/noise';
+import { ChunkManager, Tile, WorldGenConfig, _CHUNK_SIZE } from '../../proc/chunks';
+import { SeededRandom, _WorldNoise, _ValueNoise2D } from '../../proc/noise';
 import { ChokepointManager, Chokepoint, Fortification, RegionData } from '../../proc/chokepoints';
-import { PhysicalAbilitiesGenerator, PhysicalAbility, PhysicalAbilitySchool, PhysicalAbilityTier } from '../../proc/physicalAbilities';
-import { MagicalSpellsGenerator, MagicalSpell, MagicalSchool, SpellTier } from '../../proc/magicalSpells';
+import { PhysicalAbilitiesGenerator, PhysicalAbility, _PhysicalAbilitySchool, _PhysicalAbilityTier } from '../../proc/physicalAbilities';
+import { MagicalSpellsGenerator, MagicalSpell, _MagicalSchool, _SpellTier } from '../../proc/magicalSpells';
 
 export { ChunkManager, CHUNK_SIZE } from '../../proc/chunks';
-export { SeededRandom, WorldNoise, ValueNoise2D } from '../../proc/noise';
+export { SeededRandom, _WorldNoise, ValueNoise2D } from '../../proc/noise';
 export { ChokepointManager } from '../../proc/chokepoints';
 export { PhysicalAbilitiesGenerator } from '../../proc/physicalAbilities';
 export { MagicalSpellsGenerator } from '../../proc/magicalSpells';
 export type { Tile, WorldGenConfig } from '../../proc/chunks';
 export type { Chokepoint, Fortification, RegionData } from '../../proc/chokepoints';
-export type { PhysicalAbility, PhysicalAbilitySchool, PhysicalAbilityTier } from '../../proc/physicalAbilities';
-export type { MagicalSpell, MagicalSchool, SpellTier } from '../../proc/magicalSpells';
+export type { PhysicalAbility, _PhysicalAbilitySchool, PhysicalAbilityTier } from '../../proc/physicalAbilities';
+export type { MagicalSpell, _MagicalSchool, SpellTier } from '../../proc/magicalSpells';
 
 export interface Character {
   id: string;

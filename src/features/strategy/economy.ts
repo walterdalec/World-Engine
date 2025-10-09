@@ -160,7 +160,7 @@ export function settleUpkeep(s: CampaignState): void {
         let totalUpkeep = zero();
 
         // Calculate upkeep based on garrison composition
-        for (const unitId of t.garrison) {
+        for (const _unitId of t.garrison) {
             // For now, use average upkeep based on unit count
             // This will be replaced with actual unit data from character system
             const baseUpkeep = { gold: 12, mana: 2, materials: 3, food: 6 };

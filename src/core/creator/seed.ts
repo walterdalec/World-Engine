@@ -16,13 +16,13 @@ export function seedLoadout(unit: Unit, input: CreatorInput): void {
     const archetype = ArchetypeDefaults[input.archetype];
 
     // Seed basic equipment
-    seedEquipment(unit, archetype, input);
+    seedEquipment(unit, archetype, _input);
 
     // Seed starting abilities
-    seedAbilities(unit, archetype, input);
+    seedAbilities(unit, archetype, _input);
 
     // Validate and filter spells
-    seedSpells(unit, input);
+    seedSpells(unit, _input);
 }
 
 /**
@@ -78,7 +78,7 @@ function seedSpells(unit: Unit, input: CreatorInput): void {
 
     // Filter spells that the character can actually cast
     const validSpells = input.spells.filter(spell =>
-        canCastSpell(unit, spell, input)
+        canCastSpell(unit, spell, _input)
     );
 
     unit.meta.knownSpells = validSpells.map(spell => spell.id);

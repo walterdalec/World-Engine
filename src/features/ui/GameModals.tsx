@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import { WorldEngine, Encounter } from '../../core/engine';
+import { WorldEngine, _Encounter } from '../../core/engine';
 
 interface GameModalsProps {
   engine: WorldEngine;
@@ -454,7 +454,7 @@ function CharacterList({ engine }: { engine: { getPartyCharacters: () => any[] }
 
   return (
     <div style={{ display: 'grid', gap: '20px' }}>
-      {characters.map((char, index) => (
+      {characters.map((char, _index) => (
         <div key={char.id} style={{
           background: 'rgba(59, 130, 246, 0.1)',
           border: '1px solid rgba(59, 130, 246, 0.3)',
