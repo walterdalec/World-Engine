@@ -1,4 +1,4 @@
-import { Sequence, Selector, Leaf, type BTNode, type BTNodeContext, type TickStatus } from './bt.core';
+import { Sequence, Selector, Leaf, type BTNode as _BTNode, type BTNodeContext, type TickStatus } from './bt.core';
 import { scorePlans, applyLearnedBias, type Plan } from './scoring';
 import { tickTelemetry } from '../../learn/telemetry';
 import { choosePlanWithBandit, scenarioKeyFromState } from '../../learn/gateway';

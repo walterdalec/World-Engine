@@ -15,13 +15,14 @@ Write-Host "OK: TypeScript passed" -ForegroundColor Green
 
 # Check 2: ESLint
 Write-Host "`n[CHECK 2] ESLint..." -ForegroundColor Yellow
-$lintResult = & npx eslint . --max-warnings=440 2>&1
+$lintResult = & npx eslint . --max-warnings=0 2>&1
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "FOUND THE PROBLEM: ESLint errors or too many warnings" -ForegroundColor Red
+    Write-Host "FOUND THE PROBLEM: ESLint errors or warnings present" -ForegroundColor Red
     $warningCount = ($lintResult | Select-String "warning").Count
-    Write-Host "Warning count: $warningCount (max allowed: 440)" -ForegroundColor Yellow
-    if ($warningCount -gt 440) {
-        Write-Host "TOO MANY WARNINGS! Need to fix more ESLint issues." -ForegroundColor Red
+    Write-Host "Warning count: $warningCount (CI requires: 0)" -ForegroundColor Yellow
+    if ($warningCount -gt 0) {
+        Write-Host "CI WILL FAIL! All warnings must be fixed." -ForegroundColor Red
+        Write-Host "Run: npm run lint to see all warnings" -ForegroundColor Cyan
     }
     exit
 }

@@ -2,7 +2,7 @@ import { applyMoraleTraits, tickScars, type MoraleScar } from './morale.traits';
 import { moralePulseFromStandards } from './standard';
 import { formEscortFormation, tickEscortV2, type EscortFormation } from './escort.v2';
 import { assignPriorityTargets, manageHeat, type ShooterState } from './suppression.v2';
-import type { Hex } from '../v30/field';
+import type { Hex as _Hex } from '../v30/field';
 
 export interface V34Runtime {
   scars: MoraleScar[];

@@ -4,7 +4,7 @@ export type Coeffs = { kAtk: number; kDef: number; kRange: number; kFocus: numbe
 
 interface Props {
   coeffs: Coeffs;
-  onChange: (coeffs: Coeffs) => void;
+  onChange: (_coeffs: Coeffs) => void;
 }
 
 export function AutoResolveTuningPanel({ coeffs, onChange }: Props) {
