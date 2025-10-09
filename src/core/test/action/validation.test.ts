@@ -2,7 +2,6 @@
  * Action Validation Tests
  */
 
-import { describe, it, expect } from '@jest/globals';
 import { axial } from '../../action/hex';
 import { validateAP, validateRange } from '../../action/validators';
 import type { WorldState } from '../../action/types';

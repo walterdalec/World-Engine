@@ -18,7 +18,7 @@ const ensureDir = (dirPath) => {
 };
 
 // Download function
-const downloadFile = (url, filepath) => {
+const _downloadFile = (url, filepath) => {
     return new Promise((resolve, reject) => {
         const file = fs.createWriteStream(filepath);
 
@@ -32,7 +32,7 @@ const downloadFile = (url, filepath) => {
                 });
             } else if (response.statusCode === 302 || response.statusCode === 301) {
                 // Follow redirect
-                downloadFile(response.headers.location, filepath).then(resolve).catch(reject);
+                _downloadFile(response.headers.location, filepath).then(resolve).catch(reject);
             } else {
                 fs.unlink(filepath, () => { }); // Delete failed file
                 reject(new Error(`Failed to download ${url}: ${response.statusCode}`));
@@ -75,17 +75,17 @@ async function downloadPortraits() {
     try {
         // Download CC0 portraits first (no attribution needed)
         console.log('📦 Downloading CC0 portraits...');
-        for (const [filename, url] of Object.entries(CC0_PORTRAITS)) {
-            const filepath = path.join(portraitDir, filename);
-            // await downloadFile(url, filepath); // Uncomment when URLs are real
+        for (const [filename, _url] of Object.entries(CC0_PORTRAITS)) {
+            const _filepath = path.join(portraitDir, filename);
+            // await _downloadFile(_url, _filepath); // Uncomment when URLs are real
             console.log(`📋 Queued: ${filename}`);
         }
 
         // Download LPC portraits (need attribution)
         console.log('📦 Downloading LPC portraits...');
-        for (const [filename, url] of Object.entries(LPC_PORTRAITS)) {
-            const filepath = path.join(portraitDir, filename);
-            // await downloadFile(url, filepath); // Uncomment when URLs are real
+        for (const [filename, _url] of Object.entries(LPC_PORTRAITS)) {
+            const _filepath = path.join(portraitDir, filename);
+            // await _downloadFile(_url, _filepath); // Uncomment when URLs are real
             console.log(`📋 Queued: ${filename}`);
         }
 

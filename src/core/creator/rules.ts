@@ -10,7 +10,7 @@
  */
 
 import type {
-    SpeciesId, BackgroundId, ArchetypeId, StatAllocation, School,
+    SpeciesId, BackgroundId, ArchetypeId, _StatAllocation, _School,
     SpeciesDefinition, BackgroundDefinition, ArchetypeDefinition
 } from './types';
 

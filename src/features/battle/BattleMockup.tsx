@@ -178,7 +178,7 @@ export function BattleMockup() {
     const [preferredRenderer, setPreferredRenderer] = useState<'original' | 'honeycomb'>('honeycomb');
 
     function handleHeroAbility(abilityId: string) {
-        const heroUnit: Unit = {
+        const _heroUnit: Unit = {
             id: "hero-1",
             name: "Hero Commander",
             kind: "HeroCommander",

@@ -167,6 +167,16 @@ function validateCurrentSchema(data: any): boolean {
  * Adds basic versioning and metadata
  */
 registerMigration(1, 2, (data: any) => {
+    // Validate that input has at least some valid structure
+    // V1 saves must have either units/terrain (combat) or regions/factions (campaign)
+    const hasValidStructure = 
+        (data.units || data.terrain) || 
+        (data.regions || data.factions);
+    
+    if (!hasValidStructure) {
+        throw new Error('Invalid v1 save data: missing required fields');
+    }
+
     const migrated = { ...data };
 
     // Add version info

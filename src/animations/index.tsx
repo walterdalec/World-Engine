@@ -276,7 +276,7 @@ export const AnimatedStat: React.FC<{
     );
 };
 
-export default {
+const animations = {
     pageVariants,
     pageTransition,
     stepVariants,
@@ -292,3 +292,5 @@ export default {
     AnimatedButton,
     AnimatedStat
 };
+
+export default animations;

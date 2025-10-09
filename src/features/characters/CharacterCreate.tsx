@@ -4,9 +4,9 @@ import { rng } from "../../core/services/random";
 import { storage } from "../../core/services/storage";
 import { CLASS_DEFINITIONS } from '../../core/config';
 // Visual System Integration - NEW Simple PNG System
-import { SimplePortraitPreview, SimpleUtils } from '../portraits';
+import { SimplePortraitPreview, _SimpleUtils } from '../portraits';
 // Gender-locked portrait system
-import { getAvailableArchetypes, isValidGenderForClass, getGenderLock } from '../../core/config';
+import { getAvailableArchetypes, _isValidGenderForClass, getGenderLock } from '../../core/config';
 
 type Stats = "STR" | "DEX" | "CON" | "INT" | "WIS" | "CHA";
 
@@ -304,7 +304,7 @@ const GENDER_OPTIONS = [
   "Male"
 ];
 
-const ARCHETYPE_OPTIONS = [
+const _ARCHETYPE_OPTIONS = [
   "Ranger", "Artificer", "Mystic", "Guardian", "Scholar", "Rogue", "Warrior", "Healer"
 ];
 
@@ -544,17 +544,17 @@ export default function CharacterCreate() {
 
   function inc(stat: Stats) {
     setChar((c) => {
-      const v = c.stats[stat];
+      const _v = c.stats[stat];
       if (c.mode !== "POINT_BUY") return c;
       if (v >= MAX_STAT) return c;
-      if (!canAffordStatIncrease(v, pointsLeft)) return c;
+      if (!canAffordStatIncrease(_v, pointsLeft)) return c;
       return { ...c, stats: { ...c.stats, [stat]: v + 1 } };
     });
   }
 
   function dec(stat: Stats) {
     setChar((c) => {
-      const v = c.stats[stat];
+      const _v = c.stats[stat];
       if (c.mode !== "POINT_BUY") return c;
       if (v <= MIN_STAT) return c;
       return { ...c, stats: { ...c.stats, [stat]: v - 1 } };
@@ -879,9 +879,9 @@ export default function CharacterCreate() {
         <div style={card}>
           <h2 style={sectionTitle}>Identity</h2>
           <div style={{ display: "grid", gap: 8 }}>
-            <TextRow label="Name" value={char.name} onChange={(v) => setField("name", v)} />
-            <SelectRow label="Gender" value={char.gender} onChange={(v) => setField("gender", v)} options={GENDER_OPTIONS} />
-            <SelectRow label="Species" value={char.species} onChange={(v) => setField("species", v)} options={SPECIES_OPTIONS} />
+            <TextRow label="Name" value={char.name} onChange={(_v) => setField("name", _v)} />
+            <SelectRow label="Gender" value={char.gender} onChange={(_v) => setField("gender", _v)} options={GENDER_OPTIONS} />
+            <SelectRow label="Species" value={char.species} onChange={(_v) => setField("species", _v)} options={SPECIES_OPTIONS} />
             {char.species && RACIAL_MODIFIERS[char.species] && (
               <div style={{ fontSize: 12, opacity: 0.7, marginTop: -4 }}>
                 Racial modifiers: {Object.entries(RACIAL_MODIFIERS[char.species]).map(([stat, bonus]) =>
@@ -892,7 +892,7 @@ export default function CharacterCreate() {
             <SelectRow
               label="Class"
               value={char.archetype}
-              onChange={(v) => setField("archetype", v)}
+              onChange={(_v) => setField("archetype", _v)}
               options={availableArchetypes}
             />
             {!isCurrentArchetypeValid && char.archetype && (

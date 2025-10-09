@@ -19,15 +19,15 @@ class InMemoryStorageArea implements StorageArea {
   private store = new Map<string, string>();
 
   getItem(key: string): string | null {
-    return this.store.has(key) ? this.store.get(key)! : null;
+    return this.store.has(_key) ? this.store.get(_key)! : null;
   }
 
   setItem(key: string, value: string): void {
-    this.store.set(key, value);
+    this.store.set(_key, _value);
   }
 
   removeItem(key: string): void {
-    this.store.delete(key);
+    this.store.delete(_key);
   }
 
   clear(): void {
@@ -46,12 +46,12 @@ class BrowserStorageArea implements StorageArea {
   }
 
   getItem(key: string): string | null {
-    const storage = this.resolveStorage();
+    const _storage = this.resolveStorage();
     if (!storage) {
       return null;
     }
     try {
-      return storage.getItem(key);
+      return storage.getItem(_key);
     } catch (error) {
       console.warn("Storage getItem failed", { key, error });
       return null;
@@ -59,31 +59,31 @@ class BrowserStorageArea implements StorageArea {
   }
 
   setItem(key: string, value: string): void {
-    const storage = this.resolveStorage();
+    const _storage = this.resolveStorage();
     if (!storage) {
       return;
     }
     try {
-      storage.setItem(key, value);
+      storage.setItem(_key, _value);
     } catch (error) {
       console.warn("Storage setItem failed", { key, error });
     }
   }
 
   removeItem(key: string): void {
-    const storage = this.resolveStorage();
+    const _storage = this.resolveStorage();
     if (!storage) {
       return;
     }
     try {
-      storage.removeItem(key);
+      storage.removeItem(_key);
     } catch (error) {
       console.warn("Storage removeItem failed", { key, error });
     }
   }
 
   clear(): void {
-    const storage = this.resolveStorage();
+    const _storage = this.resolveStorage();
     if (!storage) {
       return;
     }
@@ -106,7 +106,7 @@ const defaultProvider: StorageProvider = {
 
 let currentProvider: StorageProvider = defaultProvider;
 
-export const storage = {
+export const _storage = {
   get local(): StorageArea {
     return currentProvider.local;
   },

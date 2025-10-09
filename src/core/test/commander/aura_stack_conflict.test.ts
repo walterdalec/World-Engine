@@ -1,5 +1,4 @@
 // packages/core/src/test/commander/aura_stack_conflict.test.ts
-import { describe, it, expect } from '@jest/globals';
 import { recomputeAuras } from '../../commander/aura';
 
 function axial(q: number, r: number) {

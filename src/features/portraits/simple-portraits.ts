@@ -3,7 +3,7 @@
  * Uses actual artwork when available, with gender-locked classes
  */
 
-import { getPortraitImagePath, isValidGenderForClass } from '../../core/config';
+import { getPortraitImagePath, _isValidGenderForClass } from '../../core/config';
 import { rng } from "../../core/services/random";
 
 export interface PortraitLayer {
@@ -87,16 +87,16 @@ function generatePlaceholderPortrait(species: string, archetype: string, gender:
     const data = speciesData[species.toLowerCase()] || speciesData['human'];
 
     // Draw hyper-realistic character with painterly techniques
-    drawRealisticCharacter(ctx, data, archetype, gender);
+    drawRealisticCharacter(ctx, data, _archetype, _gender);
 
     // Add atmospheric lighting effects
-    drawAtmosphericLighting(ctx, archetype);
+    drawAtmosphericLighting(ctx, _archetype);
 
     // Add weathered frame
     drawWeatheredFrame(ctx);
 
     // Add character info
-    drawRealisticCharacterInfo(ctx, species, archetype, gender);
+    drawRealisticCharacterInfo(ctx, species, _archetype, _gender);
 
     console.log(`Generated grimdark portrait: ${gender} ${species} ${archetype}`);
     return canvas.toDataURL('image/png');
@@ -114,13 +114,13 @@ function drawRealisticCharacter(ctx: CanvasRenderingContext2D, data: any, archet
     const lightSourceY = 50;
 
     // Draw realistic head with proper proportions and detailed features
-    drawRealisticHead(ctx, centerX, centerY - 40, data, gender, lightSourceX, lightSourceY);
+    drawRealisticHead(ctx, centerX, centerY - 40, data, _gender, lightSourceX, lightSourceY);
 
     // Draw detailed armor/clothing with realistic metal textures
-    drawRealisticArmor(ctx, centerX, centerY, data, archetype, lightSourceX, lightSourceY);
+    drawRealisticArmor(ctx, centerX, centerY, data, _archetype, lightSourceX, lightSourceY);
 
     // Add archetype-specific realistic equipment
-    drawRealisticEquipment(ctx, centerX, centerY, archetype, data, lightSourceX, lightSourceY);
+    drawRealisticEquipment(ctx, centerX, centerY, _archetype, data, lightSourceX, lightSourceY);
 }
 
 /**
@@ -129,10 +129,10 @@ function drawRealisticCharacter(ctx: CanvasRenderingContext2D, data: any, archet
 function drawRealisticHead(ctx: CanvasRenderingContext2D, x: number, y: number, data: any, gender: string, lightX: number, lightY: number) {
     // Calculate lighting based on distance from light source
     const distance = Math.sqrt((x - lightX) ** 2 + (y - lightY) ** 2);
-    const lightIntensity = Math.max(0.2, 1 - distance / 150);
+    const _lightIntensity = Math.max(0.2, 1 - distance / 150);
 
     // Create realistic skin gradient with proper light fall-off
-    const skinGradient = ctx.createRadialGradient(lightX, lightY, 20, x, y, 60);
+    const skinGradient = ctx.createRadialGradient(_lightX, _lightY, 20, x, y, 60);
     skinGradient.addColorStop(0, data.skinBase);
     skinGradient.addColorStop(0.3, data.skinMid);
     skinGradient.addColorStop(0.7, data.skinShadow);
@@ -163,16 +163,16 @@ function drawRealisticHead(ctx: CanvasRenderingContext2D, x: number, y: number, 
     ctx.globalAlpha = 1;
 
     // Draw incredibly detailed eyes
-    drawRealisticEyes(ctx, x, y - 5, data, lightIntensity);
+    drawRealisticEyes(ctx, x, y - 5, data, _lightIntensity);
 
     // Draw weathered nose with realistic shadows
-    drawRealisticNose(ctx, x, y + 2, data, lightIntensity);
+    drawRealisticNose(ctx, x, y + 2, data, _lightIntensity);
 
     // Draw grim mouth with realistic lip detail
-    drawRealisticMouth(ctx, x, y + 12, data, gender);
+    drawRealisticMouth(ctx, x, y + 12, data, _gender);
 
     // Add deep wrinkles and battle scars
-    drawFacialDetails(ctx, x, y, data, lightIntensity);
+    drawFacialDetails(ctx, x, y, data, _lightIntensity);
 }
 
 /**
@@ -369,10 +369,10 @@ function drawFacialDetails(ctx: CanvasRenderingContext2D, x: number, y: number, 
 function drawRealisticArmor(ctx: CanvasRenderingContext2D, x: number, y: number, data: any, archetype: string, lightX: number, lightY: number) {
     // Calculate armor lighting
     const distance = Math.sqrt((x - lightX) ** 2 + (y - lightY) ** 2);
-    const lightIntensity = Math.max(0.1, 1 - distance / 200);
+    const _lightIntensity = Math.max(0.1, 1 - distance / 200);
 
     // Create metallic gradient
-    const armorGradient = ctx.createRadialGradient(lightX, lightY, 30, x, y, 80);
+    const armorGradient = ctx.createRadialGradient(_lightX, _lightY, 30, x, y, 80);
     armorGradient.addColorStop(0, data.metalHighlight);
     armorGradient.addColorStop(0.3, data.armorBase);
     armorGradient.addColorStop(0.7, data.armorMid);
@@ -1259,7 +1259,7 @@ export async function generateSimplePortrait(options: SimplePortraitOptions): Pr
         console.log(`Generating portrait: ${gender} ${species} ${archetype}`);
 
         // First, check if we have a realistic image for this combination
-        const imagePath = getPortraitImagePath(species, archetype, gender);
+        const imagePath = getPortraitImagePath(species, _archetype, _gender);
         console.log(`Portrait lookup: species=${species}, archetype=${archetype}, gender=${gender}`);
         console.log(`Image path result: ${imagePath}`);
 
@@ -1291,7 +1291,7 @@ export async function generateSimplePortrait(options: SimplePortraitOptions): Pr
 
         // Fallback to placeholder generation
         console.log(`🎭 Generating placeholder portrait: ${gender} ${species} ${archetype}`);
-        const dataUrl = generatePlaceholderPortrait(species, archetype, gender);
+        const dataUrl = generatePlaceholderPortrait(species, _archetype, _gender);
 
         return {
             success: true,

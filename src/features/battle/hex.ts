@@ -65,8 +65,8 @@ export function hexRange(center: HexCoord, range: number): HexCoord[] {
         const r2 = Math.min(range, -q + range);
 
         for (let r = r1; r <= r2; r++) {
-            const hex = { q: center.q + q, r: center.r + r };
-            results.push(hex);
+            const _hex = { q: center.q + q, r: center.r + r };
+            results.push(_hex);
         }
     }
 
@@ -78,12 +78,12 @@ export function hexRing(center: HexCoord, radius: number): HexCoord[] {
     if (radius === 0) return [center];
 
     const results: HexCoord[] = [];
-    let hex = { q: center.q - radius, r: center.r + radius };
+    let _hex = { q: center.q - radius, r: center.r + radius };
 
     for (let direction = 0; direction < 6; direction++) {
         for (let step = 0; step < radius; step++) {
             results.push({ ...hex });
-            hex = hexDirection(hex, direction);
+            hex = hexDirection(_hex, direction);
         }
     }
 
@@ -323,8 +323,8 @@ export function hexLineOfSight(
     const end = includeTarget ? line.length : Math.max(0, line.length - 1);
 
     for (let i = 1; i < end; i++) {
-        const hex = line[i]!;
-        if (blocks(hex)) {
+        const _hex = line[i]!;
+        if (blocks(_hex)) {
             return { visible: false, occluder: hex, line };
         }
     }

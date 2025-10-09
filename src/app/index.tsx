@@ -5,7 +5,7 @@ import "../index.css";
 import { MainMenu, WorldSetupScreen, VersionDisplay } from "../features/ui";
 import { CharacterLibrary, CharacterCreate, NameGenerator, ClassicCharacterCreator } from "../features/characters";
 import { SpellGenerator, SpellAssignment } from "../features/spells";
-import { HealingSystem, BattleMockup, BattlePage, MinimalBattlePage, BattleSystem } from "../features/battle";
+import { HealingSystem, BattleMockup, BattlePage, MinimalBattlePage } from "../features/battle";
 import { WorldMapEngine, EnhancedWorldMap, SimpleWorldMap, ProceduralDevTools } from "../features/world";
 import { SimplePortraitTest } from "../features/portraits";
 import { CombatUIDemo } from "../pages/CombatUIDemo";
@@ -27,7 +27,7 @@ type Character = {
 };
 
 // Simple seed generator (base36 timestamp + random)
-function randomSeed(): string {
+function _randomSeed(): string {
   const t = Date.now().toString(36);
   const r = rng.next().toString(36).slice(2, 8);
   return `${t}-${r}`;
@@ -143,7 +143,7 @@ function App() {
   };
 
   // Campaign recovery functions
-  const recoverCampaigns = () => {
+  const _recoverCampaigns = () => {
     try {
       // Try primary storage first
       let campaigns = JSON.parse(storage.local.getItem('world-engine-campaigns') || '[]');
@@ -203,7 +203,7 @@ function App() {
     }
   };
 
-  const importCampaignBackup = (file: File) => {
+  const _importCampaignBackup = (file: File) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {

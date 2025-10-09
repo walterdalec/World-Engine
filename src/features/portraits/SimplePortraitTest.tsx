@@ -4,7 +4,7 @@ import { SimplePortraitPreview, SimpleUtils, DevTools } from './index';
 export const SimplePortraitTest: React.FC = () => {
     const species = SimpleUtils.getAvailableSpecies();
     const archetypes = SimpleUtils.getAvailableArchetypes();
-    const genders: ('male' | 'female')[] = ['male', 'female'];
+    const _genders: ('male' | 'female')[] = ['male', 'female'];
 
     const testPortrait = async () => {
         console.log('🎭 Testing simple portrait system...');

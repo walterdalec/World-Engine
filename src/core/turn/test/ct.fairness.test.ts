@@ -3,7 +3,6 @@
  * Verify CT initiative system maintains fairness over time
  */
 
-import { describe, it, expect } from '@jest/globals';
 import { TurnManager } from '../TurnManager';
 import type { UnitRef } from '../types';
 

@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { BattleState, Unit, Ability } from './types';
+import { BattleState, Unit, _Ability } from './types';
 
 interface BattleHUDProps {
     state: BattleState;
@@ -32,7 +32,7 @@ interface BattleHUDProps {
         return cd > 0 ? ` (${cd})` : '';
     };
 
-    const canActThisPhase = () => {
+    const _canActThisPhase = () => {
         if (state.phase === "HeroTurn") return true;
         if (state.phase === "UnitsTurn" && selectedUnit?.faction === "Player") return true;
         return false;

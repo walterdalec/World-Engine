@@ -8,9 +8,9 @@ import {
     mkTerritory,
     mkCastle,
     mkFaction,
-    type CampaignState
+    type _CampaignState
 } from '../types';
-import { calcIncome, applyIncome, settleUpkeep } from '../economy';
+import { calcIncome, _applyIncome, _settleUpkeep } from '../economy';
 import { recomputeSupply, isInSupply } from '../world';
 import { nextSeason, runSeasonStart, runSeasonEnd } from '../time';
 

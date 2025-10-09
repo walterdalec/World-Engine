@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { BattleState, Unit, HexPosition } from '../types';
+import type { BattleState, _Unit, HexPosition } from '../types';
 import { sanitizeBattleState } from '../typeGuards';
 import { BattleCanvas } from './renderer2d';
 import {
@@ -10,8 +10,8 @@ import {
     getValidMoves
 } from '../engine';
 import { ABILITIES } from '../abilities';
-import { calculateAIAction, executeAITurn } from '../ai';
-import { calculateBattleRewards } from '../economy';
+import { _calculateAIAction, executeAITurn } from '../ai';
+import { _calculateBattleRewards } from '../economy';
 
 interface BattleScreenProps {
     initialState: BattleState;

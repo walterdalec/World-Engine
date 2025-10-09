@@ -5,7 +5,7 @@ import type {
     DeploymentZone,
     HexPosition
 } from "./types";
-import { hexSpiral, hexRing } from "./generate_hex";
+import { _hexSpiral, _hexRing } from "./generate_hex";
 
 export interface BiomeConfig {
     name: string;
@@ -132,7 +132,7 @@ export function generateBattlefield(
     const biomeConfig = BIOME_CONFIGS[context.biome] || BIOME_CONFIGS["Grass"];
 
     const tiles: HexTile[] = [];
-    const center = { q: Math.floor(width / 2), r: Math.floor(height / 2) };
+    const _center = { q: Math.floor(width / 2), r: Math.floor(height / 2) };
 
     // Generate base terrain
     for (let r = 0; r < height; r++) {

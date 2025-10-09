@@ -225,7 +225,7 @@ export class WorldManager {
         // Check if we've hit the chunk limit
         if (this.loadedChunks.size >= this.worldSizeConfig.maxChunks) {
             console.warn('🚫 World size limit reached. Cleaning up distant chunks...');
-            const cleaned = this.cleanupDistantChunks();
+            const _cleaned = this.cleanupDistantChunks();
 
             if (this.loadedChunks.size >= this.worldSizeConfig.maxChunks) {
                 throw new Error(`World size limit reached (${this.worldSizeConfig.maxChunks} chunks). Cannot generate more chunks.`);

@@ -4,10 +4,10 @@ import type {
 import { ABILITIES } from "./abilities";
 import {
     cubeDistance,
-    axialToCube,
+    _axialToCube,
     neighborsHex as hexNeighbors,
     hexRing,
-    hexSpiral
+    _hexSpiral
 } from "./generate_hex";
 // Morale system integration
 import {

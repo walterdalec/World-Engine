@@ -29,19 +29,19 @@ interface BattleStageProps {
     // Handle tile clicks with unit selection logic
     const handleTileClick = useCallback((pos: HexPosition) => {
         // Check if there's a unit at this position
-        const unit = state.units.find(u =>
+        const _unit = state.units.find(u =>
             u.pos && u.pos.q === pos.q && u.pos.r === pos.r && !u.isDead
         );
 
         if (unit && unit.faction === "Player" && state.phase === "UnitsTurn") {
             // Select player unit during UnitsTurn
-            onUnitSelect(unit);
+            onUnitSelect(_unit);
         } else if (selectedUnit && selectedUnit.faction === "Player") {
             // Move selected unit or target ability
-            onHexClick(pos);
+            onHexClick(_pos);
         } else {
             // General hex targeting (for Hero abilities, etc.)
-            onHexClick(pos);
+            onHexClick(_pos);
         }
     }, [state.units, state.phase, selectedUnit, onHexClick, onUnitSelect]);
 
@@ -166,7 +166,7 @@ interface BattleStageProps {
                 }}>
                     <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>Initiative Order</div>
                     {state.initiative.slice(0, 5).map((unitId, index) => {
-                        const unit = state.units.find(u => u.id === unitId);
+                        const _unit = state.units.find(u => u.id === unitId);
                         if (!unit) return null;
 
                         return (

@@ -3,7 +3,6 @@
  * Tests spell requirements and restrictions
  */
 
-import { describe, it, expect } from '@jest/globals';
 import { checkGating, checkActionPoints, checkFullGating, ALLOWED } from '../../spell/gating';
 import { getSpellById } from '../../spell/registry';
 import type { Unit } from '../../unit/types';

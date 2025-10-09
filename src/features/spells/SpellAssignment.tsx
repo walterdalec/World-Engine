@@ -61,7 +61,7 @@ export default function SpellAssignment({ onBack }: SpellAssignmentProps) {
     return character.level || character.data?.level || 1;
   };
 
-  const getCharacterStats = (character: Character) => {
+  const _getCharacterStats = (character: Character) => {
     if (character.finalStats) return character.finalStats;
     if (character.data?.stats) return character.data.stats;
     // Default stats for characters without stat data
