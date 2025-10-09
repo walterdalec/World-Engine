@@ -22,6 +22,10 @@ $commonUnusedImports | ForEach-Object { Write-Host "  - $_" }
 
 Write-Host "⚡ Running ESLint auto-fix first..." -ForegroundColor Cyan
 npx eslint . --fix
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "❌ ESLint auto-fix failed with exit code $LASTEXITCODE." -ForegroundColor Red
+    exit $LASTEXITCODE
+}
 
 Write-Host "📊 Checking remaining issues..." -ForegroundColor Cyan
 $lintOutput = npx eslint . 2>&1
