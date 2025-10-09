@@ -15,10 +15,12 @@
  */
 
 import type { CreatorInput, CreatorResult, CharacterSummary } from './types';
-import type { Unit, UnitStats, StatusEffect, Skill } from '../../features/battle/types';
+import type { Unit, UnitStats, StatusEffect } from '../../features/battle/types';
+import type { Skill as _Skill } from '../../features/battle/types';
 import { validateInput } from './validate';
 import { seedLoadout } from './seed';
-import { SpeciesMods, BackgroundMods, ArchetypeDefaults, BaseStatValue } from './rules';
+import { SpeciesMods, BackgroundMods, ArchetypeDefaults } from './rules';
+import type { BaseStatValue as _BaseStatValue } from './rules';
 
 /**
  * Main character builder function
@@ -118,7 +120,7 @@ function calculateFinalStats(input: CreatorInput): UnitStats {
  * Build the core Unit structure
  */
 function buildCoreUnit(input: CreatorInput, stats: UnitStats): Unit {
-    const archetypeDef = ArchetypeDefaults[input.archetype];
+    const _archetypeDef = ArchetypeDefaults[input.archetype];
 
     const unit: Unit = {
         id: generateUnitId('HERO'),

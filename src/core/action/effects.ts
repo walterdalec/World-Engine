@@ -36,7 +36,7 @@ export function effectWait(state: WorldState, a: PlannedAction): DeltaBatch {
 }
 
 // --- Rally ---
-export function effectRally(state: WorldState, a: PlannedAction, origin: Axial): DeltaBatch {
+export function effectRally(state: WorldState, a: PlannedAction, _origin: Axial): DeltaBatch {
     const deltas: DeltaBatch['deltas'] = [];
     const targets = a.targets || [];
 
@@ -73,7 +73,7 @@ export function effectFlee(state: WorldState, a: PlannedAction, origin: Axial): 
 }
 
 // --- Enhanced Attack (with flanking and formation bonuses) ---
-export function effectAttack(state: WorldState, a: PlannedAction, origin: Axial): DeltaBatch {
+export function effectAttack(state: WorldState, a: PlannedAction, _origin: Axial): DeltaBatch {
     const deltas: any[] = [];
     const basePower = (a.data?.power || 0) || 6;
     const isRangedAttack = a.data?.isRanged || false;
@@ -166,7 +166,7 @@ export function effectOpportunityAttack(state: WorldState, defenderId: string, m
 }
 
 // --- Cast Spell (placeholder) ---
-export function effectCast(state: WorldState, a: PlannedAction, origin: Axial): DeltaBatch {
+export function effectCast(state: WorldState, a: PlannedAction, _origin: Axial): DeltaBatch {
     const spellId = a.data?.spellId as string;
 
     // Placeholder for spell system integration
@@ -192,7 +192,7 @@ export function effectCast(state: WorldState, a: PlannedAction, origin: Axial): 
 }
 
 // --- Command Ability (placeholder) ---
-export function effectCommand(state: WorldState, a: PlannedAction, origin: Axial): DeltaBatch {
+export function effectCommand(state: WorldState, a: PlannedAction, _origin: Axial): DeltaBatch {
     const abilityId = a.data?.abilityId as string;
 
     // Placeholder for command system integration

@@ -10,9 +10,10 @@
  */
 
 import type {
-    SpeciesId, BackgroundId, ArchetypeId, StatAllocation, School,
+    SpeciesId, BackgroundId, ArchetypeId,
     SpeciesDefinition, BackgroundDefinition, ArchetypeDefinition
 } from './types';
+import type { StatAllocation as _StatAllocation, School as _School } from './types';
 
 // Point-buy budget calculation
 export const StatBudgetByLevel = (level: number): number => {

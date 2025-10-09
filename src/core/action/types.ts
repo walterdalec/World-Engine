@@ -44,9 +44,9 @@ export interface WorldUnit {
 export interface WorldState {
     units: Map<string, WorldUnit>;
     occupied: Set<string>;                   // `${q},${r}` for quick lookups
-    terrainCost: (h: Axial) => number;      // from terrain system
-    passable: (h: Axial) => boolean;        // from terrain system
-    blocksLos: (h: Axial) => boolean;       // from terrain system
+    terrainCost: (_h: Axial) => number;      // from terrain system
+    passable: (_h: Axial) => boolean;        // from terrain system
+    blocksLos: (_h: Axial) => boolean;       // from terrain system
     rng: () => number;                      // injected deterministic RNG
 }
 

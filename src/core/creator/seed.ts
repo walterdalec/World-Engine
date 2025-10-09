@@ -54,7 +54,7 @@ function seedEquipment(unit: Unit, archetype: any, input: CreatorInput): void {
 /**
  * Seed starting abilities based on archetype
  */
-function seedAbilities(unit: Unit, archetype: any, input: CreatorInput): void {
+function seedAbilities(unit: Unit, archetype: any, _input: CreatorInput): void {
     if (!unit.meta) return;
 
     // Start with archetype default abilities
@@ -87,7 +87,7 @@ function seedSpells(unit: Unit, input: CreatorInput): void {
 /**
  * Check if a character can cast a specific spell
  */
-function canCastSpell(unit: Unit, spell: any, input: CreatorInput): boolean {
+function canCastSpell(unit: Unit, spell: any, _input: CreatorInput): boolean {
     if (!unit.meta?.magicMasteries || !spell.school) return false;
 
     const masteryRank = unit.meta.magicMasteries[spell.school] || 0;

@@ -48,7 +48,7 @@ export function neighbors(center: Axial): Axial[] {
 }
 
 // LOS function wrapper
-export function los(from: Axial, to: Axial, blocksLos: (h: Axial) => boolean): { visible: boolean; occluder?: Axial } {
+export function los(from: Axial, to: Axial, blocksLos: (_h: Axial) => boolean): { visible: boolean; occluder?: Axial } {
     const line = hexLine(from, to);
 
     // Skip origin, check up to (but including) target
