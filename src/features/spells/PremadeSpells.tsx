@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface GeneratedSpell {
   name: string;
   level: number;

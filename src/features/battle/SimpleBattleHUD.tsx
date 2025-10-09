@@ -5,7 +5,7 @@ import { Unit } from "./simple-types";
 
 export function SimpleBattleHUD({ engine, onAction }: {
     engine: GameEngine;
-    onAction: (action: "Move" | "Fight" | "Spells" | "Defend" | "Wait" | "EndTurn") => void;
+    onAction: (_action: "Move" | "Fight" | "Spells" | "Defend" | "Wait" | "EndTurn") => void;
 }) {
     const st = engine.state;
     const u: Unit = engine.current;

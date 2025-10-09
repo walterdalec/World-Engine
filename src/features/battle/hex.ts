@@ -204,8 +204,11 @@ class MinHeap<T> {
 }
 
 // Pathfinding function types
+// eslint-disable-next-line no-unused-vars
 export type CostFn = (hex: HexCoord) => number;
+// eslint-disable-next-line no-unused-vars
 export type PassableFn = (hex: HexCoord) => boolean;
+// eslint-disable-next-line no-unused-vars
 export type BlockerFn = (hex: HexCoord) => boolean;
 
 /**
@@ -325,7 +328,7 @@ export function hexLineOfSight(
     for (let i = 1; i < end; i++) {
         const _hex = line[i]!;
         if (blocks(_hex)) {
-            return { visible: false, occluder: hex, line };
+            return { visible: false, occluder: _hex, line };
         }
     }
 
