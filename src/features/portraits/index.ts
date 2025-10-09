@@ -2,6 +2,12 @@
 // Clean, modern approach using layered PNG assets
 
 // === SIMPLE PORTRAIT SYSTEM ===
+// Import for internal use
+import {
+    generateSimplePortrait,
+    SimplePortraitOptions
+} from './simple-portraits';
+
 export { SimplePortraitPreview } from './SimplePortraitPreview';
 export { SimplePortraitTest } from './SimplePortraitTest';
 export {
@@ -13,12 +19,6 @@ export type {
     SimplePortraitOptions,
     PortraitResult,
     PortraitLayer
-} from './simple-portraits';
-
-// Import for internal use
-import {
-    generateSimplePortrait,
-    SimplePortraitOptions
 } from './simple-portraits';
 
 // === UTILITY FUNCTIONS ===

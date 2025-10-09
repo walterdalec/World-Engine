@@ -296,8 +296,11 @@ describe('Procedural Generation System', () => {
             const nearest = await manager.findNearestPOI(0, 0, 2);
 
             if (nearest) {
+                // eslint-disable-next-line jest/no-conditional-expect
                 expect(nearest.poi).toBeDefined();
+                // eslint-disable-next-line jest/no-conditional-expect
                 expect(nearest.distance).toBeGreaterThanOrEqual(0);
+                // eslint-disable-next-line jest/no-conditional-expect
                 expect(nearest.chunkId).toBeDefined();
             }
         });

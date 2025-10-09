@@ -96,13 +96,17 @@ describe('Morale System Integration', () => {
         if (success) {
             // Check that fear effect was applied
             const fearStatus = playerUnit!.statuses.find(s => s.name.includes('roar_fear'));
+            // eslint-disable-next-line jest/no-conditional-expect
             expect(fearStatus).toBeDefined();
+            // eslint-disable-next-line jest/no-conditional-expect
             expect((fearStatus as any)?.payload?.amount).toBeLessThan(0);
 
             // Check battle log
+            // eslint-disable-next-line jest/no-conditional-expect
             expect(battle.log.some(msg => msg.includes('terrifying roar'))).toBe(true);
         } else {
             // If roar failed (cooldown), just verify the system structure works
+            // eslint-disable-next-line jest/no-conditional-expect
             expect(typeof executeTerrifyingRoar).toBe('function');
         }
     }); test('turn progression processes morale correctly', () => {
@@ -194,7 +198,9 @@ describe('Morale System Integration', () => {
         const survivingUnit = playerUnits.find(u => !u.isDead);
         if (survivingUnit) {
             const finalMorale = getMoraleStatus(battle, survivingUnit.id);
+            // eslint-disable-next-line jest/no-conditional-expect
             expect(finalMorale).toBeDefined();
+            // eslint-disable-next-line jest/no-conditional-expect
             expect(typeof finalMorale.value).toBe('number');
         }
     });

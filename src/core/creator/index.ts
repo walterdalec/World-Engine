@@ -6,6 +6,10 @@
  */
 
 // Core types and interfaces
+// Import types and functions for utility exports
+import type { CreatorInput, ArchetypeId, SpeciesId, BackgroundId, StatAllocation, MasteryPick } from './types';
+import { StatBudgetByLevel, StatPointCost, MaxPerStat, ArchetypeDefaults } from './rules';
+
 export type {
     CreatorInput, CreatorResult, CharacterSummary, ValidationResult,
     SpeciesId, BackgroundId, ArchetypeId, StatAllocation, MasteryPick, SpellPick,
@@ -32,10 +36,6 @@ export {
 
 // Equipment and ability seeding
 export { seedLoadout } from './seed';
-
-// Import types and functions for utility exports
-import type { CreatorInput, ArchetypeId, SpeciesId, BackgroundId, StatAllocation, MasteryPick } from './types';
-import { StatBudgetByLevel, StatPointCost, MaxPerStat, ArchetypeDefaults } from './rules';
 
 // Utility functions for UI integration
 export const CharacterCreator = {
