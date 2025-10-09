@@ -468,9 +468,9 @@ Recovered ${recovered.length} campaigns`);
                 <div style={{ marginBottom: '20px' }}>
                   <h4 style={{ margin: '0 0 12px 0', color: '#8b5cf6' }}>Traits</h4>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                    {character.data.traits.map((trait: string, index: number) => (
+                    {character.data.traits.map((trait: string, _index: number) => (
                       <span
-                        key={index}
+                        key={_index}
                         style={{
                           background: '#0f172a',
                           color: '#e2e8f0',
@@ -502,9 +502,9 @@ Recovered ${recovered.length} campaigns`);
                       <div style={{ marginBottom: '12px' }}>
                         <h5 style={{ margin: '0 0 6px 0', color: '#ec4899' }}>Known Cantrips:</h5>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                          {character.data.knownCantrips.map((cantrip: string, index: number) => (
+                          {character.data.knownCantrips.map((cantrip: string, _index: number) => (
                             <span
-                              key={index}
+                              key={_index}
                               style={{
                                 background: '#ec4899',
                                 color: 'white',
@@ -525,9 +525,9 @@ Recovered ${recovered.length} campaigns`);
                       <div>
                         <h5 style={{ margin: '0 0 6px 0', color: '#3b82f6' }}>Known Spells:</h5>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                          {character.data.knownSpells.map((spell: string, index: number) => (
+                          {character.data.knownSpells.map((spell: string, _index: number) => (
                             <span
-                              key={index}
+                              key={_index}
                               style={{
                                 background: '#3b82f6',
                                 color: 'white',
