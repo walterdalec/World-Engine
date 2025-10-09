@@ -6,7 +6,6 @@ import React, { useState, useMemo } from 'react';
 import { storage } from "../../core/services/storage";
 import { WorldEngine } from '../../core/engine';
 import { CLASS_DEFINITIONS } from '../../core/config';
-import { SimplePortraitPreview, SimpleUtils } from '../portraits';
 
 // Species and trait definitions for character creation
 const SPECIES_OPTIONS = [
@@ -1147,7 +1146,7 @@ function SpellsBySchool({ engine, characterId }: { engine: WorldEngine; characte
     );
   }
 
-  const toggleSchoolSpell = (school: string) => {
+  const _toggleSchoolSpell = (school: string) => {
     const newOpen = new Set(openSchools);
     if (newOpen.has(school)) {
       newOpen.delete(school);

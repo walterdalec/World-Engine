@@ -4,9 +4,9 @@ import { rng } from "../../core/services/random";
 import { storage } from "../../core/services/storage";
 import { CLASS_DEFINITIONS } from '../../core/config';
 // Visual System Integration - NEW Simple PNG System
-import { SimplePortraitPreview, SimpleUtils } from '../portraits';
+import { SimplePortraitPreview } from '../portraits';
 // Gender-locked portrait system
-import { getAvailableArchetypes, isValidGenderForClass, getGenderLock } from '../../core/config';
+import { getAvailableArchetypes, getGenderLock } from '../../core/config';
 
 type Stats = "STR" | "DEX" | "CON" | "INT" | "WIS" | "CHA";
 

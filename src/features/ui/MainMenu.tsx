@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { storage } from "../../core/services/storage";
-import { SimplePortraitPreview, SimpleUtils } from '../portraits';
+import { SimplePortraitPreview } from '../portraits';
 
 interface Campaign {
   id: string;
