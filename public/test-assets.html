@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Asset Test</title>
+</head>
+
+<body>
+    <h1>Portrait Asset Test</h1>
+
+    <h2>Base Assets</h2>
+    <div>
+        <p>Female base:</p>
+        <img src="assets/portraits-new/base/female/neutral.png" alt="Female base"
+            style="border: 1px solid #ccc; margin: 10px;">
+    </div>
+
+    <h2>Race Assets</h2>
+    <div>
+        <p>Human race:</p>
+        <img src="assets/portraits-new/race/human.png" alt="Human race" style="border: 1px solid #ccc; margin: 10px;">
+    </div>
+
+    <h2>Class Assets</h2>
+    <div>
+        <p>Greenwarden class:</p>
+        <img src="assets/portraits-new/class/greenwarden.png" alt="Greenwarden class"
+            style="border: 1px solid #ccc; margin: 10px;">
+    </div>
+
+    <script>
+        // Test programmatic loading
+        console.log('🧪 Testing asset loading...');
+
+        const testImage = (src, name) => {
+            const img = new Image();
+            img.onload = () => console.log(`✅ ${name} loaded: ${src}`);
+            img.onerror = () => console.log(`❌ ${name} failed: ${src}`);
+            img.src = src;
+        };
+
+        testImage('assets/portraits-new/base/female/neutral.png', 'Female base');
+        testImage('assets/portraits-new/race/human.png', 'Human race');
+        testImage('assets/portraits-new/class/greenwarden.png', 'Greenwarden class');
+    </script>
+</body>
+
+</html>

@@ -75,14 +75,15 @@ ehthumbs.db
 
 # gatsby files
 .cache/
-public
+# Note: NOT ignoring entire public/ directory as it contains essential game assets
+# public/
 
 # Storybook build outputs
 .out
 .storybook-out
 
-# AI Development (work in progress)
-src/features/ai/
+# AI Development (work in progress) - but allow tracked modules
+# src/features/ai/ - commenting out as AI modules are now stable
 src/features/*/ai/
 src/experimental/
 *.wip
@@ -91,7 +92,7 @@ src/experimental/
 **/ai-dev/
 **/ai-experiments/
 
-# Allow tracked tactical AI modules
-!src/features/ai/
-!src/features/ai/tactical/
-!src/features/ai/tactical/**
+# Allow tracked tactical AI modules (redundant now but keeping for clarity)
+# !src/features/ai/
+# !src/features/ai/tactical/
+# !src/features/ai/tactical/**
