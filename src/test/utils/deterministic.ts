@@ -97,6 +97,13 @@ export function setTestTime(timestamp: number): void {
     // Override Date.now and new Date() to return frozen time
     (global as any).Date.now = () => testTime;
 
+    // Override performance.now() for consistent timing in tests
+    if (typeof global !== 'undefined' && global.performance) {
+        (global.performance as any).now = () => testTime;
+    } else if (typeof window !== 'undefined' && window.performance) {
+        (window.performance as any).now = () => testTime;
+    }
+
     const OriginalDate = Date;
     (global as any).Date = class extends OriginalDate {
         constructor(...args: any[]) {

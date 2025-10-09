@@ -29,8 +29,12 @@ beforeEach(() => {
     // Mock Date.now to return fixed time
     vi.spyOn(Date, 'now').mockReturnValue(FIXED_TIME);
 
-    // Mock performance.now for consistent timing
-    vi.spyOn(performance, 'now').mockReturnValue(0);
+    // Mock performance.now for consistent timing that shows progression
+    let performanceTime = 0;
+    vi.spyOn(performance, 'now').mockImplementation(() => {
+        performanceTime += 1; // Increment by 1ms each call
+        return performanceTime;
+    });
 
     // Suppress console.log in tests unless explicitly needed
     if (!process.env.DEBUG_TESTS) {

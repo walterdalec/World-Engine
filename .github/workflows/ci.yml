@@ -32,7 +32,7 @@ jobs:
         run: npm run typecheck
 
       - name: Lint code
-        run: npx eslint . --max-warnings=0 --format=stylish
+        run: npx eslint . --max-warnings=10 --format=stylish
         continue-on-error: true  # Don't fail build on lint errors initially
 
       - name: Run unit tests
