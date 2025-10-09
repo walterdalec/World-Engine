@@ -14,7 +14,7 @@ interface GeneratedSpell {
 
 interface CustomSpellCreatorProps {
   onBack?: () => void;
-  onSpellCreated?: (spell: GeneratedSpell) => void;
+  onSpellCreated?: (_spell: GeneratedSpell) => void;
 }
 
 const SCHOOLS = [
@@ -197,9 +197,9 @@ export default function CustomSpellCreator({ onBack, onSpellCreated }: CustomSpe
   };
 
   const handleSave = () => {
-    const _spell = generateSpell();
+    const spell = generateSpell();
     if (spell && onSpellCreated) {
-      onSpellCreated(_spell);
+      onSpellCreated(spell);
     }
   };
 
