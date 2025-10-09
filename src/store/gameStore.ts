@@ -65,15 +65,15 @@ export const useGameStore = create<GameState>()(
             },
 
             // Character actions
-            setCurrentCharacter: (character) => {
+            setCurrentCharacter: (_character) => {
                 console.log('🎮 Setting current character:', character?.name || 'null');
                 set({ currentCharacter: character });
             },
 
-            updateCurrentCharacter: (updates) => {
+            updateCurrentCharacter: (_updates) => {
                 set((state) => {
                     if (!state.currentCharacter) {
-                        console.log('🎮 Creating new character with updates:', updates);
+                        console.log('🎮 Creating new character with updates:', _updates);
                         return { currentCharacter: { ...createEmptyCharacter(), ...updates } };
                     }
 
@@ -119,23 +119,23 @@ export const useGameStore = create<GameState>()(
                 }
             },
 
-            loadCharacter: (id) => {
+            loadCharacter: (_id) => {
                 const { characters } = get();
-                const character = characters.find(c => c.name === id);
-                if (character) {
+                const _character = characters.find(c => c.name === id);
+                if (_character) {
                     console.log('🎮 Loaded character:', character.name);
                     set({ currentCharacter: character });
                 } else {
-                    console.warn('🎮 Character not found:', id);
+                    console.warn('🎮 Character not found:', _id);
                 }
             },
 
-            deleteCharacter: (id) => {
+            deleteCharacter: (_id) => {
                 const { characters, currentCharacter } = get();
                 const newCharacters = characters.filter(c => c.name !== id);
                 const newCurrent = currentCharacter?.name === id ? null : currentCharacter;
 
-                console.log('🎮 Deleted character:', id);
+                console.log('🎮 Deleted character:', _id);
                 set({
                     characters: newCharacters,
                     currentCharacter: newCurrent
@@ -143,16 +143,16 @@ export const useGameStore = create<GameState>()(
             },
 
             // UI actions
-            setCreatingCharacter: (creating) => {
-                console.log('🎮 Creating character mode:', creating);
+            setCreatingCharacter: (_creating) => {
+                console.log('🎮 Creating character mode:', _creating);
                 set({
                     isCreatingCharacter: creating,
                     currentStep: creating ? 'species' : get().currentStep
                 });
             },
 
-            setCurrentStep: (step) => {
-                console.log('🎮 Character creation step:', step);
+            setCurrentStep: (_step) => {
+                console.log('🎮 Character creation step:', _step);
                 set({ currentStep: step });
             },
 
@@ -163,12 +163,12 @@ export const useGameStore = create<GameState>()(
             },
 
             // Map actions
-            setCurrentWorld: (world) => {
-                console.log('🗺️ Setting current world:', world);
+            setCurrentWorld: (_world) => {
+                console.log('🗺️ Setting current world:', _world);
                 set({ currentWorld: world });
             },
 
-            updateMapSettings: (settings) => {
+            updateMapSettings: (_settings) => {
                 set((state) => ({
                     mapSettings: { ...state.mapSettings, ...settings }
                 }));

@@ -187,7 +187,7 @@ export function processUnitDeath(battleState: BattleState, deadUnitId: string): 
     // Check if this was a commander
     if (deadUnit.isCommander) {
         // Apply army-wide morale penalty
-        const faction = deadUnit.faction;
+        const _faction = deadUnit.faction;
         applyArmyMoraleShift(battleState, -15);
 
         // Remove commander auras

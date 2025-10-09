@@ -9,7 +9,7 @@
 import type { SeededRng } from './rng';
 import { chunkRng } from './rng';
 import { heightNoise, moistureNoise, temperatureNoise, domainWarp } from './noise';
-import { chooseTile, type Tile, type BiomeRule, type EnvironmentalEffects, getEnvironmentalEffects } from './biome';
+import { chooseTile, type Tile, type _BiomeRule, type _EnvironmentalEffects, _getEnvironmentalEffects } from './biome';
 
 export interface ChunkId {
     cx: number;  // Chunk X coordinate

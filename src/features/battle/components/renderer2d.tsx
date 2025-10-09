@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import type { BattleState, HexPosition, Unit, HexTile } from '../types';
-import { hexDistance, tileAt } from '../engine';
+import { _hexDistance, _tileAt } from '../engine';
 
 interface BattleCanvasProps {
     state: BattleState;
@@ -23,8 +23,8 @@ export function BattleCanvas({
     const [hoveredHex, setHoveredHex] = useState<HexPosition | null>(null);
 
     const hexSize = 30;
-    const hexWidth = hexSize * 2;
-    const hexHeight = Math.sqrt(3) * hexSize;
+    const _hexWidth = hexSize * 2;
+    const _hexHeight = Math.sqrt(3) * hexSize;
 
     useEffect(() => {
         const canvas = canvasRef.current;

@@ -192,14 +192,14 @@ export default function CustomSpellCreator({ onBack, onSpellCreated }: CustomSpe
   };
 
   const handlePreview = () => {
-    const spell = generateSpell();
-    setPreviewSpell(spell);
+    const _spell = generateSpell();
+    setPreviewSpell(_spell);
   };
 
   const handleSave = () => {
-    const spell = generateSpell();
+    const _spell = generateSpell();
     if (spell && onSpellCreated) {
-      onSpellCreated(spell);
+      onSpellCreated(_spell);
     }
   };
 

@@ -1,6 +1,6 @@
 
 import { captureRegion } from './military';
-import { ID, PeaceDeal, ReparationPayment, WorldState } from './types';
+import { ID, PeaceDeal, _ReparationPayment, WorldState } from './types';
 
 export function proposePeaceDeal(
   world: WorldState,

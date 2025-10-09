@@ -129,7 +129,7 @@ export class ChokepointManager {
    */
   private generateRegions(): void {
     try {
-      const numRegions = this.rng.nextInt(6, 12);
+      const _numRegions = this.rng.nextInt(6, 12);
       const centerDistance = Math.min(this.mapWidth, this.mapHeight) / 4;
 
       // Always create a safe starting region
@@ -554,7 +554,7 @@ export class ChokepointManager {
    * Create a fortification for a chokepoint
    */
   private createFortification(chokepoint: Chokepoint, difficulty: number): Fortification {
-    const types: FortificationType[] = ['keep', 'watchtower', 'wall', 'barricade', 'outpost', 'citadel'];
+    const _types: FortificationType[] = ['keep', 'watchtower', 'wall', 'barricade', 'outpost', 'citadel'];
     const type = difficulty >= 8 ? 'citadel' : 
                  difficulty >= 6 ? 'keep' :
                  difficulty >= 4 ? 'wall' :

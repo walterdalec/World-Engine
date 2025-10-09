@@ -10,24 +10,24 @@ export type StatusHook = {
 export const StatusLib: Record<string, StatusHook> = {
     stunned: {},
     defending: {
-        onHit: (u, ctx, io) => {
+        onHit: (_u, _ctx, io) => {
             if (ctx.kind === 'Physical') {
                 io.final = Math.floor(io.final / 2);
             }
         }
     },
     burn: {
-        onTurnStart: (u) => {
+        onTurnStart: (_u) => {
             /* DoT applied elsewhere via effects */
         }
     },
     poison: {
-        onTurnStart: (u) => {
+        onTurnStart: (_u) => {
             /* DoT via effects */
         }
     },
     vulnerable: {
-        onHit: (u, ctx, io) => {
+        onHit: (_u, _ctx, io) => {
             io.final = Math.floor(io.final * 1.25);
         }
     }

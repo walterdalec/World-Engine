@@ -200,7 +200,7 @@ export default function ExplorationMode({
     setEncounterState('investigating');
 
     // Generate investigation results based on encounter type
-    let result = '';
+    let _result = '';
     let foundRewards: any = null;
 
     switch (encounter.type) {
@@ -256,7 +256,7 @@ export default function ExplorationMode({
         break;
     }
 
-    setInvestigationResult(result);
+    setInvestigationResult(_result);
     setRewards(foundRewards);
 
     setTimeout(() => {

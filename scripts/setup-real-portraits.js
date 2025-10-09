@@ -206,10 +206,10 @@ function main() {
         console.log('✅ Found downloaded CC0 spritesheets');
 
         // Create working catalog
-        const catalog = createWorkingCatalog();
+        const _catalog = createWorkingCatalog();
 
         // Create sample portrait mappings
-        const mappings = createSamplePortraits();
+        const _mappings = createSamplePortraits();
 
         // Create spritesheet helper
         createSpriteSheetHelper();

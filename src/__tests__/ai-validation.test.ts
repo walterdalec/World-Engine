@@ -53,10 +53,9 @@ describe('AI System Validation', () => {
             const action = calculateAIAction(battleState as any, 'ai-unit');
 
             expect(action).toBeDefined();
-            if (action) {
-                expect(action.unitId).toBe('ai-unit');
-                expect(['move', 'ability', 'wait']).toContain(action.type);
-            }
+            expect(action).not.toBeNull();
+            expect(action?.unitId).toBe('ai-unit');
+            expect(['move', 'ability', 'wait']).toContain(action?.type);
         });
 
         it('should handle different AI personalities', () => {
@@ -69,10 +68,9 @@ describe('AI System Validation', () => {
             );
 
             expect(advancedAction).toBeDefined();
-            if (advancedAction) {
-                expect(advancedAction.unitId).toBe('ai-unit');
-                expect(['move', 'ability', 'wait']).toContain(advancedAction.type);
-            }
+            expect(advancedAction).not.toBeNull();
+            expect(advancedAction?.unitId).toBe('ai-unit');
+            expect(['move', 'ability', 'wait']).toContain(advancedAction?.type);
 
             // Test basic AI for comparison
             const basicAction = calculateAIAction(
@@ -81,10 +79,9 @@ describe('AI System Validation', () => {
             );
 
             expect(basicAction).toBeDefined();
-            if (basicAction) {
-                expect(basicAction.unitId).toBe('ai-unit');
-                expect(['move', 'ability', 'wait']).toContain(basicAction.type);
-            }
+            expect(basicAction).not.toBeNull();
+            expect(basicAction?.unitId).toBe('ai-unit');
+            expect(['move', 'ability', 'wait']).toContain(basicAction?.type);
         });
 
         it('should return null for invalid units', () => {
@@ -130,9 +127,8 @@ describe('AI System Validation', () => {
 
             // Should return something reasonable
             expect(action).toBeDefined();
-            if (action) {
-                expect(action.unitId).toBe('ai-unit');
-            }
+            expect(action).not.toBeNull();
+            expect(action?.unitId).toBe('ai-unit');
         });
 
         it('should handle two AI units without performance issues', () => {
@@ -188,10 +184,10 @@ describe('AI System Validation', () => {
             const action2 = calculateAIAction(battleState as any, 'ai-unit');
 
             // Results should be consistent
-            if (action1 && action2) {
-                expect(action1.type).toBe(action2.type);
-                expect(action1.unitId).toBe(action2.unitId);
-            }
+            expect(action1).not.toBeNull();
+            expect(action2).not.toBeNull();
+            expect(action1?.type).toBe(action2?.type);
+            expect(action1?.unitId).toBe(action2?.unitId);
         });
 
         it('should handle empty state gracefully', () => {

@@ -66,7 +66,7 @@ export default function DevPanel({ engine, onConfigChange }: DevPanelProps) {
 
   const regenerateWorld = useCallback(() => {
     // Create new engine with different seed
-    const newEngine = new WorldEngine(newSeed, { world: config });
+    const _newEngine = new WorldEngine(newSeed, { world: config });
     // In a real app, you'd update the parent component's engine
     console.log('Would regenerate world with seed:', newSeed);
   }, [newSeed, config]);
@@ -385,7 +385,7 @@ export default function DevPanel({ engine, onConfigChange }: DevPanelProps) {
                     <div style={{ marginTop: '8px', marginBottom: '4px', color: '#f1f5f9' }}>
                       <strong>Nearby Fortifications:</strong>
                     </div>
-                    {nearbyChokepoints.slice(0, 3).map((cp, index) => {
+                    {nearbyChokepoints.slice(0, 3).map((cp, _index) => {
                       const distance = Math.sqrt((cp.x - partyX) ** 2 + (cp.y - partyY) ** 2);
                       const fortification = cp.fortification;
 

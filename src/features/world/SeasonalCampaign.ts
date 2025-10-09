@@ -89,7 +89,7 @@ export class SeasonalCampaignManager {
      * Initialize a new campaign
      */
     static createCampaign(worldState: any, difficulty: 'story' | 'normal' | 'hard'): SeasonalCampaign {
-        const campaign: SeasonalCampaign = {
+        const _campaign: SeasonalCampaign = {
             currentSeason: 'Spring',
             year: 1,
             turn: 1,
@@ -104,7 +104,7 @@ export class SeasonalCampaignManager {
         };
 
         // Schedule initial world events
-        this.scheduleSeasonalEvents(campaign);
+        this.scheduleSeasonalEvents(_campaign);
 
         return campaign;
     }
@@ -113,30 +113,30 @@ export class SeasonalCampaignManager {
      * Advance campaign by one turn
      */
     static advanceTurn(campaign: SeasonalCampaign): CampaignTurnResult {
-        const events: string[] = [];
+        const _events: string[] = [];
 
         // Process turn-based income and upkeep
-        this.processEconomy(campaign, events);
+        this.processEconomy(_campaign, _events);
 
         // Check for triggered events
-        this.processScheduledEvents(campaign, events);
+        this.processScheduledEvents(_campaign, _events);
 
         // Update objectives
-        this.checkObjectives(campaign, events);
+        this.checkObjectives(_campaign, _events);
 
         // Advance turn counter
         campaign.turn++;
 
         // Check for season change
         if (campaign.turn > campaign.maxTurnsPerSeason) {
-            return this.advanceSeason(campaign, events);
+            return this.advanceSeason(_campaign, _events);
         }
 
         return {
             events,
             seasonChanged: false,
             newObjectives: [],
-            resourceChanges: this.calculateResourceChanges(campaign)
+            resourceChanges: this.calculateResourceChanges(_campaign)
         };
     }
 
@@ -165,23 +165,22 @@ export class SeasonalCampaignManager {
         events.push(`${campaign.currentSeason} effects are now active.`);
 
         // Generate new seasonal objectives
-        const newObjectives = this.generateSeasonalObjectives(
-            campaign,
+        const newObjectives = this.generateSeasonalObjectives(_campaign,
             campaign.currentSeason
         );
         campaign.objectives.push(...newObjectives);
 
         // Schedule events for new season
-        this.scheduleSeasonalEvents(campaign);
+        this.scheduleSeasonalEvents(_campaign);
 
         // Seasonal recruitment refresh
-        campaign.playerResources.recruitmentPoints = this.calculateSeasonalRecruitment(campaign);
+        campaign.playerResources.recruitmentPoints = this.calculateSeasonalRecruitment(_campaign);
 
         return {
             events,
             seasonChanged: true,
             newObjectives,
-            resourceChanges: this.calculateResourceChanges(campaign),
+            resourceChanges: this.calculateResourceChanges(_campaign),
             seasonalEffects: campaign.seasonalEffects
         };
     }
@@ -445,17 +444,17 @@ export class SeasonalCampaignManager {
             if (objective.isCompleted || objective.isFailed) return;
 
             // Check completion criteria
-            const isCompleted = this.checkObjectiveRequirements(objective, campaign);
+            const isCompleted = this.checkObjectiveRequirements(_objective, _campaign);
 
             if (isCompleted) {
                 objective.isCompleted = true;
-                this.applyObjectiveRewards(objective, campaign);
+                this.applyObjectiveRewards(_objective, _campaign);
                 events.push(`✅ Objective completed: ${objective.title}`);
             }
 
             // Check failure conditions (deadline passed)
             if (objective.deadline) {
-                const deadlinePassed = this.isDeadlinePassed(objective.deadline, campaign);
+                const deadlinePassed = this.isDeadlinePassed(objective.deadline, _campaign);
                 if (deadlinePassed && !objective.isCompleted) {
                     objective.isFailed = true;
                     events.push(`❌ Objective failed: ${objective.title}`);

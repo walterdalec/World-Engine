@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { rng } from "../../core/services/random";
-import { storage } from "../../core/services/storage";
+import { _storage } from "../../core/services/storage";
 import { Engine, Preset } from '../../engine.d';
 
 type Props = { eng: Engine; onNext: () => void };

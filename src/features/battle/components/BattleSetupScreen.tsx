@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { BattleState, Unit, HexPosition } from '../types';
+import type { BattleState, _Unit, HexPosition } from '../types';
 import { sanitizeBattleState } from '../typeGuards';
 import { BattleCanvas } from './renderer2d';
 import { startBattle } from '../engine';
@@ -147,9 +147,9 @@ function cloneState(state: BattleState): BattleState {
             return;
         }
 
-        const finalState = cloneState(state);
-        startBattle(finalState);
-        onReady(finalState);
+        const _finalState = cloneState(state);
+        startBattle(_finalState);
+        onReady(_finalState);
     }
 
     const allUnitsDeployed = playerUnits.every(u => u.pos);

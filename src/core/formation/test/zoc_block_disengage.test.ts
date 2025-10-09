@@ -1,4 +1,4 @@
-import { validateAction } from '../../turn/validation';
+import { _validateAction } from '../../turn/validation';
 import { enemiesAdjacentTo, violatesZoC, canMoveWithoutDisengage, isEngaged } from '../zoc';
 import type { WorldState } from '../../action/types';
 

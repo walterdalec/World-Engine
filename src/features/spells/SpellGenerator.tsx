@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { storage } from "../../core/services/storage";
-import { PREMADE_SPELLS, getAllPremadeSpells, getPremadeSpellsBySchool } from './PremadeSpells';
+import { _PREMADE_SPELLS, getAllPremadeSpells, getPremadeSpellsBySchool } from './PremadeSpells';
 import CustomSpellCreator from './CustomSpellCreator';
 
 interface SpellGeneratorProps {
@@ -87,7 +87,7 @@ export default function SpellGenerator({ onBack }: SpellGeneratorProps) {
   };
 
   // Remove saved spell
-  const removeSavedSpell = (spellName: string) => {
+  const _removeSavedSpell = (spellName: string) => {
     const updated = savedSpells.filter(s => s.name !== spellName);
     setSavedSpells(updated);
     storage.local.setItem('world-engine-saved-spells', JSON.stringify(updated));

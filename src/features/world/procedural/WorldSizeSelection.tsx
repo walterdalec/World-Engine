@@ -12,7 +12,7 @@ import {
     validateWorldSizeForSystem,
     calculateWorldCoverage,
     getWorldSizeConfig,
-    type WorldSizeConfig
+    type _WorldSizeConfig
 } from './worldSizes';
 
 interface WorldSizeSelectionProps {
@@ -32,7 +32,7 @@ export function WorldSizeSelection({
     const sizeOptions = getWorldSizeOptions();
 
     const handleSizeSelect = (sizeId: string) => {
-        onSizeChange(sizeId);
+        onSizeChange(_sizeId);
     };
 
     const toggleExpanded = (sizeId: string) => {

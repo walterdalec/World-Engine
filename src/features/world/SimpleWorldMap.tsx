@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { storage } from "../../core/services/storage";
-import { SettlementGenerator, QuestGenerator, TreasureGenerator, SeededRandom } from "../../core/utils";
+import { SettlementGenerator, QuestGenerator, _TreasureGenerator, SeededRandom } from "../../core/utils";
 import ExplorationMode from "./ExplorationMode";
 
 interface Settlement {
@@ -118,7 +118,7 @@ export default function SimpleWorldMap({ seedStr = "verdance-seed-001", onBack }
   };
 
   // Verdance factions and their territories
-  const factions = [
+  const _factions = [
     { name: "Hollowshade Clan", color: "#065f46", territory: "Forest,Swamp,Jungle" },
     { name: "Valebright Court", color: "#16a34a", territory: "Grass,Forest" },
     { name: "Thornweave Syndicate", color: "#374151", territory: "Forest,Mountain,Taiga" },
@@ -751,7 +751,7 @@ export default function SimpleWorldMap({ seedStr = "verdance-seed-001", onBack }
       }}>
         {grid.flat().map(({ x, y, biome, settlement, encounter, isPlayer }) => {
           const isSelected = selected?.x === x && selected?.y === y;
-          const hasContent = settlement || encounter;
+          const _hasContent = settlement || encounter;
           const onRoad = isOnRoad(x, y);
 
           return (
