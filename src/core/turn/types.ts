@@ -34,9 +34,9 @@ export interface PlannedAction {
 export interface WorldState {
     units: Map<string, any>;
     occupied: Set<string>;
-    terrainCost: (pos: any) => number;
-    passable: (pos: any) => boolean;
-    blocksLos: (pos: any) => boolean;
+    terrainCost: (_pos: any) => number;
+    passable: (_pos: any) => boolean;
+    blocksLos: (_pos: any) => boolean;
 }
 
 export interface ResolutionReport {
@@ -58,8 +58,8 @@ export interface TurnEvent {
 }
 
 export interface TurnHooks {
-    onTurnStart?: (u: UnitRef) => void;
-    onActionDeclared?: (a: PlannedAction, verdict: { ok: boolean; reasons?: string[] }) => void;
-    onResolve?: (r: ResolutionReport) => void;
-    onRoundEnd?: (n: number) => void;
+    onTurnStart?: (_u: UnitRef) => void;
+    onActionDeclared?: (_a: PlannedAction, _verdict: { ok: boolean; reasons?: string[] }) => void;
+    onResolve?: (_r: ResolutionReport) => void;
+    onRoundEnd?: (_n: number) => void;
 }

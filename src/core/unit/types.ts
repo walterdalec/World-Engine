@@ -81,7 +81,7 @@ export interface Unit {
 
 export interface HitContext {
     rng: () => number;                                 // deterministic RNG
-    defenseBonusAt: (h: Axial) => number;               // from #05 Terrain (percent)
+    defenseBonusAt: (_h: Axial) => number;               // from #05 Terrain (percent)
     damageSchool?: School;                           // for magical damage
     damageKind: DamageKind;                          // Physical or Magical
     sourceTags?: string[];                           // weapon/spell tags for status hooks
