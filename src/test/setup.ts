@@ -32,7 +32,7 @@ beforeEach(() => {
     // Mock performance.now for consistent timing that shows progression
     let performanceTime = 0;
     vi.spyOn(performance, 'now').mockImplementation(() => {
-        performanceTime += 1; // Increment by 1ms each call
+        performanceTime += Math.random() * 5 + 1; // 1-6ms progression for realistic timing
         return performanceTime;
     });
 

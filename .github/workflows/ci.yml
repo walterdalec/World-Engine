@@ -36,28 +36,30 @@ jobs:
         continue-on-error: true  # Don't fail build on lint errors initially
 
       - name: Run unit tests
-        run: npm run test:ci -- --coverage --reporter=verbose
+        run: npm run test:coverage
         env:
           CI: true
           NODE_ENV: test
 
       - name: Upload test coverage
         uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && hashFiles('coverage/**') != ''
         with:
           name: coverage-report-node-${{ matrix.node }}
           path: coverage
           retention-days: 30
 
       - name: Run performance benchmarks
-        run: npm run bench:ci
+        run: |
+          mkdir -p bench_out
+          npm run bench:ci
         env:
           CI: true
           NODE_ENV: production
 
       - name: Upload benchmark results
         uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && hashFiles('bench_out/**') != ''
         with:
           name: benchmark-results-node-${{ matrix.node }}
           path: bench_out
