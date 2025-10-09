@@ -93,11 +93,11 @@ interface BattleSystemProps {
   onBack?: () => void;
 }
 
-export default function BattleSystem({ 
-  playerCharacters, 
-  encounter, 
-  onBattleEnd, 
-  onBack 
+export default function BattleSystem({
+  playerCharacters,
+  encounter,
+  onBattleEnd,
+  onBack
 }: BattleSystemProps) {
   const [battleState, setBattleState] = useState<'setup' | 'active' | 'victory' | 'defeat'>('setup');
   const [currentTurn, setCurrentTurn] = useState(0);
@@ -146,7 +146,7 @@ export default function BattleSystem({
     }));
 
     const allParticipants = [...players, ...enemies];
-    
+
     // Sort by initiative (highest first)
     const sorted = allParticipants.sort((a, b) => b.initiative - a.initiative);
     const order = sorted.map(p => p.id);
@@ -223,7 +223,7 @@ export default function BattleSystem({
     // Add spell actions for player characters
     if (participant.character) {
       const char = participant.character;
-      
+
       // Add cantrips
       if (char.knownCantrips && char.knownCantrips.length > 0) {
         char.knownCantrips.forEach(cantripName => {
@@ -261,16 +261,16 @@ export default function BattleSystem({
   const getSpellTargetType = (spell: GeneratedSpell): BattleAction['target'] => {
     const desc = spell.description.toLowerCase();
     const range = spell.range.toLowerCase();
-    
+
     if (range === 'self') return 'self';
     if (desc.includes('heal') || desc.includes('restore') || desc.includes('protect')) return 'ally';
     if (desc.includes('damage') || desc.includes('attack') || desc.includes('harm')) return 'enemy';
-    
+
     // Default based on school
     const school = spell.school.toLowerCase();
     if (['evocation', 'necromancy', 'enchantment'].includes(school)) return 'enemy';
     if (['abjuration', 'divination'].includes(school)) return 'ally';
-    
+
     return 'enemy'; // Default to offensive
   };
 
@@ -279,19 +279,19 @@ export default function BattleSystem({
       case 'self':
         return [participant];
       case 'ally':
-        return participants.filter(p => 
+        return participants.filter(p =>
           p.type === participant.type && p.currentHP > 0
         );
       case 'enemy':
-        return participants.filter(p => 
+        return participants.filter(p =>
           p.type !== participant.type && p.currentHP > 0
         );
       case 'all-enemies':
-        return participants.filter(p => 
+        return participants.filter(p =>
           p.type !== participant.type && p.currentHP > 0
         );
       case 'all-allies':
-        return participants.filter(p => 
+        return participants.filter(p =>
           p.type === participant.type && p.currentHP > 0
         );
       default:
@@ -300,8 +300,8 @@ export default function BattleSystem({
   };
 
   const executeAction = (
-    actor: BattleParticipant, 
-    action: BattleAction, 
+    actor: BattleParticipant,
+    action: BattleAction,
     targets: BattleParticipant[]
   ) => {
     switch (action.type) {
@@ -323,31 +323,31 @@ export default function BattleSystem({
 
   const executeAttack = (attacker: BattleParticipant, target: BattleParticipant) => {
     const attackRoll = rollD20();
-    const attackBonus = attacker.character 
+    const attackBonus = attacker.character
       ? getModifier(attacker.character.finalStats.strength)
       : (attacker.enemy?.attack || 0);
-    
+
     const totalAttack = attackRoll + attackBonus;
-    
+
     addToBattleLog(`${attacker.name} attacks ${target.name}! (${attackRoll} + ${attackBonus} = ${totalAttack} vs AC ${target.armorClass})`);
-    
+
     if (totalAttack >= target.armorClass) {
       const damageRoll = attacker.character
         ? rollDamage('1d6') + getModifier(attacker.character.finalStats.strength)
         : rollDamage(attacker.enemy?.damage || '1d6');
-      
+
       const actualDamage = Math.max(1, damageRoll);
-      
-      setParticipants(prev => 
-        prev.map(p => 
-          p.id === target.id 
+
+      setParticipants(prev =>
+        prev.map(p =>
+          p.id === target.id
             ? { ...p, currentHP: Math.max(0, p.currentHP - actualDamage) }
             : p
         )
       );
-      
+
       addToBattleLog(`🎯 Hit! ${target.name} takes ${actualDamage} damage.`);
-      
+
       if (target.currentHP - actualDamage <= 0) {
         addToBattleLog(`💀 ${target.name} is defeated!`);
       }
@@ -359,7 +359,7 @@ export default function BattleSystem({
   const executeCastSpell = (caster: BattleParticipant, action: BattleAction, targets: BattleParticipant[]) => {
     const spellName = action.name.replace('Cast ', '');
     const spell = availableSpells.find(s => s.name === spellName);
-    
+
     if (!spell) {
       addToBattleLog(`❌ ${caster.name} failed to cast ${spellName} - spell not found!`);
       return;
@@ -376,18 +376,18 @@ export default function BattleSystem({
     if (spell.duration.toLowerCase().includes('concentration')) {
       const durationMatch = spell.duration.match(/(\d+)\s*rounds?/);
       const duration = durationMatch ? parseInt(durationMatch[1]) : 3;
-      
-      setParticipants(prev => 
-        prev.map(p => 
-          p.id === caster.id 
-            ? { 
-                ...p, 
-                concentrationSpell: {
-                  name: spell.name,
-                  duration,
-                  effect: spell.description
-                }
+
+      setParticipants(prev =>
+        prev.map(p =>
+          p.id === caster.id
+            ? {
+              ...p,
+              concentrationSpell: {
+                name: spell.name,
+                duration,
+                effect: spell.description
               }
+            }
             : p
         )
       );
@@ -418,9 +418,9 @@ export default function BattleSystem({
     switch (effectType) {
       case 'heal':
         const healAmount = rollDamage(`1d${magnitude + 2}`) + (spellLevel > 0 ? spellLevel : 1);
-        setParticipants(prev => 
-          prev.map(p => 
-            p.id === target.id 
+        setParticipants(prev =>
+          prev.map(p =>
+            p.id === target.id
               ? { ...p, currentHP: Math.min(p.maxHP, p.currentHP + healAmount) }
               : p
           )
@@ -430,15 +430,15 @@ export default function BattleSystem({
 
       case 'damage':
         const damageAmount = rollDamage(`1d${magnitude}`) + (spellLevel > 0 ? spellLevel : 0);
-        setParticipants(prev => 
-          prev.map(p => 
-            p.id === target.id 
+        setParticipants(prev =>
+          prev.map(p =>
+            p.id === target.id
               ? { ...p, currentHP: Math.max(0, p.currentHP - damageAmount) }
               : p
           )
         );
         addToBattleLog(`💥 ${target.name} takes ${damageAmount} magical damage!`);
-        
+
         if (target.currentHP - damageAmount <= 0) {
           addToBattleLog(`💀 ${target.name} is defeated by magic!`);
         }
@@ -446,21 +446,21 @@ export default function BattleSystem({
 
       case 'protection':
         const protectionDuration = Math.max(1, Math.floor(magnitude / 2));
-        setParticipants(prev => 
-          prev.map(p => 
-            p.id === target.id 
-              ? { 
-                  ...p, 
-                  statusEffects: [
-                    ...p.statusEffects,
-                    {
-                      name: `${spell.name} Protection`,
-                      duration: protectionDuration,
-                      effect: `+${magnitude} AC`,
-                      color: spell.color
-                    }
-                  ]
-                }
+        setParticipants(prev =>
+          prev.map(p =>
+            p.id === target.id
+              ? {
+                ...p,
+                statusEffects: [
+                  ...p.statusEffects,
+                  {
+                    name: `${spell.name} Protection`,
+                    duration: protectionDuration,
+                    effect: `+${magnitude} AC`,
+                    color: spell.color
+                  }
+                ]
+              }
               : p
           )
         );
@@ -470,21 +470,21 @@ export default function BattleSystem({
   };
 
   const executeDefend = (participant: BattleParticipant) => {
-    setParticipants(prev => 
-      prev.map(p => 
-        p.id === participant.id 
-          ? { 
-              ...p, 
-              statusEffects: [
-                ...p.statusEffects,
-                {
-                  name: 'Defending',
-                  duration: 1,
-                  effect: '+2 AC',
-                  color: '#10b981'
-                }
-              ]
-            }
+    setParticipants(prev =>
+      prev.map(p =>
+        p.id === participant.id
+          ? {
+            ...p,
+            statusEffects: [
+              ...p.statusEffects,
+              {
+                name: 'Defending',
+                duration: 1,
+                effect: '+2 AC',
+                color: '#10b981'
+              }
+            ]
+          }
           : p
       )
     );
@@ -498,7 +498,7 @@ export default function BattleSystem({
   const processEnemyTurn = (enemy: BattleParticipant) => {
     // Simple AI: attack a random player
     const playerTargets = participants.filter(p => p.type === 'player' && p.currentHP > 0);
-    
+
     if (playerTargets.length === 0) return;
 
     const target = playerTargets[Math.floor(rng.next() * playerTargets.length)];
@@ -514,7 +514,7 @@ export default function BattleSystem({
 
   const nextTurn = () => {
     // Process end of turn effects
-    setParticipants(prev => 
+    setParticipants(prev =>
       prev.map(p => ({
         ...p,
         statusEffects: p.statusEffects
@@ -527,7 +527,7 @@ export default function BattleSystem({
     );
 
     let nextTurnIndex = (currentTurn + 1) % turnOrder.length;
-    
+
     // If we've gone through all participants, start a new round
     if (nextTurnIndex === 0) {
       setRound(prev => prev + 1);
@@ -548,7 +548,7 @@ export default function BattleSystem({
     } else if (aliveEnemies.length === 0) {
       setBattleState('victory');
       // Calculate rewards here
-      onBattleEnd('victory', { 
+      onBattleEnd('victory', {
         experience: encounter.enemies.length * 100,
         gold: Math.floor(rng.next() * 50) + 10
       });
@@ -562,7 +562,7 @@ export default function BattleSystem({
 
   const handleTargetClick = (targetId: string) => {
     if (!selectedAction) return;
-    
+
     const currentParticipant = getCurrentParticipant();
     if (!currentParticipant) return;
 
@@ -570,7 +570,7 @@ export default function BattleSystem({
     if (!target) return;
 
     executeAction(currentParticipant, selectedAction, [target]);
-    
+
     setTimeout(() => {
       nextTurn();
     }, 1500);
@@ -599,9 +599,9 @@ export default function BattleSystem({
 
   if (battleState === 'setup') {
     return (
-      <div style={{ 
-        minHeight: '100vh', 
-        background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)', 
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
         color: '#f1f5f9',
         padding: '2rem',
         display: 'flex',
@@ -620,15 +620,15 @@ export default function BattleSystem({
   const isPlayerTurn = currentParticipant?.type === 'player';
 
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)', 
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
       color: '#f1f5f9',
       padding: '1rem'
     }}>
       {/* Header */}
-      <div style={{ 
-        textAlign: 'center', 
+      <div style={{
+        textAlign: 'center',
         marginBottom: '1.5rem',
         padding: '1rem',
         background: 'rgba(15, 23, 42, 0.8)',
@@ -663,9 +663,9 @@ export default function BattleSystem({
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 300px', gap: '1rem', height: 'calc(100vh - 200px)' }}>
         {/* Player Characters */}
-        <div style={{ 
-          background: 'rgba(15, 23, 42, 0.6)', 
-          borderRadius: '8px', 
+        <div style={{
+          background: 'rgba(15, 23, 42, 0.6)',
+          borderRadius: '8px',
           padding: '1rem',
           border: '2px solid #059669'
         }}>
@@ -678,9 +678,9 @@ export default function BattleSystem({
                 style={{
                   padding: '0.75rem',
                   background: currentParticipant?.id === participant.id ? 'rgba(59, 130, 246, 0.3)' : 'rgba(15, 23, 42, 0.8)',
-                  border: currentParticipant?.id === participant.id ? '2px solid #3b82f6' : 
-                         selectedAction && getValidTargets(currentParticipant!, selectedAction).some(t => t.id === participant.id) ? '2px solid #f59e0b' : 
-                         '1px solid #334155',
+                  border: currentParticipant?.id === participant.id ? '2px solid #3b82f6' :
+                    selectedAction && getValidTargets(currentParticipant!, selectedAction).some(t => t.id === participant.id) ? '2px solid #f59e0b' :
+                      '1px solid #334155',
                   borderRadius: '6px',
                   cursor: selectedAction && getValidTargets(currentParticipant!, selectedAction).some(t => t.id === participant.id) ? 'pointer' : 'default'
                 }}
@@ -701,7 +701,7 @@ export default function BattleSystem({
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Status Effects */}
                 {participant.statusEffects.length > 0 && (
                   <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
@@ -724,9 +724,9 @@ export default function BattleSystem({
 
                 {/* Concentration Spell */}
                 {participant.concentrationSpell && (
-                  <div style={{ 
-                    marginTop: '0.5rem', 
-                    fontSize: '0.8rem', 
+                  <div style={{
+                    marginTop: '0.5rem',
+                    fontSize: '0.8rem',
                     color: '#a78bfa',
                     fontStyle: 'italic'
                   }}>
@@ -739,9 +739,9 @@ export default function BattleSystem({
         </div>
 
         {/* Enemies */}
-        <div style={{ 
-          background: 'rgba(15, 23, 42, 0.6)', 
-          borderRadius: '8px', 
+        <div style={{
+          background: 'rgba(15, 23, 42, 0.6)',
+          borderRadius: '8px',
           padding: '1rem',
           border: '2px solid #dc2626'
         }}>
@@ -754,9 +754,9 @@ export default function BattleSystem({
                 style={{
                   padding: '0.75rem',
                   background: currentParticipant?.id === participant.id ? 'rgba(239, 68, 68, 0.3)' : 'rgba(15, 23, 42, 0.8)',
-                  border: currentParticipant?.id === participant.id ? '2px solid #ef4444' : 
-                         selectedAction && getValidTargets(currentParticipant!, selectedAction).some(t => t.id === participant.id) ? '2px solid #f59e0b' : 
-                         '1px solid #334155',
+                  border: currentParticipant?.id === participant.id ? '2px solid #ef4444' :
+                    selectedAction && getValidTargets(currentParticipant!, selectedAction).some(t => t.id === participant.id) ? '2px solid #f59e0b' :
+                      '1px solid #334155',
                   borderRadius: '6px',
                   cursor: selectedAction && getValidTargets(currentParticipant!, selectedAction).some(t => t.id === participant.id) ? 'pointer' : 'default',
                   opacity: participant.currentHP <= 0 ? 0.5 : 1
@@ -778,7 +778,7 @@ export default function BattleSystem({
                     </div>
                   </div>
                 </div>
-                
+
                 {participant.enemy && (
                   <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '0.25rem' }}>
                     {participant.enemy.description}
@@ -790,16 +790,16 @@ export default function BattleSystem({
         </div>
 
         {/* Actions Panel */}
-        <div style={{ 
-          background: 'rgba(15, 23, 42, 0.6)', 
-          borderRadius: '8px', 
+        <div style={{
+          background: 'rgba(15, 23, 42, 0.6)',
+          borderRadius: '8px',
           padding: '1rem',
           border: '1px solid #334155'
         }}>
           <h3 style={{ margin: '0 0 1rem', color: '#f1f5f9' }}>
             {isPlayerTurn ? '🎲 Your Actions' : '⏳ Enemy Turn'}
           </h3>
-          
+
           {isPlayerTurn ? (
             <div>
               {!selectedAction ? (
@@ -831,7 +831,7 @@ export default function BattleSystem({
                   <p style={{ fontSize: '0.9rem', color: '#94a3b8', margin: '0.5rem 0' }}>
                     {selectedAction.description}
                   </p>
-                  
+
                   {selectedAction.target !== 'self' ? (
                     <p style={{ color: '#f59e0b', fontSize: '0.9rem' }}>
                       Click a target to continue...
@@ -852,7 +852,7 @@ export default function BattleSystem({
                       Execute Action
                     </button>
                   )}
-                  
+
                   <button
                     onClick={() => setSelectedAction(null)}
                     style={{
@@ -876,11 +876,11 @@ export default function BattleSystem({
               <p>Enemy is deciding their action...</p>
             </div>
           )}
-          
+
           {/* Battle Log */}
-          <div style={{ 
-            marginTop: '1.5rem', 
-            padding: '0.75rem', 
+          <div style={{
+            marginTop: '1.5rem',
+            padding: '0.75rem',
             background: 'rgba(0, 0, 0, 0.3)',
             borderRadius: '4px',
             maxHeight: '200px',

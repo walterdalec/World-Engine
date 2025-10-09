@@ -27,8 +27,8 @@ export function RendererComparison({ state, onTileClick, selectedUnit }: Rendere
                         <button
                             onClick={() => setActiveRenderer('original')}
                             className={`px-4 py-2 rounded text-sm transition-colors ${activeRenderer === 'original'
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                                 }`}
                         >
                             Original Canvas
@@ -36,8 +36,8 @@ export function RendererComparison({ state, onTileClick, selectedUnit }: Rendere
                         <button
                             onClick={() => setActiveRenderer('honeycomb')}
                             className={`px-4 py-2 rounded text-sm transition-colors ${activeRenderer === 'honeycomb'
-                                    ? 'bg-green-600 text-white'
-                                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                ? 'bg-green-600 text-white'
+                                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                                 }`}
                         >
                             🍯 Honeycomb Grid

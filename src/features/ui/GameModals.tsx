@@ -179,9 +179,9 @@ export default function GameModals({
             padding: '32px',
             borderRadius: '12px',
             border: `3px solid ${activeEncounter.danger === 'extreme' ? '#dc2626' :
-                activeEncounter.danger === 'high' ? '#ea580c' :
-                  activeEncounter.danger === 'medium' ? '#eab308' :
-                    activeEncounter.danger === 'low' ? '#65a30d' : '#059669'
+              activeEncounter.danger === 'high' ? '#ea580c' :
+                activeEncounter.danger === 'medium' ? '#eab308' :
+                  activeEncounter.danger === 'low' ? '#65a30d' : '#059669'
               }`,
             maxWidth: '700px',
             width: '90%',
@@ -227,9 +227,9 @@ export default function GameModals({
                       activeEncounter.danger === 'medium' ? '#fde047' :
                         activeEncounter.danger === 'low' ? '#a3e635' : '#6ee7b7',
                 border: `1px solid ${activeEncounter.danger === 'extreme' ? '#dc2626' :
-                    activeEncounter.danger === 'high' ? '#ea580c' :
-                      activeEncounter.danger === 'medium' ? '#eab308' :
-                        activeEncounter.danger === 'low' ? '#65a30d' : '#059669'
+                  activeEncounter.danger === 'high' ? '#ea580c' :
+                    activeEncounter.danger === 'medium' ? '#eab308' :
+                      activeEncounter.danger === 'low' ? '#65a30d' : '#059669'
                   }`
               }}>
                 {activeEncounter.danger.toUpperCase()} RISK

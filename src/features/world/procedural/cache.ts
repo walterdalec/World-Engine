@@ -40,7 +40,7 @@ class CacheNode {
         public chunk: Chunk,
         public prev: CacheNode | null = null,
         public next: CacheNode | null = null
-    ) { 
+    ) {
         // Constructor parameters used as public properties - suppress unused warnings
         this.chunkId = chunkId;
         this.chunk = chunk;
