@@ -136,4 +136,3 @@ export function storageAreaToWebStorage(area: StorageArea): Storage {
   } as unknown as Storage;
 }
 
-export const storage = _storage;
