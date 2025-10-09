@@ -54,7 +54,7 @@ export class MagicalSpellsGenerator {
   
   // Predefined spell templates organized by school
   private static readonly SPELL_TEMPLATES: Record<MagicalSchool, {
-    [key in SpellTier]: Array<Omit<MagicalSpell, 'name' | 'school' | 'tier'>>
+    [_key in SpellTier]: Array<Omit<MagicalSpell, 'name' | 'school' | 'tier'>>
   }> = {
     Evocation: {
       Cantrip: [

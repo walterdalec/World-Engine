@@ -12,7 +12,7 @@
 import { WorldNoise, SeededRandom } from './noise';
 import { PhysicalAbilitiesGenerator } from './physicalAbilities';
 import { MagicalSpellsGenerator } from './magicalSpells';
-import type { Tile, BiomeType } from './chunks';
+import type { BiomeType } from './chunks';
 
 export interface Chokepoint {
   x: number;

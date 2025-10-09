@@ -28,20 +28,20 @@ interface GameState {
     };
 
     // Actions
-    setCurrentCharacter: (character: Partial<Character> | null) => void;
-    updateCurrentCharacter: (updates: Partial<Character>) => void;
+    setCurrentCharacter: (_character: Partial<Character> | null) => void;
+    updateCurrentCharacter: (_updates: Partial<Character>) => void;
     saveCharacter: () => void;
-    loadCharacter: (id: string) => void;
-    deleteCharacter: (id: string) => void;
+    loadCharacter: (_id: string) => void;
+    deleteCharacter: (_id: string) => void;
 
     // UI actions
-    setCreatingCharacter: (creating: boolean) => void;
-    setCurrentStep: (step: GameState['currentStep']) => void;
+    setCreatingCharacter: (_creating: boolean) => void;
+    setCurrentStep: (_step: GameState['currentStep']) => void;
     toggleDebugMode: () => void;
 
     // Map actions (for future use)
-    setCurrentWorld: (world: string) => void;
-    updateMapSettings: (settings: Partial<GameState['mapSettings']>) => void;
+    setCurrentWorld: (_world: string) => void;
+    updateMapSettings: (_settings: Partial<GameState['mapSettings']>) => void;
     generateMapSeed: () => void;
 }
 

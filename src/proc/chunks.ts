@@ -279,7 +279,7 @@ export class ChunkManager {
     const key = this.chunkKey(chunk.chunkX, chunk.chunkY);
     const chunkObj = this.chunks.get(key);
     
-    return chunkObj?.generated && chunkObj.tiles.has(this.tileKey(x, y)) || false;
+    return (chunkObj?.generated && chunkObj.tiles.has(this.tileKey(x, y))) || false;
   }
   
   /**

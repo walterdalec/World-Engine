@@ -32,8 +32,8 @@ jobs:
         run: npm run typecheck
 
       - name: Lint code
-        run: npx eslint . --max-warnings=600 --format=stylish
-        continue-on-error: true  # Don't fail build on lint errors initially
+        run: npx eslint . --max-warnings=441 --format=stylish
+        continue-on-error: false  # Fail build if lint errors exceed threshold
 
       - name: Run unit tests
         run: npm run test:ci -- --coverage --reporter=verbose

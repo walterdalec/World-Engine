@@ -53,7 +53,7 @@ export class PhysicalAbilitiesGenerator {
   
   // Predefined ability templates organized by school
   private static readonly ABILITY_TEMPLATES: Record<PhysicalAbilitySchool, {
-    [key in PhysicalAbilityTier]: Array<Omit<PhysicalAbility, 'name' | 'school' | 'tier'>>
+    [_key in PhysicalAbilityTier]: Array<Omit<PhysicalAbility, 'name' | 'school' | 'tier'>>
   }> = {
     Weaponmastery: {
       Novice: [
