@@ -106,7 +106,7 @@ const defaultProvider: StorageProvider = {
 
 let currentProvider: StorageProvider = defaultProvider;
 
-export const _storage = {
+export const storage = {
   get local(): StorageArea {
     return currentProvider.local;
   },
