@@ -20,7 +20,7 @@ class MathRandomSource implements RandomSource {
     if (max < min) {
       throw new Error("RandomSource.nextInt requires max >= min");
     }
-    return Math.floor(this.nextFloat(_min, max + 1));
+    return Math.floor(this.nextFloat(min, max + 1));
   }
 
   pick<T>(values: readonly T[]): T {
@@ -51,7 +51,7 @@ export class SeededRandomSource implements RandomSource {
     if (max < min) {
       throw new Error("RandomSource.nextInt requires max >= min");
     }
-    return Math.floor(this.nextFloat(_min, max + 1));
+    return Math.floor(this.nextFloat(min, max + 1));
   }
 
   pick<T>(values: readonly T[]): T {
@@ -71,13 +71,13 @@ export const rng = {
     return currentSource.next();
   },
   float(min: number = 0, max: number = 1): number {
-    return currentSource.nextFloat(_min, _max);
+    return currentSource.nextFloat(min, max);
   },
   int(min: number, max: number): number {
-    return currentSource.nextInt(_min, _max);
+    return currentSource.nextInt(min, max);
   },
   pick<T>(values: readonly T[]): T {
-    return currentSource.pick(_values);
+    return currentSource.pick(values);
   },
   bool(probability: number = 0.5): boolean {
     if (probability <= 0) return false;

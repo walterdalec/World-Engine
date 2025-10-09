@@ -7,12 +7,12 @@
 import { useEffect, useRef } from "react";
 
 type Props = {
-    init?: (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => void;
-    onRender?: (ctx: CanvasRenderingContext2D, t: number) => void;
-    pan?: (dx: number, dy: number) => void;                      // drag-pan hook
-    zoom?: (delta: number, cx: number, cy: number) => void;      // wheel-zoom hook
-    onClick?: (x: number, y: number) => void;                    // click handler
-    onHover?: (x: number, y: number) => void;                    // hover handler
+    init?: (_ctx: CanvasRenderingContext2D, _canvas: HTMLCanvasElement) => void;
+    onRender?: (_ctx: CanvasRenderingContext2D, _t: number) => void;
+    pan?: (_dx: number, _dy: number) => void;                      // drag-pan hook
+    zoom?: (_delta: number, _cx: number, _cy: number) => void;      // wheel-zoom hook
+    onClick?: (_x: number, _y: number) => void;                    // click handler
+    onHover?: (_x: number, _y: number) => void;                    // hover handler
     onHoverEnd?: () => void;                                     // hover end handler
 };
 
@@ -29,8 +29,8 @@ export default function HexStage({
     const rafRef = useRef<number>();
 
     useEffect(() => {
-        const _canvas = canvasRef.current!;
-        const _ctx = canvas.getContext("2d")!;
+        const canvas = canvasRef.current!;
+        const ctx = canvas.getContext("2d")!;
 
         // Fit canvas to CSS size with device pixel ratio
         const resize = () => {
@@ -46,13 +46,13 @@ export default function HexStage({
         };
 
         const ro = new ResizeObserver(resize);
-        ro.observe(_canvas);
+        ro.observe(canvas);
         resize();
 
-        init?.(_ctx, _canvas);
+        init?.(ctx, canvas);
 
         const loop = (t: number) => {
-            onRender?.(_ctx, _t);
+            onRender?.(ctx, t);
             rafRef.current = requestAnimationFrame(loop);
         };
         rafRef.current = requestAnimationFrame(loop);

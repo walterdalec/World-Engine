@@ -19,15 +19,15 @@ class InMemoryStorageArea implements StorageArea {
   private store = new Map<string, string>();
 
   getItem(key: string): string | null {
-    return this.store.has(_key) ? this.store.get(_key)! : null;
+    return this.store.has(key) ? this.store.get(key)! : null;
   }
 
   setItem(key: string, value: string): void {
-    this.store.set(_key, _value);
+    this.store.set(key, value);
   }
 
   removeItem(key: string): void {
-    this.store.delete(_key);
+    this.store.delete(key);
   }
 
   clear(): void {
@@ -47,11 +47,11 @@ class BrowserStorageArea implements StorageArea {
 
   getItem(key: string): string | null {
     const _storage = this.resolveStorage();
-    if (!storage) {
+    if (!_storage) {
       return null;
     }
     try {
-      return storage.getItem(_key);
+      return _storage.getItem(key);
     } catch (error) {
       console.warn("Storage getItem failed", { key, error });
       return null;
@@ -60,11 +60,11 @@ class BrowserStorageArea implements StorageArea {
 
   setItem(key: string, value: string): void {
     const _storage = this.resolveStorage();
-    if (!storage) {
+    if (!_storage) {
       return;
     }
     try {
-      storage.setItem(_key, _value);
+      _storage.setItem(key, value);
     } catch (error) {
       console.warn("Storage setItem failed", { key, error });
     }
@@ -72,11 +72,11 @@ class BrowserStorageArea implements StorageArea {
 
   removeItem(key: string): void {
     const _storage = this.resolveStorage();
-    if (!storage) {
+    if (!_storage) {
       return;
     }
     try {
-      storage.removeItem(_key);
+      _storage.removeItem(key);
     } catch (error) {
       console.warn("Storage removeItem failed", { key, error });
     }
@@ -84,11 +84,11 @@ class BrowserStorageArea implements StorageArea {
 
   clear(): void {
     const _storage = this.resolveStorage();
-    if (!storage) {
+    if (!_storage) {
       return;
     }
     try {
-      storage.clear();
+      _storage.clear();
     } catch (error) {
       console.warn("Storage clear failed", { error });
     }
@@ -135,3 +135,5 @@ export function storageAreaToWebStorage(area: StorageArea): Storage {
     }
   } as unknown as Storage;
 }
+
+export const storage = _storage;

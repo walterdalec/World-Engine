@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { BattleState, _Unit, HexPosition } from '../types';
+import type { BattleState, HexPosition } from '../types';
 import { sanitizeBattleState } from '../typeGuards';
 import { BattleCanvas } from './renderer2d';
 import {
@@ -10,12 +10,11 @@ import {
     getValidMoves
 } from '../engine';
 import { ABILITIES } from '../abilities';
-import { _calculateAIAction, executeAITurn } from '../ai';
-import { _calculateBattleRewards } from '../economy';
+import { executeAITurn } from '../ai';
 
 interface BattleScreenProps {
     initialState: BattleState;
-    onExit: (result: 'Victory' | 'Defeat' | 'Retreat', finalState: BattleState) => void;
+    onExit: (_result: 'Victory' | 'Defeat' | 'Retreat', _finalState: BattleState) => void;
 }
 
 function cloneState(state: BattleState): BattleState {
@@ -27,7 +26,7 @@ function cloneState(state: BattleState): BattleState {
     const [selectedUnit, setSelectedUnit] = useState<string | undefined>(undefined);
     const [selectedAbility, setSelectedAbility] = useState<string | null>(null);
     const [targetMode, setTargetMode] = useState<'move' | 'ability' | null>(null);
-    const [validMoves, setValidMoves] = useState<HexPosition[]>([]);
+    const [_validMoves, setValidMoves] = useState<HexPosition[]>([]);
     const [showLog, setShowLog] = useState(false);
 
     // Handle phase transitions and AI turns
@@ -49,14 +48,14 @@ function cloneState(state: BattleState): BattleState {
 
             return () => clearTimeout(timer);
         }
-    }, [state.phase]);
+    }, [state]);
 
     // Check for battle end conditions
     useEffect(() => {
         if (state.phase === 'Victory' || state.phase === 'Defeat') {
             onExit(state.phase, state);
         }
-    }, [state.phase, onExit]);
+    }, [state, onExit]);
 
     const playerUnits = state.units.filter(u =>
         u.faction === 'Player' && !u.isDead && !u.isCommander && u.pos
