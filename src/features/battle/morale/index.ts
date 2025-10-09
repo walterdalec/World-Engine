@@ -7,6 +7,16 @@
  */
 
 // Core types and models
+/**
+ * Main morale system integration functions
+ */
+
+import type { BattleState } from '../types';
+import { updateAllMorale, applyArmyMoraleShift } from './compute';
+import { applyCommanderAuras, removeCommanderAuras } from './auras';
+import { tickRallyCooldowns } from './rally';
+import { forceRoutingFlee, checkSurrenderConditions } from './flee';
+
 export type { MoraleState, MoraleBlock, MoraleFactors } from './model';
 export {
     Thresholds,
@@ -109,16 +119,6 @@ export {
     validateMoraleSystem,
     MoraleDebug
 } from './telemetry';
-
-/**
- * Main morale system integration functions
- */
-
-import type { BattleState } from '../types';
-import { updateAllMorale, applyArmyMoraleShift } from './compute';
-import { applyCommanderAuras, removeCommanderAuras } from './auras';
-import { tickRallyCooldowns } from './rally';
-import { forceRoutingFlee, checkSurrenderConditions } from './flee';
 
 /**
  * Initialize morale system for a battle

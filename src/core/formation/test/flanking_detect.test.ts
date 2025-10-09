@@ -1,4 +1,3 @@
-import { describe, it, expect } from '@jest/globals';
 import { flankInfo, flankModifiers } from '../flanking';
 import type { WorldState } from '../../action/types';
 

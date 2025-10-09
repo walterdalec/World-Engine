@@ -3,7 +3,6 @@
  * Tests the AI systems in a simple scenario
  */
 
-import { describe, it, expect } from '@jest/globals';
 
 // AI Systems
 import { calculateAIAction, calculateAdvancedAIAction } from '../features/battle/ai';

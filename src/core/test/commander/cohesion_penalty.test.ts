@@ -1,5 +1,4 @@
 // packages/core/src/test/commander/cohesion_penalty.test.ts
-import { describe, it, expect } from '@jest/globals';
 import { applyCohesion } from '../../commander/squad';
 
 function axial(q: number, r: number) {

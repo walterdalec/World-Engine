@@ -3,7 +3,6 @@
  * Verify deterministic initiative ordering in round mode
  */
 
-import { describe, it, expect } from '@jest/globals';
 import { TurnManager } from '../TurnManager';
 import type { UnitRef } from '../types';
 

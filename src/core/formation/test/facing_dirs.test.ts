@@ -1,4 +1,3 @@
-import { describe, it, expect } from '@jest/globals';
 import { dirBetween, classifyArc, dirDiff, getFrontArc, getRearArc } from '../facing';
 
 describe('Facing & Arcs', () => {
