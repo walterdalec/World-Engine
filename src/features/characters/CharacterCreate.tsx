@@ -4,9 +4,9 @@ import { rng } from "../../core/services/random";
 import { storage } from "../../core/services/storage";
 import { CLASS_DEFINITIONS } from '../../core/config';
 // Visual System Integration - NEW Simple PNG System
-import { SimplePortraitPreview, _SimpleUtils } from '../portraits';
+import { SimplePortraitPreview, SimpleUtils } from '../portraits';
 // Gender-locked portrait system
-import { getAvailableArchetypes, _isValidGenderForClass, getGenderLock } from '../../core/config';
+import { getAvailableArchetypes, isValidGenderForClass, getGenderLock } from '../../core/config';
 
 type Stats = "STR" | "DEX" | "CON" | "INT" | "WIS" | "CHA";
 
@@ -544,17 +544,17 @@ export default function CharacterCreate() {
 
   function inc(stat: Stats) {
     setChar((c) => {
-      const _v = c.stats[stat];
+      const v = c.stats[stat];
       if (c.mode !== "POINT_BUY") return c;
       if (v >= MAX_STAT) return c;
-      if (!canAffordStatIncrease(_v, pointsLeft)) return c;
+      if (!canAffordStatIncrease(v, pointsLeft)) return c;
       return { ...c, stats: { ...c.stats, [stat]: v + 1 } };
     });
   }
 
   function dec(stat: Stats) {
     setChar((c) => {
-      const _v = c.stats[stat];
+      const v = c.stats[stat];
       if (c.mode !== "POINT_BUY") return c;
       if (v <= MIN_STAT) return c;
       return { ...c, stats: { ...c.stats, [stat]: v - 1 } };

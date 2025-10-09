@@ -3,7 +3,7 @@
  * Uses actual artwork when available, with gender-locked classes
  */
 
-import { getPortraitImagePath, _isValidGenderForClass } from '../../core/config';
+import { getPortraitImagePath, isValidGenderForClass } from '../../core/config';
 import { rng } from "../../core/services/random";
 
 export interface PortraitLayer {

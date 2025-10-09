@@ -197,9 +197,9 @@ export default function CustomSpellCreator({ onBack, onSpellCreated }: CustomSpe
   };
 
   const handleSave = () => {
-    const _spell = generateSpell();
+    const spell = generateSpell();
     if (spell && onSpellCreated) {
-      onSpellCreated(_spell);
+      onSpellCreated(spell);
     }
   };
 

@@ -1,7 +1,7 @@
 import { seedRng, rngInt, rngPick } from './rng';
 import {
   Caravan,
-  _Faction,
+  Faction,
   TradeRoute,
   WorldEvent,
   WorldState,

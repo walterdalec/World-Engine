@@ -25,12 +25,12 @@ export class ErrorBoundary extends Component<Props, State> {
         };
     }
 
-    static getDerivedStateFromError(_error: Error): Partial<State> {
+    static getDerivedStateFromError(error: Error): Partial<State> {
         return { hasError: true };
     }
 
     componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-        console.error('🚨 Error Boundary caught error:', _error);
+        console.error('🚨 Error Boundary caught error:', error);
         console.error('🚨 Error info:', errorInfo);
 
         this.setState({

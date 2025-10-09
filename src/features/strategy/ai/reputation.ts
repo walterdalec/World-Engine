@@ -1,5 +1,5 @@
 
-import { Faction, _ID, ReputationTag, WorldState } from './types';
+import { Faction, ID, ReputationTag, WorldState } from './types';
 
 export function updateReputation(world: WorldState) {
   for (const faction of Object.values(world.factions)) {
