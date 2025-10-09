@@ -237,7 +237,7 @@ describe('TODO #14 — Save/Load System', () => {
             const log = replayManager.getCurrentLog()!;
             const replayedState = await replayManager.replayActions(baseState, log);
 
-            expect(replayedState.turnQueue.currentTurn).toBe(2);
+            expect((replayedState as CombatStateV3).turnQueue.currentTurn).toBe(2);
         });
     });
 
@@ -292,7 +292,7 @@ describe('TODO #14 — Save/Load System', () => {
             expect(decoded.isValid).toBe(true);
             expect(decoded.compressionUsed).toBe(true);
 
-            const loadedState = decoded.data;
+            const loadedState = decoded.data as CombatStateV3;
             expect(loadedState.battleId).toBe('roundtrip_test');
             expect(loadedState.seed).toBe('roundtrip_seed');
             expect(loadedState.units).toHaveLength(1);
@@ -318,9 +318,10 @@ describe('TODO #14 — Save/Load System', () => {
             const decoded = await decodeSave(encoded);
 
             expect(decoded.isValid).toBe(true);
-            expect(decoded.data.units).toEqual([]);
-            expect(decoded.data.terrain).toEqual([]);
-            expect(decoded.data.objectives).toEqual([]);
+            const combatData = decoded.data as CombatStateV3;
+            expect(combatData.units).toEqual([]);
+            expect(combatData.terrain).toEqual([]);
+            expect(combatData.objectives).toEqual([]);
         });
     });
 
@@ -365,7 +366,8 @@ describe('TODO #14 — Save/Load System', () => {
             const endTime = performance.now();
 
             expect(decoded.isValid).toBe(true);
-            expect(decoded.data.units).toHaveLength(100);
+            const combatData = decoded.data as CombatStateV3;
+            expect(combatData.units).toHaveLength(100);
             expect(endTime - startTime).toBeLessThan(1000); // Should complete within 1 second
         });
     });

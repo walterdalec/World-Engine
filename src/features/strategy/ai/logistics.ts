@@ -1,5 +1,5 @@
 
-import { Army, _ID, WorldState } from './types';
+import { Army, ID as _ID, WorldState } from './types';
 import { shortestPathRegions } from './world';
 
 export function recomputeDepotRadius(world: WorldState) {

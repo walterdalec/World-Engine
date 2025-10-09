@@ -3,18 +3,18 @@
  * Handles mouse, touch, and keyboard input for combat interface
  */
 
-import type { InputMap, CombatMode } from './types';
+import type { InputMap } from './types';
 import type { HexPosition } from '../../battle/types';
 import { selectionManager } from './Selection';
 
 export interface InputController {
-    mount(element: HTMLElement): void;
+    mount(_element: HTMLElement): void;
     unmount(): void;
-    setInputMap(map: Partial<InputMap>): void;
-    onHexClick?: (pos: HexPosition, event: PointerEvent) => void;
-    onHexHover?: (pos: HexPosition | null) => void;
-    onPan?: (deltaX: number, deltaY: number) => void;
-    onZoom?: (delta: number, centerX: number, centerY: number) => void;
+    setInputMap(_map: Partial<InputMap>): void;
+    onHexClick?: (_pos: HexPosition, _event: PointerEvent) => void;
+    onHexHover?: (_pos: HexPosition | null) => void;
+    onPan?: (_deltaX: number, _deltaY: number) => void;
+    onZoom?: (_delta: number, _centerX: number, _centerY: number) => void;
 }
 
 class CombatInputController implements InputController {
@@ -26,10 +26,10 @@ class CombatInputController implements InputController {
     private panStarted = false;
 
     // Callbacks
-    public onHexClick?: (pos: HexPosition, event: PointerEvent) => void;
-    public onHexHover?: (pos: HexPosition | null) => void;
-    public onPan?: (deltaX: number, deltaY: number) => void;
-    public onZoom?: (delta: number, centerX: number, centerY: number) => void;
+    public onHexClick?: (_pos: HexPosition, _event: PointerEvent) => void;
+    public onHexHover?: (_pos: HexPosition | null) => void;
+    public onPan?: (_deltaX: number, _deltaY: number) => void;
+    public onZoom?: (_delta: number, _centerX: number, _centerY: number) => void;
 
     constructor(inputMap: InputMap) {
         this.inputMap = { ...inputMap };
@@ -93,12 +93,12 @@ class CombatInputController implements InputController {
     private handlePointerMove(event: PointerEvent): void {
         if (!this.isPointerDown) {
             // Hover handling
-            this.throttledHover(_event);
+            this.throttledHover(event);
             return;
         }
 
-        const _deltaX = event.clientX - this.lastPointerPos.x;
-        const _deltaY = event.clientY - this.lastPointerPos.y;
+        const deltaX = event.clientX - this.lastPointerPos.x;
+        const deltaY = event.clientY - this.lastPointerPos.y;
         const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
         if (distance > this.panThreshold && !this.panStarted) {
@@ -106,7 +106,7 @@ class CombatInputController implements InputController {
         }
 
         if (this.panStarted && this.onPan) {
-            this.onPan(_deltaX, _deltaY);
+            this.onPan(deltaX, deltaY);
         }
 
         this.lastPointerPos = { x: event.clientX, y: event.clientY };
@@ -119,14 +119,14 @@ class CombatInputController implements InputController {
 
         if (!this.panStarted) {
             // This was a click/tap, not a pan
-            const _hexPos = this.screenToHex(event.clientX, event.clientY);
-            if (_hexPos) {
+            const hexPos = this.screenToHex(event.clientX, event.clientY);
+            if (hexPos) {
                 if (event.button === 0 || event.pointerType === 'touch') {
                     // Primary click/tap
-                    this.handlePrimaryClick(_hexPos, _event);
+                    this.handlePrimaryClick(hexPos, event);
                 } else if (event.button === 2) {
                     // Secondary click (right-click)
-                    this.handleSecondaryClick(_hexPos, _event);
+                    this.handleSecondaryClick(hexPos, event);
                 }
             }
         }
@@ -164,8 +164,8 @@ class CombatInputController implements InputController {
         event.preventDefault();
 
         if (this.onZoom) {
-            const _delta = -event.deltaY / 100; // Normalize wheel delta
-            this.onZoom(_delta, event.clientX, event.clientY);
+            const delta = -event.deltaY / 100; // Normalize wheel delta
+            this.onZoom(delta, event.clientX, event.clientY);
         }
     }
 
@@ -180,13 +180,13 @@ class CombatInputController implements InputController {
             case 'idle':
             case 'inspect':
                 // Select unit or hex
-                this.handleUnitSelection(_hexPos);
+                this.handleUnitSelection(hexPos);
                 break;
 
             case 'move':
             case 'flee':
                 // Set movement target
-                this.handleMovementTarget(_hexPos);
+                this.handleMovementTarget(hexPos);
                 break;
 
             case 'attack':
@@ -194,7 +194,7 @@ class CombatInputController implements InputController {
             case 'command':
             case 'rally':
                 // Set ability target
-                this.handleAbilityTarget(_hexPos);
+                this.handleAbilityTarget(hexPos);
                 break;
 
             case 'confirm':
@@ -204,11 +204,11 @@ class CombatInputController implements InputController {
         }
 
         if (this.onHexClick) {
-            this.onHexClick(_hexPos, _event);
+            this.onHexClick(hexPos, event);
         }
     }
 
-    private handleSecondaryClick(hexPos: HexPosition, event: PointerEvent): void {
+    private handleSecondaryClick(_hexPos: HexPosition, _event: PointerEvent): void {
         // Secondary click always cancels current action
         selectionManager.reset();
     }
@@ -216,13 +216,13 @@ class CombatInputController implements InputController {
     private handleUnitSelection(hexPos: HexPosition): void {
         // This would integrate with the battle system to find units at position
         // For now, just set the position as the actor origin
-        selectionManager.setOrigin(_hexPos);
+        selectionManager.setOrigin(hexPos);
         selectionManager.setMode('inspect');
     }
 
     private handleMovementTarget(hexPos: HexPosition): void {
         // Calculate path to target hex
-        const path = this.calculatePath(_hexPos);
+        const path = this.calculatePath(hexPos);
         selectionManager.setPath(path);
     }
 
@@ -232,10 +232,10 @@ class CombatInputController implements InputController {
         if (state.ability) {
             // Check if this is an AOE ability
             if (this.isAOEAbility(state.ability.id)) {
-                const aoeHexes = this.calculateAOE(_hexPos, state.ability);
+                const aoeHexes = this.calculateAOE(hexPos, state.ability);
                 selectionManager.setAOE(aoeHexes);
             } else {
-                selectionManager.setTarget(_hexPos);
+                selectionManager.setTarget(hexPos);
             }
         }
     }
@@ -262,23 +262,23 @@ class CombatInputController implements InputController {
     }
 
     // Utility methods (would integrate with battle system)
-    private screenToHex(screenX: number, screenY: number): HexPosition | null {
+    private screenToHex(_screenX: number, _screenY: number): HexPosition | null {
         // Placeholder - would convert screen coordinates to hex coordinates
         // This requires integration with the hex grid renderer
         return { q: 0, r: 0 };
     }
 
-    private calculatePath(target: HexPosition): HexPosition[] {
+    private calculatePath(_target: HexPosition): HexPosition[] {
         // Placeholder - would calculate movement path using A* or similar
         const state = selectionManager.get();
         if (!state.origin) return [];
 
-        return [state.origin, target];
+        return [state.origin, _target];
     }
 
-    private calculateAOE(center: HexPosition, ability: any): HexPosition[] {
+    private calculateAOE(_center: HexPosition, _ability: any): HexPosition[] {
         // Placeholder - would calculate AOE pattern based on ability
-        return [center];
+        return [_center];
     }
 
     private isAOEAbility(abilityId?: string): boolean {
@@ -296,10 +296,10 @@ class CombatInputController implements InputController {
         if (now - this.lastHoverTime < this.hoverThrottle) return;
 
         this.lastHoverTime = now;
-        const _hexPos = this.screenToHex(event.clientX, event.clientY);
+        const hexPos = this.screenToHex(event.clientX, event.clientY);
 
         if (this.onHexHover) {
-            this.onHexHover(_hexPos);
+            this.onHexHover(hexPos);
         }
     }
 }

@@ -10,7 +10,7 @@ export type StatusHook = {
 export const StatusLib: Record<string, StatusHook> = {
     stunned: {},
     defending: {
-        onHit: (_u, _ctx, io) => {
+        onHit: (_u, ctx, io) => {
             if (ctx.kind === 'Physical') {
                 io.final = Math.floor(io.final / 2);
             }

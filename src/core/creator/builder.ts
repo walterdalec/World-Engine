@@ -15,10 +15,12 @@
  */
 
 import type { CreatorInput, CreatorResult, CharacterSummary } from './types';
-import type { Unit, UnitStats, StatusEffect, Skill } from '../../features/battle/types';
+import type { Unit, UnitStats, StatusEffect } from '../../features/battle/types';
+import type { Skill as _Skill } from '../../features/battle/types';
 import { validateInput } from './validate';
 import { seedLoadout } from './seed';
-import { SpeciesMods, BackgroundMods, ArchetypeDefaults, _BaseStatValue } from './rules';
+import { SpeciesMods, BackgroundMods, ArchetypeDefaults } from './rules';
+import type { BaseStatValue as _BaseStatValue } from './rules';
 
 /**
  * Main character builder function
@@ -118,7 +120,7 @@ function calculateFinalStats(input: CreatorInput): UnitStats {
  * Build the core Unit structure
  */
 function buildCoreUnit(input: CreatorInput, stats: UnitStats): Unit {
-    const _archetype = ArchetypeDefaults[input.archetype];
+    const _archetypeDef = ArchetypeDefaults[input.archetype];
 
     const unit: Unit = {
         id: generateUnitId('HERO'),
@@ -234,20 +236,20 @@ function applyCommanderPath(unit: Unit, input: CreatorInput): void {
 function generateCharacterSummary(unit: Unit, input: CreatorInput): CharacterSummary {
     const species = SpeciesMods[input.species];
     const background = BackgroundMods[input.background];
-    const _archetype = ArchetypeDefaults[input.archetype];
+    const archetypeDef = ArchetypeDefaults[input.archetype];
 
     // Generate title
-    let title = `${species.name} ${archetype.name}`;
+    let title = `${species.name} ${archetypeDef.name}`;
     if (unit.isCommander) {
         title = `${title} Commander`;
     }
 
     // Generate description
-    const description = `A level ${unit.level} ${species.name.toLowerCase()} ${archetype.name.toLowerCase()} ` +
+    const description = `A level ${unit.level} ${species.name.toLowerCase()} ${archetypeDef.name.toLowerCase()} ` +
         `with a ${background.name.toLowerCase()} background. ${species.description}`;
 
     // Determine combat role
-    let combatRole: string = archetype.combatRole;
+    let combatRole: string = archetypeDef.combatRole;
     if (unit.isCommander) {
         combatRole = 'leader';
     }    // List specializations
@@ -260,9 +262,9 @@ function generateCharacterSummary(unit: Unit, input: CreatorInput): CharacterSum
     }
 
     // Add archetype specializations
-    if (archetype.combatRole === 'ranged') {
+    if (archetypeDef.combatRole === 'ranged') {
         specializations.push('Ranged Combat');
-    } else if (archetype.combatRole === 'melee') {
+    } else if (archetypeDef.combatRole === 'melee') {
         specializations.push('Melee Combat');
     }
 
@@ -274,8 +276,8 @@ function generateCharacterSummary(unit: Unit, input: CreatorInput): CharacterSum
     if (unit.meta?.formation) {
         tacticalNotes.push(`Prefers ${unit.meta.formation.row} row positioning`);
     }
-    if (archetype.formationPreference !== 'flexible') {
-        tacticalNotes.push(`${archetype.name}s typically fight in the ${archetype.formationPreference}`);
+    if (archetypeDef.formationPreference !== 'flexible') {
+        tacticalNotes.push(`${archetypeDef.name}s typically fight in the ${archetypeDef.formationPreference}`);
     }
     if (unit.isCommander) {
         tacticalNotes.push(`Commands from within ${unit.meta?.commandRadius || 2} hex radius`);

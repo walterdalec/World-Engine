@@ -30,5 +30,6 @@
     "telemetry.telemetryLevel": "off",
     "npm.fetchOnlinePackageInfo": false,
     "terminal.integrated.enablePersistentSessions": false,
-    "explorer.incrementalNaming": "disabled"
+    "explorer.incrementalNaming": "disabled",
+    "chat.agent.maxRequests": 500
 }

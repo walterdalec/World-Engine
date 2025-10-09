@@ -3,12 +3,13 @@ import type {
     BattleContext,
     Unit,
     Commander,
-    UnitStats,
-    HexPosition
+    UnitStats
+    // HexPosition - currently unused
 } from "./types";
 import { rng } from "../../core/services/random";
 import { generateTacticalBattlefield } from "./generate";
-import { getSkillsForArchetype, _getCommanderAbilities } from "./abilities";
+import { getSkillsForArchetype } from "./abilities";
+// import { getCommanderAbilities } from "./abilities"; // Currently unused
 
 // Convert our character system to battle unit stats
 export function characterToBattleStats(character: any): UnitStats {

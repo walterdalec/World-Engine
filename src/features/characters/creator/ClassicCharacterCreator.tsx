@@ -4,15 +4,14 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import type { CreatorInput, SpeciesId, BackgroundId, ArchetypeId, StatAllocation, MasteryPick } from '../../../core/creator/types';
+import type { CreatorInput, SpeciesId, BackgroundId, ArchetypeId, StatAllocation } from '../../../core/creator/types';
+// import type { MasteryPick } from '../../../core/creator/types'; // Currently unused
 import { buildCharacter, validateInput, CharacterCreator } from '../../../core/creator';
-import { _StatBudgetByLevel, _StatPointCost, _MaxPerStat, _MinPerStat } from '../../../core/creator/rules';
-import { SimplePortraitPreview, _SimpleUtils } from '../../portraits';
-import { _storage } from "../../../core/services/storage";
+import { SimplePortraitPreview } from '../../portraits';
 import './ClassicCharacterCreator.css';
 
 interface ClassicCharacterCreatorProps {
-    onCharacterCreated?: (character: any) => void;
+    onCharacterCreated?: (_character: any) => void;
     onCancel?: () => void;
 }
 
@@ -129,7 +128,7 @@ export const ClassicCharacterCreator: React.FC<ClassicCharacterCreatorProps> = (
         }
     };
 
-    const validation = useMemo(() => validateInput(_character), [character]);
+    const validation = useMemo(() => validateInput(character), []);
 
     // Use the old system's 27-point budget and stat calculation
     const POINTS_POOL = 27;
@@ -190,7 +189,7 @@ export const ClassicCharacterCreator: React.FC<ClassicCharacterCreatorProps> = (
 
     const handleCreateCharacter = () => {
         if (validation.ok) {
-            const builtCharacter = buildCharacter(_character);
+            const builtCharacter = buildCharacter(character);
             onCharacterCreated?.(builtCharacter);
         }
     };

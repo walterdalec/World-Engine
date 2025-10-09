@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import type { BattleState, _Unit, HexPosition } from '../types';
+import type { BattleState, HexPosition } from '../types';
 import { sanitizeBattleState } from '../typeGuards';
 import { BattleCanvas } from './renderer2d';
 import { startBattle } from '../engine';
 
 interface BattleSetupScreenProps {
     initialState: BattleState;
-    onReady: (finalState: BattleState) => void;
+    onReady: (_finalState: BattleState) => void;
 }
 
 function cloneState(state: BattleState): BattleState {
@@ -16,7 +16,7 @@ function cloneState(state: BattleState): BattleState {
 } export function BattleSetupScreen({ initialState, onReady }: BattleSetupScreenProps) {
     const [state, setState] = useState<BattleState>(cloneState(initialState));
     const [selectedUnit, setSelectedUnit] = useState<string | undefined>(undefined);
-    const [draggedUnit, setDraggedUnit] = useState<string | null>(null);
+    const [_draggedUnit, _setDraggedUnit] = useState<string | null>(null);
 
     const playerUnits = state.units.filter(u =>
         u.faction === 'Player' && !u.isDead && !u.isCommander

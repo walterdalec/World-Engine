@@ -15,8 +15,7 @@ import {
     type Chunk,
     type POI,
     type RiverSegment,
-    getChunkTile,
-    _getChunkBiome
+    getChunkTile
 } from './index';
 
 interface ProceduralDevToolsProps {
@@ -60,34 +59,38 @@ export function ProceduralDevTools({ className = '' }: ProceduralDevToolsProps) 
 
     // Generate chunk when coordinates change
     useEffect(() => {
-        if (worldManager) {
-            generateChunkAsync();
-        }
+        if (!worldManager) return;
+
+        let cancelled = false;
+
+        const generateChunk = async () => {
+            setIsGenerating(true);
+            try {
+                const chunkId: ChunkId = { cx: chunkX, cy: chunkY };
+                const newChunk = await worldManager.getChunk(chunkId);
+                if (!cancelled) {
+                    setChunk(newChunk);
+                }
+            } catch (error) {
+                if (!cancelled) {
+                    console.error('🗺️ Failed to generate chunk:', error);
+                }
+            } finally {
+                if (!cancelled) {
+                    setIsGenerating(false);
+                }
+            }
+        };
+
+        generateChunk();
+
+        return () => {
+            cancelled = true;
+        };
     }, [worldManager, chunkX, chunkY]);
 
     // Render chunk to canvas
     useEffect(() => {
-        if (chunk && canvasRef.current) {
-            renderChunkToCanvas();
-        }
-    }, [chunk]);
-
-    const generateChunkAsync = async () => {
-        if (!worldManager) return;
-
-        setIsGenerating(true);
-        try {
-            const chunkId: ChunkId = { cx: chunkX, cy: chunkY };
-            const newChunk = await worldManager.getChunk(chunkId);
-            setChunk(newChunk);
-        } catch (error) {
-            console.error('🗺️ Failed to generate chunk:', error);
-        } finally {
-            setIsGenerating(false);
-        }
-    };
-
-    const renderChunkToCanvas = () => {
         if (!chunk || !canvasRef.current) return;
 
         const canvas = canvasRef.current;
@@ -135,7 +138,7 @@ export function ProceduralDevTools({ className = '' }: ProceduralDevToolsProps) 
             ctx.arc(x, y, river.width * 2, 0, Math.PI * 2);
             ctx.stroke();
         });
-    };
+    }, [chunk]);
 
     const handleRandomSeed = () => {
         setGlobalSeed(Math.floor(Math.random() * 1000000));

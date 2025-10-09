@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { storage } from "../../core/services/storage";
-import { _PREMADE_SPELLS, getAllPremadeSpells, getPremadeSpellsBySchool } from './PremadeSpells';
+import { PREMADE_SPELLS as _PREMADE_SPELLS, getAllPremadeSpells, getPremadeSpellsBySchool } from './PremadeSpells';
 import CustomSpellCreator from './CustomSpellCreator';
 
 interface SpellGeneratorProps {
@@ -61,7 +61,7 @@ export default function SpellGenerator({ onBack }: SpellGeneratorProps) {
   // Load premade spells by school
   const loadPremadeSpells = (school?: string) => {
     let spells: GeneratedSpell[] = [];
-    
+
     if (school && school !== 'any') {
       spells = getPremadeSpellsBySchool(school);
       console.log(`📚 Loaded ${spells.length} premade ${school} spells`);
@@ -69,7 +69,7 @@ export default function SpellGenerator({ onBack }: SpellGeneratorProps) {
       spells = getAllPremadeSpells();
       console.log(`📚 Loaded ${spells.length} premade spells from all schools`);
     }
-    
+
     setGeneratedSpells(spells);
   };
 
@@ -96,7 +96,7 @@ export default function SpellGenerator({ onBack }: SpellGeneratorProps) {
   // Render different modes
   if (mode === 'custom') {
     return (
-      <CustomSpellCreator 
+      <CustomSpellCreator
         onBack={() => setMode('menu')}
         onSpellCreated={handleCustomSpellCreated}
       />
@@ -123,9 +123,9 @@ export default function SpellGenerator({ onBack }: SpellGeneratorProps) {
             ⚡ Spell Workshop
           </h1>
           <p style={{ margin: "0.5rem 0 0", opacity: 0.8 }}>
-            {mode === 'menu' ? 'Choose your spell creation method' : 
-             mode === 'premade' ? 'Browse curated spell collections' :
-             'Generate random magical spells'}
+            {mode === 'menu' ? 'Choose your spell creation method' :
+              mode === 'premade' ? 'Browse curated spell collections' :
+                'Generate random magical spells'}
           </p>
         </div>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
@@ -182,9 +182,9 @@ export default function SpellGenerator({ onBack }: SpellGeneratorProps) {
               cursor: "pointer",
               transition: "all 0.3s ease"
             }}
-            onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-4px)"}
-            onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0px)"}
-            onClick={() => setMode('premade')}>
+              onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-4px)"}
+              onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0px)"}
+              onClick={() => setMode('premade')}>
               <div style={{
                 fontSize: "3rem",
                 textAlign: "center",
@@ -202,7 +202,7 @@ export default function SpellGenerator({ onBack }: SpellGeneratorProps) {
                 textAlign: "center",
                 lineHeight: "1.6"
               }}>
-                Browse carefully crafted spells for each school of magic. 
+                Browse carefully crafted spells for each school of magic.
                 Perfect for quick gameplay and learning spell mechanics.
               </p>
               <div style={{
@@ -230,9 +230,9 @@ export default function SpellGenerator({ onBack }: SpellGeneratorProps) {
               cursor: "pointer",
               transition: "all 0.3s ease"
             }}
-            onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-4px)"}
-            onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0px)"}
-            onClick={() => setMode('custom')}>
+              onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-4px)"}
+              onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0px)"}
+              onClick={() => setMode('custom')}>
               <div style={{
                 fontSize: "3rem",
                 textAlign: "center",
@@ -250,7 +250,7 @@ export default function SpellGenerator({ onBack }: SpellGeneratorProps) {
                 textAlign: "center",
                 lineHeight: "1.6"
               }}>
-                Design your own spells from scratch with built-in balance guidelines. 
+                Design your own spells from scratch with built-in balance guidelines.
                 Perfect for experienced players who want full creative control.
               </p>
               <div style={{
@@ -267,7 +267,7 @@ export default function SpellGenerator({ onBack }: SpellGeneratorProps) {
                   <li>Real-time spell preview</li>
                 </ul>
               </div>
-              
+
               <div style={{
                 background: "rgba(245, 158, 11, 0.1)",
                 borderRadius: "6px",
@@ -329,7 +329,7 @@ export default function SpellGenerator({ onBack }: SpellGeneratorProps) {
             background: "rgba(15, 23, 42, 0.4)"
           }}>
             <h3 style={{ marginBottom: "1rem", color: "#f1f5f9" }}>📚 Browse by School</h3>
-            
+
             <button
               onClick={() => loadPremadeSpells('any')}
               style={{
@@ -399,13 +399,13 @@ export default function SpellGenerator({ onBack }: SpellGeneratorProps) {
             ) : (
               <div>
                 <h2 style={{ margin: "0 0 1.5rem", color: "#f1f5f9" }}>
-                  {selectedSchool === 'any' ? 'All Schools' : 
-                   SPELL_DATA.schools.find(s => s.name.toLowerCase() === selectedSchool)?.name || 'Spells'}
+                  {selectedSchool === 'any' ? 'All Schools' :
+                    SPELL_DATA.schools.find(s => s.name.toLowerCase() === selectedSchool)?.name || 'Spells'}
                   <span style={{ color: "#94a3b8", fontSize: "1rem", fontWeight: "normal", marginLeft: "1rem" }}>
                     ({generatedSpells.length} spells)
                   </span>
                 </h2>
-                
+
                 <div style={{
                   display: "grid",
                   gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { rng } from "../../core/services/random";
 import { BattleSystem } from '../battle';
 
@@ -51,7 +51,7 @@ interface Enemy {
 interface ExplorationModeProps {
   encounter: Encounter;
   playerCharacters: Character[];
-  onEncounterEnd: (result: 'completed' | 'fled' | 'failed', rewards?: any) => void;
+  onEncounterEnd: (_result: 'completed' | 'fled' | 'failed', _rewards?: any) => void;
   onBack?: () => void;
 }
 
@@ -65,7 +65,7 @@ export default function ExplorationMode({
   const [battleEncounter, setBattleEncounter] = useState<any>(null);
   const [investigationResult, setInvestigationResult] = useState<string>('');
   const [rewards, setRewards] = useState<any>(null);
-  const [playerChoice, setPlayerChoice] = useState<string>('');
+  const [_playerChoice, setPlayerChoice] = useState<string>('');
 
   // Generate enemies based on encounter
   const generateEnemiesFromEncounter = (enc: Encounter): Enemy[] => {
@@ -200,7 +200,7 @@ export default function ExplorationMode({
     setEncounterState('investigating');
 
     // Generate investigation results based on encounter type
-    let _result = '';
+    let result = '';
     let foundRewards: any = null;
 
     switch (encounter.type) {
@@ -256,7 +256,7 @@ export default function ExplorationMode({
         break;
     }
 
-    setInvestigationResult(_result);
+    setInvestigationResult(result);
     setRewards(foundRewards);
 
     setTimeout(() => {

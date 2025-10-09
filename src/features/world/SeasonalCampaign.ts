@@ -89,7 +89,7 @@ export class SeasonalCampaignManager {
      * Initialize a new campaign
      */
     static createCampaign(worldState: any, difficulty: 'story' | 'normal' | 'hard'): SeasonalCampaign {
-        const _campaign: SeasonalCampaign = {
+        const campaign: SeasonalCampaign = {
             currentSeason: 'Spring',
             year: 1,
             turn: 1,
@@ -104,7 +104,7 @@ export class SeasonalCampaignManager {
         };
 
         // Schedule initial world events
-        this.scheduleSeasonalEvents(_campaign);
+        this.scheduleSeasonalEvents(campaign);
 
         return campaign;
     }
@@ -113,30 +113,30 @@ export class SeasonalCampaignManager {
      * Advance campaign by one turn
      */
     static advanceTurn(campaign: SeasonalCampaign): CampaignTurnResult {
-        const _events: string[] = [];
+        const events: string[] = [];
 
         // Process turn-based income and upkeep
-        this.processEconomy(_campaign, _events);
+        this.processEconomy(campaign, events);
 
         // Check for triggered events
-        this.processScheduledEvents(_campaign, _events);
+        this.processScheduledEvents(campaign, events);
 
         // Update objectives
-        this.checkObjectives(_campaign, _events);
+        this.checkObjectives(campaign, events);
 
         // Advance turn counter
         campaign.turn++;
 
         // Check for season change
         if (campaign.turn > campaign.maxTurnsPerSeason) {
-            return this.advanceSeason(_campaign, _events);
+            return this.advanceSeason(campaign, events);
         }
 
         return {
             events,
             seasonChanged: false,
             newObjectives: [],
-            resourceChanges: this.calculateResourceChanges(_campaign)
+            resourceChanges: this.calculateResourceChanges(campaign)
         };
     }
 
@@ -165,22 +165,23 @@ export class SeasonalCampaignManager {
         events.push(`${campaign.currentSeason} effects are now active.`);
 
         // Generate new seasonal objectives
-        const newObjectives = this.generateSeasonalObjectives(_campaign,
+        const newObjectives = this.generateSeasonalObjectives(
+            campaign,
             campaign.currentSeason
         );
         campaign.objectives.push(...newObjectives);
 
         // Schedule events for new season
-        this.scheduleSeasonalEvents(_campaign);
+        this.scheduleSeasonalEvents(campaign);
 
         // Seasonal recruitment refresh
-        campaign.playerResources.recruitmentPoints = this.calculateSeasonalRecruitment(_campaign);
+        campaign.playerResources.recruitmentPoints = this.calculateSeasonalRecruitment(campaign);
 
         return {
             events,
             seasonChanged: true,
             newObjectives,
-            resourceChanges: this.calculateResourceChanges(_campaign),
+            resourceChanges: this.calculateResourceChanges(campaign),
             seasonalEffects: campaign.seasonalEffects
         };
     }
@@ -444,17 +445,17 @@ export class SeasonalCampaignManager {
             if (objective.isCompleted || objective.isFailed) return;
 
             // Check completion criteria
-            const isCompleted = this.checkObjectiveRequirements(_objective, _campaign);
+            const isCompleted = this.checkObjectiveRequirements(objective, campaign);
 
             if (isCompleted) {
                 objective.isCompleted = true;
-                this.applyObjectiveRewards(_objective, _campaign);
+                this.applyObjectiveRewards(objective, campaign);
                 events.push(`✅ Objective completed: ${objective.title}`);
             }
 
             // Check failure conditions (deadline passed)
             if (objective.deadline) {
-                const deadlinePassed = this.isDeadlinePassed(objective.deadline, _campaign);
+                const deadlinePassed = this.isDeadlinePassed(objective.deadline, campaign);
                 if (deadlinePassed && !objective.isCompleted) {
                     objective.isFailed = true;
                     events.push(`❌ Objective failed: ${objective.title}`);
@@ -502,24 +503,24 @@ export class SeasonalCampaignManager {
         };
     }
 
-    static scheduleSeasonalEvents(campaign: SeasonalCampaign) {
+    static scheduleSeasonalEvents(_campaign: SeasonalCampaign) {
         // Implementation for scheduling random events, faction moves, etc.
     }
 
-    static processScheduledEvents(campaign: SeasonalCampaign, events: string[]) {
+    static processScheduledEvents(_campaign: SeasonalCampaign, _events: string[]) {
         // Implementation for processing triggered events
     }
 
-    static checkObjectiveRequirements(objective: CampaignObjective, campaign: SeasonalCampaign): boolean {
+    static checkObjectiveRequirements(_objective: CampaignObjective, _campaign: SeasonalCampaign): boolean {
         // Implementation for checking if objective requirements are met
         return false;
     }
 
-    static applyObjectiveRewards(objective: CampaignObjective, campaign: SeasonalCampaign) {
+    static applyObjectiveRewards(_objective: CampaignObjective, _campaign: SeasonalCampaign) {
         // Implementation for applying objective rewards
     }
 
-    static isDeadlinePassed(deadline: any, campaign: SeasonalCampaign): boolean {
+    static isDeadlinePassed(_deadline: any, _campaign: SeasonalCampaign): boolean {
         // Implementation for checking if deadline has passed
         return false;
     }

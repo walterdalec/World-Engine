@@ -3,7 +3,8 @@
  * TODO #10 — Morale & Psychology — Deep Spec v2
  */
 
-import type { BattleState, Unit } from '../types';
+// import type { Unit } from '../types'; // Currently unused
+import type { BattleState } from '../types';
 import type { MoraleBlock, MoraleFactors } from './model';
 import { gatherFactors } from './factors';
 import { getMoraleSeverity } from './compute';

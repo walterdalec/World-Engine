@@ -8,7 +8,8 @@
 import { CombatStateV3 } from './schema_combat';
 import { CampaignStateV3 } from './schema_campaign';
 import { encodeSave, decodeSave, SaveMetadata, createSaveMetadata } from './encode';
-import { migrateSave, needsMigration, MigrationResult } from './migrate';
+import { migrateSave, needsMigration } from './migrate';
+import type { MigrationResult as _MigrationResult } from './migrate';
 
 export type SaveData = CombatStateV3 | CampaignStateV3;
 
@@ -26,13 +27,13 @@ export interface SaveBackend {
     list(): Promise<SaveMetadata[]>;
 
     /** Load save data from a slot */
-    load(slotId: string): Promise<SaveData | null>;
+    load(_slotId: string): Promise<SaveData | null>;
 
     /** Save data to a slot */
-    save(slotId: string, data: SaveData, description?: string): Promise<void>;
+    save(_slotId: string, _data: SaveData, _description?: string): Promise<void>;
 
     /** Delete a save slot */
-    delete(slotId: string): Promise<void>;
+    delete(_slotId: string): Promise<void>;
 
     /** Check if backend is available */
     isAvailable(): boolean;
@@ -97,7 +98,7 @@ export class SaveManager {
 
         // Initialize all backends
         const backendEntries = Array.from(this.backends.entries());
-        for (const [name, backend] of backendEntries) {
+        for (const [_name, backend] of backendEntries) {
             try {
                 await backend.init();
             } catch (error) {
@@ -136,7 +137,7 @@ export class SaveManager {
         options: SaveOptions = {}
     ): Promise<void> {
         const {
-            compress = true,
+            compress: _compress = true,
             backup = true,
             verify = true,
             description
@@ -186,7 +187,7 @@ export class SaveManager {
     ): Promise<SaveData | null> {
         const {
             autoMigrate = true,
-            verify = true,
+            verify: _verify = true,
             backupBeforeMigration = true
         } = options;
 
@@ -430,7 +431,7 @@ class LocalStorageBackend implements SaveBackend {
         }
     }
 
-    async save(slotId: string, data: SaveData, description?: string): Promise<void> {
+    async save(slotId: string, data: SaveData, _description?: string): Promise<void> {
         const key = this.prefix + slotId;
         const encoded = await encodeSave(data, { compress: true });
 
@@ -535,7 +536,7 @@ class OPFSBackend implements SaveBackend {
         }
     }
 
-    async save(slotId: string, data: SaveData, description?: string): Promise<void> {
+    async save(slotId: string, data: SaveData, _description?: string): Promise<void> {
         if (!this.rootDir) {
             throw new Error('OPFS not initialized');
         }
@@ -669,7 +670,7 @@ class FileSystemBackend implements SaveBackend {
         }
     }
 
-    async save(slotId: string, data: SaveData, description?: string): Promise<void> {
+    async save(slotId: string, data: SaveData, _description?: string): Promise<void> {
         const fs = await import('fs/promises');
         const path = await import('path');
 

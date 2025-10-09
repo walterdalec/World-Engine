@@ -31,8 +31,11 @@ jobs:
       - name: Type check
         run: npm run typecheck
 
+      # ESLint enforcement: Gradually reducing from 441 → 50 → 0 warnings
+      # Target: Zero warnings for production-ready code quality
+      # Update max-warnings as cleanup progresses
       - name: Lint code
-        run: npx eslint . --max-warnings=441 --format=stylish
+        run: npx eslint . --max-warnings=440 --format=stylish
         continue-on-error: false  # Fail build if lint errors exceed threshold
 
       - name: Run unit tests

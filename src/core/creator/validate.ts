@@ -87,7 +87,7 @@ export function validateStatAllocation(stats: StatAllocation, level: number): Va
     const reasons: string[] = [];
     const warnings: string[] = [];
 
-    const budget = StatBudgetByLevel(_level);
+    const budget = StatBudgetByLevel(level);
     let totalCost = 0;
 
     // Calculate total point cost and check individual stat limits
@@ -277,7 +277,7 @@ export function validateFormation(formation: any, archetype: string): Validation
 /**
  * Validates equipment choices against archetype and stats
  */
-export function validateEquipment(equipment: any, stats: StatAllocation, archetype: string, level: number): ValidationResult {
+export function validateEquipment(equipment: any, stats: StatAllocation, archetype: string, _level: number): ValidationResult {
     const reasons: string[] = [];
     const warnings: string[] = [];
 

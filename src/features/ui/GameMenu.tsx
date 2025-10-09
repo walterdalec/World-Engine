@@ -6,7 +6,6 @@ import React, { useState, useMemo } from 'react';
 import { storage } from "../../core/services/storage";
 import { WorldEngine } from '../../core/engine';
 import { CLASS_DEFINITIONS } from '../../core/config';
-import { _SimplePortraitPreview, _SimpleUtils } from '../portraits';
 
 // Species and trait definitions for character creation
 const SPECIES_OPTIONS = [
@@ -1041,7 +1040,7 @@ function AbilitiesBySchool({ engine, characterId }: { engine: WorldEngine; chara
           background: 'rgba(34, 197, 94, 0.1)'
         }}>
           <button
-            onClick={() => toggleSchool(school)}
+            onClick={() => _toggleSchool(school)}
             style={{
               width: '100%',
               padding: '12px 16px',

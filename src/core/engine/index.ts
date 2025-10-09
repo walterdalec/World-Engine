@@ -11,21 +11,24 @@
 
 import { storage } from "../services/storage";
 import { rng } from "../services/random";
-import { ChunkManager, Tile, WorldGenConfig, _CHUNK_SIZE } from '../../proc/chunks';
-import { SeededRandom, _WorldNoise, _ValueNoise2D } from '../../proc/noise';
+import { ChunkManager, Tile, WorldGenConfig } from '../../proc/chunks';
+import { SeededRandom } from '../../proc/noise';
+import type { WorldNoise as _WorldNoise, ValueNoise2D as _ValueNoise2D } from '../../proc/noise';
 import { ChokepointManager, Chokepoint, Fortification, RegionData } from '../../proc/chokepoints';
-import { PhysicalAbilitiesGenerator, PhysicalAbility, _PhysicalAbilitySchool, _PhysicalAbilityTier } from '../../proc/physicalAbilities';
-import { MagicalSpellsGenerator, MagicalSpell, _MagicalSchool, _SpellTier } from '../../proc/magicalSpells';
+import { PhysicalAbilitiesGenerator, PhysicalAbility } from '../../proc/physicalAbilities';
+import type { PhysicalAbilitySchool as _PhysicalAbilitySchool, PhysicalAbilityTier as _PhysicalAbilityTier } from '../../proc/physicalAbilities';
+import { MagicalSpellsGenerator, MagicalSpell } from '../../proc/magicalSpells';
+import type { MagicalSchool as _MagicalSchool, SpellTier as _SpellTier } from '../../proc/magicalSpells';
 
 export { ChunkManager, CHUNK_SIZE } from '../../proc/chunks';
-export { SeededRandom, _WorldNoise, ValueNoise2D } from '../../proc/noise';
+export { SeededRandom, WorldNoise, ValueNoise2D } from '../../proc/noise';
 export { ChokepointManager } from '../../proc/chokepoints';
 export { PhysicalAbilitiesGenerator } from '../../proc/physicalAbilities';
 export { MagicalSpellsGenerator } from '../../proc/magicalSpells';
 export type { Tile, WorldGenConfig } from '../../proc/chunks';
 export type { Chokepoint, Fortification, RegionData } from '../../proc/chokepoints';
-export type { PhysicalAbility, _PhysicalAbilitySchool, PhysicalAbilityTier } from '../../proc/physicalAbilities';
-export type { MagicalSpell, _MagicalSchool, SpellTier } from '../../proc/magicalSpells';
+export type { PhysicalAbility, PhysicalAbilitySchool, PhysicalAbilityTier } from '../../proc/physicalAbilities';
+export type { MagicalSpell, MagicalSchool, SpellTier } from '../../proc/magicalSpells';
 
 export interface Character {
   id: string;
@@ -1296,7 +1299,7 @@ export class WorldEngine {
   /**
    * Complete the current encounter
    */
-  completeEncounter(success: boolean, rewards?: any): void {
+  completeEncounter(success: boolean, _rewards?: any): void {
     if (!this.state.activeEncounter) return;
 
     const encounter = this.state.activeEncounter;

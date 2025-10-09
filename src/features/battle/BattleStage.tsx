@@ -10,8 +10,8 @@ import { HoneycombBattleCanvas } from './components/HoneycombRenderer';
 interface BattleStageProps {
     state: BattleState;
     selectedUnit?: Unit | null;
-    onHexClick: (pos: HexPosition) => void;
-    onUnitSelect: (unit: Unit | null) => void;
+    onHexClick: (_pos: HexPosition) => void;
+    onUnitSelect: (_unit: Unit | null) => void;
     showGrid?: boolean;
     className?: string;
     style?: React.CSSProperties;
@@ -24,25 +24,29 @@ interface BattleStageProps {
     className,
     style
 }: BattleStageProps) {
-    const [hoveredHex, setHoveredHex] = useState<HexPosition | null>(null);
+    const [_hoveredHex, _setHoveredHex] = useState<HexPosition | null>(null);
 
     // Handle tile clicks with unit selection logic
     const handleTileClick = useCallback((pos: HexPosition) => {
         // Check if there's a unit at this position
-        const _unit = state.units.find(u =>
+        const unitAtHex = state.units.find(u =>
             u.pos && u.pos.q === pos.q && u.pos.r === pos.r && !u.isDead
         );
 
-        if (unit && unit.faction === "Player" && state.phase === "UnitsTurn") {
+        if (unitAtHex && unitAtHex.faction === "Player" && state.phase === "UnitsTurn") {
             // Select player unit during UnitsTurn
-            onUnitSelect(_unit);
-        } else if (selectedUnit && selectedUnit.faction === "Player") {
-            // Move selected unit or target ability
-            onHexClick(_pos);
-        } else {
-            // General hex targeting (for Hero abilities, etc.)
-            onHexClick(_pos);
+            onUnitSelect(unitAtHex);
+            return;
         }
+
+        if (selectedUnit && selectedUnit.faction === "Player") {
+            // Move selected unit or target ability
+            onHexClick(pos);
+            return;
+        }
+
+        // General hex targeting (for Hero abilities, etc.)
+        onHexClick(pos);
     }, [state.units, state.phase, selectedUnit, onHexClick, onUnitSelect]);
 
     // Calculate reachable tiles for movement preview
@@ -166,8 +170,8 @@ interface BattleStageProps {
                 }}>
                     <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>Initiative Order</div>
                     {state.initiative.slice(0, 5).map((unitId, index) => {
-                        const _unit = state.units.find(u => u.id === unitId);
-                        if (!unit) return null;
+                        const unitData = state.units.find(u => u.id === unitId);
+                        if (!unitData) return null;
 
                         return (
                             <div
@@ -181,12 +185,12 @@ interface BattleStageProps {
                                     alignItems: 'center'
                                 }}
                             >
-                                <span>{unit.name}</span>
+                                <span>{unitData.name}</span>
                                 <span style={{
                                     fontSize: '10px',
-                                    color: unit.faction === "Player" ? '#4CAF50' : '#F44336'
+                                    color: unitData.faction === "Player" ? '#4CAF50' : '#F44336'
                                 }}>
-                                    {unit.stats.spd}
+                                    {unitData.stats.spd}
                                 </span>
                             </div>
                         );

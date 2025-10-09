@@ -42,6 +42,55 @@ interface EnhancedWorldMapProps {
     onBack?: () => void;
 }
 
+// Enhanced terrain types with strategic properties
+const terrainTypes: { [key: string]: TerrainFeature } = {
+    ocean: { name: "Ocean", color: "#0369a1", emoji: "🌊", movementCost: 99, defenseBonus: 0, canBuildOn: false },
+    coast: { name: "Coast", color: "#0ea5e9", emoji: "🏖️", movementCost: 1, defenseBonus: 0, canBuildOn: true },
+    plains: { name: "Plains", color: "#84cc16", emoji: "🌾", movementCost: 1, defenseBonus: 0, canBuildOn: true, resources: ["Food"] },
+    forest: { name: "Forest", color: "#16a34a", emoji: "🌲", movementCost: 2, defenseBonus: 1, canBuildOn: true, resources: ["Wood"] },
+    mountain: { name: "Mountain", color: "#64748b", emoji: "⛰️", movementCost: 3, defenseBonus: 2, canBuildOn: true, resources: ["Stone", "Metals"] },
+    swamp: { name: "Swamp", color: "#10b981", emoji: "🪵", movementCost: 3, defenseBonus: 1, canBuildOn: false, resources: ["Herbs"] },
+    desert: { name: "Desert", color: "#eab308", emoji: "🏜️", movementCost: 2, defenseBonus: 0, canBuildOn: true, resources: ["Gems"] },
+    tundra: { name: "Tundra", color: "#94a3b8", emoji: "🧊", movementCost: 2, defenseBonus: 0, canBuildOn: true },
+    river: { name: "River", color: "#06b6d4", emoji: "💧", movementCost: 1, defenseBonus: 0, canBuildOn: false, resources: ["Water"] }
+};
+
+// Strategic factions with territorial goals
+const factions = [
+    {
+        name: "Crystal Empire",
+        color: "#8b5cf6",
+        emoji: "💎",
+        description: "Masters of magical crystals and ancient knowledge",
+        territory: ["mountain", "desert"],
+        relationship: "neutral"
+    },
+    {
+        name: "Forest Alliance",
+        color: "#16a34a",
+        emoji: "🌲",
+        description: "Guardians of nature and the old ways",
+        territory: ["forest", "swamp"],
+        relationship: "friendly"
+    },
+    {
+        name: "Iron Legion",
+        color: "#374151",
+        emoji: "⚔️",
+        description: "Military confederation seeking territorial expansion",
+        territory: ["plains", "coast"],
+        relationship: "hostile"
+    },
+    {
+        name: "Free Cities",
+        color: "#f59e0b",
+        emoji: "🏛️",
+        description: "Independent trading cities and merchant guilds",
+        territory: ["coast", "river"],
+        relationship: "neutral"
+    }
+];
+
 export default function EnhancedWorldMap({ seedStr = "enhanced-world-001", onBack }: EnhancedWorldMapProps) {
     const [playerPos, setPlayerPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
     const [selectedTile, setSelectedTile] = useState<{ x: number; y: number } | null>(null);
@@ -49,59 +98,10 @@ export default function EnhancedWorldMap({ seedStr = "enhanced-world-001", onBac
     const [activeSettlement, setActiveSettlement] = useState<Settlement | null>(null);
     const [activeEncounter, setActiveEncounter] = useState<Encounter | null>(null);
     const [exploredTiles, setExploredTiles] = useState<Set<string>>(new Set(["0,0"])); // Track exploration
-    const [gameTime, setGameTime] = useState({ season: 'Spring', week: 1, year: 1 });
-    const [resources, setResources] = useState({ gold: 1000, mana: 50, influence: 10 });
+    const [gameTime, _setGameTime] = useState({ season: 'Spring', week: 1, year: 1 });
+    const [resources, _setResources] = useState({ gold: 1000, mana: 50, influence: 10 });
 
     const viewportSize = 19; // Larger viewport for better strategic view
-
-    // Enhanced terrain types with strategic properties
-    const terrainTypes: { [key: string]: TerrainFeature } = {
-        ocean: { name: "Ocean", color: "#0369a1", emoji: "🌊", movementCost: 99, defenseBonus: 0, canBuildOn: false },
-        coast: { name: "Coast", color: "#0ea5e9", emoji: "🏖️", movementCost: 1, defenseBonus: 0, canBuildOn: true },
-        plains: { name: "Plains", color: "#84cc16", emoji: "🌾", movementCost: 1, defenseBonus: 0, canBuildOn: true, resources: ["Food"] },
-        forest: { name: "Forest", color: "#16a34a", emoji: "🌲", movementCost: 2, defenseBonus: 1, canBuildOn: true, resources: ["Wood"] },
-        mountain: { name: "Mountain", color: "#64748b", emoji: "⛰️", movementCost: 3, defenseBonus: 2, canBuildOn: true, resources: ["Stone", "Metals"] },
-        swamp: { name: "Swamp", color: "#10b981", emoji: "🪵", movementCost: 3, defenseBonus: 1, canBuildOn: false, resources: ["Herbs"] },
-        desert: { name: "Desert", color: "#eab308", emoji: "🏜️", movementCost: 2, defenseBonus: 0, canBuildOn: true, resources: ["Gems"] },
-        tundra: { name: "Tundra", color: "#94a3b8", emoji: "🧊", movementCost: 2, defenseBonus: 0, canBuildOn: true },
-        river: { name: "River", color: "#06b6d4", emoji: "💧", movementCost: 1, defenseBonus: 0, canBuildOn: false, resources: ["Water"] }
-    };
-
-    // Strategic factions with territorial goals
-    const factions = [
-        {
-            name: "Crystal Empire",
-            color: "#8b5cf6",
-            emoji: "💎",
-            description: "Masters of magical crystals and ancient knowledge",
-            territory: ["mountain", "desert"],
-            relationship: "neutral"
-        },
-        {
-            name: "Forest Alliance",
-            color: "#16a34a",
-            emoji: "🌲",
-            description: "Guardians of nature and the old ways",
-            territory: ["forest", "swamp"],
-            relationship: "friendly"
-        },
-        {
-            name: "Iron Legion",
-            color: "#374151",
-            emoji: "⚔️",
-            description: "Military confederation seeking territorial expansion",
-            territory: ["plains", "coast"],
-            relationship: "hostile"
-        },
-        {
-            name: "Free Cities",
-            color: "#f59e0b",
-            emoji: "🏛️",
-            description: "Independent trading cities and merchant guilds",
-            territory: ["coast", "river"],
-            relationship: "neutral"
-        }
-    ];
 
     const seededRandom = useCallback((x: number, y: number, seed: string) => {
         const str = `${seed}-${x}-${y}`;
@@ -113,6 +113,24 @@ export default function EnhancedWorldMap({ seedStr = "enhanced-world-001", onBac
         }
         return Math.abs(hash) / 2147483647;
     }, []);
+
+    const generateSettlementName = useCallback((x: number, y: number, faction: string) => {
+        const prefixes = {
+            'Crystal Empire': ['Crystal', 'Arcane', 'Mystic', 'Star'],
+            'Forest Alliance': ['Green', 'Wild', 'Elder', 'Grove'],
+            'Iron Legion': ['Iron', 'Steel', 'War', 'Battle'],
+            'Free Cities': ['Port', 'Trade', 'Golden', 'Free'],
+            'Village': ['Little', 'Old', 'New', 'Fair']
+        };
+
+        const suffixes = ['hold', 'haven', 'ford', 'burg', 'ton', 'vale', 'ridge', 'gate'];
+
+        const factionPrefixes = prefixes[faction as keyof typeof prefixes] || prefixes['Village'];
+        const prefix = factionPrefixes[Math.floor(seededRandom(x, y, seedStr + "name1") * factionPrefixes.length)];
+        const suffix = suffixes[Math.floor(seededRandom(x, y, seedStr + "name2") * suffixes.length)];
+
+        return `${prefix}${suffix}`;
+    }, [seededRandom, seedStr]);
 
     // Enhanced terrain generation with continental features
     const getTerrain = useCallback((x: number, y: number) => {
@@ -225,25 +243,7 @@ export default function EnhancedWorldMap({ seedStr = "enhanced-world-001", onBac
         }
 
         return null;
-    }, [getTerrain, seedStr, seededRandom]);
-
-    const generateSettlementName = (x: number, y: number, faction: string) => {
-        const prefixes = {
-            'Crystal Empire': ['Crystal', 'Arcane', 'Mystic', 'Star'],
-            'Forest Alliance': ['Green', 'Wild', 'Elder', 'Grove'],
-            'Iron Legion': ['Iron', 'Steel', 'War', 'Battle'],
-            'Free Cities': ['Port', 'Trade', 'Golden', 'Free'],
-            'Village': ['Little', 'Old', 'New', 'Fair']
-        };
-
-        const suffixes = ['hold', 'haven', 'ford', 'burg', 'ton', 'vale', 'ridge', 'gate'];
-
-        const factionPrefixes = prefixes[faction as keyof typeof prefixes] || prefixes['Village'];
-        const prefix = factionPrefixes[Math.floor(seededRandom(x, y, seedStr + "name1") * factionPrefixes.length)];
-        const suffix = suffixes[Math.floor(seededRandom(x, y, seedStr + "name2") * suffixes.length)];
-
-        return `${prefix}${suffix}`;
-    };
+    }, [getTerrain, seedStr, seededRandom, generateSettlementName]);
 
     // Enhanced encounter system
     const getEncounter = useCallback((x: number, y: number): Encounter | null => {

@@ -21,7 +21,7 @@ type Character = {
 type Props = {
   eng: Engine;
   party: Character[];
-  setParty: (p: Character[]) => void;
+  setParty: (_p: Character[]) => void;
   onStart: () => void;
   onCreateNew: () => void; // Navigate to character creator
 };

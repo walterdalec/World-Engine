@@ -26,6 +26,73 @@ AI agents have full permissions to edit, create, modify, and refactor any code i
 - Replace D&D mechanics → Our 7-stat system (STR/DEX/INT/CON/WIS/CHA/LCK)
 - Maintain World Engine's unique fantasy setting and original faction lore
 
+### ESLint & Code Quality Enforcement
+**MANDATORY: All code must pass ESLint with zero warnings before committing.** GitHub Actions CI enforces strict linting rules that will fail the build if violated.
+
+#### ESLint Rules to Follow:
+- **No unused variables**: Use underscore prefix for intentionally unused parameters (`_param`, `_event`, `_data`)
+- **No unused imports**: Remove or comment out unused imports; don't just prefix with underscore
+- **React Hook dependencies**: Include all dependencies in useEffect/useCallback dependency arrays
+- **Interface parameters**: Prefix unused interface/type parameters with underscore (`_result: string`)
+- **Function parameters**: Prefix unused function parameters with underscore (`onClick?: (_event: MouseEvent) => void`)
+
+#### Pre-Commit ESLint Validation:
+**ALWAYS run these commands before committing:**
+```bash
+npm run lint                  # Check for any ESLint warnings/errors
+npm run lint:fix             # Auto-fix simple issues where possible
+npm run typecheck            # Ensure TypeScript compilation is clean
+```
+
+#### ESLint Warning Prevention Patterns:
+```typescript
+// ✅ CORRECT: Unused parameters with underscore prefix
+interface Props {
+  onSubmit: (_data: FormData, _event: Event) => void;
+  onClick?: (_event: MouseEvent) => void;
+}
+
+function handleSubmit(_data: FormData, _event: Event) {
+  // Implementation that doesn't use the parameters
+}
+
+// ✅ CORRECT: Remove unused imports entirely
+import { useState } from 'react';  // Only import what you use
+
+// ✅ CORRECT: useCallback with complete dependencies
+const memoizedCallback = useCallback(() => {
+  doSomething(externalVar);
+}, [externalVar]);  // Include ALL dependencies used inside
+
+// ❌ WRONG: Unused variables without underscore
+const [unusedState, setUnusedState] = useState('');  // Will cause ESLint warning
+
+// ❌ WRONG: Missing dependencies in hooks
+const callback = useCallback(() => {
+  doSomething(externalVar);
+}, []); // Missing externalVar in dependency array
+```
+
+#### CI Enforcement Policy:
+- **Current CI limit**: 0 warnings allowed (down from previous 441)
+- **Build will fail**: If any ESLint warnings are introduced
+- **No exceptions**: All warnings must be fixed, not suppressed with eslint-disable comments
+- **Progressive improvement**: Target is zero warnings; never increase the warning count
+
+#### When Fixing ESLint Warnings:
+1. **Understand the warning**: Don't blindly prefix with underscore; understand if the variable should actually be used
+2. **Fix the root cause**: If a variable is truly unused, consider if the code logic is incomplete
+3. **Maintain functionality**: Ensure fixes don't break existing features
+4. **Test after fixes**: Run tests to verify functionality is preserved
+5. **Commit incrementally**: Fix warnings in logical groups and commit with clear messages
+
+#### File-Specific Warning Hotspots:
+Watch for high warning counts in these patterns:
+- **React components**: Unused props, missing hook dependencies, unused event handlers
+- **TypeScript interfaces**: Unused callback parameters, generic type parameters
+- **Utility functions**: Unused function parameters in placeholder implementations
+- **Canvas/game loops**: Unused callback parameters (ctx, deltaTime, event objects)
+
 ## Required Workflow
 **ALWAYS push changes to GitHub after making code modifications.** Use this sequence:
 1. Make code changes
@@ -869,3 +936,53 @@ eventBus.emit('trade-route-disrupted', { route, cause, economicImpact });
 3. Deployment screen polish + targeting previews with better colors.
 4. Keymap overlay (`?`) + standard hotkeys + focus rings everywhere.
 5. Settings modal (reduced motion; colorblind palette) + persistence.
+
+## Code Quality Maintenance Protocol
+
+### Pre-Development Checklist
+**Before making any changes, ALWAYS:**
+1. Check current ESLint status: `npm run lint`
+2. Fix any existing warnings in files you'll be editing
+3. Never add new ESLint warnings - the CI will fail
+
+### Post-Development Validation
+**After making changes, ALWAYS:**
+1. Run `npm run lint` to verify zero warnings in changed files
+2. Run `npm run lint:fix` to auto-fix simple issues
+3. Run `npm run typecheck` to ensure TypeScript compliance
+4. Test functionality to ensure fixes don't break features
+
+### ESLint Warning Escalation Prevention
+- **Immediate fix policy**: Fix warnings as soon as they appear
+- **No accumulation**: Never commit code with new warnings
+- **Progressive reduction**: When touching old files, fix existing warnings
+- **CI enforcement**: GitHub Actions fails builds with warnings > threshold
+
+### Common Patterns to Avoid
+```typescript
+// ❌ DON'T: Add unused parameters without underscore prefix
+function handleClick(event: MouseEvent) { /* event unused */ }
+
+// ✅ DO: Prefix unused parameters with underscore
+function handleClick(_event: MouseEvent) { /* clearly unused */ }
+
+// ❌ DON'T: Import unused types/functions
+import { useState, useEffect, useMemo } from 'react'; // useMemo unused
+
+// ✅ DO: Only import what you use
+import { useState, useEffect } from 'react';
+
+// ❌ DON'T: Incomplete dependency arrays
+useEffect(() => { doSomething(externalVar); }, []); // Missing externalVar
+
+// ✅ DO: Complete dependency arrays
+useEffect(() => { doSomething(externalVar); }, [externalVar]);
+```
+
+### Emergency ESLint Cleanup Procedure
+If warnings accumulate despite prevention:
+1. **Assess scope**: Run `npm run lint` to count total warnings
+2. **Prioritize files**: Target files with most warnings first
+3. **Systematic fixes**: Use underscore prefixes, remove unused imports, fix dependencies
+4. **Commit incrementally**: Separate commits for different types of fixes
+5. **Update CI threshold**: Gradually reduce `--max-warnings` in `.github/workflows/ci.yml`

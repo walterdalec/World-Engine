@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { storage } from "../../core/services/storage";
-import { SettlementGenerator, QuestGenerator, _TreasureGenerator, SeededRandom } from "../../core/utils";
+import { SettlementGenerator, QuestGenerator, TreasureGenerator as _TreasureGenerator, SeededRandom } from "../../core/utils";
 import ExplorationMode from "./ExplorationMode";
 
 interface Settlement {

@@ -4,9 +4,9 @@ import { rng } from "../../core/services/random";
 import { storage } from "../../core/services/storage";
 import { CLASS_DEFINITIONS } from '../../core/config';
 // Visual System Integration - NEW Simple PNG System
-import { SimplePortraitPreview, _SimpleUtils } from '../portraits';
+import { SimplePortraitPreview } from '../portraits';
 // Gender-locked portrait system
-import { getAvailableArchetypes, _isValidGenderForClass, getGenderLock } from '../../core/config';
+import { getAvailableArchetypes, getGenderLock } from '../../core/config';
 
 type Stats = "STR" | "DEX" | "CON" | "INT" | "WIS" | "CHA";
 
@@ -544,17 +544,17 @@ export default function CharacterCreate() {
 
   function inc(stat: Stats) {
     setChar((c) => {
-      const _v = c.stats[stat];
+      const v = c.stats[stat];
       if (c.mode !== "POINT_BUY") return c;
       if (v >= MAX_STAT) return c;
-      if (!canAffordStatIncrease(_v, pointsLeft)) return c;
+      if (!canAffordStatIncrease(v, pointsLeft)) return c;
       return { ...c, stats: { ...c.stats, [stat]: v + 1 } };
     });
   }
 
   function dec(stat: Stats) {
     setChar((c) => {
-      const _v = c.stats[stat];
+      const v = c.stats[stat];
       if (c.mode !== "POINT_BUY") return c;
       if (v <= MIN_STAT) return c;
       return { ...c, stats: { ...c.stats, [stat]: v - 1 } };
@@ -1501,7 +1501,7 @@ export default function CharacterCreate() {
   );
 }
 
-function TextRow(props: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
+function TextRow(props: { label: string; value: string; onChange: (_v: string) => void; placeholder?: string }) {
   const { label, value, onChange, placeholder } = props;
   return (
     <label style={{ display: "grid", gap: 4 }}>
@@ -1516,7 +1516,7 @@ function TextRow(props: { label: string; value: string; onChange: (v: string) =>
   );
 }
 
-function TextAreaRow(props: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
+function _TextAreaRow(props: { label: string; value: string; onChange: (_v: string) => void; placeholder?: string }) {
   const { label, value, onChange, placeholder } = props;
   return (
     <label style={{ display: "grid", gap: 4 }}>
@@ -1532,7 +1532,7 @@ function TextAreaRow(props: { label: string; value: string; onChange: (v: string
   );
 }
 
-function SelectRow(props: { label: string; value: string; onChange: (v: string) => void; options: string[] }) {
+function SelectRow(props: { label: string; value: string; onChange: (_v: string) => void; options: string[] }) {
   const { label, value, onChange, options } = props;
   return (
     <label style={{ display: "grid", gap: 4 }}>

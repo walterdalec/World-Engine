@@ -6,10 +6,11 @@
  * deterministic generation, and performance optimization.
  */
 
-import type { SeededRng } from './rng';
+// import type { SeededRng } from './rng'; // Currently unused
 import { chunkRng } from './rng';
 import { heightNoise, moistureNoise, temperatureNoise, domainWarp } from './noise';
-import { chooseTile, type Tile, type _BiomeRule, type _EnvironmentalEffects, _getEnvironmentalEffects } from './biome';
+import { chooseTile, type Tile } from './biome';
+// import { type BiomeRule, type EnvironmentalEffects, getEnvironmentalEffects } from './biome'; // Currently unused
 
 export interface ChunkId {
     cx: number;  // Chunk X coordinate
