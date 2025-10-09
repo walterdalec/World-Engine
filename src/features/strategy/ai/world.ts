@@ -7,7 +7,7 @@ export function neighborsOf(world: WorldState, regionId: ID): Region[] {
 }
 
 export function isBorderRegion(world: WorldState, regionId: ID, factionId: ID) {
-  return neighborsOf(world, _regionId).some((n) => n.ownerId !== factionId);
+  return neighborsOf(world, regionId).some((n) => n.ownerId !== factionId);
 }
 
 export function distanceRegions(a: Region, b: Region) {
