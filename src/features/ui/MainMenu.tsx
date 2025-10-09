@@ -38,10 +38,11 @@ interface Props {
   onMinimalBattle: () => void;
   onEnhancedMap: () => void;
   onSimpleMap: () => void;
+  onCombatUIDemo: () => void;
   onProcedural: () => void;
 }
 
-export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onClassicCharacterCreate, onPortraitTest, onAutoUpdater, onBattleSystem, onBattlePage, onMinimalBattle, onEnhancedMap, onSimpleMap, onProcedural }: Props) {
+export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onClassicCharacterCreate, onPortraitTest, onAutoUpdater, onBattleSystem, onBattlePage, onMinimalBattle, onEnhancedMap, onSimpleMap, onCombatUIDemo, onProcedural }: Props) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [characters, setCharacters] = useState<SavedCharacter[]>([]);
   const [activeTab, setActiveTab] = useState<'campaigns' | 'characters'>('campaigns');
@@ -767,6 +768,12 @@ Recovered ${recovered.length} campaigns`);
                 <div style={{ fontSize: '3rem', marginBottom: '10px' }}>⚡</div>
                 <h3 style={{ margin: '0 0 5px 0' }}>Minimal Battle</h3>
                 <p style={{ margin: 0, opacity: 0.9 }}>Simple tactical combat engine</p>
+              </div>
+
+              <div style={newCardStyle} onClick={onCombatUIDemo}>
+                <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🎮</div>
+                <h3 style={{ margin: '0 0 5px 0' }}>Combat UI Demo</h3>
+                <p style={{ margin: 0, opacity: 0.9 }}>World Engine combat interface showcase</p>
               </div>
 
               <div style={newCardStyle} onClick={onPortraitTest}>

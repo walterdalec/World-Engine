@@ -8,6 +8,7 @@ import { SpellGenerator, SpellAssignment } from "../features/spells";
 import { HealingSystem, BattleMockup, BattlePage, MinimalBattlePage, BattleSystem } from "../features/battle";
 import { WorldMapEngine, EnhancedWorldMap, SimpleWorldMap, ProceduralDevTools } from "../features/world";
 import { SimplePortraitTest } from "../features/portraits";
+import { CombatUIDemo } from "../pages/CombatUIDemo";
 import { storage } from "../core/services/storage";
 import type { Engine } from "../engine.d";
 import { DEFAULT_WORLDS } from "../core/config";
@@ -33,7 +34,7 @@ function randomSeed(): string {
 }
 
 function App() {
-  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "enhancedmap" | "simplemap" | "charactercreate" | "classiccharacter" | "portraittest" | "battlesystem" | "battle" | "minimalBattle" | "autoupdater" | "procedural">("menu");
+  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "enhancedmap" | "simplemap" | "charactercreate" | "classiccharacter" | "portraittest" | "battlesystem" | "battle" | "minimalBattle" | "autoupdater" | "combat-ui-demo" | "procedural">("menu");
   const [party, setParty] = React.useState<Character[]>([]);
   const [currentCampaign, setCurrentCampaign] = React.useState<any>(null);
   const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0); // Force re-render hook
@@ -314,6 +315,11 @@ function App() {
     setStep("simplemap");
   };
 
+  const handleCombatUIDemo = () => {
+    // Combat UI demonstration with mock data
+    setStep("combat-ui-demo");
+  };
+
   const handleProcedural = () => {
     // Procedural generation dev tools
     setStep("procedural");
@@ -422,6 +428,7 @@ function App() {
           onMinimalBattle={handleMinimalBattle}
           onEnhancedMap={handleEnhancedMap}
           onSimpleMap={handleSimpleMap}
+          onCombatUIDemo={handleCombatUIDemo}
           onProcedural={handleProcedural}
         />
       )}
@@ -637,6 +644,30 @@ function App() {
             seedStr={eng?.state?.meta?.seed}
             onBack={() => setStep("menu")}
           />
+        </div>
+      )}
+      {step === "combat-ui-demo" && (
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={() => setStep("menu")}
+            style={{
+              position: 'absolute',
+              top: '20px',
+              left: '20px',
+              zIndex: 1000,
+              background: '#374151',
+              color: '#f8fafc',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '10px 15px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold'
+            }}
+          >
+            Back to Menu
+          </button>
+          <CombatUIDemo />
         </div>
       )}
       {step === "procedural" && (
