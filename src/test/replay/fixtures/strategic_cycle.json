@@ -1,0 +1,115 @@
+{
+    "name": "strategic_season_cycle",
+    "description": "Full season cycle with income, upkeep, and territory management",
+    "seed": 54321,
+    "baseState": {
+        "seed": 54321,
+        "season": "Spring",
+        "year": 1,
+        "turn": 0,
+        "factions": {
+            "Player": {
+                "id": "Player",
+                "name": "Human Alliance",
+                "species": "human",
+                "treasury": {
+                    "gold": 500,
+                    "mana": 100,
+                    "food": 200,
+                    "materials": 150
+                },
+                "territories": [
+                    "Capital",
+                    "Mine"
+                ],
+                "isPlayer": true,
+                "isEliminated": false
+            },
+            "Enemy": {
+                "id": "Enemy",
+                "name": "Orc Horde",
+                "species": "orc",
+                "treasury": {
+                    "gold": 300,
+                    "mana": 50,
+                    "food": 300,
+                    "materials": 100
+                },
+                "territories": [
+                    "Stronghold"
+                ],
+                "isPlayer": false,
+                "isEliminated": false
+            }
+        },
+        "territories": {
+            "Capital": {
+                "id": "Capital",
+                "owner": "Player",
+                "connections": [
+                    "Mine"
+                ],
+                "tags": [
+                    "capital"
+                ],
+                "castle": {
+                    "id": "Capital",
+                    "level": 2,
+                    "defenseBonus": 20
+                },
+                "garrison": [
+                    "unit_1",
+                    "unit_2"
+                ],
+                "inSupply": true
+            },
+            "Mine": {
+                "id": "Mine",
+                "owner": "Player",
+                "connections": [
+                    "Capital"
+                ],
+                "tags": [
+                    "mine"
+                ],
+                "garrison": [],
+                "inSupply": true
+            },
+            "Stronghold": {
+                "id": "Stronghold",
+                "owner": "Enemy",
+                "connections": [],
+                "tags": [
+                    "stronghold"
+                ],
+                "garrison": [
+                    "orc_1"
+                ],
+                "inSupply": true
+            }
+        },
+        "logs": []
+    },
+    "actions": [
+        {
+            "type": "season_start",
+            "timestamp": 1000
+        },
+        {
+            "type": "collect_income",
+            "timestamp": 2000
+        },
+        {
+            "type": "pay_upkeep",
+            "timestamp": 3000
+        },
+        {
+            "type": "season_end",
+            "timestamp": 4000
+        },
+        {
+            "type": "advance_season",
+            "timestamp": 5000
+        }
+    ]
+}

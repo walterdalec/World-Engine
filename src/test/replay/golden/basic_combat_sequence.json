@@ -1,0 +1,134 @@
+{
+  "steps": [
+    {
+      "action": {
+        "type": "attack",
+        "actorId": "knight_1",
+        "targetId": "orc_1",
+        "abilityId": "basic_attack",
+        "timestamp": 1000
+      },
+      "stateDelta": {
+        "damage": 15,
+        "target": "orc_1",
+        "attacker": "knight_1"
+      },
+      "timestamp": 1000,
+      "rngState": 12345
+    },
+    {
+      "action": {
+        "type": "attack",
+        "actorId": "orc_1",
+        "targetId": "knight_1",
+        "abilityId": "wild-swing",
+        "timestamp": 2000
+      },
+      "stateDelta": {
+        "damage": 15,
+        "target": "knight_1",
+        "attacker": "orc_1"
+      },
+      "timestamp": 2000,
+      "rngState": 12345
+    },
+    {
+      "action": {
+        "type": "command",
+        "actorId": "knight_1",
+        "abilityId": "rally-cry",
+        "timestamp": 3000
+      },
+      "stateDelta": {
+        "command": "rally-cry",
+        "caster": "knight_1"
+      },
+      "timestamp": 3000,
+      "rngState": 12345
+    }
+  ],
+  "finalState": {
+    "id": "test_battle_1",
+    "turn": 1,
+    "phase": "UnitsTurn",
+    "units": [
+      {
+        "id": "knight_1",
+        "name": "Sir Gareth",
+        "kind": "Mercenary",
+        "faction": "Player",
+        "race": "human",
+        "archetype": "knight",
+        "level": 3,
+        "stats": {
+          "hp": 100,
+          "maxHp": 100,
+          "atk": 15,
+          "def": 12,
+          "mag": 5,
+          "res": 8,
+          "spd": 8,
+          "rng": 1,
+          "move": 3
+        },
+        "statuses": [],
+        "skills": [
+          "shield-bash",
+          "rally-cry"
+        ],
+        "isDead": false,
+        "pos": {
+          "q": 0,
+          "r": 0
+        },
+        "facing": 0
+      },
+      {
+        "id": "orc_1",
+        "name": "Orc Raider",
+        "kind": "Monster",
+        "faction": "Enemy",
+        "race": "orc",
+        "archetype": "warrior",
+        "level": 2,
+        "stats": {
+          "hp": 80,
+          "maxHp": 80,
+          "atk": 12,
+          "def": 8,
+          "mag": 3,
+          "res": 5,
+          "spd": 6,
+          "rng": 1,
+          "move": 4
+        },
+        "statuses": [],
+        "skills": [
+          "wild-swing"
+        ],
+        "isDead": false,
+        "pos": {
+          "q": 1,
+          "r": 0
+        },
+        "facing": 3
+      }
+    ],
+    "initiative": [
+      "knight_1",
+      "orc_1"
+    ],
+    "selectedUnit": "knight_1",
+    "log": []
+  },
+  "log": [
+    "knight_1 attacks orc_1 for 15 damage",
+    "orc_1 attacks knight_1 for 15 damage",
+    "knight_1 uses rally-cry"
+  ],
+  "metadata": {
+    "seed": 12345,
+    "timestamp": 1000,
+    "version": "1.0.0"
+  }
+}

@@ -1,0 +1,160 @@
+{
+  "steps": [
+    {
+      "action": {
+        "type": "season_start",
+        "timestamp": 1000
+      },
+      "stateDelta": {
+        "phase": "income"
+      },
+      "timestamp": 1000,
+      "rngState": 54321
+    },
+    {
+      "action": {
+        "type": "collect_income",
+        "timestamp": 2000
+      },
+      "stateDelta": {
+        "goldGained": 100
+      },
+      "timestamp": 2000,
+      "rngState": 54321
+    },
+    {
+      "action": {
+        "type": "pay_upkeep",
+        "timestamp": 3000
+      },
+      "stateDelta": {
+        "goldSpent": 50
+      },
+      "timestamp": 3000,
+      "rngState": 54321
+    },
+    {
+      "action": {
+        "type": "season_end",
+        "timestamp": 4000
+      },
+      "stateDelta": {
+        "phase": "end"
+      },
+      "timestamp": 4000,
+      "rngState": 54321
+    },
+    {
+      "action": {
+        "type": "advance_season",
+        "timestamp": 5000
+      },
+      "stateDelta": {
+        "season": "Summer",
+        "turn": 1
+      },
+      "timestamp": 5000,
+      "rngState": 54321
+    }
+  ],
+  "finalState": {
+    "seed": 54321,
+    "season": "Spring",
+    "year": 1,
+    "turn": 0,
+    "factions": {
+      "Player": {
+        "id": "Player",
+        "name": "Human Alliance",
+        "species": "human",
+        "treasury": {
+          "gold": 500,
+          "mana": 100,
+          "food": 200,
+          "materials": 150
+        },
+        "territories": [
+          "Capital",
+          "Mine"
+        ],
+        "isPlayer": true,
+        "isEliminated": false
+      },
+      "Enemy": {
+        "id": "Enemy",
+        "name": "Orc Horde",
+        "species": "orc",
+        "treasury": {
+          "gold": 300,
+          "mana": 50,
+          "food": 300,
+          "materials": 100
+        },
+        "territories": [
+          "Stronghold"
+        ],
+        "isPlayer": false,
+        "isEliminated": false
+      }
+    },
+    "territories": {
+      "Capital": {
+        "id": "Capital",
+        "owner": "Player",
+        "connections": [
+          "Mine"
+        ],
+        "tags": [
+          "capital"
+        ],
+        "castle": {
+          "id": "Capital",
+          "level": 2,
+          "defenseBonus": 20
+        },
+        "garrison": [
+          "unit_1",
+          "unit_2"
+        ],
+        "inSupply": true
+      },
+      "Mine": {
+        "id": "Mine",
+        "owner": "Player",
+        "connections": [
+          "Capital"
+        ],
+        "tags": [
+          "mine"
+        ],
+        "garrison": [],
+        "inSupply": true
+      },
+      "Stronghold": {
+        "id": "Stronghold",
+        "owner": "Enemy",
+        "connections": [],
+        "tags": [
+          "stronghold"
+        ],
+        "garrison": [
+          "orc_1"
+        ],
+        "inSupply": true
+      }
+    },
+    "logs": []
+  },
+  "log": [
+    "Season begins - collecting income",
+    "Income collected: 100 gold",
+    "Upkeep paid: 50 gold",
+    "Season ends",
+    "Advanced to Summer"
+  ],
+  "metadata": {
+    "seed": 54321,
+    "timestamp": 1000,
+    "version": "1.0.0"
+  }
+}
