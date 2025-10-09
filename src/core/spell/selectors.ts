@@ -3,9 +3,9 @@ import type { Axial } from '../action/types';
 import { axialDistance, hexLine, hexRingAt, los } from '../action/hex';
 import type { Spell } from './types';
 
-export type LOSFn = (h: Axial) => boolean;
-export type PassableFn = (h: Axial) => boolean; // for landing checks
-export type OccupiedFn = (h: Axial) => boolean; // prevent landing on units
+export type LOSFn = (_h: Axial) => boolean;
+export type PassableFn = (_h: Axial) => boolean; // for landing checks
+export type OccupiedFn = (_h: Axial) => boolean; // prevent landing on units
 
 export function selectHexes(
     spell: Spell,
@@ -87,7 +87,7 @@ export function selectTargets(
     origin: Axial,
     target: Axial,
     range: number,
-    aoeSize: number
+    _aoeSize: number
 ): Axial[] {
     // Create a minimal spell object for the function
     const spell: Spell = {

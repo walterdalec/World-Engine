@@ -11,7 +11,8 @@ function offsetOddRToAxial(col: number, row: number): Axial {
     return { q, r };
 }
 
-function axialToOffsetOddR(axial: Axial): { col: number; row: number } {
+// Inverse conversion (currently unused but kept for future use)
+function _axialToOffsetOddR(axial: Axial): { col: number; row: number } {
     const col = axial.q + (axial.r - (axial.r & 1)) / 2;
     const row = axial.r;
     return { col, row };
