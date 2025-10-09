@@ -12,10 +12,13 @@
 import { storage } from "../services/storage";
 import { rng } from "../services/random";
 import { ChunkManager, Tile, WorldGenConfig } from '../../proc/chunks';
-import { SeededRandom, WorldNoise, ValueNoise2D } from '../../proc/noise';
+import { SeededRandom } from '../../proc/noise';
+import type { WorldNoise as _WorldNoise, ValueNoise2D as _ValueNoise2D } from '../../proc/noise';
 import { ChokepointManager, Chokepoint, Fortification, RegionData } from '../../proc/chokepoints';
-import { PhysicalAbilitiesGenerator, PhysicalAbility, PhysicalAbilitySchool, PhysicalAbilityTier } from '../../proc/physicalAbilities';
-import { MagicalSpellsGenerator, MagicalSpell, MagicalSchool, SpellTier } from '../../proc/magicalSpells';
+import { PhysicalAbilitiesGenerator, PhysicalAbility } from '../../proc/physicalAbilities';
+import type { PhysicalAbilitySchool as _PhysicalAbilitySchool, PhysicalAbilityTier as _PhysicalAbilityTier } from '../../proc/physicalAbilities';
+import { MagicalSpellsGenerator, MagicalSpell } from '../../proc/magicalSpells';
+import type { MagicalSchool as _MagicalSchool, SpellTier as _SpellTier } from '../../proc/magicalSpells';
 
 export { ChunkManager, CHUNK_SIZE } from '../../proc/chunks';
 export { SeededRandom, WorldNoise, ValueNoise2D } from '../../proc/noise';
@@ -1296,7 +1299,7 @@ export class WorldEngine {
   /**
    * Complete the current encounter
    */
-  completeEncounter(success: boolean, rewards?: any): void {
+  completeEncounter(success: boolean, _rewards?: any): void {
     if (!this.state.activeEncounter) return;
 
     const encounter = this.state.activeEncounter;

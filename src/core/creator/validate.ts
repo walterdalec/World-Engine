@@ -277,7 +277,7 @@ export function validateFormation(formation: any, archetype: string): Validation
 /**
  * Validates equipment choices against archetype and stats
  */
-export function validateEquipment(equipment: any, stats: StatAllocation, archetype: string, level: number): ValidationResult {
+export function validateEquipment(equipment: any, stats: StatAllocation, archetype: string, _level: number): ValidationResult {
     const reasons: string[] = [];
     const warnings: string[] = [];
 

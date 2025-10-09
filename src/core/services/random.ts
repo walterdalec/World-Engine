@@ -2,9 +2,9 @@ import { SeededRandom } from "../../proc/noise";
 
 export interface RandomSource {
   next(): number;
-  nextFloat(min?: number, max?: number): number;
-  nextInt(min: number, max: number): number;
-  pick<T>(values: readonly T[]): T;
+  nextFloat(_min?: number, _max?: number): number;
+  nextInt(_min: number, _max: number): number;
+  pick<T>(_values: readonly T[]): T;
 }
 
 class MathRandomSource implements RandomSource {
