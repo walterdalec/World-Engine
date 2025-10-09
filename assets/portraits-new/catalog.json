@@ -1,0 +1,123 @@
+{
+  "version": "1.0.0",
+  "source": "DENZI CC0 + Generated Placeholders",
+  "license": "CC0 Public Domain (DENZI) + Generated (World Engine)",
+  "attribution": "DENZI sprites: http://www3.wind.ne.jp/DENZI/diary/",
+  "assets": {
+    "tilesets": {
+      "denzi-tileset.png": {
+        "type": "spritesheet",
+        "size": "32x32",
+        "license": "CC0",
+        "description": "Fantasy characters and tiles"
+      },
+      "denzi-monsters.png": {
+        "type": "spritesheet",
+        "size": "32x48",
+        "license": "CC0",
+        "description": "Monster and character sprites"
+      }
+    },
+    "portraits": {
+      "base": {
+        "male/neutral.png": {
+          "generated": true,
+          "color": "#8B4513"
+        },
+        "female/neutral.png": {
+          "generated": true,
+          "color": "#D2691E"
+        }
+      },
+      "race": {
+        "human.png": {
+          "generated": true,
+          "color": "#FF6B6B"
+        },
+        "sylvanborn.png": {
+          "generated": true,
+          "color": "#4ECDC4"
+        },
+        "alloy.png": {
+          "generated": true,
+          "color": "#45B7D1"
+        },
+        "draketh.png": {
+          "generated": true,
+          "color": "#96CEB4"
+        },
+        "voidkin.png": {
+          "generated": true,
+          "color": "#FFEAA7"
+        },
+        "crystalborn.png": {
+          "generated": true,
+          "color": "#DDA0DD"
+        },
+        "stormcaller_species.png": {
+          "generated": true,
+          "color": "#98D8C8"
+        }
+      },
+      "class": {
+        "greenwarden.png": {
+          "generated": true,
+          "color": "#2C3E50"
+        },
+        "thornknight.png": {
+          "generated": true,
+          "color": "#E74C3C"
+        },
+        "saplingadept.png": {
+          "generated": true,
+          "color": "#3498DB"
+        },
+        "bloomcaller.png": {
+          "generated": true,
+          "color": "#2ECC71"
+        },
+        "ashblade.png": {
+          "generated": true,
+          "color": "#F39C12"
+        },
+        "cindermystic.png": {
+          "generated": true,
+          "color": "#9B59B6"
+        },
+        "dustranger.png": {
+          "generated": true,
+          "color": "#1ABC9C"
+        },
+        "bonechanter.png": {
+          "generated": true,
+          "color": "#34495E"
+        },
+        "stormcaller_class.png": {
+          "generated": true,
+          "color": "#E67E22"
+        },
+        "voidwing.png": {
+          "generated": true,
+          "color": "#8E44AD"
+        },
+        "skyknight.png": {
+          "generated": true,
+          "color": "#27AE60"
+        },
+        "windsage.png": {
+          "generated": true,
+          "color": "#2980B9"
+        }
+      }
+    }
+  },
+  "fallbacks": {
+    "description": "System uses 3-tier fallback: specific → generic → procedural",
+    "order": [
+      "portraits",
+      "tilesets",
+      "procedural_generation"
+    ]
+  },
+  "updated": "2025-10-02T06:44:12.390Z"
+}

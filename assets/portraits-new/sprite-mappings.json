@@ -1,0 +1,42 @@
+{
+  "base/male/warrior.png": {
+    "source": "denzi-tileset.png",
+    "coords": [
+      0,
+      0,
+      32,
+      32
+    ],
+    "description": "Male warrior from DENZI tileset"
+  },
+  "base/female/mage.png": {
+    "source": "denzi-tileset.png",
+    "coords": [
+      32,
+      0,
+      32,
+      32
+    ],
+    "description": "Female mage from DENZI tileset"
+  },
+  "race/human_fighter.png": {
+    "source": "denzi-monsters.png",
+    "coords": [
+      0,
+      0,
+      32,
+      48
+    ],
+    "description": "Human fighter from DENZI monsters"
+  },
+  "class/fantasy_knight.png": {
+    "source": "denzi-monsters.png",
+    "coords": [
+      32,
+      0,
+      32,
+      48
+    ],
+    "description": "Fantasy knight from DENZI monsters"
+  }
+}
