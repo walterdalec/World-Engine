@@ -5,7 +5,7 @@ import type {
     DeploymentZone,
     HexPosition
 } from "./types";
-import { _hexSpiral, _hexRing } from "./generate_hex";
+import { hexSpiral, hexRing } from "./generate_hex";
 
 export interface BiomeConfig {
     name: string;

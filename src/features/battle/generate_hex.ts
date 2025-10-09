@@ -3,7 +3,7 @@
  * Creates procedural hex grids with deployment zones
  */
 
-import { BattleGrid, HexTile, DeploymentZone, HexPosition, _BattleContext } from './types';
+import { BattleGrid, HexTile, DeploymentZone, HexPosition, BattleContext } from './types';
 
 export interface BattlefieldConfig {
     seed: string;

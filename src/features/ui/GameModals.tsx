@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import { WorldEngine, _Encounter } from '../../core/engine';
+import { WorldEngine } from '../../core/engine';
 
 interface GameModalsProps {
   engine: WorldEngine;

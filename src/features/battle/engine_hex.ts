@@ -122,12 +122,12 @@ function executeAbilityEffect(state: BattleState, ability: Ability, target: HexP
     const affectedHexes = getAbilityAffectedHexes(ability, target);
 
     for (const hex of affectedHexes) {
-        const _unit = state.units.find(u => u.pos && u.pos.q === hex.q && u.pos.r === hex.r);
+        const unit = state.units.find(u => u.pos && u.pos.q === hex.q && u.pos.r === hex.r);
 
-        if (_unit) {
+        if (unit) {
             if (ability.damage) {
                 // Deal damage
-                const damage = calculateDamage(ability.damage.amount, _unit);
+                const damage = calculateDamage(ability.damage.amount, unit);
                 unit.stats.hp = Math.max(0, unit.stats.hp - damage);
                 state.log.push(`${unit.name} takes ${damage} ${ability.damage.type} damage!`);
 
@@ -185,7 +185,7 @@ function calculateDamage(baseDamage: number, target: Unit): number {
  * Move unit to new position
  */
 export function moveUnit(state: BattleState, unitId: string, target: HexPosition): boolean {
-    const _unit = state.units.find(u => u.id === unitId);
+    const unit = state.units.find(u => u.id === unitId);
     if (!unit || !unit.pos) return false;
 
     // Check if target is valid and in movement range

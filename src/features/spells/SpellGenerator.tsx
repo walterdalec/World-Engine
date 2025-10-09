@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { storage } from "../../core/services/storage";
-import { _PREMADE_SPELLS, getAllPremadeSpells, getPremadeSpellsBySchool } from './PremadeSpells';
+import { getAllPremadeSpells, getPremadeSpellsBySchool } from './PremadeSpells';
 import CustomSpellCreator from './CustomSpellCreator';
 
 interface SpellGeneratorProps {
