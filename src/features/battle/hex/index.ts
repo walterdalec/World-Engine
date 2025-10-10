@@ -44,6 +44,24 @@
  * - Set utilities for union/intersection/diff operations
  * - LOS/blocker filtering for environmental effects
  * 
+ * Canvas #6 - Advanced Pathfinding (pathfinding.ts):
+ * - A* pathfinding with pluggable move costs
+ * - Edge blockers (walls/doors/rivers) and occupancy checks
+ * - Zone of Control support: penalty costs and stop-on-enter
+ * - Multi-target search (finds closest reachable goal)
+ * - Heuristic tuning (scale, minStepCost) and tie-breaking
+ * - LOS-based path smoothing for natural movement
+ * - Performance limits and node budgets for worst-case protection
+ * 
+ * Canvas #7 - Battle Shim (shim.ts):
+ * - Unified API combining all 6 hex canvases
+ * - computeMovePreview: Movement field + reachable hexes
+ * - findPathTo/findPathToAny: A* pathfinding with LOS smoothing
+ * - losBetween: Line of sight + soft cover calculations
+ * - buildAoEMask: All AoE templates with LOS/blocker filtering
+ * - BoardFns adapter for clean engine integration
+ * - Pure functions, no engine state dependencies
+ * 
  * @module hex
  */
 
@@ -61,3 +79,18 @@ export * from './los';
 
 // Re-export everything from aoe (Canvas #5)
 export * from './aoe';
+
+// Re-export pathfinding (Canvas #6) - selective to avoid type conflicts with movement
+export { 
+  aStar, 
+  aStarToAny, 
+  aStarUniform, 
+  smoothPathByLOS,
+  type AStarOptions,
+  type PathNode,
+  type PathResult,
+  type HasLineOfSightFn,
+} from './pathfinding';
+
+// Re-export everything from shim (Canvas #7)
+export * from './shim';
