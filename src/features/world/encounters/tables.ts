@@ -163,7 +163,7 @@ export function rollEncounter(seed: number, biome: EncounterBiome): EncounterTyp
 
     // Generate random value 0-totalWeight
     const rng = splitmix32(seed);
-    const roll = (rng() / 0xFFFFFFFF) * totalWeight;
+    const roll = rng() * totalWeight; // rng() already returns 0-1
 
     // Find which encounter type the roll lands on
     let accumulated = 0;

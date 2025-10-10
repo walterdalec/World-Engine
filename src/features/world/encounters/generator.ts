@@ -16,7 +16,14 @@ export function generateEncounter(
     partyLevel: number,
     position: HexPosition
 ): Encounter {
-    const encounterType = rollEncounter(seed, biome);
+    // Hash position into seed for variety
+    const positionSeed = seed ^
+        ((position.sectorX & 0xFFFF) << 16) ^
+        (position.sectorY & 0xFFFF) ^
+        ((position.q & 0xFF) << 8) ^
+        (position.r & 0xFF);
+
+    const encounterType = rollEncounter(positionSeed, biome);
     const baseStats = BASE_ENCOUNTER_STATS[encounterType];
 
     // Scale difficulty: base + region tier + party level scaling
