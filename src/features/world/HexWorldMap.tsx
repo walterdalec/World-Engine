@@ -129,12 +129,12 @@ export default function HexWorldMap({ seedStr = "hex-world-001", onBack }: HexWo
     // Get settlement for hex
     const getSettlement = useCallback((q: number, r: number): Settlement | null => {
         const settlementChance = seededRandom(q, r, seedStr + "settlement");
-        
+
         if (settlementChance > 0.95) {
             const types: Settlement['type'][] = ['city', 'town', 'village', 'hut', 'shrine', 'outpost', 'trading_post'];
             const emojis = ['🏰', '🏘️', '🏡', '🛖', '⛩️', '🗼', '🏪'];
             const typeIndex = Math.floor(seededRandom(q, r, seedStr + "type") * types.length);
-            
+
             return {
                 type: types[typeIndex],
                 name: `Settlement (${q},${r})`,
@@ -153,11 +153,11 @@ export default function HexWorldMap({ seedStr = "hex-world-001", onBack }: HexWo
         if (settlement) return null; // No encounters at settlements
 
         const encounterChance = seededRandom(q, r, seedStr + "encounter");
-        
+
         if (encounterChance > 0.80) { // 20% chance per tile
             const biome = getBiome(q, r);
             const encounterBiome = mapBiomeToEncounterBiome(biome.toLowerCase());
-            
+
             // Generate proper encounter using the system
             const systemEncounter = generateEncounter(
                 Math.floor(seededRandom(q, r, seedStr) * 1000000),
@@ -166,7 +166,7 @@ export default function HexWorldMap({ seedStr = "hex-world-001", onBack }: HexWo
                 playerCharacters[0]?.level || 1,
                 { q, r, sectorX: 0, sectorY: 0 }
             );
-            
+
             // Convert to map encounter with visual data
             const encounterEmojis: Record<EncounterType, string> = {
                 'RAID_PARTY': '⚔️',
@@ -179,7 +179,7 @@ export default function HexWorldMap({ seedStr = "hex-world-001", onBack }: HexWo
                 'TREASURE': '💎',
                 'AMBUSH': '🎭'
             };
-            
+
             const getDangerLevel = (difficulty: number): MapEncounter['danger'] => {
                 if (difficulty <= 2) return 'safe';
                 if (difficulty <= 4) return 'low';
@@ -187,7 +187,7 @@ export default function HexWorldMap({ seedStr = "hex-world-001", onBack }: HexWo
                 if (difficulty <= 8) return 'high';
                 return 'extreme';
             };
-            
+
             return {
                 type: systemEncounter.type,
                 name: `${systemEncounter.type.replace('_', ' ')} encounter`,
@@ -407,9 +407,9 @@ export default function HexWorldMap({ seedStr = "hex-world-001", onBack }: HexWo
                         <p className="mb-2">Type: {activeEncounter.type}</p>
                         <p className="mb-2">Danger: <span className={
                             activeEncounter.danger === 'extreme' ? 'text-red-500' :
-                            activeEncounter.danger === 'high' ? 'text-orange-500' :
-                            activeEncounter.danger === 'medium' ? 'text-yellow-500' :
-                            'text-green-500'
+                                activeEncounter.danger === 'high' ? 'text-orange-500' :
+                                    activeEncounter.danger === 'medium' ? 'text-yellow-500' :
+                                        'text-green-500'
                         }>{activeEncounter.danger}</span></p>
                         <p className="mb-4">{activeEncounter.description}</p>
                         <div className="flex gap-2">
