@@ -148,6 +148,18 @@ export function WorldHexRenderer({
         const canvas = ctx.canvas;
         const camera = cameraRef.current;
 
+        // Debug logging on first render
+        if (_t < 100) {
+            console.log('🎨 WorldHexRenderer rendering...', {
+                canvasSize: { width: canvas.width, height: canvas.height },
+                tilesCount: tiles.length,
+                exploredCount: tiles.filter(t => t.explored).length,
+                gridSize: { width, height },
+                camera,
+                playerPos
+            });
+        }
+
         // Clear canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.save();
@@ -271,7 +283,7 @@ export function WorldHexRenderer({
         }
 
         ctx.restore();
-    }, [grid, tiles, playerPos, showGrid, hoveredHex, getBiomeColor]);
+    }, [grid, tiles, playerPos, showGrid, hoveredHex, getBiomeColor, width, height]);
 
     // Pan handler
     const handlePan = useCallback((dx: number, dy: number) => {

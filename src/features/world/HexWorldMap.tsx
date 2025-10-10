@@ -373,27 +373,32 @@ export default function HexWorldMap({ seedStr = "hex-world-001", onBack }: HexWo
                 />
             </div>
 
-            {/* Controls overlay */}
-            <div className="absolute bottom-4 right-4 bg-black bg-opacity-75 p-4 rounded text-sm">
+            {/* Controls overlay - top left for visibility */}
+            <div className="absolute top-24 left-4 bg-black bg-opacity-75 p-4 rounded text-sm z-10">
                 <div className="font-bold mb-2">Hex Controls (6 directions):</div>
-                <div className="grid grid-cols-3 gap-1 text-center">
-                    <div>Q</div>
-                    <div>W</div>
-                    <div>E</div>
+                <div className="grid grid-cols-3 gap-1 text-center mb-1">
+                    <div className="bg-gray-700 px-2 py-1 rounded">Q</div>
+                    <div className="bg-gray-700 px-2 py-1 rounded">W</div>
+                    <div className="bg-gray-700 px-2 py-1 rounded">E</div>
+                </div>
+                <div className="grid grid-cols-3 gap-1 text-center text-xs mb-2">
                     <div>↖</div>
                     <div>↑</div>
                     <div>↗</div>
                 </div>
-                <div className="grid grid-cols-3 gap-1 text-center mt-2">
-                    <div>A</div>
-                    <div>S</div>
-                    <div>D</div>
+                <div className="grid grid-cols-3 gap-1 text-center mb-1">
+                    <div className="bg-gray-700 px-2 py-1 rounded">A</div>
+                    <div className="bg-gray-700 px-2 py-1 rounded">S</div>
+                    <div className="bg-gray-700 px-2 py-1 rounded">D</div>
+                </div>
+                <div className="grid grid-cols-3 gap-1 text-center text-xs mb-2">
                     <div>↙</div>
                     <div>↓</div>
                     <div>↘</div>
                 </div>
-                <div className="mt-2 text-xs text-gray-400">
-                    Drag to pan • Scroll to zoom
+                <div className="mt-2 text-xs text-gray-400 border-t border-gray-600 pt-2">
+                    🖱️ Drag to pan<br/>
+                    🔍 Scroll to zoom
                 </div>
             </div>
 
