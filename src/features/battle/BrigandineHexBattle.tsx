@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 /**
  * Brigandine x M&M Hex Tactical — World Engine Integration
@@ -134,7 +134,7 @@ type Tile = {
 
 function genMap(radius: number, seedStr: string) {
     const seed = hashStringToSeed(seedStr);
-    const rnd = mulberry32(seed);
+    const _rnd = mulberry32(seed);
     const tiles = new Map<string, Tile>();
 
     function noise(q: number, r: number) {
@@ -266,8 +266,11 @@ type MoveResult = {
 
 function movementCosts(tile: Tile, flyer: boolean): number {
     if (flyer) return 1;
-    let base = TERRAIN[tile.terrain].move;
-    if (tile.road) base = Math.max(1, base - 1);
+    const base = TERRAIN[tile.terrain].move;
+    if (tile.road) {
+        const reduced = base - 1;
+        return reduced < 1 ? 1 : reduced;
+    }
     return base >= 999 ? 999 : base;
 }
 
@@ -368,7 +371,7 @@ export default function BrigandineHexBattle({ onBack }: { onBack?: () => void })
     const [showLOS, setShowLOS] = useState(true);
     const [hexSize, setHexSize] = useState(HEX_SIZE_BASE);
     const [round, setRound] = useState(1);
-    const [turnQueue, setTurnQueue] = useState<string[]>([]);
+    const [_turnQueue, setTurnQueue] = useState<string[]>([]);
     const [activeId, setActiveId] = useState<string | null>(null);
 
     const unitMap = useMemo(() => {

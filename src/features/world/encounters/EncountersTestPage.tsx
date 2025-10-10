@@ -4,7 +4,7 @@
 // ──────────────────────────────────────────────────────────────────────────────
 
 import React, { useState, useMemo } from 'react';
-import { generateEncounter, mapBiomeToEncounterBiome } from './generator';
+import { generateEncounter } from './generator';
 import { getEncounterDensity } from './tables';
 import type { EncounterBiome, Encounter, RegionOwner } from './types';
 
