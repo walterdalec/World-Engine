@@ -27,6 +27,15 @@
  * - Path reconstruction for UI/AI
  * - Range predicates and move+attack helpers
  * 
+ * Canvas #4 - Line of Sight & Raycast (los.ts):
+ * - Ray tracing using axialLine with hard/soft occlusion
+ * - Tile blockers (walls, mountains) and edge blockers (doors, walls)
+ * - Soft cover accumulation with exponential penalty mapping
+ * - Elevation-based LOS blocking with sight line interpolation
+ * - Opaque target visibility for doorway targeting
+ * - Visibility field computation (fog of war, AI perception)
+ * - Cover/LOS convenience wrappers for combat systems
+ * 
  * @module hex
  */
 
@@ -38,3 +47,6 @@ export * from './math';
 
 // Re-export everything from movement (Canvas #3)
 export * from './movement';
+
+// Re-export everything from los (Canvas #4)
+export * from './los';
