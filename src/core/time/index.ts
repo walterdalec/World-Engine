@@ -9,25 +9,25 @@ export { SimClock, getSimClock, resetSimClock, DT_FIXED } from './clock';
 
 // Convenience functions
 export {
-  registerSystem,
-  setSimSpeed,
-  togglePause,
-  onTimeEvent,
-  onTick
+    registerSystem,
+    setSimSpeed,
+    togglePause,
+    onTimeEvent,
+    onTick
 } from './clock';
 
 // Types
 export type {
-  SimSpeed,
-  IdlePolicy,
-  SystemOrder,
-  SimClockState,
-  TickContext,
-  SystemSpec,
-  RegisteredSystem,
-  TimeEvent,
-  TimeEventListener,
-  CatchupConfig
+    SimSpeed,
+    IdlePolicy,
+    SystemOrder,
+    SimClockState,
+    TickContext,
+    SystemSpec,
+    RegisteredSystem,
+    TimeEvent,
+    TimeEventListener,
+    CatchupConfig
 } from './types';
 
 // UI Components
