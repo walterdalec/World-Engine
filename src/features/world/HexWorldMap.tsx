@@ -203,13 +203,13 @@ export default function HexWorldMap({ seedStr = "hex-world-001", onBack }: HexWo
 
             // Check spacing from existing settlements
             let tooClose = false;
-            for (const key of Array.from(settlements.keys())) {
+            settlements.forEach((_settlement, key) => {
+                if (tooClose) return;
                 const [eq, er] = key.split(',').map(Number);
                 if (hexDistance(candidate.q, candidate.r, eq, er) < minSpacing) {
                     tooClose = true;
-                    break;
                 }
-            }
+            });
 
             if (!tooClose) {
                 const biome = getBiome(candidate.q, candidate.r);
