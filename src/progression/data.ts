@@ -43,7 +43,7 @@ export const REVIVAL_REAGENTS: ReagentItem[] = [
         sources: ['Temple shops', 'Salt mines', 'Alchemist vendors'],
         tags: ['revival', 'spirit', 'sacred']
     },
-    
+
     // Heroic Revival reagents
     {
         id: 'phoenix_ash',
@@ -63,7 +63,7 @@ export const REVIVAL_REAGENTS: ReagentItem[] = [
         sources: ['Dream weavers', 'Mystic shops', 'Ancient libraries'],
         tags: ['revival', 'memory', 'psychic']
     },
-    
+
     // Nature Revival reagents
     {
         id: 'elder_seeds',
@@ -74,7 +74,7 @@ export const REVIVAL_REAGENTS: ReagentItem[] = [
         sources: ['Sylvanborn groves', 'Ancient forests', 'Nature priests'],
         tags: ['revival', 'nature', 'growth']
     },
-    
+
     // Additional reagents for future paths
     {
         id: 'moonwater',
