@@ -29,80 +29,80 @@ export type IsOccupiedFn = (_hex: AxialLike) => boolean;
 export type ZoCSet = Set<string>;
 
 export interface MovementOptions {
-  /** Additional edge blocker (walls/doors/rivers). Defaults to none. */
-  edgeBlocker?: EdgeBlockerFn;
-  /** Current occupancy function. Defaults to none. */
-  isOccupied?: IsOccupiedFn;
-  /** Hexes whose adjacency exerts ZoC. Defaults to empty. */
-  zocHexes?: ZoCSet;
-  /** If true, once you step into ZoC you may not step out further this turn. */
-  stopOnZoCEnter?: boolean;
-  /** Optional hard cap on explored frontier for perf (sane default is unlimited). */
-  nodeLimit?: number;
+    /** Additional edge blocker (walls/doors/rivers). Defaults to none. */
+    edgeBlocker?: EdgeBlockerFn;
+    /** Current occupancy function. Defaults to none. */
+    isOccupied?: IsOccupiedFn;
+    /** Hexes whose adjacency exerts ZoC. Defaults to empty. */
+    zocHexes?: ZoCSet;
+    /** If true, once you step into ZoC you may not step out further this turn. */
+    stopOnZoCEnter?: boolean;
+    /** Optional hard cap on explored frontier for perf (sane default is unlimited). */
+    nodeLimit?: number;
 }
 
 export interface MoveNode {
-  pos: Axial;
-  /** Total MP spent to reach this hex. */
-  cost: MP;
-  /** Parent hex in the cheapest path (for reconstruction). */
-  parent?: Axial;
-  /** Whether the node is sealed (no further expansion) due to ZoC rule. */
-  sealed?: boolean;
+    pos: Axial;
+    /** Total MP spent to reach this hex. */
+    cost: MP;
+    /** Parent hex in the cheapest path (for reconstruction). */
+    parent?: Axial;
+    /** Whether the node is sealed (no further expansion) due to ZoC rule. */
+    sealed?: boolean;
 }
 
 export interface MovementField {
-  origin: Axial;
-  maxMP: MP;
-  /** Map key is axialKey(pos). */
-  nodes: Map<string, MoveNode>;
+    origin: Axial;
+    maxMP: MP;
+    /** Map key is axialKey(pos). */
+    nodes: Map<string, MoveNode>;
 }
 //#endregion
 
 //#region Priority Queue (binary heap, by cost)
 class MinHeap<T> {
-  private a: { k: number; v: T }[] = [];
-  get size() {
-    return this.a.length;
-  }
-  push(k: number, v: T) {
-    const a = this.a;
-    a.push({ k, v });
-    this.up(a.length - 1);
-  }
-  pop(): T | undefined {
-    const a = this.a;
-    if (!a.length) return undefined;
-    const top = a[0].v;
-    const last = a.pop()!;
-    if (a.length) {
-      a[0] = last;
-      this.down(0);
+    private a: { k: number; v: T }[] = [];
+    get size() {
+        return this.a.length;
     }
-    return top;
-  }
-  private up(i: number) {
-    const a = this.a;
-    while (i) {
-      const p = (i - 1) >> 1;
-      if (a[p].k <= a[i].k) break;
-      [a[p], a[i]] = [a[i], a[p]];
-      i = p;
+    push(k: number, v: T) {
+        const a = this.a;
+        a.push({ k, v });
+        this.up(a.length - 1);
     }
-  }
-  private down(i: number) {
-    const a = this.a;
-    for (;;) {
-      const l = i * 2 + 1;
-      const r = l + 1;
-      let m = i;
-      if (l < a.length && a[l].k < a[m].k) m = l;
-      if (r < a.length && a[r].k < a[m].k) m = r;
-      if (m === i) break;
-      [a[m], a[i]] = [a[i], a[m]];
-      i = m;
+    pop(): T | undefined {
+        const a = this.a;
+        if (!a.length) return undefined;
+        const top = a[0].v;
+        const last = a.pop()!;
+        if (a.length) {
+            a[0] = last;
+            this.down(0);
+        }
+        return top;
     }
-  }
+    private up(i: number) {
+        const a = this.a;
+        while (i) {
+            const p = (i - 1) >> 1;
+            if (a[p].k <= a[i].k) break;
+            [a[p], a[i]] = [a[i], a[p]];
+            i = p;
+        }
+    }
+    private down(i: number) {
+        const a = this.a;
+        for (; ;) {
+            const l = i * 2 + 1;
+            const r = l + 1;
+            let m = i;
+            if (l < a.length && a[l].k < a[m].k) m = l;
+            if (r < a.length && a[r].k < a[m].k) m = r;
+            if (m === i) break;
+            [a[m], a[i]] = [a[i], a[m]];
+            i = m;
+        }
+    }
 }
 //#endregion
 
@@ -118,106 +118,106 @@ class MinHeap<T> {
  *   further expansion beyond it this turn.
  */
 export function computeMovementField(
-  origin: AxialLike,
-  maxMP: MP,
-  costFn: MoveCostFn,
-  opts: MovementOptions = {},
+    origin: AxialLike,
+    maxMP: MP,
+    costFn: MoveCostFn,
+    opts: MovementOptions = {},
 ): MovementField {
-  const start = axial(origin.q, origin.r);
-  const nodes = new Map<string, MoveNode>();
-  const pq = new MinHeap<string>();
+    const start = axial(origin.q, origin.r);
+    const nodes = new Map<string, MoveNode>();
+    const pq = new MinHeap<string>();
 
-  const edgeBlocker = opts.edgeBlocker || (() => false);
-  const isOccupied = opts.isOccupied || (() => false);
-  const zoc = opts.zocHexes || new Set<string>();
-  const stopOnZoCEnter = !!opts.stopOnZoCEnter;
-  const nodeLimit = opts.nodeLimit ?? Infinity;
+    const edgeBlocker = opts.edgeBlocker || (() => false);
+    const isOccupied = opts.isOccupied || (() => false);
+    const zoc = opts.zocHexes || new Set<string>();
+    const stopOnZoCEnter = !!opts.stopOnZoCEnter;
+    const nodeLimit = opts.nodeLimit ?? Infinity;
 
-  // Seed
-  const startKey = axialKey(start);
-  nodes.set(startKey, { pos: start, cost: 0 });
-  pq.push(0, startKey);
+    // Seed
+    const startKey = axialKey(start);
+    nodes.set(startKey, { pos: start, cost: 0 });
+    pq.push(0, startKey);
 
-  while (pq.size) {
-    const key = pq.pop()!;
-    const node = nodes.get(key)!;
-    if (node.cost > maxMP) continue;
-    if (node.sealed) continue; // sealed nodes do not fan out
+    while (pq.size) {
+        const key = pq.pop()!;
+        const node = nodes.get(key)!;
+        if (node.cost > maxMP) continue;
+        if (node.sealed) continue; // sealed nodes do not fan out
 
-    // Optional exploration cap
-    if (nodes.size > nodeLimit) break;
+        // Optional exploration cap
+        if (nodes.size > nodeLimit) break;
 
-    for (const nb of axialNeighbors(node.pos)) {
-      const nbKey = axialKey(nb);
-      // edge blocked or occupied? skip
-      if (edgeBlocker(node.pos, nb)) continue;
-      if (isOccupied(nb) && nbKey !== startKey) continue;
+        for (const nb of axialNeighbors(node.pos)) {
+            const nbKey = axialKey(nb);
+            // edge blocked or occupied? skip
+            if (edgeBlocker(node.pos, nb)) continue;
+            if (isOccupied(nb) && nbKey !== startKey) continue;
 
-      const stepCost = costFn(nb);
-      if (!Number.isFinite(stepCost) || stepCost < 0) continue;
+            const stepCost = costFn(nb);
+            if (!Number.isFinite(stepCost) || stepCost < 0) continue;
 
-      const newCost = node.cost + stepCost;
-      if (newCost > maxMP) continue;
+            const newCost = node.cost + stepCost;
+            if (newCost > maxMP) continue;
 
-      const prev = nodes.get(nbKey);
-      if (!prev || newCost < prev.cost) {
-        // Determine ZoC effect on entry
-        let sealed = false;
-        if (zoc.size) {
-          const adj = axialNeighbors(nb);
-          const entersZoC = adj.some(h => zoc.has(axialKey(h)));
-          if (entersZoC && stopOnZoCEnter) sealed = true;
+            const prev = nodes.get(nbKey);
+            if (!prev || newCost < prev.cost) {
+                // Determine ZoC effect on entry
+                let sealed = false;
+                if (zoc.size) {
+                    const adj = axialNeighbors(nb);
+                    const entersZoC = adj.some(h => zoc.has(axialKey(h)));
+                    if (entersZoC && stopOnZoCEnter) sealed = true;
+                }
+                nodes.set(nbKey, { pos: axial(nb.q, nb.r), cost: newCost, parent: node.pos, sealed });
+                pq.push(newCost, nbKey);
+            }
         }
-        nodes.set(nbKey, { pos: axial(nb.q, nb.r), cost: newCost, parent: node.pos, sealed });
-        pq.push(newCost, nbKey);
-      }
     }
-  }
 
-  return { origin: start, maxMP, nodes };
+    return { origin: start, maxMP, nodes };
 }
 //#endregion
 
 //#region Path reconstruction
 export function reconstructPath(field: MovementField, target: AxialLike): Axial[] | null {
-  const key = axialKey(target);
-  const node = field.nodes.get(key);
-  if (!node) return null;
-  const path: Axial[] = [];
-  let cur: MoveNode | undefined = node;
-  while (cur) {
-    path.push(cur.pos);
-    if (!cur.parent) break;
-    cur = field.nodes.get(axialKey(cur.parent));
-  }
-  path.reverse();
-  return path;
+    const key = axialKey(target);
+    const node = field.nodes.get(key);
+    if (!node) return null;
+    const path: Axial[] = [];
+    let cur: MoveNode | undefined = node;
+    while (cur) {
+        path.push(cur.pos);
+        if (!cur.parent) break;
+        cur = field.nodes.get(axialKey(cur.parent));
+    }
+    path.reverse();
+    return path;
 }
 //#endregion
 
 //#region Ability Range Predicates
 export interface RangeSpec {
-  min?: number;
-  max: number;
+    min?: number;
+    max: number;
 }
 
 /** True if `b` is within [min,max] hexes of `a`. */
 export function inHexRange(a: AxialLike, b: AxialLike, spec: RangeSpec): boolean {
-  const d = axialDistance(a, b);
-  const min = spec.min ?? 0;
-  return d >= min && d <= spec.max;
+    const d = axialDistance(a, b);
+    const min = spec.min ?? 0;
+    return d >= min && d <= spec.max;
 }
 
 /** All hexes within [min,max] around center, given a set of candidate hexes. */
 export function filterByRange(center: AxialLike, hexes: AxialLike[], spec: RangeSpec): Axial[] {
-  return hexes.filter(h => inHexRange(center, h, spec)).map(h => axial(h.q, h.r));
+    return hexes.filter(h => inHexRange(center, h, spec)).map(h => axial(h.q, h.r));
 }
 //#endregion
 
 //#region Move + Attack Helpers
 export interface AttackableFromOptions extends MovementOptions {
-  /** Optional LOS/occlusion predicate. If provided, filters attack hexes. */
-  hasLineOfSight?: (_from: AxialLike, _to: AxialLike) => boolean;
+    /** Optional LOS/occlusion predicate. If provided, filters attack hexes. */
+    hasLineOfSight?: (_from: AxialLike, _to: AxialLike) => boolean;
 }
 
 /**
@@ -227,20 +227,21 @@ export interface AttackableFromOptions extends MovementOptions {
  * `collectTargetsFromPositions` with your entity list.
  */
 export function computeAttackFrom(
-  field: MovementField,
-  _attackRange: RangeSpec,
-  _opts: AttackableFromOptions = {},
+    field: MovementField,
+    _attackRange: RangeSpec,
+    _opts: AttackableFromOptions = {},
 ): Set<string> {
-  const out = new Set<string>();
-  for (const [, node] of field.nodes) {
-    // Gather all hexes in range of this node
-    // We do NOT allocate a full disk here for perf; instead, we will defer to
-    // caller to test specific targets. But we expose the positions that can be
-    // used to launch the attack.
-    const key = axialKey(node.pos);
-    out.add(key);
-  }
-  return out;
+    const out = new Set<string>();
+    const entries = Array.from(field.nodes.entries());
+    for (const [, node] of entries) {
+        // Gather all hexes in range of this node
+        // We do NOT allocate a full disk here for perf; instead, we will defer to
+        // caller to test specific targets. But we expose the positions that can be
+        // used to launch the attack.
+        const key = axialKey(node.pos);
+        out.add(key);
+    }
+    return out;
 }
 
 /**
@@ -248,35 +249,36 @@ export function computeAttackFrom(
  * within range, optionally checking LOS/occlusion.
  */
 export function collectTargetsFromPositions(
-  fromPositions: Iterable<string | AxialLike>,
-  potentialTargets: AxialLike[],
-  attackRange: RangeSpec,
-  opts: AttackableFromOptions = {},
+    fromPositions: Iterable<string | AxialLike>,
+    potentialTargets: AxialLike[],
+    attackRange: RangeSpec,
+    opts: AttackableFromOptions = {},
 ): Axial[] {
-  const los = opts.hasLineOfSight;
-  const fromList: Axial[] = [];
-  for (const f of fromPositions) {
-    if (typeof f === 'string') {
-      const [q, r] = f.split(',').map(Number);
-      fromList.push(axial(q, r));
-    } else {
-      fromList.push(axial(f.q, f.r));
+    const los = opts.hasLineOfSight;
+    const fromList: Axial[] = [];
+    const fromArray = Array.from(fromPositions);
+    for (const f of fromArray) {
+        if (typeof f === 'string') {
+            const [q, r] = f.split(',').map(Number);
+            fromList.push(axial(q, r));
+        } else {
+            fromList.push(axial(f.q, f.r));
+        }
     }
-  }
 
-  const targets: Axial[] = [];
-  for (const t of potentialTargets) {
-    const T = axial(t.q, t.r);
-    let ok = false;
-    for (const F of fromList) {
-      if (!inHexRange(F, T, attackRange)) continue;
-      if (los && !los(F, T)) continue;
-      ok = true;
-      break;
+    const targets: Axial[] = [];
+    for (const t of potentialTargets) {
+        const T = axial(t.q, t.r);
+        let ok = false;
+        for (const F of fromList) {
+            if (!inHexRange(F, T, attackRange)) continue;
+            if (los && !los(F, T)) continue;
+            ok = true;
+            break;
+        }
+        if (ok) targets.push(T);
     }
-    if (ok) targets.push(T);
-  }
-  return targets;
+    return targets;
 }
 //#endregion
 
@@ -286,17 +288,17 @@ export function collectTargetsFromPositions(
  * impassables are Infinity via `isPassable`.
  */
 export function uniformMovement(
-  origin: AxialLike,
-  maxMP: MP,
-  isPassable: (_hex: AxialLike) => boolean,
-  opts: Omit<MovementOptions, 'edgeBlocker'> & { edgeBlocker?: EdgeBlockerFn } = {},
+    origin: AxialLike,
+    maxMP: MP,
+    isPassable: (_hex: AxialLike) => boolean,
+    opts: Omit<MovementOptions, 'edgeBlocker'> & { edgeBlocker?: EdgeBlockerFn } = {},
 ): MovementField {
-  const costFn: MoveCostFn = h => (isPassable(h) ? 1 : Infinity);
-  return computeMovementField(origin, maxMP, costFn, opts);
+    const costFn: MoveCostFn = h => (isPassable(h) ? 1 : Infinity);
+    return computeMovementField(origin, maxMP, costFn, opts);
 }
 
 /** Quick helper to extract the reachable set as keys. */
 export function reachableKeys(field: MovementField): Set<string> {
-  return new Set([...field.nodes.keys()]);
+    return new Set(Array.from(field.nodes.keys()));
 }
 //#endregion

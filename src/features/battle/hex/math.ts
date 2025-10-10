@@ -8,9 +8,9 @@
 // Exposes only math primitives; no game rules or terrain costs here.
 // ──────────────────────────────────────────────────────────────────────────────
 
-import type { Axial, AxialLike, Cube, CubeLike } from './coords';
+import type { AxialLike, Cube, CubeLike } from './coords';
 import {
-    axial,
+    type Axial,
     cube,
     axialToCube,
     cubeToAxial,
