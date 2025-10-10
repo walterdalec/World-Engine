@@ -81,15 +81,15 @@ export * from './los';
 export * from './aoe';
 
 // Re-export pathfinding (Canvas #6) - selective to avoid type conflicts with movement
-export { 
-  aStar, 
-  aStarToAny, 
-  aStarUniform, 
-  smoothPathByLOS,
-  type AStarOptions,
-  type PathNode,
-  type PathResult,
-  type HasLineOfSightFn,
+export {
+    aStar,
+    aStarToAny,
+    aStarUniform,
+    smoothPathByLOS,
+    type AStarOptions,
+    type PathNode,
+    type PathResult,
+    type HasLineOfSightFn,
 } from './pathfinding';
 
 // Re-export everything from shim (Canvas #7)

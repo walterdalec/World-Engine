@@ -257,17 +257,17 @@ describe('findPathToAny — multi-target pathfinding', () => {
         expect(res.path).toBeNull()
     })
 
-  it('should handle empty goals array', () => {
-    const board = createMockBoard()
-    const start = axial(0, 0)
-    const goals: { q: number; r: number }[] = []
+    it('should handle empty goals array', () => {
+        const board = createMockBoard()
+        const start = axial(0, 0)
+        const goals: { q: number; r: number }[] = []
 
-    const res = findPathToAny(start, goals, board, { minStepCost: 1 })
+        const res = findPathToAny(start, goals, board, { minStepCost: 1 })
 
-    expect(res.path).toBeNull()
-  })
+        expect(res.path).toBeNull()
+    })
 
-  it('should allow occupied goals by default', () => {
+    it('should allow occupied goals by default', () => {
         const board: BoardFns = {
             moveCostAt: (h) => (passableDiamond(5)(h) ? 1 : Infinity),
             isOccupied: (h) => h.q === 2 && h.r === 0,

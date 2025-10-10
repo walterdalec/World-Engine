@@ -35,23 +35,23 @@ import { aStar, aStarToAny } from './pathfinding'
 // ──────────────────────────────────────────────────────────────────────────────
 
 export interface BoardFns {
-  // Movement / pathfinding
-  moveCostAt?: MoveCostFn // If omitted, caller should use uniform helpers upstream
-  isPassableAt?: (_hex: AxialLike) => boolean
-  isOccupied?: IsOccupiedFn
-  edgeBlocker?: EdgeBlockerFn
-  // LOS / cover
-  blocksSightAt?: BlocksSightAtFn
-  blocksSightEdge?: BlocksSightEdgeFn
-  softCoverAt?: SoftCoverAtFn
-  elevationAt?: ElevationAtFn
-  // Tactics
-  zoc?: Set<string>
+    // Movement / pathfinding
+    moveCostAt?: MoveCostFn // If omitted, caller should use uniform helpers upstream
+    isPassableAt?: (_hex: AxialLike) => boolean
+    isOccupied?: IsOccupiedFn
+    edgeBlocker?: EdgeBlockerFn
+    // LOS / cover
+    blocksSightAt?: BlocksSightAtFn
+    blocksSightEdge?: BlocksSightEdgeFn
+    softCoverAt?: SoftCoverAtFn
+    elevationAt?: ElevationAtFn
+    // Tactics
+    zoc?: Set<string>
 }
 
 export interface MovePreviewOptions extends MovementOptions {
-  /** If provided, overrides BoardFns.moveCostAt with a uniform passable grid. */
-  isPassable?: (_hex: AxialLike) => boolean
+    /** If provided, overrides BoardFns.moveCostAt with a uniform passable grid. */
+    isPassable?: (_hex: AxialLike) => boolean
 }export interface MovePreview {
     field: MovementField
     /** Reachable hex keys for quick highlight checks. */
