@@ -54,7 +54,27 @@ interface PlayerPosition {
 export default function HexWorldMap({ seedStr = "hex-world-001", onBack }: HexWorldMapProps) {
     const [playerPos, setPlayerPos] = useState<PlayerPosition>({ q: 10, r: 10 });
     const [worldTiles, setWorldTiles] = useState<WorldTile[]>([]);
-    const [exploredTiles, setExploredTiles] = useState<Set<string>>(new Set(['10,10']));
+    
+    // Initialize with starting area explored (player position + neighbors)
+    const [exploredTiles, setExploredTiles] = useState<Set<string>>(() => {
+        const initial = new Set<string>();
+        const startQ = 10;
+        const startR = 10;
+        
+        // Mark starting position
+        initial.add(`${startQ},${startR}`);
+        
+        // Mark 6 neighbors (hex directions)
+        initial.add(`${startQ},${startR - 1}`); // North
+        initial.add(`${startQ},${startR + 1}`); // South
+        initial.add(`${startQ - 1},${startR}`); // Northwest
+        initial.add(`${startQ + 1},${startR}`); // Northeast
+        initial.add(`${startQ - 1},${startR + 1}`); // Southwest
+        initial.add(`${startQ + 1},${startR - 1}`); // Southeast
+        
+        return initial;
+    });
+    
     const [activeSettlement, setActiveSettlement] = useState<Settlement | null>(null);
     const [activeEncounter, setActiveEncounter] = useState<MapEncounter | null>(null);
     const [playerCharacters, setPlayerCharacters] = useState<any[]>([]);
@@ -204,6 +224,7 @@ export default function HexWorldMap({ seedStr = "hex-world-001", onBack }: HexWo
 
     // Generate initial world tiles
     useEffect(() => {
+        console.log('🗺️ Generating world tiles...');
         const tiles: WorldTile[] = [];
         for (let q = 0; q < mapWidth; q++) {
             for (let r = 0; r < mapHeight; r++) {
@@ -217,6 +238,8 @@ export default function HexWorldMap({ seedStr = "hex-world-001", onBack }: HexWo
                 });
             }
         }
+        console.log(`🗺️ Generated ${tiles.length} tiles, ${tiles.filter(t => t.explored).length} explored`);
+        console.log('🗺️ Sample explored tiles:', tiles.filter(t => t.explored).map(t => `(${t.q},${t.r}) ${t.biome}`));
         setWorldTiles(tiles);
     }, [getBiome, getSettlement, getEncounter, exploredTiles, mapWidth, mapHeight]);
 
