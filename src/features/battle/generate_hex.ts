@@ -3,7 +3,7 @@
  * Creates procedural hex grids with deployment zones
  */
 
-import { 
+import {
     axialToCube as _axialToCube
 } from './hex/coords';
 import { BattleGrid, HexTile, DeploymentZone, HexPosition, BattleContext as _BattleContext } from './types';
