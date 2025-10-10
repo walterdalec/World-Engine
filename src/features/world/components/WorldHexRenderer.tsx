@@ -7,6 +7,7 @@
 import React, { useRef, useState, useCallback, useMemo } from 'react';
 import { defineHex, Grid, rectangle, Hex, Orientation } from 'honeycomb-grid';
 import HexStage from '../../battle/components/HexStage';
+import type { EncounterType } from '../encounters/types';
 
 interface WorldTile {
     q: number;
@@ -24,7 +25,7 @@ interface Settlement {
 }
 
 interface Encounter {
-    type: 'creature' | 'treasure' | 'event' | 'faction' | 'mystery' | 'quest';
+    type: EncounterType;
     name: string;
     emoji: string;
     danger: 'safe' | 'low' | 'medium' | 'high' | 'extreme';
@@ -40,7 +41,7 @@ interface WorldHexRendererProps {
     playerPos: PlayerPosition;
     width: number;
     height: number;
-    onTileClick?: (q: number, r: number) => void;
+    onTileClick?: (_q: number, _r: number) => void;
     showGrid?: boolean;
 }
 

@@ -7,6 +7,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { WorldHexRenderer } from './components/WorldHexRenderer';
 import { storage } from '../../core/services/storage';
+import { generateEncounter, mapBiomeToEncounterBiome } from './encounters/generator';
+import type { EncounterType } from './encounters/types';
 
 interface HexWorldMapProps {
     seedStr?: string;
@@ -18,7 +20,7 @@ interface WorldTile {
     r: number;
     biome: string;
     settlement?: Settlement | null;
-    encounter?: Encounter | null;
+    encounter?: MapEncounter | null;
     explored: boolean;
 }
 
@@ -32,12 +34,16 @@ interface Settlement {
     services?: string[];
 }
 
-interface Encounter {
-    type: 'creature' | 'treasure' | 'event' | 'faction' | 'mystery' | 'quest';
+// Simplified encounter for map display
+interface MapEncounter {
+    type: EncounterType;
     name: string;
     description: string;
     emoji: string;
     danger: 'safe' | 'low' | 'medium' | 'high' | 'extreme';
+    biome: string;
+    difficulty: number;
+    xp: number;
 }
 
 interface PlayerPosition {
@@ -50,7 +56,7 @@ export default function HexWorldMap({ seedStr = "hex-world-001", onBack }: HexWo
     const [worldTiles, setWorldTiles] = useState<WorldTile[]>([]);
     const [exploredTiles, setExploredTiles] = useState<Set<string>>(new Set(['10,10']));
     const [activeSettlement, setActiveSettlement] = useState<Settlement | null>(null);
-    const [activeEncounter, setActiveEncounter] = useState<Encounter | null>(null);
+    const [activeEncounter, setActiveEncounter] = useState<MapEncounter | null>(null);
     const [playerCharacters, setPlayerCharacters] = useState<any[]>([]);
 
     const mapWidth = 21;
@@ -141,31 +147,60 @@ export default function HexWorldMap({ seedStr = "hex-world-001", onBack }: HexWo
         return null;
     }, [seededRandom, seedStr]);
 
-    // Get encounter for hex
-    const getEncounter = useCallback((q: number, r: number): Encounter | null => {
+    // Get encounter for hex using proper encounter system
+    const getEncounter = useCallback((q: number, r: number): MapEncounter | null => {
         const settlement = getSettlement(q, r);
         if (settlement) return null; // No encounters at settlements
 
         const encounterChance = seededRandom(q, r, seedStr + "encounter");
         
-        if (encounterChance > 0.85) {
-            const types: Encounter['type'][] = ['creature', 'treasure', 'event', 'faction', 'mystery', 'quest'];
-            const emojis = ['🐉', '💎', '❓', '⚔️', '🔮', '📜'];
-            const dangers: Encounter['danger'][] = ['safe', 'low', 'medium', 'high', 'extreme'];
+        if (encounterChance > 0.80) { // 20% chance per tile
+            const biome = getBiome(q, r);
+            const encounterBiome = mapBiomeToEncounterBiome(biome.toLowerCase());
             
-            const typeIndex = Math.floor(seededRandom(q, r, seedStr + "enctype") * types.length);
-            const dangerIndex = Math.floor(seededRandom(q, r, seedStr + "danger") * dangers.length);
+            // Generate proper encounter using the system
+            const systemEncounter = generateEncounter(
+                Math.floor(seededRandom(q, r, seedStr) * 1000000),
+                encounterBiome,
+                { id: 'region-1', factionName: 'Neutral', tier: 1, control: 0.5, conflictLevel: 0 },
+                playerCharacters[0]?.level || 1,
+                { q, r, sectorX: 0, sectorY: 0 }
+            );
+            
+            // Convert to map encounter with visual data
+            const encounterEmojis: Record<EncounterType, string> = {
+                'RAID_PARTY': '⚔️',
+                'SCOUT_PATROL': '�️',
+                'WANDERER': '�',
+                'MONSTER': '🐉',
+                'BANDIT': '🗡️',
+                'MERCHANT': '�',
+                'QUEST_GIVER': '📜',
+                'TREASURE': '💎',
+                'AMBUSH': '🎭'
+            };
+            
+            const getDangerLevel = (difficulty: number): MapEncounter['danger'] => {
+                if (difficulty <= 2) return 'safe';
+                if (difficulty <= 4) return 'low';
+                if (difficulty <= 6) return 'medium';
+                if (difficulty <= 8) return 'high';
+                return 'extreme';
+            };
             
             return {
-                type: types[typeIndex],
-                name: `${types[typeIndex]} encounter`,
-                description: `A ${dangers[dangerIndex]} ${types[typeIndex]} encounter`,
-                emoji: emojis[typeIndex],
-                danger: dangers[dangerIndex]
+                type: systemEncounter.type,
+                name: `${systemEncounter.type.replace('_', ' ')} encounter`,
+                description: `A ${getDangerLevel(systemEncounter.difficulty)} ${systemEncounter.type.toLowerCase().replace('_', ' ')} in the ${biome}`,
+                emoji: encounterEmojis[systemEncounter.type],
+                danger: getDangerLevel(systemEncounter.difficulty),
+                biome,
+                difficulty: systemEncounter.difficulty,
+                xp: systemEncounter.xp
             };
         }
         return null;
-    }, [seededRandom, seedStr, getSettlement]);
+    }, [seededRandom, seedStr, getSettlement, getBiome, playerCharacters]);
 
     // Generate initial world tiles
     useEffect(() => {
