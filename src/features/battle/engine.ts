@@ -6,7 +6,7 @@ import {
     cubeDistance,
     neighborsHex as hexNeighbors,
     hexRing
-} from "./generate_hex";
+} from "./hexUtils";
 // Morale system integration
 import {
     initializeMoraleSystem,

@@ -3,5 +3,6 @@ build/
 dist/
 packages/
 planning/
+src/_legacy/
 *.d.ts
 .tsbuildinfo
