@@ -212,11 +212,11 @@ export function grantPartyXP(
 ): Map<CharacterId, number> {
     const distribution = distributeXP(memberIds, totalXP, contributions);
     const events: ProgressionEvent[] = [];
-    
+
     Array.from(distribution.entries()).forEach(([memberId, xpAmount]) => {
         const state = currentStates.get(memberId);
         if (!state) return;
-        
+
         const { newXP } = grantXP(
             state.xp,
             state.level,
@@ -225,17 +225,17 @@ export function grantPartyXP(
                 onLevelUp(memberId, level);
             }
         );
-        
+
         events.push(createXPGrantedEvent(memberId, xpAmount, source, newXP));
-        
+
         // Level-up events handled by callback
     });
-    
+
     // Emit all events
     for (const event of events) {
         emitProgressionEvent(event);
     }
-    
+
     return distribution;
 }
 
@@ -257,7 +257,7 @@ export function processPartyInjuries(
     const scars = new Map<CharacterId, Scar>();
     const deaths = new Map<CharacterId, DeathRecord>();
     const events: ProgressionEvent[] = [];
-    
+
     for (const { memberId, damageTags } of downedMembers) {
         const wound = rollInjury(
             seed,
@@ -266,12 +266,12 @@ export function processPartyInjuries(
             hasHealer,
             currentDay
         );
-        
+
         if (wound) {
             injuries.set(memberId, wound);
             const result = processInjury(wound, seed, memberId);
             events.push(...result.events);
-            
+
             // Check if scar was generated
             const scarEvent = result.events.find(e => e.type === 'scar/applied');
             if (scarEvent && scarEvent.type === 'scar/applied') {
@@ -283,7 +283,7 @@ export function processPartyInjuries(
             // For now, we just mark it as needing death processing
         }
     }
-    
+
     return { injuries, scars, deaths, events };
 }
 
@@ -319,37 +319,37 @@ export function performRevival(
         factionBonus,
         seed
     );
-    
+
     const events: ProgressionEvent[] = [createRevivalAttemptedEvent(attempt)];
     let scar: Scar | undefined;
     let curse: Curse | undefined;
-    
+
     if (attempt.outcome === 'success' || attempt.outcome === 'flawed') {
         // Get scar
         if (attempt.scarId) {
             scar = getRevivalScar(seed, memberId, currentDay, deathCount);
             events.push(createScarAppliedEvent(memberId, scar));
         }
-        
+
         // Get curse if flawed
         if (attempt.outcome === 'flawed' && attempt.curseId) {
             curse = getCurseFromRevival(attempt.curseId, seed, memberId, currentDay);
             events.push(createCurseAppliedEvent(memberId, curse));
         }
     }
-    
+
     // Emit codex event
     events.push({
         type: 'codex/revival',
         memberId,
         success: attempt.outcome !== 'failure'
     });
-    
+
     // Emit all events
     for (const event of events) {
         emitProgressionEvent(event);
     }
-    
+
     return { attempt, scar, curse, events };
 }
 
@@ -365,27 +365,27 @@ export function processExpiredCurses(
 } {
     const expired = new Map<CharacterId, string[]>();
     const events: ProgressionEvent[] = [];
-    
+
     Array.from(memberCurses.entries()).forEach(([memberId, curses]) => {
         const expiredIds: string[] = [];
-        
+
         for (const curse of curses) {
             if (isCurseExpired(curse, currentDay)) {
                 expiredIds.push(curse.id);
                 events.push(createCurseFadedEvent(memberId, curse.id));
             }
         }
-        
+
         if (expiredIds.length > 0) {
             expired.set(memberId, expiredIds);
         }
     });
-    
+
     // Emit all events
     for (const event of events) {
         emitProgressionEvent(event);
     }
-    
+
     return { expired, events };
 }
 
@@ -396,11 +396,11 @@ export function processDailyBurnoutRecovery(
     memberBurnouts: Map<CharacterId, number>
 ): Map<CharacterId, number> {
     const updated = new Map<CharacterId, number>();
-    
+
     Array.from(memberBurnouts.entries()).forEach(([memberId, burnout]) => {
         const newBurnout = reduceBurnout(burnout);
         updated.set(memberId, newBurnout);
-        
+
         // Emit warning if still high
         if (newBurnout >= 40) {
             emitProgressionEvent({
@@ -410,7 +410,7 @@ export function processDailyBurnoutRecovery(
             });
         }
     });
-    
+
     return updated;
 }
 

@@ -33,7 +33,7 @@ export {
     // Event bus
     subscribeToProgressionEvents,
     emitProgressionEvent,
-    
+
     // System interfaces
     XPSystem,
     LevelingSystem,
@@ -43,7 +43,7 @@ export {
     ScarSystem,
     RevivalSystem,
     CurseSystem,
-    
+
     // High-level workflows
     grantPartyXP,
     processPartyInjuries,

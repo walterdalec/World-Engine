@@ -138,35 +138,35 @@ export function calculateRevivalChance(
     factionBonus: number = 0
 ): { success: number; flawed: number; failure: number } {
     let successMod = 0;
-    
+
     // Site tier bonus
     if (siteTier > path.requiredSiteTier) {
         successMod += (siteTier - path.requiredSiteTier) * MODIFIERS.siteTierBonus;
     }
-    
+
     // Healer presence
     if (hasHealer) {
         successMod += MODIFIERS.healerPresence;
     }
-    
+
     // Death count penalty
     if (deathCount > 0) {
         successMod -= deathCount * MODIFIERS.deathCountPenalty;
     }
-    
+
     // Recent death penalty
     if (daysSinceLastDeath < 7) {
         successMod -= MODIFIERS.recentDeathPenalty;
     }
-    
+
     // Faction bonus
     successMod += factionBonus * MODIFIERS.factionBonus;
-    
+
     // Apply modifiers to success chance
     let success = Math.max(0.10, Math.min(0.95, path.successChance + successMod));
     let flawed = path.flawedChance;
     let failure = path.failureChance;
-    
+
     // Redistribute if success chance changed
     if (successMod !== 0) {
         const remaining = 1.0 - success;
@@ -174,7 +174,7 @@ export function calculateRevivalChance(
         flawed = remaining * flawedRatio;
         failure = remaining * (1 - flawedRatio);
     }
-    
+
     return { success, flawed, failure };
 }
 
@@ -197,7 +197,7 @@ export function attemptRevival(
     if (!path) {
         throw new Error(`Revival path not found: ${pathId}`);
     }
-    
+
     // Calculate chances
     const chances = calculateRevivalChance(
         path,
@@ -207,15 +207,15 @@ export function attemptRevival(
         daysSinceLastDeath,
         factionBonus
     );
-    
+
     // Roll for outcome
     const rng = new SeededRandom(`${seed}_revival_${memberId}_${currentDay}`);
     const roll = rng.nextFloat();
-    
+
     let outcome: 'success' | 'flawed' | 'failure';
     let scarId: string | undefined;
     let curseId: string | undefined;
-    
+
     if (roll < chances.success) {
         // SUCCESS: Clean revival with guaranteed scar
         outcome = 'success';
@@ -226,14 +226,14 @@ export function attemptRevival(
         outcome = 'flawed';
         const scar = getRevivalScar(seed, memberId, currentDay, deathCount);
         scarId = scar.id;
-        
+
         // Pick random curse (template used in getCurseFromRevival)
         curseId = `curse_revival_${memberId}_${currentDay}`;
     } else {
         // FAILURE: Revival fails, member stays dead, reagents consumed
         outcome = 'failure';
     }
-    
+
     const attempt: RevivalAttempt = {
         memberId,
         day: currentDay,
@@ -245,7 +245,7 @@ export function attemptRevival(
         scarId,
         curseId
     };
-    
+
     return attempt;
 }
 
@@ -260,7 +260,7 @@ export function getCurseFromRevival(
 ): Curse {
     const rng = new SeededRandom(`${seed}_curse_${memberId}_${currentDay}`);
     const template = REVIVAL_CURSES[rng.nextInt(0, REVIVAL_CURSES.length - 1)];
-    
+
     return {
         ...template,
         id: curseId,
@@ -279,11 +279,11 @@ export function calculateRevivalCost(
     if (!path) {
         throw new Error(`Revival path not found: ${pathId}`);
     }
-    
+
     // Gold cost increases with death count
     const goldMultiplier = 1 + (deathCount * 0.25); // +25% per death
     const gold = Math.floor(path.gold * goldMultiplier);
-    
+
     return {
         reagents: path.reagents,
         gold
@@ -299,12 +299,12 @@ export function isRevivalPathAvailable(
 ): boolean {
     const path = REVIVAL_PATHS.find(p => p.id === pathId);
     if (!path) return false;
-    
+
     if (path.factionRestriction) {
         if (!factionId) return false;
         return factionId === path.factionRestriction;
     }
-    
+
     return true;
 }
 
@@ -331,7 +331,7 @@ export function getRevivalFatigue(
     if (daysRemaining <= 0) {
         return { description: '', mods: [] };
     }
-    
+
     return {
         description: `Revival Fatigue (${daysRemaining} days remaining)`,
         mods: [
