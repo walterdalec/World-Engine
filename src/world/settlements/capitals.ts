@@ -171,7 +171,7 @@ function poissonDiskSample(
             
             // Check bounds and mask
             if (newX < 0 || newX >= width || newY < 0 || newY >= height) continue;
-            if (!mask[newY] || !mask[newY][newX]) continue;
+            if (!Array.isArray(mask[newY]) || !mask[newY][newX]) continue;
             
             // Check distance to existing samples (grid-accelerated)
             const gx = Math.floor(newX / cellSize);
