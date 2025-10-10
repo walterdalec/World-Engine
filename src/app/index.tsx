@@ -6,7 +6,7 @@ import { MainMenu, WorldSetupScreen, VersionDisplay } from "../features/ui";
 import { CharacterLibrary, CharacterCreate, NameGenerator, ClassicCharacterCreator } from "../features/characters";
 import { SpellGenerator, SpellAssignment } from "../features/spells";
 import { HealingSystem, BrigandineHexBattle } from "../features/battle";
-import { WorldMapEngine, EnhancedWorldMap, SimpleWorldMap, ProceduralDevTools } from "../features/world";
+import { WorldMapEngine, EnhancedWorldMap, SimpleWorldMap, HexWorldMap, ProceduralDevTools } from "../features/world";
 import EncountersTestPage from "../features/world/encounters/EncountersTestPage";
 import { SimplePortraitTest } from "../features/portraits";
 import { CombatUIDemo } from "../pages/CombatUIDemo";
@@ -35,7 +35,7 @@ function _randomSeed(): string {
 }
 
 function App() {
-  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "enhancedmap" | "simplemap" | "charactercreate" | "classiccharacter" | "portraittest" | "brigandineHex" | "autoupdater" | "combat-ui-demo" | "procedural" | "encounters">("menu");
+  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "enhancedmap" | "simplemap" | "hexmap" | "charactercreate" | "classiccharacter" | "portraittest" | "brigandineHex" | "autoupdater" | "combat-ui-demo" | "procedural" | "encounters">("menu");
   const [party, setParty] = React.useState<Character[]>([]);
   const [currentCampaign, setCurrentCampaign] = React.useState<any>(null);
   const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0); // Force re-render hook
@@ -306,6 +306,11 @@ function App() {
     setStep("simplemap");
   };
 
+  const handleHexMap = () => {
+    // Hex-based overworld map
+    setStep("hexmap");
+  };
+
   const handleCombatUIDemo = () => {
     // Combat UI demonstration with mock data
     setStep("combat-ui-demo");
@@ -422,6 +427,7 @@ function App() {
           onBrigandineHex={handleBrigandineHex}
           onEnhancedMap={handleEnhancedMap}
           onSimpleMap={handleSimpleMap}
+          onHexMap={handleHexMap}
           onCombatUIDemo={handleCombatUIDemo}
           onProcedural={handleProcedural}
           onEncounters={handleEncounters}
@@ -567,6 +573,14 @@ function App() {
       {step === "simplemap" && (
         <div style={{ position: 'relative' }}>
           <SimpleWorldMap
+            seedStr={eng?.state?.meta?.seed}
+            onBack={() => setStep("menu")}
+          />
+        </div>
+      )}
+      {step === "hexmap" && (
+        <div style={{ position: 'relative' }}>
+          <HexWorldMap
             seedStr={eng?.state?.meta?.seed}
             onBack={() => setStep("menu")}
           />

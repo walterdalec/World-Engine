@@ -36,12 +36,13 @@ interface Props {
   onBrigandineHex?: () => void;
   onEnhancedMap: () => void;
   onSimpleMap: () => void;
+  onHexMap?: () => void;
   onCombatUIDemo: () => void;
   onProcedural: () => void;
   onEncounters?: () => void;
 }
 
-export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onClassicCharacterCreate, onPortraitTest, onAutoUpdater, onBrigandineHex, onEnhancedMap, onSimpleMap, onCombatUIDemo, onProcedural, onEncounters }: Props) {
+export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onClassicCharacterCreate, onPortraitTest, onAutoUpdater, onBrigandineHex, onEnhancedMap, onSimpleMap, onHexMap, onCombatUIDemo, onProcedural, onEncounters }: Props) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [characters, setCharacters] = useState<SavedCharacter[]>([]);
   const [activeTab, setActiveTab] = useState<'campaigns' | 'characters'>('campaigns');
@@ -781,6 +782,14 @@ Recovered ${recovered.length} campaigns`);
                 <h3 style={{ margin: '0 0 5px 0' }}>Exploration Map</h3>
                 <p style={{ margin: 0, opacity: 0.9 }}>Simple campaign world map</p>
               </div>
+
+              {onHexMap && (
+                <div style={newCardStyle} onClick={onHexMap}>
+                  <div style={{ fontSize: '3rem', marginBottom: '10px' }}>⬡</div>
+                  <h3 style={{ margin: '0 0 5px 0' }}>Hex World Map</h3>
+                  <p style={{ margin: 0, opacity: 0.9 }}>Professional hex-based overworld</p>
+                </div>
+              )}
 
               <div style={newCardStyle} onClick={onProcedural}>
                 <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🗺️</div>
