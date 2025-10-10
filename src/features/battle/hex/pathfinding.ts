@@ -32,6 +32,8 @@ export interface AStarOptions {
     edgeBlocker?: EdgeBlockerFn;
     /** Blocks entry into currently occupied hexes (except start/goal allowances via caller). */
     isOccupied?: IsOccupiedFn;
+    /** If true, allow entering occupied goal hex; if false, goal must be unoccupied. Default true. */
+    allowOccupiedGoal?: boolean;
     /** Zones of Control: hex keys that exert ZoC into their neighbors. */
     zocHexes?: Set<string>;
     /** Additional cost when moving *from* or *into* a hex adjacent to ZoC source. */
@@ -133,10 +135,11 @@ export function aStar(
     const eps = opts.tieBreakEpsilon ?? 1e-3;
     const edgeBlocker = opts.edgeBlocker || ((_from, _to) => false);
     const isOccupied = opts.isOccupied || ((_hex) => false);
+    const allowOccupiedGoal = opts.allowOccupiedGoal ?? true;
     const zoc = opts.zocHexes || new Set<string>();
     const zocPenalty = opts.zocPenalty ?? 0;
     const stopOnZoCEnter = !!opts.stopOnZoCEnter;
-    const nodeLimit = opts.nodeLimit ?? Infinity;
+    const _nodeLimit = opts.nodeLimit ?? Infinity;
 
     const S: Axial = { q: start.q, r: start.r };
     const G: Axial = { q: goal.q, r: goal.r };
@@ -161,6 +164,12 @@ export function aStar(
         const key = open.pop()!;
         const cur = nodes.get(key)!;
         if (closed.has(key)) continue;
+
+        // Check node limit BEFORE expanding
+        if (closed.size >= _nodeLimit) {
+            return { path: null, cost: Infinity, visited, expanded, closedSize: closed.size, reason: 'node-limit' };
+        }
+
         closed.add(key);
         expanded++;
 
@@ -192,8 +201,8 @@ export function aStar(
             const nbKey = axialKey(nb);
             if (closed.has(nbKey)) continue;
             if (edgeBlocker(cur.pos, nb)) continue;
-            // Allow stepping into the goal even if occupied (common UX), caller can override by isOccupied
-            if (isOccupied(nb) && nbKey !== gKey) continue;
+            // Check if neighbor is occupied (allow goal if allowOccupiedGoal is true)
+            if (isOccupied(nb) && !(nbKey === gKey && allowOccupiedGoal)) continue;
 
             const stepCost = costFn(nb);
             if (!Number.isFinite(stepCost) || stepCost < 0) continue;
@@ -263,10 +272,11 @@ export function aStarToAny(
     const eps = opts.tieBreakEpsilon ?? 1e-3;
     const edgeBlocker = opts.edgeBlocker || ((_from, _to) => false);
     const isOccupied = opts.isOccupied || ((_hex) => false);
+    const allowOccupiedGoal = opts.allowOccupiedGoal ?? true;
     const zoc = opts.zocHexes || new Set<string>();
     const zocPenalty = opts.zocPenalty ?? 0;
     const stopOnZoCEnter = !!opts.stopOnZoCEnter;
-    const nodeLimit = opts.nodeLimit ?? Infinity;
+    const _nodeLimit = opts.nodeLimit ?? Infinity;
 
     const S: Axial = { q: start.q, r: start.r };
     const sKey = axialKey(S);
@@ -287,7 +297,7 @@ export function aStarToAny(
         if (closed.has(key)) continue;
 
         // Check node limit BEFORE expanding
-        if (closed.size >= nodeLimit) {
+        if (closed.size >= _nodeLimit) {
             return { path: null, cost: Infinity, visited, expanded, closedSize: closed.size, reason: 'node-limit' };
         }
 
@@ -324,7 +334,8 @@ export function aStarToAny(
             const nbKey = axialKey(nb);
             if (closed.has(nbKey)) continue;
             if (edgeBlocker(cur.pos, nb)) continue;
-            if (isOccupied(nb) && !goalKeys.has(nbKey)) continue;
+            // Check if neighbor is occupied (allow goals if allowOccupiedGoal is true)
+            if (isOccupied(nb) && !(goalKeys.has(nbKey) && allowOccupiedGoal)) continue;
             const stepCost = costFn(nb);
             if (!Number.isFinite(stepCost) || stepCost < 0) continue;
 

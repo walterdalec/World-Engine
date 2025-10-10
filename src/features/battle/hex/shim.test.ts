@@ -124,13 +124,22 @@ describe('findPathTo — basic pathfinding', () => {
     })
 
     it('should return null path when blocked by edge blocker', () => {
-        const board = createMockBoard()
+        // Create a narrow corridor where edge blocker truly blocks the only path
+        const board: BoardFns = {
+            moveCostAt: (h) => {
+                // Only allow movement in a straight line along q-axis
+                if (h.r !== 0) return Infinity;
+                if (h.q < 0 || h.q > 2) return Infinity;
+                return 1;
+            },
+            edgeBlocker: (a, b) => a.q === 0 && a.r === 0 && b.q === 1 && b.r === 0,
+        };
         const start = axial(0, 0)
         const goal = axial(2, 0)
 
         const res = findPathTo(start, goal, board, { minStepCost: 1 })
 
-        // Can't reach (2,0) because (0,0) → (1,0) is blocked
+        // Can't reach (2,0) because (0,0) → (1,0) is blocked and no alternate path exists
         expect(res.path).toBeNull()
     })
 
@@ -148,8 +157,14 @@ describe('findPathTo — basic pathfinding', () => {
     })
 
     it('should block occupied goal when allowOccupiedGoal = false', () => {
+        // Create a narrow corridor where occupancy truly blocks the goal
         const board: BoardFns = {
-            moveCostAt: (h) => (passableDiamond(5)(h) ? 1 : Infinity),
+            moveCostAt: (h) => {
+                // Only allow movement in a straight line along q-axis
+                if (h.r !== 0) return Infinity;
+                if (h.q < 0 || h.q > 2) return Infinity;
+                return 1;
+            },
             isOccupied: (h) => h.q === 2 && h.r === 0,
         }
         const start = axial(0, 0)
@@ -268,8 +283,14 @@ describe('findPathToAny — multi-target pathfinding', () => {
     })
 
     it('should allow occupied goals by default', () => {
+        // Create a narrow corridor to ensure we test the allow/block logic properly
         const board: BoardFns = {
-            moveCostAt: (h) => (passableDiamond(5)(h) ? 1 : Infinity),
+            moveCostAt: (h) => {
+                // Only allow movement in a straight line along q-axis
+                if (h.r !== 0) return Infinity;
+                if (h.q < 0 || h.q > 2) return Infinity;
+                return 1;
+            },
             isOccupied: (h) => h.q === 2 && h.r === 0,
         }
         const start = axial(0, 0)
@@ -281,8 +302,14 @@ describe('findPathToAny — multi-target pathfinding', () => {
     })
 
     it('should block occupied goals when allowOccupiedGoal = false', () => {
+        // Create a narrow corridor where occupancy truly blocks the goal
         const board: BoardFns = {
-            moveCostAt: (h) => (passableDiamond(5)(h) ? 1 : Infinity),
+            moveCostAt: (h) => {
+                // Only allow movement in a straight line along q-axis
+                if (h.r !== 0) return Infinity;
+                if (h.q < 0 || h.q > 2) return Infinity;
+                return 1;
+            },
             isOccupied: (h) => h.q === 2 && h.r === 0,
         }
         const start = axial(0, 0)
@@ -460,7 +487,7 @@ describe('buildAoEMask — bolt', () => {
 describe('buildAoEMask — cone', () => {
     it('should build cone mask', () => {
         const origin = axial(0, 0)
-        const mask = buildAoEMask(origin, { kind: 'cone', dir: 0, radius: 2 })
+        const mask = buildAoEMask(origin, { kind: 'cone', dir: 0, radius: 2, includeOrigin: true })
 
         expect(mask.length).toBeGreaterThan(0)
         expect(mask.some((h) => h.q === 0 && h.r === 0)).toBe(true)
