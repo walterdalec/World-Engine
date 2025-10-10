@@ -3,7 +3,7 @@ import { DIFFICULTY_PRESETS } from '../ai/difficulty/presets';
 
 interface Props {
   world: any;
-  onChange: (id: string, overrides?: any) => void;
+  onChange: (_id: string, _overrides?: any) => void;
 }
 
 export function SettingsAIDifficulty({ world, onChange }: Props) {

@@ -15,7 +15,7 @@ import type { WorldGenConfig } from '../../proc/chunks';
 
 interface DevPanelProps {
   engine: WorldEngine;
-  onConfigChange: (config: Partial<WorldGenConfig>) => void;
+  onConfigChange: (_config: Partial<WorldGenConfig>) => void;
 }
 
 interface LayerToggles {
