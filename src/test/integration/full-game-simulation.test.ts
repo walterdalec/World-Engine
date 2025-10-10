@@ -334,7 +334,6 @@ describe('Full Game Integration Simulation', () => {
                     });
 
                     simulationResults.totalDamageDealt += roundDamage;
-                    simulationResults.totalDamageDealt += roundDamage;
 
                     // Check victory conditions
                     const aliveAllies = allUnits.filter((u: BattleUnit) => u.team === 'ally' && u.hp > 0).length;
