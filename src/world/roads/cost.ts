@@ -12,10 +12,10 @@ import { DEFAULT_COST_WEIGHTS, BIOME_COSTS } from './types';
  */
 export function buildCostAtlas(input: BuildRoadsInput, weights: CostWeights = DEFAULT_COST_WEIGHTS): CostAtlas {
     console.log(`🛣️ Building cost atlas for ${input.worldWidth}×${input.worldHeight} world...`);
-    
+
     const { worldWidth, worldHeight, getTile } = input;
     const costs = new Float32Array(worldWidth * worldHeight);
-    
+
     // Compute cost for each tile
     for (let y = 0; y < worldHeight; y++) {
         for (let x = 0; x < worldWidth; x++) {
@@ -23,9 +23,9 @@ export function buildCostAtlas(input: BuildRoadsInput, weights: CostWeights = DE
             costs[idx] = calculateTileCost(x, y, getTile, weights);
         }
     }
-    
+
     console.log(`✅ Cost atlas built (${costs.length.toLocaleString()} tiles)`);
-    
+
     return {
         width: worldWidth,
         height: worldHeight,
@@ -44,35 +44,35 @@ function calculateTileCost(
 ): number {
     const tile = getTile(x, y);
     if (!tile) return Infinity;
-    
+
     let cost = 0;
-    
+
     // Biome base cost
     const biomeCost = BIOME_COSTS[tile.biomeId] || 5;
     cost += weights.w_biome * biomeCost;
-    
+
     // Roughness penalty
     cost += weights.w_rough * tile.roughness * 10;
-    
+
     // Slope penalty (calculate from neighbors)
     const slope = calculateSlope(x, y, getTile);
     const slopeMax = 0.5; // Maximum slope before impassable
     const slopeFactor = Math.min(1, slope / slopeMax);
     cost += weights.w_slope * (slopeFactor * slopeFactor);
-    
+
     // River crossing penalty
     if (tile.river) {
         cost += weights.w_river * (tile.riverWidth || 1);
     }
-    
+
     // Marsh/swamp extra penalty
     if (tile.biomeId === 'swamp') {
         cost += weights.w_marsh * tile.moisture;
     }
-    
+
     // Danger field (placeholder for Canvas 16)
     // cost += weights.w_danger * dangerField(x, y);
-    
+
     return Math.max(1, cost);
 }
 
@@ -86,25 +86,25 @@ function calculateSlope(
 ): number {
     const center = getTile(x, y);
     if (!center) return 0;
-    
+
     let maxGradient = 0;
-    
+
     // Check 8 neighbors
     for (let dy = -1; dy <= 1; dy++) {
         for (let dx = -1; dx <= 1; dx++) {
             if (dx === 0 && dy === 0) continue;
-            
+
             const neighbor = getTile(x + dx, y + dy);
             if (!neighbor) continue;
-            
+
             const elevDiff = Math.abs(neighbor.elevation - center.elevation);
             const distance = Math.sqrt(dx * dx + dy * dy);
             const gradient = elevDiff / distance;
-            
+
             maxGradient = Math.max(maxGradient, gradient);
         }
     }
-    
+
     return maxGradient;
 }
 
@@ -142,13 +142,13 @@ export function sampleLineCost(
     let totalCost = 0;
     const dx = x2 - x1;
     const dy = y2 - y1;
-    
+
     for (let i = 0; i <= samples; i++) {
         const t = i / samples;
         const x = Math.round(x1 + dx * t);
         const y = Math.round(y1 + dy * t);
         totalCost += getCost(atlas, x, y);
     }
-    
+
     return totalCost / (samples + 1);
 }

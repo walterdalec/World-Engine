@@ -19,30 +19,30 @@ interface MSTEdge {
 export function buildCapitalMST(capitals: Vec2[], atlas: CostAtlas): MSTEdge[] {
     if (capitals.length === 0) return [];
     if (capitals.length === 1) return [];
-    
+
     console.log(`🌐 Building MST for ${capitals.length} capitals...`);
-    
+
     const n = capitals.length;
     const inMST = new Array(n).fill(false);
     const edges: MSTEdge[] = [];
-    
+
     // Start with first capital
     inMST[0] = true;
     let edgesAdded = 0;
-    
+
     // Add n-1 edges to connect all capitals
     while (edgesAdded < n - 1) {
         let minCost = Infinity;
         let minFrom = -1;
         let minTo = -1;
-        
+
         // Find minimum cost edge between MST and non-MST nodes
         for (let i = 0; i < n; i++) {
             if (!inMST[i]) continue;
-            
+
             for (let j = 0; j < n; j++) {
                 if (inMST[j]) continue;
-                
+
                 const cost = estimateRouteCost(capitals[i], capitals[j], atlas);
                 if (cost < minCost) {
                     minCost = cost;
@@ -51,14 +51,14 @@ export function buildCapitalMST(capitals: Vec2[], atlas: CostAtlas): MSTEdge[] {
                 }
             }
         }
-        
+
         if (minFrom === -1) break; // Shouldn't happen with connected graph
-        
+
         edges.push({ from: minFrom, to: minTo, cost: minCost });
         inMST[minTo] = true;
         edgesAdded++;
     }
-    
+
     console.log(`✅ MST built with ${edges.length} edges`);
     return edges;
 }

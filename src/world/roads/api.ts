@@ -41,28 +41,28 @@ export function buildRoads(input: ExtendedBuildRoadsInput): RoadGraph {
         worldSize: `${input.worldWidth}×${input.worldHeight}`,
         weights: input.costWeights
     });
-    
+
     // Stage 1: Build cost atlas
     console.log('📊 Stage 1: Building cost atlas...');
     const costAtlas = buildCostAtlas(input, input.costWeights || DEFAULT_COST_WEIGHTS);
-    
+
     // Stage 2: MST backbone
     console.log('🌳 Stage 2: Building MST backbone...');
     const mstEdges = buildCapitalMST(input.capitals, costAtlas);
-    
+
     console.log(`✅ MST complete: ${mstEdges.length} edges`);
-    
+
     // Stage 3: Refine with A*
     console.log('🎯 Stage 3: Refining corridors with A*...');
     const refinedPaths: Array<{ a: Vec2; b: Vec2; path: Vec2[] }> = [];
-    
+
     for (let i = 0; i < mstEdges.length; i++) {
         const edge = mstEdges[i];
         const from = input.capitals[edge.from];
         const to = input.capitals[edge.to];
-        
+
         const path = findPath(from, to, costAtlas);
-        
+
         if (path) {
             const simplified = simplifyPath(path, 2.0); // Simplify to reduce points
             refinedPaths.push({
@@ -70,7 +70,7 @@ export function buildRoads(input: ExtendedBuildRoadsInput): RoadGraph {
                 b: to,
                 path: simplified
             });
-            
+
             if ((i + 1) % 10 === 0) {
                 console.log(`  ... ${i + 1}/${mstEdges.length} corridors refined`);
             }
@@ -78,27 +78,27 @@ export function buildRoads(input: ExtendedBuildRoadsInput): RoadGraph {
             console.warn(`⚠️ Failed to find path for edge ${i}: no valid corridor`);
         }
     }
-    
+
     console.log(`✅ A* refinement complete: ${refinedPaths.length} corridors`);
-    
+
     // Stage 4: Detect crossings
     console.log('🌉 Stage 4: Detecting crossings...');
     const allCrossings: Array<{ path: Vec2[]; crossings: ReturnType<typeof detectCrossings> }> = [];
-    
+
     for (const refined of refinedPaths) {
         const crossings = detectCrossings({
             path: refined.path,
             getTile: input.getTile
         });
-        
+
         if (crossings.length > 0) {
             allCrossings.push({ path: refined.path, crossings });
         }
     }
-    
+
     const totalCrossings = allCrossings.reduce((sum, c) => sum + c.crossings.length, 0);
     console.log(`✅ Crossings detected: ${totalCrossings} total`);
-    
+
     // Stage 5: Build final graph
     console.log('🗺️ Stage 5: Building final graph...');
     const graph: RoadGraph = {
@@ -106,7 +106,7 @@ export function buildRoads(input: ExtendedBuildRoadsInput): RoadGraph {
         edges: [],
         version: 1
     };
-    
+
     // Add settlement nodes
     for (const capital of input.capitals) {
         graph.nodes.push({
@@ -116,11 +116,11 @@ export function buildRoads(input: ExtendedBuildRoadsInput): RoadGraph {
             kind: 'settlement'
         });
     }
-    
+
     // Add crossing nodes and junction nodes
     let crossingId = 0;
     let junctionId = 0;
-    
+
     for (const { path, crossings } of allCrossings) {
         for (const crossing of crossings) {
             graph.nodes.push({
@@ -130,7 +130,7 @@ export function buildRoads(input: ExtendedBuildRoadsInput): RoadGraph {
                 kind: crossing.type
             });
         }
-        
+
         // Add junction nodes at path waypoints (simplified)
         for (const point of path) {
             // Check if node already exists at this position
@@ -145,12 +145,12 @@ export function buildRoads(input: ExtendedBuildRoadsInput): RoadGraph {
             }
         }
     }
-    
+
     // Add edges
     let edgeId = 0;
     for (const refined of refinedPaths) {
         const length = refined.path.length;
-        
+
         graph.edges.push({
             id: `edge_${edgeId++}`,
             a: `settlement_${refined.a.x}_${refined.a.y}`,
@@ -161,14 +161,14 @@ export function buildRoads(input: ExtendedBuildRoadsInput): RoadGraph {
             path: refined.path
         });
     }
-    
+
     const duration = performance.now() - startTime;
     console.log(`✅ Road network complete in ${(duration / 1000).toFixed(2)}s`, {
         nodes: graph.nodes.length,
         edges: graph.edges.length,
         crossings: totalCrossings
     });
-    
+
     return graph;
 }
 

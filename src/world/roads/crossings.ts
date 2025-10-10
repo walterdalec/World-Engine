@@ -35,23 +35,23 @@ interface DetectCrossingsInput {
 export function detectCrossings(input: DetectCrossingsInput): CrossingResult[] {
     const { path, getTile, riverWidthThreshold = 3, slopeThreshold = 0.4 } = input;
     const crossings: CrossingResult[] = [];
-    
+
     if (path.length < 2) return crossings;
-    
+
     // Track water segments
     let inWater = false;
     let waterStart: Vec2 | null = null;
     let waterEnd: Vec2 | null = null;
     let maxWaterWidth = 0;
-    
+
     for (let i = 0; i < path.length; i++) {
         const p = path[i];
         const tile = getTile(p.x, p.y);
         if (!tile) continue;
-        
+
         const isWater = tile.biomeId === 'ocean' || tile.biomeId === 'swamp';
         const waterWidth = isWater ? (tile.moisture || 0) * 10 : 0; // Estimate width from moisture
-        
+
         if (isWater && !inWater) {
             // Entering water
             inWater = true;
@@ -68,7 +68,7 @@ export function detectCrossings(input: DetectCrossingsInput): CrossingResult[] {
             if (waterStart && waterEnd) {
                 const midX = Math.floor((waterStart.x + waterEnd.x) / 2);
                 const midY = Math.floor((waterStart.y + waterEnd.y) / 2);
-                
+
                 const crossingType = maxWaterWidth <= riverWidthThreshold ? 'ford' : 'bridge';
                 crossings.push({
                     position: { x: midX, y: midY },
@@ -80,26 +80,26 @@ export function detectCrossings(input: DetectCrossingsInput): CrossingResult[] {
             waterEnd = null;
             maxWaterWidth = 0;
         }
-        
+
         // Check for tunnel opportunities (steep mountains)
         if (i > 0 && i < path.length - 1) {
             const prev = path[i - 1];
             const next = path[i + 1];
             const prevTile = getTile(prev.x, prev.y);
             const nextTile = getTile(next.x, next.y);
-            
+
             if (tile && prevTile && nextTile) {
                 const elevPrev = prevTile.elevation || 0;
                 const elevCurr = tile.elevation || 0;
                 const elevNext = nextTile.elevation || 0;
-                
+
                 // Check if we're climbing/descending steeply through high elevation
                 const slopeBefore = Math.abs(elevCurr - elevPrev);
                 const slopeAfter = Math.abs(elevNext - elevCurr);
-                
+
                 const avgSlope = (slopeBefore + slopeAfter) / 2;
                 const isMountain = tile.biomeId === 'mountain' || elevCurr > 0.7;
-                
+
                 if (avgSlope > slopeThreshold && isMountain) {
                     // Tunnel opportunity - cut through mountain instead of going over
                     crossings.push({
@@ -111,12 +111,12 @@ export function detectCrossings(input: DetectCrossingsInput): CrossingResult[] {
             }
         }
     }
-    
+
     // Handle case where path ends in water
     if (inWater && waterStart && waterEnd) {
         const midX = Math.floor((waterStart.x + waterEnd.x) / 2);
         const midY = Math.floor((waterStart.y + waterEnd.y) / 2);
-        
+
         const crossingType = maxWaterWidth <= riverWidthThreshold ? 'ford' : 'bridge';
         crossings.push({
             position: { x: midX, y: midY },
@@ -124,7 +124,7 @@ export function detectCrossings(input: DetectCrossingsInput): CrossingResult[] {
             width: maxWaterWidth
         });
     }
-    
+
     return crossings;
 }
 
@@ -137,37 +137,37 @@ export function detectCrossings(input: DetectCrossingsInput): CrossingResult[] {
  */
 export function applyCrossings(path: Vec2[], crossings: CrossingResult[]): Vec2[] {
     if (crossings.length === 0) return path;
-    
+
     // For now, just return the original path
     // In a full implementation, you would insert crossing metadata
     // or modify the path to route through crossing points
-    
+
     // Simple approach: ensure crossing positions are in the path
     const result = [...path];
-    
+
     for (const crossing of crossings) {
         const existsInPath = result.some(p => p.x === crossing.position.x && p.y === crossing.position.y);
         if (!existsInPath) {
             // Find closest point in path and insert crossing nearby
             let closestIdx = 0;
             let closestDist = Infinity;
-            
+
             for (let i = 0; i < result.length; i++) {
                 const dx = result[i].x - crossing.position.x;
                 const dy = result[i].y - crossing.position.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
-                
+
                 if (dist < closestDist) {
                     closestDist = dist;
                     closestIdx = i;
                 }
             }
-            
+
             // Insert crossing after closest point
             result.splice(closestIdx + 1, 0, crossing.position);
         }
     }
-    
+
     return result;
 }
 
