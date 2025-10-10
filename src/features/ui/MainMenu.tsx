@@ -43,9 +43,10 @@ interface Props {
   onEngineTest?: () => void;
   onTimeSystemDemo?: () => void;
   onFactionAIDemo?: () => void;
+  onPartyFrameworkDemo?: () => void;
 }
 
-export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onClassicCharacterCreate, onPortraitTest, onAutoUpdater, onBrigandineHex, onEnhancedMap, onSimpleMap, onCombatUIDemo, onProcedural, onEncounters, onIntegratedCampaign, onEngineTest, onTimeSystemDemo, onFactionAIDemo }: Props) {
+export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onClassicCharacterCreate, onPortraitTest, onAutoUpdater, onBrigandineHex, onEnhancedMap, onSimpleMap, onCombatUIDemo, onProcedural, onEncounters, onIntegratedCampaign, onEngineTest, onTimeSystemDemo, onFactionAIDemo, onPartyFrameworkDemo }: Props) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [characters, setCharacters] = useState<SavedCharacter[]>([]);
   const [activeTab, setActiveTab] = useState<'campaigns' | 'characters'>('campaigns');
@@ -692,6 +693,14 @@ Recovered ${recovered.length} campaigns`);
                   <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🏛️</div>
                   <h3 style={{ margin: '0 0 5px 0' }}>Faction AI (Canvas 09)</h3>
                   <p style={{ margin: 0, opacity: 0.9 }}>Autonomous factions with goals & planning</p>
+                </div>
+              )}
+
+              {onPartyFrameworkDemo && (
+                <div style={{ ...newCardStyle, background: 'linear-gradient(135deg, #f59e0b 0%, #dc2626 100%)' }} onClick={onPartyFrameworkDemo}>
+                  <div style={{ fontSize: '3rem', marginBottom: '10px' }}>👥</div>
+                  <h3 style={{ margin: '0 0 5px 0' }}>Party Framework (Canvas 10)</h3>
+                  <p style={{ margin: 0, opacity: 0.9 }}>Hero + Hirelings with wages & morale</p>
                 </div>
               )}
 

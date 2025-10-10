@@ -448,16 +448,16 @@ function findRegionNeighbors(regionId: string, intel: Intel): string[] {
         'region_dom_1': ['region_dom_2', 'region_mar_1', 'region_obs_1', 'region_neutral_1'],
         'region_dom_2': ['region_dom_1', 'region_dom_3'],
         'region_dom_3': ['region_dom_2', 'region_neutral_1'],
-        
+
         // Marches regions
         'region_mar_1': ['region_dom_1', 'region_mar_2', 'region_obs_1'],
         'region_mar_2': ['region_mar_1', 'region_neutral_1'],
-        
+
         // Obsidian regions
         'region_obs_1': ['region_dom_1', 'region_mar_1', 'region_obs_2'],
         'region_obs_2': ['region_obs_1', 'region_obs_3'],
         'region_obs_3': ['region_obs_2'],
-        
+
         // Neutral region
         'region_neutral_1': ['region_dom_1', 'region_dom_3', 'region_mar_2']
     };

@@ -241,7 +241,7 @@ export class SimClock {
      */
     private fixedUpdate(): void {
         this.state.stepIndex++;
-        
+
         // Scale in-game time to progress faster
         // 1 fixed step (1/30s real time) = 60 seconds of in-game time
         // This means 1 real second = 30 * 60 = 1800 seconds (30 minutes) of in-game time

@@ -45,10 +45,10 @@ export function FactionAIDemo() {
         // Give factions initial regions for goal generation
         dominion.regionIds = ['region_dom_1', 'region_dom_2', 'region_dom_3'];
         dominion.stance = 'tense'; // Enable more goal types
-        
+
         marches.regionIds = ['region_mar_1', 'region_mar_2'];
         marches.stance = 'tense';
-        
+
         obsidian.regionIds = ['region_obs_1', 'region_obs_2', 'region_obs_3'];
         obsidian.treasury = 800; // Enable diplomacy goals
 
@@ -58,7 +58,7 @@ export function FactionAIDemo() {
 
         // Populate intel with mock region data for goal generation
         const aiState = aiGetState();
-        
+
         // Add region intel for dominion (with proper RegionIntel structure)
         aiState.intel['dominion'].regionStates = {
             'region_dom_1': { regionId: 'region_dom_1', tier: 2, garrisonStrength: 40, owner: 'dominion', contested: false, lastSeen: 0 },
@@ -66,14 +66,14 @@ export function FactionAIDemo() {
             'region_dom_3': { regionId: 'region_dom_3', tier: 1, garrisonStrength: 20, owner: 'dominion', contested: false, lastSeen: 0 },
             'region_neutral_1': { regionId: 'region_neutral_1', tier: 1, garrisonStrength: 10, owner: null, contested: false, lastSeen: 0 },
         };
-        
+
         // Add region intel for marches
         aiState.intel['marches'].regionStates = {
             'region_mar_1': { regionId: 'region_mar_1', tier: 2, garrisonStrength: 80, owner: 'marches', contested: false, lastSeen: 0 },
             'region_mar_2': { regionId: 'region_mar_2', tier: 2, garrisonStrength: 50, owner: 'marches', contested: false, lastSeen: 0 },
             'region_neutral_1': { regionId: 'region_neutral_1', tier: 1, garrisonStrength: 10, owner: null, contested: false, lastSeen: 0 },
         };
-        
+
         // Add region intel for obsidian
         aiState.intel['obsidian'].regionStates = {
             'region_obs_1': { regionId: 'region_obs_1', tier: 3, garrisonStrength: 30, owner: 'obsidian', contested: false, lastSeen: 0 },

@@ -1298,6 +1298,15 @@ export class WorldEngine {
 
   /**
    * Complete the current encounter
+   * 
+   * Canvas 10 Integration: Post-encounter injury resolution
+   * - Combat encounters process party injuries based on success/failure
+   * - Failed combat applies damage and rolls for injuries/deaths
+   * - Successful combat applies minimal damage
+   * - Experience and rewards distributed to party
+   * 
+   * Canvas 11 Hooks: Scars, revival rituals, and persistent wounds
+   * Canvas 13 Integration: Encounter seeds used for deterministic injury rolls
    */
   completeEncounter(success: boolean, _rewards?: any): void {
     if (!this.state.activeEncounter) return;
