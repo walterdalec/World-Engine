@@ -3,6 +3,9 @@ export * from './types';
 export * from './config';
 export * from './utils';
 
+// Time system (Canvas 08)
+export * from './time';
+
 // Export engine with explicit exports to avoid conflicts
 export { WorldEngine } from './engine';
 export type {
