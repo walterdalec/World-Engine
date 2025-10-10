@@ -6,7 +6,7 @@ import { MainMenu, WorldSetupScreen, VersionDisplay } from "../features/ui";
 import { CharacterLibrary, CharacterCreate, NameGenerator, ClassicCharacterCreator } from "../features/characters";
 import { SpellGenerator, SpellAssignment } from "../features/spells";
 import { HealingSystem, BrigandineHexBattle } from "../features/battle";
-import { EnhancedWorldMap, HexWorldMap, ProceduralDevTools } from "../features/world";
+import { EnhancedWorldMap, HexWorldMap, SmoothWorldMap, ProceduralDevTools } from "../features/world";
 import EncountersTestPage from "../features/world/encounters/EncountersTestPage";
 import { SimplePortraitTest } from "../features/portraits";
 import { CombatUIDemo } from "../pages/CombatUIDemo";
@@ -35,7 +35,7 @@ function _randomSeed(): string {
 }
 
 function App() {
-  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "enhancedmap" | "simplemap" | "hexmap" | "charactercreate" | "classiccharacter" | "portraittest" | "brigandineHex" | "autoupdater" | "combat-ui-demo" | "procedural" | "encounters">("menu");
+  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "enhancedmap" | "simplemap" | "hexmap" | "smoothmap" | "charactercreate" | "classiccharacter" | "portraittest" | "brigandineHex" | "autoupdater" | "combat-ui-demo" | "procedural" | "encounters">("menu");
   const [party, setParty] = React.useState<Character[]>([]);
   const [currentCampaign, setCurrentCampaign] = React.useState<any>(null);
   const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0); // Force re-render hook
@@ -311,6 +311,11 @@ function App() {
     setStep("hexmap");
   };
 
+  const handleSmoothMap = () => {
+    // Smooth continuous terrain overworld (hybrid architecture)
+    setStep("smoothmap");
+  };
+
   const handleCombatUIDemo = () => {
     // Combat UI demonstration with mock data
     setStep("combat-ui-demo");
@@ -428,6 +433,7 @@ function App() {
           onEnhancedMap={handleEnhancedMap}
           onSimpleMap={handleSimpleMap}
           onHexMap={handleHexMap}
+          onSmoothMap={handleSmoothMap}
           onCombatUIDemo={handleCombatUIDemo}
           onProcedural={handleProcedural}
           onEncounters={handleEncounters}
@@ -584,6 +590,32 @@ function App() {
             seedStr={eng?.state?.meta?.seed}
             onBack={() => setStep("menu")}
           />
+        </div>
+      )}
+      {step === "smoothmap" && (
+        <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
+          <SmoothWorldMap
+            seed={eng?.state?.meta?.seed || "default-smooth-world"}
+          />
+          <button
+            onClick={() => setStep("menu")}
+            style={{
+              position: 'absolute',
+              top: '20px',
+              left: '20px',
+              zIndex: 1000,
+              background: '#374151',
+              color: '#f8fafc',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '10px 15px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold'
+            }}
+          >
+            ← Back to Menu
+          </button>
         </div>
       )}
       {step === "combat-ui-demo" && (

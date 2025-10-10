@@ -2,6 +2,7 @@
 export { default as EnhancedWorldMap } from './EnhancedWorldMap';
 export { default as SimpleWorldMap } from './SimpleWorldMap';
 export { default as HexWorldMap } from './HexWorldMap';
+export { default as SmoothWorldMap } from './components/SmoothWorldMap';
 export { default as WorldMapEngine } from './WorldMapEngine';
 export { default as WorldRenderer } from './WorldRenderer';
 export { WorldSetupScreen } from './WorldSetupScreen';
