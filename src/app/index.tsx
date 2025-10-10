@@ -7,6 +7,7 @@ import { CharacterLibrary, CharacterCreate, NameGenerator, ClassicCharacterCreat
 import { SpellGenerator, SpellAssignment } from "../features/spells";
 import { HealingSystem, BattleMockup, BattlePage, MinimalBattlePage } from "../features/battle";
 import { WorldMapEngine, EnhancedWorldMap, SimpleWorldMap, ProceduralDevTools } from "../features/world";
+import EncountersTestPage from "../features/world/encounters/EncountersTestPage";
 import { SimplePortraitTest } from "../features/portraits";
 import { CombatUIDemo } from "../pages/CombatUIDemo";
 import { storage } from "../core/services/storage";
@@ -34,7 +35,7 @@ function _randomSeed(): string {
 }
 
 function App() {
-  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "enhancedmap" | "simplemap" | "charactercreate" | "classiccharacter" | "portraittest" | "battlesystem" | "battle" | "minimalBattle" | "autoupdater" | "combat-ui-demo" | "procedural">("menu");
+  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "enhancedmap" | "simplemap" | "charactercreate" | "classiccharacter" | "portraittest" | "battlesystem" | "battle" | "minimalBattle" | "autoupdater" | "combat-ui-demo" | "procedural" | "encounters">("menu");
   const [party, setParty] = React.useState<Character[]>([]);
   const [currentCampaign, setCurrentCampaign] = React.useState<any>(null);
   const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0); // Force re-render hook
@@ -325,6 +326,11 @@ function App() {
     setStep("procedural");
   };
 
+  const handleEncounters = () => {
+    // Encounters system test page
+    setStep("encounters");
+  };
+
   // fake engine stub for now
   // Engine stub - will be replaced with real engine
   const eng: Engine = {
@@ -430,6 +436,7 @@ function App() {
           onSimpleMap={handleSimpleMap}
           onCombatUIDemo={handleCombatUIDemo}
           onProcedural={handleProcedural}
+          onEncounters={handleEncounters}
         />
       )}
       {step === "world" && (
@@ -685,6 +692,28 @@ function App() {
               border: 'none',
               borderRadius: '8px',
               cursor: 'pointer'
+            }}
+          >
+            ← Back to Menu
+          </button>
+        </div>
+      )}
+      {step === "encounters" && (
+        <div style={{ position: 'relative' }}>
+          <EncountersTestPage />
+          <button
+            onClick={() => setStep("menu")}
+            style={{
+              position: 'absolute',
+              top: '20px',
+              right: '20px',
+              padding: '10px 20px',
+              backgroundColor: '#4f46e5',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              zIndex: 1000
             }}
           >
             ← Back to Menu

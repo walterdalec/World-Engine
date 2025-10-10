@@ -40,9 +40,10 @@ interface Props {
   onSimpleMap: () => void;
   onCombatUIDemo: () => void;
   onProcedural: () => void;
+  onEncounters?: () => void;
 }
 
-export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onClassicCharacterCreate, onPortraitTest, onAutoUpdater, onBattleSystem, onBattlePage, onMinimalBattle, onEnhancedMap, onSimpleMap, onCombatUIDemo, onProcedural }: Props) {
+export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onClassicCharacterCreate, onPortraitTest, onAutoUpdater, onBattleSystem, onBattlePage, onMinimalBattle, onEnhancedMap, onSimpleMap, onCombatUIDemo, onProcedural, onEncounters }: Props) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [characters, setCharacters] = useState<SavedCharacter[]>([]);
   const [activeTab, setActiveTab] = useState<'campaigns' | 'characters'>('campaigns');
@@ -797,6 +798,14 @@ Recovered ${recovered.length} campaigns`);
                 <h3 style={{ margin: '0 0 5px 0' }}>Procedural Gen</h3>
                 <p style={{ margin: 0, opacity: 0.9 }}>Dev tools for world generation</p>
               </div>
+
+              {onEncounters && (
+                <div style={newCardStyle} onClick={onEncounters}>
+                  <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🗡️</div>
+                  <h3 style={{ margin: '0 0 5px 0' }}>Encounters Test</h3>
+                  <p style={{ margin: 0, opacity: 0.9 }}>Test encounters & gates system</p>
+                </div>
+              )}
 
               {characters.map(character => (
                 <div key={character.id} style={cardStyle}>
