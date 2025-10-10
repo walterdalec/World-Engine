@@ -67,17 +67,17 @@ export function cubeDistance(a: Axial, b: Axial): number {
  */
 export function hexRing(center: Axial, radius: number): Axial[] {
     if (radius === 0) return [center];
-    
+
     const results: Axial[] = [];
     let hex = add(center, { q: HEX_DIRS[4].q * radius, r: HEX_DIRS[4].r * radius });
-    
+
     for (let i = 0; i < 6; i++) {
         for (let j = 0; j < radius; j++) {
             results.push(hex);
             hex = add(hex, HEX_DIRS[i]);
         }
     }
-    
+
     return results;
 }
 
