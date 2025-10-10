@@ -182,9 +182,8 @@ export function aStar(
             return result;
         }
 
-        if (closed.size > nodeLimit) {
-            return { path: null, cost: Infinity, visited, expanded, closedSize: closed.size, reason: 'node-limit' };
-        }
+        // Don't expand if this node is sealed by ZoC
+        if (cur.sealed) continue;
 
         // Expand neighbors
         const neighbors = axialNeighbors(cur.pos);
@@ -286,6 +285,12 @@ export function aStarToAny(
         const key = open.pop()!;
         const cur = nodes.get(key)!;
         if (closed.has(key)) continue;
+
+        // Check node limit BEFORE expanding
+        if (closed.size >= nodeLimit) {
+            return { path: null, cost: Infinity, visited, expanded, closedSize: closed.size, reason: 'node-limit' };
+        }
+
         closed.add(key);
         expanded++;
 
@@ -310,9 +315,8 @@ export function aStarToAny(
             return result;
         }
 
-        if (closed.size > nodeLimit) {
-            return { path: null, cost: Infinity, visited, expanded, closedSize: closed.size, reason: 'node-limit' };
-        }
+        // Don't expand if this node is sealed by ZoC
+        if (cur.sealed) continue;
 
         const neighbors = axialNeighbors(cur.pos);
         for (let i = 0; i < neighbors.length; i++) {

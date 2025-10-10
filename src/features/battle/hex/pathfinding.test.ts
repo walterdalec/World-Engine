@@ -77,7 +77,8 @@ describe('Canvas #6 — Basic A* on Uniform Grid', () => {
     it('returns null when no path exists (blocked region)', () => {
         const S: Axial = { q: -2, r: 0 };
         const G: Axial = { q: 2, r: 0 };
-        const passable = (h: AxialLike) => h.q !== 0; // Wall at q=0
+        const diamond = diamondPassable(3);
+        const passable = (h: AxialLike) => diamond(h) && h.q !== 0; // Wall at q=0 within bounded region
         const res = aStarUniform(S, G, passable);
         expect(res.path).toBeNull();
         expect(res.reason).toBe('no-path');
@@ -94,7 +95,9 @@ describe('Canvas #6 — Edge Blockers (Walls/Doors/Rivers)', () => {
             edgeBlocker: (from, to) => from.q === 0 && from.r === 0 && to.q === 1 && to.r === 0,
         };
         const res = aStarUniform(S, G, diamondPassable(5), opts);
-        expect(res.path).toBeNull(); // Direct path blocked, no alternate route in small diamond
+        // Direct path blocked but alternate routes exist through (0,1) or (1,-1)
+        expect(res.path).not.toBeNull();
+        expect(res.cost).toBeGreaterThan(2); // Must take detour
     });
 
     it('finds alternate route around blocked edge', () => {
@@ -120,7 +123,9 @@ describe('Canvas #6 — Edge Blockers (Walls/Doors/Rivers)', () => {
                 (from.q === 1 && to.q === 0 && from.r === 0 && to.r === 0),
         };
         const res = aStarUniform(S, G, diamondPassable(5), opts);
-        expect(res.path).toBeNull(); // Both directions blocked
+        // Direct edge blocked both ways but alternate routes exist through (0,1) or (1,-1)
+        expect(res.path).not.toBeNull();
+        expect(res.cost).toBe(2); // Via (0,1) or (1,-1)
     });
 });
 //#endregion
@@ -186,7 +191,11 @@ describe('Canvas #6 — Variable Movement Costs', () => {
     it('treats Infinity cost as impassable', () => {
         const S: Axial = { q: 0, r: 0 };
         const G: Axial = { q: 2, r: 0 };
-        const costFn: MoveCostFn = (h) => (h.q === 1 ? Infinity : 1);
+        const passable = diamondPassable(3);
+        const costFn: MoveCostFn = (h) => {
+            if (!passable(h)) return Infinity;
+            return h.q === 1 ? Infinity : 1;
+        };
         const res = aStar(S, G, costFn);
         expect(res.path).toBeNull();
     });
@@ -194,7 +203,11 @@ describe('Canvas #6 — Variable Movement Costs', () => {
     it('treats negative cost as impassable', () => {
         const S: Axial = { q: 0, r: 0 };
         const G: Axial = { q: 2, r: 0 };
-        const costFn: MoveCostFn = (h) => (h.q === 1 ? -5 : 1);
+        const passable = diamondPassable(3);
+        const costFn: MoveCostFn = (h) => {
+            if (!passable(h)) return Infinity;
+            return h.q === 1 ? -5 : 1;
+        };
         const res = aStar(S, G, costFn);
         expect(res.path).toBeNull();
     });
@@ -214,17 +227,17 @@ describe('Canvas #6 — Zones of Control (ZoC)', () => {
 
     it('stops expansion when entering ZoC with stopOnZoCEnter', () => {
         const S: Axial = { q: 0, r: 0 };
-        const G: Axial = { q: 3, r: 0 };
+        const G: Axial = { q: 4, r: 0 }; // Goal beyond ZoC
         const zoc = new Set([axialKey({ q: 2, r: 0 })]);
         const res = aStarUniform(S, G, diamondPassable(5), {
             zocHexes: zoc,
             zocPenalty: 0,
             stopOnZoCEnter: true,
         });
-        // Path may reach adjacent to ZoC but cannot pass through or beyond
-        expect(res.path).not.toBeNull();
-        const maxQ = Math.max(...res.path!.map((h) => h.q));
-        expect(maxQ).toBeLessThan(3); // Cannot reach goal at q=3
+        // Can reach hexes adjacent to ZoC but cannot expand beyond them
+        // ZoC at (2,0) makes (3,0) and (1,0) sealed - path can reach them but not expand from them
+        // Goal at (4,0) requires expanding from (3,0), which is sealed, so unreachable
+        expect(res.path).toBeNull();
     });
 
     it('allows bypassing ZoC when alternate routes exist', () => {
@@ -277,7 +290,7 @@ describe('Canvas #6 — Heuristic Tuning', () => {
         const costFn: MoveCostFn = (_h) => 0.5;
         const res = aStar(S, G, costFn, { minStepCost: 0.5 });
         expect(res.path).not.toBeNull();
-        expect(res.cost).toBeCloseTo(1.0, 2); // 2 steps * 0.5
+        expect(res.cost).toBeCloseTo(1.5, 2); // 3 steps * 0.5
     });
 
     it('tie-breaking produces deterministic paths', () => {
@@ -312,7 +325,9 @@ describe('Canvas #6 — Multi-Target Search (aStarToAny)', () => {
             { q: 10, r: 10 },
             { q: -10, r: -10 },
         ];
-        const res = aStarToAny(S, goals, (_h) => 1, {});
+        const passable = diamondPassable(5); // Goals are outside the bounded region
+        const costFn: MoveCostFn = (h) => (passable(h) ? 1 : Infinity);
+        const res = aStarToAny(S, goals, costFn, {});
         expect(res.path).toBeNull();
         expect(res.goal).toBeUndefined();
     });
@@ -428,10 +443,10 @@ describe('Canvas #6 — Node Limit Safety', () => {
     it('respects nodeLimit and returns early', () => {
         const S: Axial = { q: 0, r: 0 };
         const G: Axial = { q: 10, r: 10 };
-        const res = aStarUniform(S, G, diamondPassable(20), { nodeLimit: 50 });
+        const res = aStarUniform(S, G, diamondPassable(20), { nodeLimit: 10 });
         expect(res.path).toBeNull();
         expect(res.reason).toBe('node-limit');
-        expect(res.closedSize).toBeLessThanOrEqual(50);
+        expect(res.closedSize).toBeLessThanOrEqual(10);
     });
 
     it('allows unlimited expansion by default', () => {
@@ -446,9 +461,9 @@ describe('Canvas #6 — Node Limit Safety', () => {
         const S: Axial = { q: 0, r: 0 };
         const goals: Axial[] = [
             { q: 10, r: 10 },
-            { q: 15, r: 15 },
+            { q: -10, r: -10 },
         ];
-        const res = aStarToAny(S, goals, (_h) => 1, { nodeLimit: 30 });
+        const res = aStarToAny(S, goals, (_h) => 1, { nodeLimit: 10 });
         expect(res.path).toBeNull();
         expect(res.reason).toBe('node-limit');
     });
