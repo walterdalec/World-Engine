@@ -9,12 +9,10 @@
 export interface Tile {
     x: number;
     y: number;
-    height: number;        // Elevation (0-1) - alias for 'elevation'
     elevation: number;     // Elevation (0-1)
     moisture: number;      // Moisture level (0-1)
     temperature: number;   // Temperature (0-1)
     biome?: string;        // Biome ID
-    biomeId?: string;      // Biome ID (alias for 'biome')
     roughness?: number;    // Terrain roughness for road cost (0-1)
 }
 
