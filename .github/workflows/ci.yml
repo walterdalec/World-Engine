@@ -3,8 +3,26 @@ name: CI - Tests & Benchmarks
 on:
   push:
     branches: [ main ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'planning/**'
+      - 'README*.md'
+      - 'CONTRIBUTING.md'
+      - 'LICENSE'
+      - '.vscode/**'
+      - '.editorconfig'
   pull_request:
     branches: [ main ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'planning/**'
+      - 'README*.md'
+      - 'CONTRIBUTING.md'
+      - 'LICENSE'
+      - '.vscode/**'
+      - '.editorconfig'
 
 jobs:
   build-test:
