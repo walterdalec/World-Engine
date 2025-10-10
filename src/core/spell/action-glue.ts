@@ -6,8 +6,9 @@
 import type { PlannedAction, ValidationResult } from '../action/types';
 import type { Unit } from '../unit/types';
 import type { Spell } from './types';
-import { checkFullGating, type GatingResult } from './gating';
-import { applySpell } from './resolver';
+import { checkFullGating } from './gating';
+import type { GatingResult as _GatingResult } from './gating';
+import type { applySpell as _applySpell } from './resolver';
 import { selectTargets } from './selectors';
 import { getSpellById } from './registry';
 

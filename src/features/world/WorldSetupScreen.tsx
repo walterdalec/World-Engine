@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { rng } from "../../core/services/random";
-import { _storage } from "../../core/services/storage";
 import { Engine, Preset } from '../../engine.d';
 
 type Props = { eng: Engine; onNext: () => void };
@@ -33,6 +32,7 @@ export function WorldSetupScreen({ eng, onNext }: Props) {
   useEffect(() => {
     const s = eng?.state?.meta?.seed || '';
     if (s && s !== seed) setSeed(s);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eng?.state?.meta?.seed]);
 
   // When preset changes, if it has a default seed and no manual seed has been set, apply it
@@ -42,7 +42,7 @@ export function WorldSetupScreen({ eng, onNext }: Props) {
       setSeed(presetSeed);
       eng?.setSeed?.(presetSeed);
     }
-  }, [chosen, presets]);
+  }, [chosen, presets, eng, seed]);
 
   // Generate a new random seed
   const makeRandomSeed = useMemo(() => () => {

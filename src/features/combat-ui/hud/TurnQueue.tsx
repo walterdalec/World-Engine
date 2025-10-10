@@ -11,7 +11,7 @@ interface TurnQueueProps {
     initiative: string[];
     currentTurn?: string;
     phase: 'Setup' | 'HeroTurn' | 'UnitsTurn' | 'EnemyTurn' | 'Victory' | 'Defeat';
-    onUnitSelect?: (unitId: string) => void;
+    onUnitSelect?: (_unitId: string) => void;
     className?: string;
 }
 

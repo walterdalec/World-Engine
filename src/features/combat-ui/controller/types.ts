@@ -29,11 +29,11 @@ export interface WorldEngineAbility {
 
 export interface SelectionAPI {
     get(): SelectionState;
-    reset(next?: Partial<SelectionState>): void;
-    setMode(m: CombatMode): void;
-    setTarget(h: HexPosition | undefined): void;
-    setPath(p: HexPosition[] | undefined): void;
-    setAbility(ability: WorldEngineAbility | undefined): void;
+    reset(_next?: Partial<SelectionState>): void;
+    setMode(_m: CombatMode): void;
+    setTarget(_h: HexPosition | undefined): void;
+    setPath(_p: HexPosition[] | undefined): void;
+    setAbility(_ability: WorldEngineAbility | undefined): void;
 }
 
 export interface InputMap {

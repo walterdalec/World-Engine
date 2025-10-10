@@ -175,7 +175,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
 };
 
 // Utility function to get appropriate icons for abilities
-function getAbilityIcon(kind: string, id?: string): string {
+function getAbilityIcon(kind: string, _id?: string): string {
     // These would be replaced with actual icon components or Unicode symbols
     switch (kind) {
         case 'attack':

@@ -1,10 +1,10 @@
 // packages/core/src/unit/status.ts
-import type { StatusInst, Unit } from './types';
+import type { StatusInst as _StatusInst, Unit } from './types';
 
 export type StatusHook = {
-    preHit?: (u: Unit, ctx: any) => void;                 // before hit calc
-    onHit?: (u: Unit, ctx: any, dmgInOut: any) => void;    // when a hit lands (modify damage)
-    onTurnStart?: (u: Unit) => void;                     // decrement durations handled externally
+    preHit?: (_u: Unit, _ctx: any) => void;                 // before hit calc
+    onHit?: (_u: Unit, _ctx: any, _dmgInOut: any) => void;    // when a hit lands (modify damage)
+    onTurnStart?: (_u: Unit) => void;                     // decrement durations handled externally
 };
 
 export const StatusLib: Record<string, StatusHook> = {

@@ -66,7 +66,7 @@ export function onTacticalOutcome(brain: any, outcome: TacticalOutcomeSnapshot):
   return brain.v31.coeffs;
 }
 
-export function makePathContext(brain: any, neighbors: (hex: any) => any = neighbors6): PathContext | undefined {
+export function makePathContext(brain: any, neighbors: (_hex: any) => any = neighbors6): PathContext | undefined {
   if (!brain?.v31) return undefined;
   return {
     neighbors,

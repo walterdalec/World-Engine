@@ -10,7 +10,7 @@ import HexStage from './HexStage';
 
 interface HoneycombBattleCanvasProps {
     state: BattleState;
-    onTileClick?: (pos: HexPosition) => void;
+    onTileClick?: (_pos: HexPosition) => void;
     selectedUnit?: string;
     targetHex?: HexPosition;
     showGrid?: boolean;
@@ -97,7 +97,7 @@ export function HoneycombBattleCanvas({
     }, [screenToWorld, grid, getHexPosition, state.grid.width, state.grid.height]);
 
     // Canvas initialization (only run once)
-    const handleInit = useCallback((ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
+    const handleInit = useCallback((_ctx: CanvasRenderingContext2D, _canvas: HTMLCanvasElement) => {
         // Don't reset camera if it already has values (prevents reset on re-render)
         const camera = cameraRef.current;
         if (camera.x === 0 && camera.y === 0 && camera.scale === 1) {
@@ -109,7 +109,7 @@ export function HoneycombBattleCanvas({
     }, []);
 
     // Main render function (stabilized to prevent resets)
-    const handleRender = useCallback((ctx: CanvasRenderingContext2D, t: number) => {
+    const handleRender = useCallback((ctx: CanvasRenderingContext2D, _t: number) => {
         const canvas = ctx.canvas;
         const camera = cameraRef.current;
 

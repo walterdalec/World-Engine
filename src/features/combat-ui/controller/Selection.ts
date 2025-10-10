@@ -16,7 +16,7 @@ class SelectionManager implements SelectionAPI {
         mode: 'idle'
     };
 
-    private listeners: Array<(state: SelectionState) => void> = [];
+    private listeners: Array<(_state: SelectionState) => void> = [];
 
     constructor() {
         this.reset();
@@ -162,7 +162,7 @@ class SelectionManager implements SelectionAPI {
     }
 
     // Event system for UI updates
-    subscribe(listener: (state: SelectionState) => void): () => void {
+    subscribe(listener: (_state: SelectionState) => void): () => void {
         this.listeners.push(listener);
         return () => {
             const index = this.listeners.indexOf(listener);

@@ -1,7 +1,7 @@
 // packages/core/src/unit/damage.ts
-import type { Axial } from '../action/types';
+import type { Axial as _Axial } from '../action/types';
 import { Balance as B } from './balance';
-import type { Unit, DamageIn, DamageOut, HitContext, Derived, EquipmentSlots, Stats } from './types';
+import type { Unit as _Unit, DamageIn, DamageOut, HitContext, Derived, EquipmentSlots, Stats } from './types';
 import { gatherEquipMods } from './equipment';
 import { computeDerived } from './derived';
 

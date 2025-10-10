@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { storage } from "../../core/services/storage";
 import { SimplePortraitPreview } from '../portraits';
 
@@ -24,7 +24,7 @@ interface SavedCharacter {
 
 interface Props {
   onNewCampaign: () => void;
-  onLoadCampaign: (campaign: Campaign) => void;
+  onLoadCampaign: (_campaign: Campaign) => void;
   onNameGenerator: () => void;
   onSpellGenerator: () => void;
   onSpellAssignment: () => void;
@@ -48,33 +48,8 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
   const [activeTab, setActiveTab] = useState<'campaigns' | 'characters'>('campaigns');
   const [selectedCharacter, setSelectedCharacter] = useState<SavedCharacter | null>(null);
 
-  useEffect(() => {
-    // Load saved campaigns and characters from localStorage
-    loadCampaigns();
-    loadCharacters();
-  }, []);
-
-  const loadCampaigns = () => {
-    try {
-      // Try to recover campaigns using the enhanced recovery system
-      let campaigns = recoverCampaigns();
-      setCampaigns(campaigns);
-
-      // Show recovery message if campaigns were recovered from backup
-      const primarySaved = storage.local.getItem('world-engine-campaigns');
-      const backupSaved = storage.local.getItem('world-engine-campaigns-backup');
-
-      if (!primarySaved && backupSaved && campaigns.length > 0) {
-        alert('Warning: Primary save was missing, but your campaigns were recovered from backup!');
-      }
-    } catch (error) {
-      console.error('Error loading campaigns:', error);
-      setCampaigns([]);
-    }
-  };
-
   // Enhanced recovery function (matches the one in index.tsx)
-  const recoverCampaigns = () => {
+  const recoverCampaigns = useCallback(() => {
     try {
       // Try primary storage first
       let campaigns = JSON.parse(storage.local.getItem('world-engine-campaigns') || '[]');
@@ -104,9 +79,19 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
       console.error('Error recovering campaigns:', error);
       return [];
     }
-  };
+  }, []);
 
-  const loadCharacters = () => {
+  const loadCampaigns = useCallback(() => {
+    try {
+      const recovered = recoverCampaigns();
+      setCampaigns(recovered);
+    } catch (error) {
+      console.error('Error loading campaigns:', error);
+      setCampaigns([]);
+    }
+  }, [recoverCampaigns]);
+
+  const loadCharacters = useCallback(() => {
     try {
       const saved = storage.local.getItem('world-engine-characters');
       if (saved) {
@@ -115,13 +100,20 @@ export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpe
     } catch (error) {
       console.error('Error loading characters:', error);
     }
-  };
+  }, []);
 
   const deleteCampaign = (campaignId: string) => {
     const updated = campaigns.filter(c => c.id !== campaignId);
     setCampaigns(updated);
     storage.local.setItem('world-engine-campaigns', JSON.stringify(updated));
   };
+
+  useEffect(() => {
+    // Load saved campaigns and characters from localStorage
+    loadCampaigns();
+    loadCharacters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const deleteCharacter = (characterId: string) => {
     const updated = characters.filter(c => c.id !== characterId);

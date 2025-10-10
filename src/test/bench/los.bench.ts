@@ -86,7 +86,7 @@ function hexLine(start: HexPosition, end: HexPosition): HexPosition[] {
 function calculateLOS(
     start: HexPosition,
     end: HexPosition,
-    isBlocked: (pos: HexPosition) => boolean
+    isBlocked: (_pos: HexPosition) => boolean
 ): LOSResult {
     const line = hexLine(start, end);
 

@@ -10,7 +10,7 @@ export class RoundScheduler {
     private order: TimelineEntry[] = [];
     private idx = 0;
 
-    constructor(units: TimelineEntry[], private apCarry = 0) {
+    constructor(units: TimelineEntry[], private _apCarry = 0) {
         this.reseed(units);
     }
 
@@ -19,7 +19,7 @@ export class RoundScheduler {
         this.order = units
             .map(u => ({
                 ...u,
-                ap: Math.min(u.apMax, Math.floor(u.ap * this.apCarry) + u.apMax)
+                ap: Math.min(u.apMax, Math.floor(u.ap * this._apCarry) + u.apMax)
             }))
             .sort(TIEBREAK);
         this.idx = 0;
@@ -33,7 +33,7 @@ export class RoundScheduler {
             this.round++;
             // Refresh AP for new round
             for (const unit of this.order) {
-                unit.ap = Math.min(unit.apMax, Math.floor(unit.ap * this.apCarry) + unit.apMax);
+                unit.ap = Math.min(unit.apMax, Math.floor(unit.ap * this._apCarry) + unit.apMax);
             }
         }
 

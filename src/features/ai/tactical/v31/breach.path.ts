@@ -2,7 +2,7 @@ import type { Hex } from './destructibles';
 import { edgeKey } from './destructibles';
 
 export interface PathContext {
-  neighbors: (h: Hex) => Hex[];
+  neighbors: (_h: Hex) => Hex[];
   blockedEdges: Set<string>;
   blockedCells: Set<string>;
 }

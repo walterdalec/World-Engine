@@ -25,7 +25,7 @@ export interface LegacySaveData {
 /**
  * Registry of migration functions
  */
-const MIGRATION_FUNCTIONS = new Map<string, (data: any) => any>();
+const MIGRATION_FUNCTIONS = new Map<string, (_data: any) => any>();
 
 /**
  * Register a migration function
@@ -33,7 +33,7 @@ const MIGRATION_FUNCTIONS = new Map<string, (data: any) => any>();
 export function registerMigration(
     fromVersion: number,
     toVersion: number,
-    migrationFn: (data: any) => any
+    migrationFn: (_data: any) => any
 ): void {
     const key = `${fromVersion}->${toVersion}`;
     MIGRATION_FUNCTIONS.set(key, migrationFn);
@@ -169,10 +169,10 @@ function validateCurrentSchema(data: any): boolean {
 registerMigration(1, 2, (data: any) => {
     // Validate that input has at least some valid structure
     // V1 saves must have either units/terrain (combat) or regions/factions (campaign)
-    const hasValidStructure = 
-        (data.units || data.terrain) || 
+    const hasValidStructure =
+        (data.units || data.terrain) ||
         (data.regions || data.factions);
-    
+
     if (!hasValidStructure) {
         throw new Error('Invalid v1 save data: missing required fields');
     }

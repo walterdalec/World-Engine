@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { rng } from "../../core/services/random";
 import { storage } from "../../core/services/storage";
 
@@ -119,6 +119,39 @@ export default function BattleSystem({
     }
   }, []);
 
+  // Helper functions for battle calculations
+  const getModifier = useCallback((stat: number): number => {
+    return Math.floor((stat - 10) / 2);
+  }, []);
+
+  const rollInitiative = useCallback((dexterity: number): number => {
+    return Math.floor(rng.next() * 20) + 1 + getModifier(dexterity);
+  }, [getModifier]);
+
+  const rollD20 = useCallback((): number => {
+    return Math.floor(rng.next() * 20) + 1;
+  }, []);
+
+  const rollDamage = useCallback((diceString: string): number => {
+    // Parse dice strings like "1d8+2", "2d6", etc.
+    const match = diceString.match(/(\d+)d(\d+)(?:\+(\d+))?/);
+    if (!match) return 1;
+
+    const numDice = parseInt(match[1]);
+    const dieSize = parseInt(match[2]);
+    const bonus = parseInt(match[3] || '0');
+
+    let total = bonus;
+    for (let i = 0; i < numDice; i++) {
+      total += Math.floor(rng.next() * dieSize) + 1;
+    }
+    return total;
+  }, []);
+
+  const addToBattleLog = useCallback((message: string) => {
+    setBattleLog(prev => [...prev, message]);
+  }, []);
+
   // Initialize battle participants
   useEffect(() => {
     const players: BattleParticipant[] = playerCharacters.map((char, index) => ({
@@ -137,66 +170,29 @@ export default function BattleSystem({
       id: `enemy-${index}`,
       name: enemy.name,
       type: 'enemy',
-      enemy,
+      enemy: enemy,
       currentHP: enemy.hitPoints,
-      maxHP: enemy.hitPoints,
+      maxHP: enemy.maxHitPoints,
       armorClass: enemy.armorClass,
-      initiative: rollInitiative(12), // Default dex of 12 for enemies
+      initiative: rollInitiative(10), // Assuming base 10 DEX for enemies
       statusEffects: [],
     }));
 
-    const allParticipants = [...players, ...enemies];
+    setParticipants([...players, ...enemies]);
 
-    // Sort by initiative (highest first)
-    const sorted = allParticipants.sort((a, b) => b.initiative - a.initiative);
-    const order = sorted.map(p => p.id);
+    const sorted = [...players, ...enemies].sort((a, b) => b.initiative - a.initiative);
+    setTurnOrder(sorted.map(p => p.id));
 
-    setParticipants(allParticipants);
-    setTurnOrder(order);
     setBattleState('active');
-
-    addToBattleLog(`⚔️ Battle begins! ${encounter.name}`);
-    addToBattleLog(`Terrain: ${encounter.terrain}`);
+    addToBattleLog('=== Battle Start ===');
     addToBattleLog('Initiative order: ' + sorted.map(p => `${p.name} (${p.initiative})`).join(', '));
-  }, [playerCharacters, encounter]);
+  }, [playerCharacters, encounter, rollInitiative, getModifier, addToBattleLog]);
 
-  const getModifier = (stat: number): number => {
-    return Math.floor((stat - 10) / 2);
-  };
-
-  const rollInitiative = (dexterity: number): number => {
-    return Math.floor(rng.next() * 20) + 1 + getModifier(dexterity);
-  };
-
-  const rollD20 = (): number => {
-    return Math.floor(rng.next() * 20) + 1;
-  };
-
-  const rollDamage = (diceString: string): number => {
-    // Parse dice strings like "1d8+2", "2d6", etc.
-    const match = diceString.match(/(\d+)d(\d+)(?:\+(\d+))?/);
-    if (!match) return 1;
-
-    const numDice = parseInt(match[1]);
-    const dieSize = parseInt(match[2]);
-    const bonus = parseInt(match[3] || '0');
-
-    let total = bonus;
-    for (let i = 0; i < numDice; i++) {
-      total += Math.floor(rng.next() * dieSize) + 1;
-    }
-    return total;
-  };
-
-  const addToBattleLog = (message: string) => {
-    setBattleLog(prev => [...prev, message]);
-  };
-
-  const getCurrentParticipant = (): BattleParticipant | null => {
+  const getCurrentParticipant = useCallback((): BattleParticipant | null => {
     if (turnOrder.length === 0) return null;
     const currentId = turnOrder[currentTurn];
     return participants.find(p => p.id === currentId) || null;
-  };
+  }, [turnOrder, currentTurn, participants]);
 
   const getAvailableActions = (participant: BattleParticipant): BattleAction[] => {
     const actions: BattleAction[] = [
@@ -299,29 +295,7 @@ export default function BattleSystem({
     }
   };
 
-  const executeAction = (
-    actor: BattleParticipant,
-    action: BattleAction,
-    targets: BattleParticipant[]
-  ) => {
-    switch (action.type) {
-      case 'attack':
-        executeAttack(actor, targets[0]);
-        break;
-      case 'cast-cantrip':
-      case 'cast-spell':
-        executeCastSpell(actor, action, targets);
-        break;
-      case 'defend':
-        executeDefend(actor);
-        break;
-      case 'move':
-        executeMove(actor);
-        break;
-    }
-  };
-
-  const executeAttack = (attacker: BattleParticipant, target: BattleParticipant) => {
+  const executeAttack = useCallback((attacker: BattleParticipant, target: BattleParticipant) => {
     const attackRoll = rollD20();
     const attackBonus = attacker.character
       ? getModifier(attacker.character.finalStats.strength)
@@ -354,47 +328,9 @@ export default function BattleSystem({
     } else {
       addToBattleLog(`❌ Miss!`);
     }
-  };
+  }, [rollD20, getModifier, rollDamage, addToBattleLog, setParticipants]);
 
-  const executeCastSpell = (caster: BattleParticipant, action: BattleAction, targets: BattleParticipant[]) => {
-    const spellName = action.name.replace('Cast ', '');
-    const spell = availableSpells.find(s => s.name === spellName);
-
-    if (!spell) {
-      addToBattleLog(`❌ ${caster.name} failed to cast ${spellName} - spell not found!`);
-      return;
-    }
-
-    addToBattleLog(`✨ ${caster.name} casts ${spell.name}!`);
-
-    // Apply spell effects based on description and school
-    targets.forEach(target => {
-      applySpellEffect(caster, target, spell);
-    });
-
-    // Handle concentration spells
-    if (spell.duration.toLowerCase().includes('concentration')) {
-      const durationMatch = spell.duration.match(/(\d+)\s*rounds?/);
-      const duration = durationMatch ? parseInt(durationMatch[1]) : 3;
-
-      setParticipants(prev =>
-        prev.map(p =>
-          p.id === caster.id
-            ? {
-              ...p,
-              concentrationSpell: {
-                name: spell.name,
-                duration,
-                effect: spell.description
-              }
-            }
-            : p
-        )
-      );
-    }
-  };
-
-  const applySpellEffect = (caster: BattleParticipant, target: BattleParticipant, spell: GeneratedSpell) => {
+  const applySpellEffect = useCallback((_caster: BattleParticipant, target: BattleParticipant, spell: GeneratedSpell) => {
     const desc = spell.description.toLowerCase();
     const school = spell.school.toLowerCase();
     const spellLevel = spell.level;
@@ -447,9 +383,9 @@ export default function BattleSystem({
       case 'protection':
         const protectionDuration = Math.max(1, Math.floor(magnitude / 2));
         setParticipants(prev =>
-          prev.map(p =>
-            p.id === target.id
-              ? {
+          prev.map(p => {
+            if (p.id === target.id) {
+              return {
                 ...p,
                 statusEffects: [
                   ...p.statusEffects,
@@ -460,16 +396,17 @@ export default function BattleSystem({
                     color: spell.color
                   }
                 ]
-              }
-              : p
-          )
+              };
+            }
+            return p;
+          })
         );
         addToBattleLog(`🛡️ ${target.name} gains magical protection (+${magnitude} AC for ${protectionDuration} rounds)!`);
         break;
     }
-  };
+  }, [rollDamage, addToBattleLog]);
 
-  const executeDefend = (participant: BattleParticipant) => {
+  const executeDefend = useCallback((participant: BattleParticipant) => {
     setParticipants(prev =>
       prev.map(p =>
         p.id === participant.id
@@ -489,13 +426,48 @@ export default function BattleSystem({
       )
     );
     addToBattleLog(`🛡️ ${participant.name} takes a defensive stance.`);
-  };
+  }, [addToBattleLog]);
 
-  const executeMove = (participant: BattleParticipant) => {
+  const executeMove = useCallback((participant: BattleParticipant) => {
     addToBattleLog(`🏃 ${participant.name} moves to a better position.`);
-  };
+  }, [addToBattleLog]);
 
-  const processEnemyTurn = (enemy: BattleParticipant) => {
+  const executeCastSpell = useCallback((caster: BattleParticipant, action: BattleAction, targets: BattleParticipant[]) => {
+    const spellName = action.name.replace('Cast ', '');
+    const spell = availableSpells.find(s => s.name === spellName);
+
+    if (!spell) {
+      addToBattleLog(`❌ ${caster.name} failed to cast ${spellName}!`);
+      return;
+    }
+
+    addToBattleLog(`✨ ${caster.name} casts ${spell.name}!`);
+
+    // Apply spell effect to each target
+    targets.forEach(target => {
+      applySpellEffect(caster, target, spell);
+    });
+  }, [availableSpells, applySpellEffect, addToBattleLog]);
+
+  const executeAction = useCallback((actor: BattleParticipant, action: BattleAction, targets: BattleParticipant[]) => {
+    switch (action.type) {
+      case 'attack':
+        executeAttack(actor, targets[0]);
+        break;
+      case 'cast-spell':
+      case 'cast-cantrip':
+        executeCastSpell(actor, action, targets);
+        break;
+      case 'defend':
+        executeDefend(actor);
+        break;
+      case 'move':
+        executeMove(actor);
+        break;
+    }
+  }, [executeAttack, executeCastSpell, executeDefend, executeMove]);
+
+  const processEnemyTurn = useCallback((enemy: BattleParticipant) => {
     // Simple AI: attack a random player
     const playerTargets = participants.filter(p => p.type === 'player' && p.currentHP > 0);
 
@@ -505,15 +477,15 @@ export default function BattleSystem({
     const attackAction: BattleAction = {
       type: 'attack',
       name: 'Attack',
-      description: 'Enemy attack',
+      description: 'Basic attack',
       target: 'enemy'
     };
 
     executeAction(enemy, attackAction, [target]);
-  };
+  }, [participants, executeAction]);
 
-  const nextTurn = () => {
-    // Process end of turn effects
+  const nextTurn = useCallback(() => {
+    // Decay status effects and concentration
     setParticipants(prev =>
       prev.map(p => ({
         ...p,
@@ -553,7 +525,7 @@ export default function BattleSystem({
         gold: Math.floor(rng.next() * 50) + 10
       });
     }
-  };
+  }, [currentTurn, turnOrder.length, round, participants, encounter.enemies.length, onBattleEnd, addToBattleLog]);
 
   const handleActionClick = (action: BattleAction) => {
     setSelectedAction(action);
@@ -576,7 +548,7 @@ export default function BattleSystem({
     }, 1500);
   };
 
-  const handleEnemyTurn = () => {
+  const handleEnemyTurn = useCallback(() => {
     const currentParticipant = getCurrentParticipant();
     if (currentParticipant?.type === 'enemy') {
       processEnemyTurn(currentParticipant);
@@ -584,7 +556,7 @@ export default function BattleSystem({
         nextTurn();
       }, 2000);
     }
-  };
+  }, [getCurrentParticipant, processEnemyTurn, nextTurn]);
 
   // Auto-process enemy turns
   useEffect(() => {
@@ -595,7 +567,7 @@ export default function BattleSystem({
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [currentTurn, battleState]);
+  }, [currentTurn, battleState, getCurrentParticipant, handleEnemyTurn]);
 
   if (battleState === 'setup') {
     return (

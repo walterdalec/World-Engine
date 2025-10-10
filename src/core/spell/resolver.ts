@@ -6,7 +6,7 @@ import type { DeltaBatch } from '../action/deltas';
 import { computeDamage } from '../unit/damage';
 import { modsFor } from '../morale/apply';
 
-function defenseBonusAtFactory(world: WorldState) {
+function defenseBonusAtFactory(_world: WorldState) {
     return (_: Axial) => 0;
 }
 

@@ -10,16 +10,16 @@ export interface BTNodeContext {
 }
 
 export interface BTNode {
-  tick(ctx: BTNodeContext): TickStatus;
+  tick(_ctx: BTNodeContext): TickStatus;
 }
 
 export class Sequence implements BTNode {
   private index = 0;
-  constructor(private children: BTNode[]) {}
+  constructor(private _children: BTNode[]) { }
 
   tick(ctx: BTNodeContext): TickStatus {
-    while (this.index < this.children.length) {
-      const status = this.children[this.index].tick(ctx);
+    while (this.index < this._children.length) {
+      const status = this._children[this.index].tick(ctx);
       if (status === 'Running' || status === 'Failure') return status;
       this.index += 1;
     }
@@ -29,10 +29,10 @@ export class Sequence implements BTNode {
 }
 
 export class Selector implements BTNode {
-  constructor(private children: BTNode[]) {}
+  constructor(private _children: BTNode[]) { }
 
   tick(ctx: BTNodeContext): TickStatus {
-    for (const child of this.children) {
+    for (const child of this._children) {
       const status = child.tick(ctx);
       if (status !== 'Failure') return status;
     }
@@ -42,19 +42,19 @@ export class Selector implements BTNode {
 
 export class DecorCooldown implements BTNode {
   private last = -Infinity;
-  constructor(private node: BTNode, private cooldownTurns: number) {}
+  constructor(private _node: BTNode, private _cooldownTurns: number) { }
 
   tick(ctx: BTNodeContext): TickStatus {
-    if (ctx.time < this.last + this.cooldownTurns) return 'Failure';
-    const status = this.node.tick(ctx);
+    if (ctx.time < this.last + this._cooldownTurns) return 'Failure';
+    const status = this._node.tick(ctx);
     if (status === 'Success') this.last = ctx.time;
     return status;
   }
 }
 
 export class Leaf implements BTNode {
-  constructor(private fn: (ctx: BTNodeContext) => TickStatus) {}
+  constructor(private _fn: (_ctx: BTNodeContext) => TickStatus) { }
   tick(ctx: BTNodeContext): TickStatus {
-    return this.fn(ctx);
+    return this._fn(ctx);
   }
 }

@@ -14,7 +14,7 @@ import {
     type CombatMode,
     type WorldEngineAbility
 } from '../features/combat-ui';
-import type { Unit, BattleState } from '../features/battle/types';
+import type { Unit } from '../features/battle/types';
 
 // Mock combat data for demonstration
 const mockUnits: Unit[] = [
@@ -147,10 +147,10 @@ const mockLogEntries: LogEntry[] = [
 
 export const CombatUIDemo: React.FC = () => {
     const [selectedUnit, setSelectedUnit] = useState<string>('player-knight-1');
-    const [currentTurn, setCurrentTurn] = useState<string>('player-knight-1');
+    const [currentTurn, _setCurrentTurn] = useState<string>('player-knight-1');
     const [phase] = useState<'Setup' | 'HeroTurn' | 'UnitsTurn' | 'EnemyTurn' | 'Victory' | 'Defeat'>('UnitsTurn');
     const [logEntries] = useState<LogEntry[]>(mockLogEntries);
-    const [selectionManager] = useState(() => new SelectionManager());
+    const [_selectionManager] = useState(() => new SelectionManager());
 
     // Get selected unit data
     const selectedUnitData = mockUnits.find(unit => unit.id === selectedUnit);

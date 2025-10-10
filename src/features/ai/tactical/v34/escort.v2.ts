@@ -13,7 +13,7 @@ export interface EscortStateContext {
   terrain?: any;
 }
 
-export function formEscortFormation(task: any, units: any[], anchor: Hex): EscortFormation | null {
+export function formEscortFormation(task: any, units: any[], _anchor: Hex): EscortFormation | null {
   const engineer = units.find(u => u.role === 'Siege') ?? units.find(u => u.role === 'Infantry');
   const shields = units.filter(u => u.role === 'Shield' || u.role === 'Infantry').slice(0, 6);
   if (!engineer || shields.length < 2) return null;

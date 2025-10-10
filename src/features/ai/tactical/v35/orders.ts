@@ -1,6 +1,6 @@
 import type { Plan } from './scoring';
 
-export type OrderFn = (ctx: any) => boolean;
+export type OrderFn = (_ctx: any) => boolean;
 
 export function buildOrders(): Record<Plan, OrderFn> {
   return {

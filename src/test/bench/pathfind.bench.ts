@@ -36,7 +36,7 @@ function findPath(
     start: HexPosition,
     goal: HexPosition,
     terrain: TerrainCell[],
-    passableCheck: (pos: HexPosition) => boolean
+    passableCheck: (_pos: HexPosition) => boolean
 ): HexPosition[] {
     const terrainMap = new Map<string, TerrainCell>();
     terrain.forEach(cell => terrainMap.set(`${cell.q},${cell.r}`, cell));

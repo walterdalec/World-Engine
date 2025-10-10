@@ -3,8 +3,10 @@
  * Tests for the combat UI components and selection system
  */
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable no-unused-vars */
+
 import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
 import { setTestRNG, setTestTime } from '../utils/deterministic';
 
 // Mock the combat UI components since they may have complex dependencies
@@ -18,7 +20,7 @@ interface MockSelectionState {
 
 class MockSelectionManager {
     private state: MockSelectionState = { mode: 'idle' };
-    private listeners: Array<(state: MockSelectionState) => void> = [];
+    private listeners: Array<(_state: MockSelectionState) => void> = [];
 
     getState(): MockSelectionState {
         return { ...this.state };
@@ -49,7 +51,7 @@ class MockSelectionManager {
         this.setState({ mode: 'idle', selectedUnit: undefined, targetHex: undefined });
     }
 
-    subscribe(listener: (state: MockSelectionState) => void): () => void {
+    subscribe(listener: (_state: MockSelectionState) => void): () => void {
         this.listeners.push(listener);
         return () => {
             this.listeners = this.listeners.filter(l => l !== listener);
@@ -191,9 +193,9 @@ describe('Combat UI System', () => {
             let notificationCount = 0;
             let lastState: MockSelectionState | null = null;
 
-            const unsubscribe = selectionManager.subscribe((state: MockSelectionState) => {
+            const unsubscribe = selectionManager.subscribe((_state: MockSelectionState) => {
                 notificationCount++;
-                lastState = state;
+                lastState = _state;
             });
 
             selectionManager.selectUnit('knight_1');

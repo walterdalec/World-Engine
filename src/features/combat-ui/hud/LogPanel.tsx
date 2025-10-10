@@ -31,7 +31,7 @@ interface LogPanelProps {
 
 interface LogFilterProps {
     activeFilters: Set<string>;
-    onFilterChange: (filters: Set<string>) => void;
+    onFilterChange: (_filters: Set<string>) => void;
 }
 
 const LogFilter: React.FC<LogFilterProps> = ({ activeFilters, onFilterChange }) => {

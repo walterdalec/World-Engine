@@ -579,7 +579,7 @@ export default function CharacterCreate() {
   }
 
   // Get automatic traits for current species and class
-  function getAutomaticTraits(): string[] {
+  const getAutomaticTraits = React.useCallback((): string[] => {
     const automatic = new Set<string>();
 
     // Add species automatic traits
@@ -599,10 +599,10 @@ export default function CharacterCreate() {
     }
 
     return Array.from(automatic);
-  }
+  }, [char.species, char.archetype]);
 
   // Check if a trait is forbidden for current species/class
-  function isTraitForbidden(traitName: string): boolean {
+  const isTraitForbidden = React.useCallback((traitName: string): boolean => {
     // Check species restrictions
     if (char.species) {
       const speciesRules = SPECIES_TRAIT_RULES[char.species as keyof typeof SPECIES_TRAIT_RULES];
@@ -620,7 +620,7 @@ export default function CharacterCreate() {
     }
 
     return false;
-  }
+  }, [char.species, char.archetype]);
 
   // Check if a trait is preferred (helpful for UI hints)
   function isTraitPreferred(traitName: string): boolean {
@@ -668,6 +668,7 @@ export default function CharacterCreate() {
     if (needsUpdate) {
       setChar(c => ({ ...c, traits: Array.from(currentTraits) }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [char.species, char.archetype]);
 
   function toggleTrait(t: string) {

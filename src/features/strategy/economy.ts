@@ -153,7 +153,7 @@ export function applyIncome(s: CampaignState, income: Record<FactionId, Treasury
 export function settleUpkeep(s: CampaignState): void {
     const perFaction: Record<string, Treasury> = {};
 
-    for (const [tid, t] of Array.from(s.territories.entries())) {
+    for (const [_tid, t] of Array.from(s.territories.entries())) {
         if (t.garrison.length === 0) continue;
 
         const mult = t.supply ? 1 : 1.25; // Out-of-supply upkeep +25%
