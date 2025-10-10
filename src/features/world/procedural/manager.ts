@@ -118,9 +118,9 @@ export class WorldManager {
         this.config = { ...DEFAULT_CONFIG, ...config };
 
         // Load world size configuration
-        // Use infinite world for tests to avoid bounds issues
+        // Use colossal world for tests to provide large bounds
         const isTestEnv = typeof jest !== 'undefined' || process.env.NODE_ENV === 'test';
-        const defaultSizeId = isTestEnv ? 'infinite' : 'medium';
+        const defaultSizeId = isTestEnv ? 'colossal' : 'medium';
         this.worldSizeConfig = getWorldSizeConfig(this.config.worldSizeId || defaultSizeId);
 
         // Apply world size settings to config
@@ -186,7 +186,9 @@ export class WorldManager {
      */
     private isChunkInBounds(chunkId: ChunkId): boolean {
         const bounds = this.getEffectiveWorldBounds();
-        if (!bounds) return true; // No bounds = infinite world
+        if (!bounds) {
+            throw new Error('World bounds not defined. All worlds must be bounded.');
+        }
 
         return chunkId.cx >= bounds.minChunkX &&
             chunkId.cx <= bounds.maxChunkX &&
@@ -332,10 +334,8 @@ export class WorldManager {
             maxMemory: this.worldSizeConfig.maxMemoryMB,
             boundsInfo: bounds
                 ? `${bounds.maxChunkX - bounds.minChunkX + 1}×${bounds.maxChunkY - bounds.minChunkY + 1} chunks`
-                : 'Infinite',
-            utilizationPercent: this.worldSizeConfig.maxChunks === Infinity
-                ? 0
-                : (this.loadedChunks.size / this.worldSizeConfig.maxChunks) * 100
+                : 'Unknown',
+            utilizationPercent: (this.loadedChunks.size / this.worldSizeConfig.maxChunks) * 100
         };
     }
 

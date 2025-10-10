@@ -61,7 +61,7 @@ export const WorldSizeDemo: React.FC = () => {
                                 {size.description}
                             </p>
                             <div style={{ fontSize: '12px', color: '#888' }}>
-                                Max chunks: {size.maxChunks === Infinity ? '∞' : size.maxChunks.toLocaleString()} | 
+                                Max chunks: {size.maxChunks.toLocaleString()} | 
                                 Memory: {size.maxMemoryMB}MB | 
                                 Stream radius: {size.streamRadius}
                             </div>
@@ -79,14 +79,14 @@ export const WorldSizeDemo: React.FC = () => {
                     fontFamily: 'monospace',
                     fontSize: '14px'
                 }}>
-                    <div><strong>Max Chunks:</strong> {config.maxChunks === Infinity ? 'Infinite' : config.maxChunks.toLocaleString()}</div>
+                    <div><strong>Max Chunks:</strong> {config.maxChunks.toLocaleString()}</div>
                     <div><strong>Memory Limit:</strong> {config.maxMemoryMB}MB</div>
                     <div><strong>Chunk Size:</strong> {config.chunkSize}×{config.chunkSize}</div>
                     <div><strong>Stream Radius:</strong> {config.streamRadius} chunks</div>
                     <div><strong>Fog of War:</strong> {config.fogEnabled ? `Enabled (${config.revealRadius}px reveal)` : 'Disabled'}</div>
                     <div><strong>World Bounds:</strong> {config.worldBounds 
                         ? `${config.worldBounds.maxChunkX - config.worldBounds.minChunkX + 1}×${config.worldBounds.maxChunkY - config.worldBounds.minChunkY + 1} chunks`
-                        : 'Infinite'
+                        : 'Unknown'
                     }</div>
                 </div>
             </div>
@@ -153,8 +153,8 @@ export const WorldSizeDemo: React.FC = () => {
                             fontFamily: 'monospace',
                             fontSize: '14px'
                         }}>
-                            <div><strong>Total Tiles:</strong> {testResults.coverage.totalTiles === -1 ? 'Infinite' : testResults.coverage.totalTiles.toLocaleString()}</div>
-                            <div><strong>Area:</strong> {testResults.coverage.estimatedKmSquared === -1 ? 'Infinite' : `${testResults.coverage.estimatedKmSquared.toFixed(1)} km²`}</div>
+                            <div><strong>Total Tiles:</strong> {testResults.coverage.totalTiles.toLocaleString()}</div>
+                            <div><strong>Area:</strong> {testResults.coverage.estimatedKmSquared.toFixed(1)} km²</div>
                             <div><strong>Exploration Time:</strong> {testResults.coverage.explorationTimeEstimate}</div>
                         </div>
                     </div>
@@ -166,7 +166,7 @@ export const WorldSizeDemo: React.FC = () => {
                 <ul style={{ margin: '10px 0', paddingLeft: '20px' }}>
                     <li><strong>Laptops/Older PCs:</strong> Use Small or Medium worlds for best performance</li>
                     <li><strong>Gaming PCs:</strong> Large or Extra Large worlds provide great exploration without lag</li>
-                    <li><strong>High-end Systems:</strong> Extremely Large or Infinite worlds for maximum freedom</li>
+                    <li><strong>High-end Systems:</strong> Extremely Large or Colossal worlds for maximum freedom</li>
                     <li><strong>Memory Usage:</strong> Actual usage grows dynamically as you explore</li>
                     <li><strong>Fog of War:</strong> Helps performance by hiding distant areas you haven't visited</li>
                 </ul>

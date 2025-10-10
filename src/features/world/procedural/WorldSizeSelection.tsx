@@ -126,9 +126,7 @@ export function WorldSizeSelection({
                                     <strong>Memory:</strong> {config.maxMemoryMB}MB
                                 </div>
                                 <div>
-                                    <strong>Chunks:</strong> {
-                                        config.maxChunks === Infinity ? '∞' : config.maxChunks
-                                    }
+                                    <strong>Chunks:</strong> {config.maxChunks.toLocaleString()}
                                 </div>
                                 <div>
                                     <strong>Size:</strong> {config.chunkSize}×{config.chunkSize}

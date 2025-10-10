@@ -18,7 +18,7 @@ export interface WorldSizeConfig {
     maxMemoryMB: number;         // Memory limit
 
     // Generation constraints  
-    worldBounds?: {              // Hard world boundaries (null = infinite)
+    worldBounds?: {              // Hard world boundaries (all worlds are bounded)
         minChunkX: number;
         maxChunkX: number;
         minChunkY: number;
@@ -182,19 +182,22 @@ export const WORLD_SIZE_CONFIGS: Record<string, WorldSizeConfig> = {
         cleanupInterval: 600        // 10 minutes
     },
 
-    infinite: {
-        id: 'infinite',
-        name: 'infinite',
-        displayName: '♾️ Infinite World',
-        description: 'Unlimited exploration for the brave. No size limits - explore until your system says no!',
+    colossal: {
+        id: 'colossal',
+        name: 'colossal',
+        displayName: '🌍 Colossal World',
+        description: 'Practically unlimited exploration (501×501 sectors, ~771M hexes). Exploration beyond reason!',
 
-        maxChunks: Infinity,
+        maxChunks: 251001,          // 501×501 sectors (matches DEFAULT_WORLD_BOUNDS)
         maxCachedChunks: 500,       // Still need memory limits
         maxMemoryMB: 300,           // Conservative cache limit
 
-        worldBounds: undefined,     // No bounds
+        worldBounds: {              // Bounded but vast
+            minChunkX: -250, maxChunkX: 250,
+            minChunkY: -250, maxChunkY: 250
+        },
 
-        chunkSize: 64,
+        chunkSize: 64,              // Standard sector size
         streamRadius: 3,            // Conservative streaming
         preloadRadius: 1,           // Minimal preload
         generateAsync: true,
@@ -203,7 +206,7 @@ export const WORLD_SIZE_CONFIGS: Record<string, WorldSizeConfig> = {
         fogDecayRate: 0.001,        // Very slow decay
         revealRadius: 16,
 
-        aggressiveCleanup: true,    // Essential for infinite worlds
+        aggressiveCleanup: true,    // Essential for large worlds
         cleanupInterval: 60
     }
 };
@@ -271,10 +274,10 @@ export function validateWorldSizeForSystem(sizeId: string): {
         recommendations.push(`Try enabling async generation or reducing chunk size.`);
     }
 
-    // Infinite world warnings
-    if (sizeId === 'infinite') {
-        warnings.push(`Infinite worlds can eventually consume all available memory.`);
-        recommendations.push(`Monitor memory usage and save frequently.`);
+    // Colossal world warnings
+    if (sizeId === 'colossal') {
+        warnings.push(`Colossal worlds are extremely large (~771M hexes) and may consume significant memory over time.`);
+        recommendations.push(`Monitor memory usage and save frequently. Consider using a smaller world size if performance degrades.`);
     }
 
     return {
@@ -293,32 +296,29 @@ export function calculateWorldCoverage(config: WorldSizeConfig): {
     explorationTimeEstimate: string;
 } {
     const bounds = config.worldBounds;
-    const totalTiles = bounds
-        ? (bounds.maxChunkX - bounds.minChunkX + 1) *
+
+    // All worlds now have bounds - no infinite worlds
+    if (!bounds) {
+        throw new Error('World configuration missing bounds. All worlds must be bounded.');
+    }
+
+    const totalTiles = (bounds.maxChunkX - bounds.minChunkX + 1) *
         (bounds.maxChunkY - bounds.minChunkY + 1) *
-        config.chunkSize * config.chunkSize
-        : Infinity;
+        config.chunkSize * config.chunkSize;
 
     // Rough estimates: 1 tile ≈ 10m, player moves ~50 tiles/minute exploring
-    const estimatedKmSquared = totalTiles === Infinity
-        ? Infinity
-        : (totalTiles * 100) / 1000000; // 100m² per tile → km²
+    const estimatedKmSquared = (totalTiles * 100) / 1000000; // 100m² per tile → km²
+    const explorationMinutes = totalTiles / 50;
 
-    const explorationMinutes = totalTiles === Infinity
-        ? Infinity
-        : totalTiles / 50;
-
-    const explorationTimeEstimate = explorationMinutes === Infinity
-        ? "Unlimited"
-        : explorationMinutes < 60
-            ? `${Math.round(explorationMinutes)} minutes`
-            : explorationMinutes < 1440
-                ? `${Math.round(explorationMinutes / 60)} hours`
-                : `${Math.round(explorationMinutes / 1440)} days`;
+    const explorationTimeEstimate = explorationMinutes < 60
+        ? `${Math.round(explorationMinutes)} minutes`
+        : explorationMinutes < 1440
+            ? `${Math.round(explorationMinutes / 60)} hours`
+            : `${Math.round(explorationMinutes / 1440)} days`;
 
     return {
-        totalTiles: totalTiles === Infinity ? -1 : totalTiles,
-        estimatedKmSquared: estimatedKmSquared === Infinity ? -1 : estimatedKmSquared,
+        totalTiles,
+        estimatedKmSquared,
         explorationTimeEstimate
     };
 }
