@@ -6,12 +6,12 @@
  */
 
 import React, { useState } from 'react';
-import { 
+import {
     WORLD_SIZE_CONFIGS,
     detectRecommendedWorldSize,
     getWorldSizeConfig,
     validateWorldSizeForSystem,
-    calculateWorldCoverage 
+    calculateWorldCoverage
 } from './worldSizes';
 
 export const WorldSizeDemo: React.FC = () => {
@@ -25,16 +25,16 @@ export const WorldSizeDemo: React.FC = () => {
         const validation = validateWorldSizeForSystem(selectedSize);
         const config = getWorldSizeConfig(selectedSize);
         const coverage = calculateWorldCoverage(config);
-        
+
         setTestResults({ validation, coverage });
     };
 
     const config = getWorldSizeConfig(selectedSize);
 
     return (
-        <div style={{ 
-            padding: '20px', 
-            maxWidth: '800px', 
+        <div style={{
+            padding: '20px',
+            maxWidth: '800px',
             margin: '0 auto',
             fontFamily: 'system-ui, sans-serif'
         }}>
@@ -45,7 +45,7 @@ export const WorldSizeDemo: React.FC = () => {
                 <h3>Available World Sizes</h3>
                 <div style={{ display: 'grid', gap: '10px', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
                     {Object.values(WORLD_SIZE_CONFIGS).map((size) => (
-                        <div 
+                        <div
                             key={size.id}
                             style={{
                                 border: selectedSize === size.id ? '2px solid #0066cc' : '1px solid #ccc',
@@ -61,8 +61,8 @@ export const WorldSizeDemo: React.FC = () => {
                                 {size.description}
                             </p>
                             <div style={{ fontSize: '12px', color: '#888' }}>
-                                Max chunks: {size.maxChunks.toLocaleString()} | 
-                                Memory: {size.maxMemoryMB}MB | 
+                                Max chunks: {size.maxChunks.toLocaleString()} |
+                                Memory: {size.maxMemoryMB}MB |
                                 Stream radius: {size.streamRadius}
                             </div>
                         </div>
@@ -72,9 +72,9 @@ export const WorldSizeDemo: React.FC = () => {
 
             <div style={{ marginBottom: '20px' }}>
                 <h3>Selected Configuration: {config.displayName}</h3>
-                <div style={{ 
-                    backgroundColor: '#f5f5f5', 
-                    padding: '15px', 
+                <div style={{
+                    backgroundColor: '#f5f5f5',
+                    padding: '15px',
                     borderRadius: '8px',
                     fontFamily: 'monospace',
                     fontSize: '14px'
@@ -84,7 +84,7 @@ export const WorldSizeDemo: React.FC = () => {
                     <div><strong>Chunk Size:</strong> {config.chunkSize}×{config.chunkSize}</div>
                     <div><strong>Stream Radius:</strong> {config.streamRadius} chunks</div>
                     <div><strong>Fog of War:</strong> {config.fogEnabled ? `Enabled (${config.revealRadius}px reveal)` : 'Disabled'}</div>
-                    <div><strong>World Bounds:</strong> {config.worldBounds 
+                    <div><strong>World Bounds:</strong> {config.worldBounds
                         ? `${config.worldBounds.maxChunkX - config.worldBounds.minChunkX + 1}×${config.worldBounds.maxChunkY - config.worldBounds.minChunkY + 1} chunks`
                         : 'Unknown'
                     }</div>
@@ -92,7 +92,7 @@ export const WorldSizeDemo: React.FC = () => {
             </div>
 
             <div style={{ marginBottom: '20px' }}>
-                <button 
+                <button
                     onClick={runTests}
                     style={{
                         padding: '10px 20px',
@@ -111,11 +111,11 @@ export const WorldSizeDemo: React.FC = () => {
             {testResults && (
                 <div>
                     <h3>Test Results</h3>
-                    
+
                     <div style={{ marginBottom: '15px' }}>
                         <h4>System Validation</h4>
-                        <div style={{ 
-                            padding: '10px', 
+                        <div style={{
+                            padding: '10px',
                             borderRadius: '4px',
                             backgroundColor: testResults.validation.supported ? '#d4edda' : '#f8d7da',
                             border: `1px solid ${testResults.validation.supported ? '#c3e6cb' : '#f5c6cb'}`
@@ -146,9 +146,9 @@ export const WorldSizeDemo: React.FC = () => {
 
                     <div>
                         <h4>World Coverage Analysis</h4>
-                        <div style={{ 
-                            backgroundColor: '#f8f9fa', 
-                            padding: '10px', 
+                        <div style={{
+                            backgroundColor: '#f8f9fa',
+                            padding: '10px',
                             borderRadius: '4px',
                             fontFamily: 'monospace',
                             fontSize: '14px'
