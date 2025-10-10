@@ -1,10 +1,11 @@
 /**
  * World Grid Generator
  * Canvas 04 - Fixed-size world generation
+ * Canvas 05 - Beautiful terrain with biome painting
  */
 
 import type { WorldGrid, WorldGridConfig, Chunk, Tile } from './types';
-import { createChunkRNG } from './rng';
+import { generateTerrain } from './terrain';
 
 /**
  * Generate a complete fixed-size world grid
@@ -54,7 +55,6 @@ function generateChunk(
     chunkSize: number,
     config: WorldGridConfig
 ): Chunk {
-    const rng = createChunkRNG(worldSeed, chunkX, chunkY);
     const tiles = new Map<string, Tile>();
 
     const startX = chunkX * chunkSize;
@@ -70,13 +70,25 @@ function generateChunk(
                 continue;
             }
 
-            // Generate tile data (simple noise for now, Canvas 05 will improve this)
+            // Generate beautiful terrain with biomes (Canvas 05)
+            const terrain = generateTerrain(
+                x,
+                y,
+                config.worldWidth,
+                config.worldHeight,
+                worldSeed
+            );
+
             const tile: Tile = {
                 x,
                 y,
-                height: rng.float(),
-                moisture: rng.float(),
-                temperature: rng.float()
+                height: terrain.elevation,        // Alias for compatibility
+                elevation: terrain.elevation,
+                moisture: terrain.moisture,
+                temperature: terrain.temperature,
+                biome: terrain.biomeId,           // Main field
+                biomeId: terrain.biomeId,         // Alias for clarity
+                roughness: terrain.roughness
             };
 
             tiles.set(`${x},${y}`, tile);

@@ -64,12 +64,12 @@ export function DevBar({ events }: DevBarProps) {
                     }
                 ]
             };
-            
+
             const result = await events.request<{ json: string }, { success: boolean; errors: any[] }>(
                 'packs/load',
                 { json: JSON.stringify(samplePack) }
             );
-            
+
             if (result.success) {
                 console.log('✅ Sample pack loaded successfully');
                 await refreshPackStats();
