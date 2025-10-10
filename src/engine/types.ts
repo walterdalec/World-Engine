@@ -42,6 +42,7 @@ export interface EventBus {
     on<T = unknown>(type: string, handler: (p: T) => void): () => void;
     once<T = unknown>(type: string, handler: (p: T) => void): void;
     request<TReq = unknown, TRes = unknown>(type: string, payload?: TReq): Promise<TRes>;
+    respond<TReq = unknown, TRes = unknown>(type: string, fn: (p: TReq) => Promise<TRes>): void;
 }
 
 export interface ModuleRegistry {
