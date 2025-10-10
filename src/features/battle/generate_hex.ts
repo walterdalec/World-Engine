@@ -3,6 +3,9 @@
  * Creates procedural hex grids with deployment zones
  */
 
+import { 
+    axialToCube as _axialToCube
+} from './hex/coords';
 import { BattleGrid, HexTile, DeploymentZone, HexPosition, BattleContext as _BattleContext } from './types';
 
 export interface BattlefieldConfig {
@@ -180,13 +183,10 @@ export function isValidPosition(pos: HexPosition, grid: BattleGrid): boolean {
 // ===== PHASE 0: HEX COORDINATE UTILITIES =====
 
 /**
- * Convert axial coordinates to cube coordinates
+ * Convert axial coordinates to cube coordinates (re-exported from canonical module)
  */
 export function axialToCube(hex: HexPosition): { x: number; y: number; z: number } {
-    const x = hex.q;
-    const z = hex.r;
-    const y = -x - z;
-    return { x, y, z };
+    return _axialToCube(hex);
 }
 
 /**
@@ -197,11 +197,11 @@ export function cubeToAxial(cube: { x: number; y: number; z: number }): HexPosit
 }
 
 /**
- * Calculate distance between two hex positions using cube coordinates
+ * Calculate distance between two hex positions using cube coordinates (uses canonical function)
  */
 export function cubeDistance(a: HexPosition, b: HexPosition): number {
-    const cubeA = axialToCube(a);
-    const cubeB = axialToCube(b);
+    const cubeA = _axialToCube(a);
+    const cubeB = _axialToCube(b);
     return Math.max(
         Math.abs(cubeA.x - cubeB.x),
         Math.abs(cubeA.y - cubeB.y),

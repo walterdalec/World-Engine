@@ -1,11 +1,39 @@
 /**
  * hex.ts - Essential hex grid utilities for tactical battle system
- * Minimal, production-ready hex coordinate math
+ * High-level hex utilities built on canonical coords module
  */
 
+import {
+    axialToCube as _axialToCube,
+    cubeToAxial as _cubeToAxial,
+    axialKey as _axialKey,
+    axialEq as _axialEq,
+    cubeEq as _cubeEq,
+    CUBE_DIRS as _CUBE_DIRS
+} from './hex/coords';
+
+// Re-export core types and functions from canonical coords module
+export type { Axial, Cube, AxialLike, CubeLike } from './hex/coords';
+export {
+    axial,
+    cube,
+    axialToCube,
+    cubeToAxial,
+    axialEq,
+    cubeEq,
+    axialKey,
+    cubeKey,
+    isAxial,
+    isCube,
+    AXIAL_ZERO,
+    CUBE_ZERO,
+    CUBE_DIRS
+} from './hex/coords';
+
+// Legacy type aliases for backward compatibility
 export interface HexCoord {
-    q: number; // column (axial coordinate)
-    r: number; // row (axial coordinate)  
+    q: number;
+    r: number;
 }
 
 export interface CubeCoord {
@@ -14,23 +42,10 @@ export interface CubeCoord {
     z: number;
 }
 
-// Convert axial to cube coordinates for distance calculations
-export function axialToCube(hex: HexCoord): CubeCoord {
-    const x = hex.q;
-    const z = hex.r;
-    const y = -x - z;
-    return { x, y, z };
-}
-
-// Convert cube back to axial coordinates
-export function cubeToAxial(cube: CubeCoord): HexCoord {
-    return { q: cube.x, r: cube.z };
-}
-
 // Distance between two hex coordinates using cube math
 export function hexDistance(a: HexCoord, b: HexCoord): number {
-    const ac = axialToCube(a);
-    const bc = axialToCube(b);
+    const ac = _axialToCube(a);
+    const bc = _axialToCube(b);
     return Math.max(
         Math.abs(ac.x - bc.x),
         Math.abs(ac.y - bc.y),
@@ -117,9 +132,9 @@ export function isValidHex(hex: HexCoord, bounds?: { minQ: number; maxQ: number;
         hex.r <= bounds.maxR;
 }
 
-// Convert hex to string key for Maps/Sets
+// Convert hex to string key for Maps/Sets (wrapper for backward compatibility)
 export function hexKey(hex: HexCoord): string {
-    return `${hex.q},${hex.r}`;
+    return _axialKey(hex);
 }
 
 // Parse hex from string key

@@ -5,19 +5,12 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Xor32 } from '../../core/utils/rng';
+import { axialToCube, CUBE_DIRS } from '../../features/battle/hex/coords';
 
-// Basic hex coordinate type
+// Basic hex coordinate type (compatible with canonical Axial)
 type HexCoord = { q: number; r: number };
 
-// Helper functions to test (these would normally be imported from your hex math module)
-function axialToCube(hex: HexCoord): { x: number; y: number; z: number } {
-    const x = hex.q;
-    const z = hex.r;
-    const y = -x - z;
-    // Ensure we return +0 instead of -0 for consistency
-    return { x: x || 0, y: y || 0, z: z || 0 };
-}
-
+// Helper functions using canonical coords module
 function cubeDistance(a: HexCoord, b: HexCoord): number {
     const ac = axialToCube(a);
     const bc = axialToCube(b);
@@ -29,11 +22,11 @@ function cubeDistance(a: HexCoord, b: HexCoord): number {
 }
 
 function hexNeighbors(hex: HexCoord): HexCoord[] {
-    const directions = [
-        { q: 1, r: 0 }, { q: 1, r: -1 }, { q: 0, r: -1 },
-        { q: -1, r: 0 }, { q: -1, r: 1 }, { q: 0, r: 1 }
-    ];
-    return directions.map(d => ({ q: hex.q + d.q, r: hex.r + d.r }));
+    // Use canonical CUBE_DIRS converted to axial
+    return CUBE_DIRS.map(dir => {
+        // Convert cube direction to axial offset
+        return { q: hex.q + dir.x, r: hex.r + dir.z };
+    });
 }
 
 describe('Hex Coordinate Math', () => {
