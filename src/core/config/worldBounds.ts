@@ -139,16 +139,16 @@ export function createWorldBounds(radius: number): WorldBounds {
 export const WORLD_SIZE_PRESETS = {
     /** Tiny world for quick testing (11×11 sectors, ~370K hexes) */
     tiny: createWorldBounds(5),
-    
+
     /** Small world for focused campaigns (41×41 sectors, ~6M hexes) */
     small: createWorldBounds(20),
-    
+
     /** Medium world for standard campaigns (101×101 sectors, ~39M hexes) */
     medium: createWorldBounds(50),
-    
+
     /** Large world for extended exploration (201×201 sectors, ~155M hexes) */
     large: createWorldBounds(100),
-    
+
     /** Colossal world - practically infinite (501×501 sectors, ~1.5B hexes) */
     colossal: DEFAULT_WORLD_BOUNDS,
 } as const;
@@ -163,7 +163,7 @@ export function getWorldSizeDescription(bounds: WorldBounds): string {
     const sectors = getTotalSectors(bounds);
     const hexes = getApproximateHexCount(bounds);
     const hexesFormatted = hexes.toLocaleString();
-    
+
     if (sectors <= 121) return `Tiny (${hexesFormatted} hexes - testing/tutorial)`;
     if (sectors <= 1681) return `Small (${hexesFormatted} hexes - focused campaign)`;
     if (sectors <= 10201) return `Medium (${hexesFormatted} hexes - standard campaign)`;
