@@ -202,7 +202,7 @@ export class SimClock {
 
         // Process fixed steps
         let stepsProcessed = 0;
-        const maxStepsPerFrame = 10; // Safety limit
+        const maxStepsPerFrame = 30; // Safety limit (increased to handle 4x speed better)
 
         while (this.state.accumulator >= this.state.dtFixed && stepsProcessed < maxStepsPerFrame) {
             this.fixedUpdate();
