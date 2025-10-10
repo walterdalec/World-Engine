@@ -26,7 +26,7 @@ function ridgedMultifractal(
         const nx = x * freq;
         const ny = y * freq;
         const hash = hashNoise(nx, ny, seed + i * 1000);
-        
+
         // Ridged: abs(noise) inverted
         let signal = Math.abs(hash);
         signal = 1.0 - signal;
