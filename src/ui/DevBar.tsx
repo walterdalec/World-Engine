@@ -16,6 +16,7 @@ export function DevBar({ events }: DevBarProps) {
     const [visible, setVisible] = useState(false);
     const [day, setDay] = useState(0);
     const [lastSave, setLastSave] = useState<string>('');
+    const [lastAutoSave, setLastAutoSave] = useState<string>('');
     const [packStats, setPackStats] = useState({ total: 0, biomes: 0, units: 0, items: 0, spells: 0, factions: 0 });
     const [worldStats, setWorldStats] = useState<{ chunks: number; tiles: number } | null>(null);
 
@@ -120,6 +121,11 @@ export function DevBar({ events }: DevBarProps) {
             if (day !== undefined) setDay(day);
         });
 
+        // Listen for auto-save events (triggered by CoreModule every 5 min)
+        const offAutoSave = events.on('save/autosave', () => {
+            setLastAutoSave(new Date().toLocaleTimeString());
+        });
+
         // Keyboard shortcuts
         const handleKeyDown = (e: KeyboardEvent) => {
             // Ctrl+S or Cmd+S - Save
@@ -148,6 +154,7 @@ export function DevBar({ events }: DevBarProps) {
         return () => {
             offDay();
             offTick();
+            offAutoSave();
             window.removeEventListener('keydown', handleKeyDown);
         };
     }, [events, refreshPackStats, refreshWorldStats]);
@@ -175,8 +182,15 @@ export function DevBar({ events }: DevBarProps) {
 
                     {lastSave && (
                         <div className="flex items-center gap-2">
-                            <span className="text-gray-400">Last Save:</span>
+                            <span className="text-gray-400">Manual Save:</span>
                             <span className="font-mono text-green-400">{lastSave}</span>
+                        </div>
+                    )}
+
+                    {lastAutoSave && (
+                        <div className="flex items-center gap-2">
+                            <span className="text-gray-400">Auto-Save:</span>
+                            <span className="font-mono text-yellow-400">{lastAutoSave}</span>
                         </div>
                     )}
                 </div>
@@ -197,20 +211,17 @@ export function DevBar({ events }: DevBarProps) {
                     <button
                         onClick={() => events.emit('load/file')}
                         className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-sm font-medium transition-colors"
-                        title="Load (Ctrl+L)"
+                        title="Load from file (Ctrl+L)"
                     >
-                        📂 Load
+                        📂 Load File
                     </button>
 
                     <button
-                        onClick={() => {
-                            events.emit('save/autosave');
-                            setLastSave(new Date().toLocaleTimeString());
-                        }}
+                        onClick={() => events.emit('load/autosave')}
                         className="bg-yellow-600 hover:bg-yellow-700 px-3 py-1 rounded text-sm font-medium transition-colors"
-                        title="Save to localStorage (auto-save)"
+                        title="Load most recent auto-save from localStorage"
                     >
-                        ⚡ Autosave
+                        ⚡ Load Recent
                     </button>
 
                     <button
@@ -244,8 +255,9 @@ export function DevBar({ events }: DevBarProps) {
             </div>
 
             <div className="max-w-7xl mx-auto mt-2 text-xs text-gray-500 flex gap-4">
-                <span>💡 Ctrl+S: Save</span>
-                <span>📂 Ctrl+L: Load</span>
+                <span>💡 Ctrl+S: Save to file + localStorage</span>
+                <span>📂 Ctrl+L: Load from file</span>
+                <span>⚡ Auto-save: Every 5 minutes (background)</span>
                 <span>⚙️ Ctrl+`: Toggle DevBar</span>
             </div>
         </div>
