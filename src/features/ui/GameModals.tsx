@@ -9,10 +9,10 @@ interface GameModalsProps {
   engine: WorldEngine;
   showWorldGenModal: boolean;
   onCloseWorldGenModal: () => void;
-  onWorldGenSubmit: (config: any) => void;
+  onWorldGenSubmit: (_config: any) => void;
   showEncounterModal: boolean;
   onCloseEncounterModal: () => void;
-  onEncounterAction: (action: 'fight' | 'flee' | 'negotiate' | 'explore') => void;
+  onEncounterAction: (_action: 'fight' | 'flee' | 'negotiate' | 'explore') => void;
   showCharacterModal: boolean;
   onCloseCharacterModal: () => void;
 }

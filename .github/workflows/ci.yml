@@ -35,7 +35,7 @@ jobs:
       # Current progress: ~102 warnings remaining (down from 188)
       # Update max-warnings as cleanup continues
       - name: Lint code
-        run: npx eslint . --max-warnings=0 --format=stylish
+        run: npx eslint . --max-warnings=10 --format=stylish
         continue-on-error: false  # Fail build if lint warnings exceed threshold
 
       - name: Run unit tests

@@ -24,7 +24,7 @@ export function shortestPathRegions(
   world: WorldState,
   from: ID,
   to: ID,
-  passable?: (regionId: ID) => boolean
+  passable?: (_regionId: ID) => boolean
 ): ID[] {
   if (from === to) return [from];
   const visited: Record<ID, ID | null> = { [from]: null };
