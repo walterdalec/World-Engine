@@ -54,6 +54,21 @@ function mulberry32(seed: number) {
     };
 }
 
+// Pick building type based on settlement
+const pickBuildingType = (type: string, rng: () => number): string => {
+    const pools: Record<string, string[]> = {
+        hut: ['Hut', 'Farmhouse', 'Well'],
+        village: ['House', 'Inn', 'Blacksmith', 'Shrine'],
+        town: ['House', 'Tavern', 'Guardpost', 'Market', 'Temple'],
+        city: ['House', 'Guildhall', 'Castle', 'Temple', 'Market', 'Barracks'],
+        shrine: ['Shrine', 'Garden', 'Altar'],
+        outpost: ['Barracks', 'Watchtower', 'Armory'],
+        trading_post: ['Shop', 'Warehouse', 'Inn', 'Market']
+    };
+    const arr = pools[type] || pools.hut;
+    return arr[Math.floor(rng() * arr.length)];
+};
+
 export function SettlementInterior({ settlementType, settlementName, seed, onExit }: SettlementInteriorProps) {
     const cameraRef = useRef({ x: 0, y: 0, scale: 1 });
 
@@ -100,21 +115,6 @@ export function SettlementInterior({ settlementType, settlementName, seed, onExi
         console.log(`🏘️ Generated ${def.name} with ${roads.length} roads and ${buildings.length} buildings`);
         return { roads, buildings, radius: def.radius };
     }, [settlementType, seed]);
-
-    // Pick building type based on settlement
-    const pickBuildingType = (type: string, rng: () => number): string => {
-        const pools: Record<string, string[]> = {
-            hut: ['Hut', 'Farmhouse', 'Well'],
-            village: ['House', 'Inn', 'Blacksmith', 'Shrine'],
-            town: ['House', 'Tavern', 'Guardpost', 'Market', 'Temple'],
-            city: ['House', 'Guildhall', 'Castle', 'Temple', 'Market', 'Barracks'],
-            shrine: ['Shrine', 'Garden', 'Altar'],
-            outpost: ['Barracks', 'Watchtower', 'Armory'],
-            trading_post: ['Shop', 'Warehouse', 'Inn', 'Market']
-        };
-        const arr = pools[type] || pools.hut;
-        return arr[Math.floor(rng() * arr.length)];
-    };
 
     // Render settlement
     const handleRender = useCallback((ctx: CanvasRenderingContext2D, _t: number) => {
