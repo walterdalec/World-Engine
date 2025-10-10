@@ -128,7 +128,8 @@ export const ClassicCharacterCreator: React.FC<ClassicCharacterCreatorProps> = (
         }
     };
 
-    const validation = useMemo(() => validateInput(character), []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const validation = useMemo(() => validateInput(character), [character.stats, character.name, character.species, character.archetype]);
 
     // Use the old system's 27-point budget and stat calculation
     const POINTS_POOL = 27;

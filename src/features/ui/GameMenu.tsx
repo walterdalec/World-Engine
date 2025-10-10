@@ -915,7 +915,7 @@ function CharacterSelector({
 }: {
   engine: WorldEngine;
   selectedCharacterId: string | null;
-  onSelectCharacter: (id: string | null) => void;
+  onSelectCharacter: (_id: string | null) => void;
 }) {
   const characters = engine.getPartyCharacters();
 
@@ -980,6 +980,7 @@ function AbilitiesBySchool({ engine, characterId }: { engine: WorldEngine; chara
   const [openSchools, setOpenSchools] = useState<Set<string>>(new Set());
 
   const character = engine.getCharacter(characterId);
+
   const abilitiesBySchool = useMemo(() => {
     if (!character) return {};
 
@@ -1001,7 +1002,8 @@ function AbilitiesBySchool({ engine, characterId }: { engine: WorldEngine; chara
       console.error('Error loading abilities:', error);
       return {};
     }
-  }, [character?.level, JSON.stringify(character?.stats), JSON.stringify(character?.knownAbilities), characterId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [character, characterId, engine]);
 
   if (!character) {
     return (
@@ -1115,6 +1117,7 @@ function SpellsBySchool({ engine, characterId }: { engine: WorldEngine; characte
   const [openSchools, setOpenSchools] = useState<Set<string>>(new Set());
 
   const character = engine.getCharacter(characterId);
+  
   const spellsBySchool = useMemo(() => {
     if (!character) return {};
 
@@ -1136,7 +1139,8 @@ function SpellsBySchool({ engine, characterId }: { engine: WorldEngine; characte
       console.error('Error loading spells:', error);
       return {};
     }
-  }, [character?.level, JSON.stringify(character?.stats), JSON.stringify(character?.knownSpells), characterId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [character, engine, characterId]);
 
   if (!character) {
     return (
