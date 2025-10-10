@@ -9,58 +9,58 @@ import { FixedStepper } from './Time';
 import { EngineModule, InitContext } from './types';
 
 export class Engine {
-  readonly events = new SimpleEventBus();
-  readonly registry = new Registry();
-  private stopLoop?: () => void;
+    readonly events = new SimpleEventBus();
+    readonly registry = new Registry();
+    private stopLoop?: () => void;
 
-  register(mod: EngineModule): void {
-    this.registry.register(mod);
-  }
-
-  async init(): Promise<void> {
-    const ctx: InitContext = { 
-      events: this.events, 
-      registry: this.registry 
-    };
-    
-    for (const m of this.registry.list()) {
-      await m.init?.(ctx);
-    }
-  }
-
-  start(): void {
-    const startCtx = { 
-      events: this.events, 
-      registry: this.registry 
-    };
-    
-    for (const m of this.registry.list()) {
-      m.start?.(startCtx);
+    register(mod: EngineModule): void {
+        this.registry.register(mod);
     }
 
-    const stepper = new FixedStepper(1/30, (tickCtx) => {
-      for (const m of this.registry.list()) {
-        m.tick?.(tickCtx);
-      }
-    });
-    
-    this.stopLoop = stepper.start({ 
-      events: this.events, 
-      registry: this.registry, 
-      dtFixed: 1/30,
-      time: 0
-    });
-  }
+    async init(): Promise<void> {
+        const ctx: InitContext = {
+            events: this.events,
+            registry: this.registry
+        };
 
-  stop(): void {
-    this.stopLoop?.();
-    const stopCtx = { 
-      events: this.events, 
-      registry: this.registry 
-    };
-    
-    for (const m of this.registry.list()) {
-      m.stop?.(stopCtx);
+        for (const m of this.registry.list()) {
+            await m.init?.(ctx);
+        }
     }
-  }
+
+    start(): void {
+        const startCtx = {
+            events: this.events,
+            registry: this.registry
+        };
+
+        for (const m of this.registry.list()) {
+            m.start?.(startCtx);
+        }
+
+        const stepper = new FixedStepper(1 / 30, (tickCtx) => {
+            for (const m of this.registry.list()) {
+                m.tick?.(tickCtx);
+            }
+        });
+
+        this.stopLoop = stepper.start({
+            events: this.events,
+            registry: this.registry,
+            dtFixed: 1 / 30,
+            time: 0
+        });
+    }
+
+    stop(): void {
+        this.stopLoop?.();
+        const stopCtx = {
+            events: this.events,
+            registry: this.registry
+        };
+
+        for (const m of this.registry.list()) {
+            m.stop?.(stopCtx);
+        }
+    }
 }
