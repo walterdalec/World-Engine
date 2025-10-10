@@ -29,6 +29,57 @@ export function DevBar({ events }: DevBarProps) {
         }
     }, [events]);
 
+    // Load a sample pack (for testing)
+    const loadSamplePack = useCallback(async () => {
+        try {
+            // Sample unit pack for testing
+            const samplePack = {
+                manifest: {
+                    id: 'sample-pack',
+                    name: 'Sample Content Pack',
+                    version: '1.0.0',
+                    author: 'World Engine',
+                    description: 'Test content pack',
+                    dependencies: []
+                },
+                units: [
+                    {
+                        id: 'knight',
+                        name: 'Knight',
+                        role: 'melee',
+                        stats: { hp: 100, atk: 15, def: 10, mag: 0, res: 5, spd: 5, move: 4, range: 1 },
+                        abilities: ['slash', 'shield-bash'],
+                        traits: ['armored'],
+                        cost: { gold: 100, recruits: 1 }
+                    },
+                    {
+                        id: 'archer',
+                        name: 'Archer',
+                        role: 'ranged',
+                        stats: { hp: 60, atk: 12, def: 3, mag: 0, res: 3, spd: 7, move: 5, range: 3 },
+                        abilities: ['shoot', 'volley'],
+                        traits: ['ranged'],
+                        cost: { gold: 80, recruits: 1 }
+                    }
+                ]
+            };
+            
+            const result = await events.request<{ json: string }, { success: boolean; errors: any[] }>(
+                'packs/load',
+                { json: JSON.stringify(samplePack) }
+            );
+            
+            if (result.success) {
+                console.log('✅ Sample pack loaded successfully');
+                await refreshPackStats();
+            } else {
+                console.error('❌ Pack loading failed:', result.errors);
+            }
+        } catch (error) {
+            console.error('❌ Pack loading error:', error);
+        }
+    }, [events, refreshPackStats]);
+
     // Refresh world stats
     const refreshWorldStats = useCallback(async () => {
         try {
@@ -161,10 +212,10 @@ export function DevBar({ events }: DevBarProps) {
 
                     <button
                         onClick={() => {
-                            refreshPackStats();
+                            loadSamplePack();
                         }}
                         className="bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded text-sm font-medium transition-colors"
-                        title="Refresh pack stats"
+                        title="Load sample pack (Knight + Archer units)"
                     >
                         📦 Packs ({packStats.total})
                     </button>
