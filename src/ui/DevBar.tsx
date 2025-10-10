@@ -203,9 +203,12 @@ export function DevBar({ events }: DevBarProps) {
                     </button>
 
                     <button
-                        onClick={() => events.emit('load/autosave')}
+                        onClick={() => {
+                            events.emit('save/autosave');
+                            setLastSave(new Date().toLocaleTimeString());
+                        }}
                         className="bg-yellow-600 hover:bg-yellow-700 px-3 py-1 rounded text-sm font-medium transition-colors"
-                        title="Load Autosave"
+                        title="Save to localStorage (auto-save)"
                     >
                         ⚡ Autosave
                     </button>
