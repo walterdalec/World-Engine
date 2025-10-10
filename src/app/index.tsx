@@ -6,7 +6,7 @@ import { MainMenu, WorldSetupScreen, VersionDisplay } from "../features/ui";
 import { CharacterLibrary, CharacterCreate, NameGenerator, ClassicCharacterCreator } from "../features/characters";
 import { SpellGenerator, SpellAssignment } from "../features/spells";
 import { HealingSystem, BrigandineHexBattle } from "../features/battle";
-import { WorldMapEngine, EnhancedWorldMap, HexWorldMap, ProceduralDevTools } from "../features/world";
+import { EnhancedWorldMap, HexWorldMap, ProceduralDevTools } from "../features/world";
 import EncountersTestPage from "../features/world/encounters/EncountersTestPage";
 import { SimplePortraitTest } from "../features/portraits";
 import { CombatUIDemo } from "../pages/CombatUIDemo";
@@ -473,7 +473,7 @@ function App() {
         <HealingSystem onBack={() => setStep("menu")} />
       )}
       {step === "worldmap" && (
-        <WorldMapEngine
+        <HexWorldMap
           seedStr={eng?.state?.meta?.seed}
           onBack={() => setStep("menu")}
         />
