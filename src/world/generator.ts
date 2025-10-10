@@ -82,12 +82,10 @@ function generateChunk(
             const tile: Tile = {
                 x,
                 y,
-                height: terrain.elevation,        // Alias for compatibility
                 elevation: terrain.elevation,
                 moisture: terrain.moisture,
                 temperature: terrain.temperature,
-                biome: terrain.biomeId,           // Main field
-                biomeId: terrain.biomeId,         // Alias for clarity
+                biomeId: terrain.biomeId,
                 roughness: terrain.roughness
             };
 
