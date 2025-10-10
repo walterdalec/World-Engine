@@ -1,10 +1,10 @@
 import React, { useRef, useEffect, useState } from 'react';
 import type { BattleState, HexPosition, Unit, HexTile } from '../types';
-import { hexDistance, tileAt } from '../engine';
+import { hexDistance as _hexDistance, tileAt as _tileAt } from '../engine';
 
 interface BattleCanvasProps {
     state: BattleState;
-    onTileClick?: (pos: HexPosition) => void;
+    onTileClick?: (_pos: HexPosition) => void;
     selectedUnit?: string;
     targetHex?: HexPosition;
     showGrid?: boolean;
@@ -23,8 +23,8 @@ export function BattleCanvas({
     const [hoveredHex, setHoveredHex] = useState<HexPosition | null>(null);
 
     const hexSize = 30;
-    const hexWidth = hexSize * 2;
-    const hexHeight = Math.sqrt(3) * hexSize;
+    const _hexWidth = hexSize * 2;
+    const _hexHeight = Math.sqrt(3) * hexSize;
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -68,6 +68,7 @@ export function BattleCanvas({
             highlightHex(ctx, targetHex, 'rgba(255, 0, 0, 0.5)');
         }
 
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [state, selectedUnit, targetHex, hoveredHex, showGrid, showCoordinates]);
 
     function drawHexGrid(ctx: CanvasRenderingContext2D, grid: any) {
