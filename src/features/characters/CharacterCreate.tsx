@@ -484,7 +484,7 @@ interface CharacterCreateProps {
   onDone?: () => void;
 }
 
-export default function CharacterCreate({ onBack: _onBack, onDone }: CharacterCreateProps = {}) {
+export default function CharacterCreate({ onDone }: CharacterCreateProps = {}) {
   // Zustand store hook
   const { updateCurrentCharacter, saveCharacter: saveToStore } = useGameStore();
 
