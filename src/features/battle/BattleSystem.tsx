@@ -120,12 +120,36 @@ export default function BattleSystem({
   }, []);
 
   // Helper functions for battle calculations
-  const getModifier = (stat: number): number => {
+  const getModifier = useCallback((stat: number): number => {
     return Math.floor((stat - 10) / 2);
-  };
+  }, []);
 
   const rollInitiative = useCallback((dexterity: number): number => {
     return Math.floor(rng.next() * 20) + 1 + getModifier(dexterity);
+  }, [getModifier]);
+
+  const rollD20 = useCallback((): number => {
+    return Math.floor(rng.next() * 20) + 1;
+  }, []);
+
+  const rollDamage = useCallback((diceString: string): number => {
+    // Parse dice strings like "1d8+2", "2d6", etc.
+    const match = diceString.match(/(\d+)d(\d+)(?:\+(\d+))?/);
+    if (!match) return 1;
+
+    const numDice = parseInt(match[1]);
+    const dieSize = parseInt(match[2]);
+    const bonus = parseInt(match[3] || '0');
+
+    let total = bonus;
+    for (let i = 0; i < numDice; i++) {
+      total += Math.floor(rng.next() * dieSize) + 1;
+    }
+    return total;
+  }, []);
+
+  const addToBattleLog = useCallback((message: string) => {
+    setBattleLog(prev => [...prev, message]);
   }, []);
 
   // Initialize battle participants
@@ -146,52 +170,23 @@ export default function BattleSystem({
       id: `enemy-${index}`,
       name: enemy.name,
       type: 'enemy',
-      enemy,
+      enemy: enemy,
       currentHP: enemy.hitPoints,
-      maxHP: enemy.hitPoints,
+      maxHP: enemy.maxHitPoints,
       armorClass: enemy.armorClass,
-      initiative: rollInitiative(12), // Default dex of 12 for enemies
+      initiative: rollInitiative(10), // Assuming base 10 DEX for enemies
       statusEffects: [],
     }));
 
-    const allParticipants = [...players, ...enemies];
+    setParticipants([...players, ...enemies]);
 
-    // Sort by initiative (highest first)
-    const sorted = allParticipants.sort((a, b) => b.initiative - a.initiative);
-    const order = sorted.map(p => p.id);
+    const sorted = [...players, ...enemies].sort((a, b) => b.initiative - a.initiative);
+    setTurnOrder(sorted.map(p => p.id));
 
-    setParticipants(allParticipants);
-    setTurnOrder(order);
     setBattleState('active');
-
-    addToBattleLog(`⚔️ Battle begins! ${encounter.name}`);
-    addToBattleLog(`Terrain: ${encounter.terrain}`);
+    addToBattleLog('=== Battle Start ===');
     addToBattleLog('Initiative order: ' + sorted.map(p => `${p.name} (${p.initiative})`).join(', '));
-  }, [playerCharacters, encounter, rollInitiative]);
-
-  const rollD20 = (): number => {
-    return Math.floor(rng.next() * 20) + 1;
-  };
-
-  const rollDamage = (diceString: string): number => {
-    // Parse dice strings like "1d8+2", "2d6", etc.
-    const match = diceString.match(/(\d+)d(\d+)(?:\+(\d+))?/);
-    if (!match) return 1;
-
-    const numDice = parseInt(match[1]);
-    const dieSize = parseInt(match[2]);
-    const bonus = parseInt(match[3] || '0');
-
-    let total = bonus;
-    for (let i = 0; i < numDice; i++) {
-      total += Math.floor(rng.next() * dieSize) + 1;
-    }
-    return total;
-  };
-
-  const addToBattleLog = (message: string) => {
-    setBattleLog(prev => [...prev, message]);
-  };
+  }, [playerCharacters, encounter, rollInitiative, getModifier, addToBattleLog]);
 
   const getCurrentParticipant = useCallback((): BattleParticipant | null => {
     if (turnOrder.length === 0) return null;
@@ -409,7 +404,7 @@ export default function BattleSystem({
         addToBattleLog(`🛡️ ${target.name} gains magical protection (+${magnitude} AC for ${protectionDuration} rounds)!`);
         break;
     }
-  }, [rollDamage]);
+  }, [rollDamage, addToBattleLog]);
 
   const executeDefend = useCallback((participant: BattleParticipant) => {
     setParticipants(prev =>
@@ -431,11 +426,11 @@ export default function BattleSystem({
       )
     );
     addToBattleLog(`🛡️ ${participant.name} takes a defensive stance.`);
-  }, []);
+  }, [addToBattleLog]);
 
   const executeMove = useCallback((participant: BattleParticipant) => {
     addToBattleLog(`🏃 ${participant.name} moves to a better position.`);
-  }, []);
+  }, [addToBattleLog]);
 
   const executeCastSpell = useCallback((caster: BattleParticipant, action: BattleAction, targets: BattleParticipant[]) => {
     const spellName = action.name.replace('Cast ', '');
@@ -452,7 +447,7 @@ export default function BattleSystem({
     targets.forEach(target => {
       applySpellEffect(caster, target, spell);
     });
-  }, [availableSpells, applySpellEffect]);
+  }, [availableSpells, applySpellEffect, addToBattleLog]);
 
   const executeAction = useCallback((actor: BattleParticipant, action: BattleAction, targets: BattleParticipant[]) => {
     switch (action.type) {
@@ -530,7 +525,7 @@ export default function BattleSystem({
         gold: Math.floor(rng.next() * 50) + 10
       });
     }
-  }, [currentTurn, turnOrder.length, round, participants, encounter.enemies.length, onBattleEnd]);
+  }, [currentTurn, turnOrder.length, round, participants, encounter.enemies.length, onBattleEnd, addToBattleLog]);
 
   const handleActionClick = (action: BattleAction) => {
     setSelectedAction(action);
