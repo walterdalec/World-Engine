@@ -335,42 +335,6 @@ export default function BattleSystem({
     }
   }, [rollD20, getModifier, rollDamage, addToBattleLog, setParticipants]);
 
-  const executeCastSpell = useCallback((caster: BattleParticipant, action: BattleAction, targets: BattleParticipant[]) => {
-    const spellName = action.name.replace('Cast ', '');
-    const spell = availableSpells.find(s => s.name === spellName);
-
-    if (!spell) {
-      addToBattleLog(`❌ ${caster.name} failed to cast ${spellName} - spell not found!`);
-      return;
-    }
-
-    addToBattleLog(`✨ ${caster.name} casts ${spell.name}!`);
-
-    // Apply spell effects based on description and school
-    targets.forEach(target => {
-      applySpellEffect(caster, target, spell);
-    });
-
-    // Handle concentration spells
-    if (spell.duration.toLowerCase().includes('concentration')) {
-      const duration = parseInt(spell.duration.match(/\d+/)?.[0] || '10');
-      setParticipants(prev =>
-        prev.map(p =>
-          p.id === caster.id
-            ? {
-              ...p,
-              concentrationSpell: {
-                name: spell.name,
-                duration,
-                effect: spell.description
-              }
-            }
-            : p
-        )
-      );
-    }
-  }, [availableSpells]);
-
   const applySpellEffect = useCallback((_caster: BattleParticipant, target: BattleParticipant, spell: GeneratedSpell) => {
     const desc = spell.description.toLowerCase();
     const school = spell.school.toLowerCase();
@@ -473,15 +437,22 @@ export default function BattleSystem({
     addToBattleLog(`🏃 ${participant.name} moves to a better position.`);
   }, []);
 
-  const processEnemyTurn = useCallback((enemy: BattleParticipant) => {
-    // Simple AI: attack a random player
-    const playerTargets = participants.filter(p => p.type === 'player' && p.currentHP > 0);
+  const executeCastSpell = useCallback((caster: BattleParticipant, action: BattleAction, targets: BattleParticipant[]) => {
+    const spellName = action.name.replace('Cast ', '');
+    const spell = availableSpells.find(s => s.name === spellName);
 
-    if (playerTargets.length === 0) return;
+    if (!spell) {
+      addToBattleLog(`❌ ${caster.name} failed to cast ${spellName}!`);
+      return;
+    }
 
-    const target = playerTargets[Math.floor(rng.next() * playerTargets.length)];
-    executeAttack(enemy, target);
-  }, [participants, executeAttack]);
+    addToBattleLog(`✨ ${caster.name} casts ${spell.name}!`);
+
+    // Apply spell effect to each target
+    targets.forEach(target => {
+      applySpellEffect(caster, target, spell);
+    });
+  }, [availableSpells, applySpellEffect]);
 
   const executeAction = useCallback((actor: BattleParticipant, action: BattleAction, targets: BattleParticipant[]) => {
     switch (action.type) {
@@ -500,6 +471,23 @@ export default function BattleSystem({
         break;
     }
   }, [executeAttack, executeCastSpell, executeDefend, executeMove]);
+
+  const processEnemyTurn = useCallback((enemy: BattleParticipant) => {
+    // Simple AI: attack a random player
+    const playerTargets = participants.filter(p => p.type === 'player' && p.currentHP > 0);
+
+    if (playerTargets.length === 0) return;
+
+    const target = playerTargets[Math.floor(rng.next() * playerTargets.length)];
+    const attackAction: BattleAction = {
+      type: 'attack',
+      name: 'Attack',
+      description: 'Basic attack',
+      target: 'enemy'
+    };
+
+    executeAction(enemy, attackAction, [target]);
+  }, [participants, executeAction]);
 
   const nextTurn = useCallback(() => {
     // Decay status effects and concentration
