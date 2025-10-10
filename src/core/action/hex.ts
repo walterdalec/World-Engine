@@ -1,16 +1,16 @@
 /**
  * Hex utility wrapper for action system
- * Uses existing battle hex math from features/battle/hex.ts
+ * Uses existing battle hex math from features/battle/hexUtils.ts
  */
 
 import {
-    HexCoord,
-    hexDistance,
-    hexNeighbors,
-    hexLinePath,
+    type Axial as HexCoord,
+    cubeDistance as hexDistance,
+    neighborsHex as hexNeighbors,
+    hexLine as hexLinePath,
     hexBlast,
     hexRing
-} from '../../features/battle/hex';
+} from '../../features/battle/hexUtils';
 import type { Axial } from './types';
 
 // Utility functions that bridge between Axial and HexCoord types

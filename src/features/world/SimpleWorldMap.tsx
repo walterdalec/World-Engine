@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { storage } from "../../core/services/storage";
 import { SettlementGenerator, QuestGenerator, TreasureGenerator as _TreasureGenerator, SeededRandom } from "../../core/utils";
-import ExplorationMode from "./ExplorationMode";
+// NOTE: ExplorationMode moved to _legacy/world/ (uses old BattleSystem)
+// import ExplorationMode from "./ExplorationMode";
 
 interface Settlement {
   type: 'city' | 'town' | 'village' | 'hut' | 'shrine' | 'outpost' | 'trading_post';
@@ -586,7 +587,9 @@ export default function SimpleWorldMap({ seedStr = "verdance-seed-001", onBack }
     setInExploration(true);
   };
 
-  const handleEncounterEnd = (result: 'completed' | 'fled' | 'failed', rewards?: any) => {
+  // NOTE: handleEncounterEnd temporarily unused (ExplorationMode moved to _legacy/)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _handleEncounterEnd = (result: 'completed' | 'fled' | 'failed', rewards?: any) => {
     setInExploration(false);
     setActiveEncounter(null);
 
@@ -688,7 +691,12 @@ export default function SimpleWorldMap({ seedStr = "verdance-seed-001", onBack }
   };
 
   // If in exploration mode, render ExplorationMode component
+  // NOTE: ExplorationMode temporarily disabled (moved to _legacy/world/)
+  // TODO: Integrate with BrigandineHexBattle for encounters
   if (inExploration && activeEncounter && playerCharacters.length > 0) {
+    // Placeholder: Return to map until encounter system is integrated with BrigandineHexBattle
+    setInExploration(false);
+    /*
     return (
       <ExplorationMode
         encounter={activeEncounter}
@@ -697,6 +705,7 @@ export default function SimpleWorldMap({ seedStr = "verdance-seed-001", onBack }
         onBack={() => setInExploration(false)}
       />
     );
+    */
   }
 
   return (
