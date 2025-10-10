@@ -1,9 +1,10 @@
 /**
  * DevBar - Development Tools Bar
  * Canvas 02 - Quick access to save/load with keyboard shortcuts
+ * Canvas 03 - Added pack loading controls
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { EventBus } from '../engine/types';
 
 interface DevBarProps {
@@ -14,8 +15,22 @@ export function DevBar({ events }: DevBarProps) {
   const [visible, setVisible] = useState(false);
   const [day, setDay] = useState(0);
   const [lastSave, setLastSave] = useState<string>('');
+  const [packStats, setPackStats] = useState({ total: 0, biomes: 0, units: 0, items: 0, spells: 0, factions: 0 });
+
+  // Refresh pack stats
+  const refreshPackStats = useCallback(async () => {
+    try {
+      const stats = await events.request<void, typeof packStats>('packs/stats');
+      setPackStats(stats);
+    } catch {
+      // PacksModule not loaded yet
+    }
+  }, [events]);
 
   useEffect(() => {
+    // Initial pack stats load
+    refreshPackStats();
+
     // Listen for day changes
     const offDay = events.on<{ day: number }>('game/day-advanced', ({ day }) => {
       setDay(day);
@@ -56,7 +71,7 @@ export function DevBar({ events }: DevBarProps) {
       offTick();
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [events]);
+  }, [events, refreshPackStats]);
 
   if (!visible) {
     return (
@@ -114,6 +129,16 @@ export function DevBar({ events }: DevBarProps) {
             title="Load Autosave"
           >
             ⚡ Autosave
+          </button>
+
+          <button
+            onClick={() => {
+              refreshPackStats();
+            }}
+            className="bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded text-sm font-medium transition-colors"
+            title="Refresh pack stats"
+          >
+            📦 Packs ({packStats.total})
           </button>
 
           <div className="w-px h-6 bg-gray-700 mx-2" />
