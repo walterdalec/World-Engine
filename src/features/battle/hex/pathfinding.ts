@@ -16,10 +16,10 @@ import { axialNeighbors, axialDistance } from './math';
 export type MP = number;
 
 /** Return ENTER cost for a hex. Infinity/NaN/negative => impassable. */
-export type MoveCostFn = (hex: AxialLike) => number;
-export type EdgeBlockerFn = (from: AxialLike, to: AxialLike) => boolean;
-export type IsOccupiedFn = (hex: AxialLike) => boolean;
-export type HasLineOfSightFn = (from: AxialLike, to: AxialLike) => boolean;
+export type MoveCostFn = (_hex: AxialLike) => number;
+export type EdgeBlockerFn = (_from: AxialLike, _to: AxialLike) => boolean;
+export type IsOccupiedFn = (_hex: AxialLike) => boolean;
+export type HasLineOfSightFn = (_from: AxialLike, _to: AxialLike) => boolean;
 
 export interface AStarOptions {
     /** Heuristic scale; 1 = classic A*, 0 = Dijkstra, >1 = greedier. */
@@ -393,7 +393,7 @@ export function smoothPathByLOS(path: Axial[], hasLOS: HasLineOfSightFn): Axial[
 export function aStarUniform(
     start: AxialLike,
     goal: AxialLike,
-    isPassable: (hex: AxialLike) => boolean,
+    isPassable: (_hex: AxialLike) => boolean,
     opts: Omit<AStarOptions, 'edgeBlocker'> & { edgeBlocker?: EdgeBlockerFn } = {},
 ): PathResult {
     const costFn: MoveCostFn = (h) => (isPassable(h) ? 1 : Infinity);
