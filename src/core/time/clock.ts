@@ -241,12 +241,20 @@ export class SimClock {
      */
     private fixedUpdate(): void {
         this.state.stepIndex++;
-        this.state.timeSec += this.state.dtFixed;
+        
+        // Scale in-game time to progress faster
+        // 1 fixed step (1/30s real time) = 60 seconds of in-game time
+        // This means 1 real second = 30 * 60 = 1800 seconds (30 minutes) of in-game time
+        // So 1 real minute = 30 hours of in-game time
+        // And 1 day (24h) of in-game time takes 48 real seconds
+        const inGameTimeScale = 60; // 60 seconds of game time per fixed step
+        this.state.timeSec += this.state.dtFixed * inGameTimeScale;
 
         // Update day counter (86400 seconds per day)
         const newDay = Math.floor(this.state.timeSec / 86400) + 1;
         if (newDay !== this.state.day) {
             this.state.day = newDay;
+            console.log(`📅 Day ${newDay} begins`);
         }
 
         // Build tick context
