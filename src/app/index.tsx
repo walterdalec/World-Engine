@@ -5,7 +5,7 @@ import "../index.css";
 import { MainMenu, WorldSetupScreen, VersionDisplay } from "../features/ui";
 import { CharacterLibrary, CharacterCreate, NameGenerator, ClassicCharacterCreator } from "../features/characters";
 import { SpellGenerator, SpellAssignment } from "../features/spells";
-import { HealingSystem, BattleMockup, BattlePage, MinimalBattlePage, BrigandineHexBattle } from "../features/battle";
+import { HealingSystem, BrigandineHexBattle } from "../features/battle";
 import { WorldMapEngine, EnhancedWorldMap, SimpleWorldMap, ProceduralDevTools } from "../features/world";
 import { IntegratedCampaign } from "../features/strategy";
 import EncountersTestPage from "../features/world/encounters/EncountersTestPage";
@@ -293,24 +293,9 @@ function App() {
     setStep("autoupdater");
   };
 
-  const handleBattleSystem = () => {
-    // Battle system demo
-    setStep("battlesystem");
-  };
-
   const handleBrigandineHex = () => {
-    // Brigandine-style hex battle
+    // Brigandine-style hex battle (primary battle system)
     setStep("brigandineHex");
-  };
-
-  const handleBattlePage = () => {
-    // Clean battle page
-    setStep("battle");
-  };
-
-  const handleMinimalBattle = () => {
-    // Simple battle using GameEngine
-    setStep("minimalBattle");
   };
 
   const handleEnhancedMap = () => {
@@ -446,10 +431,7 @@ function App() {
           onClassicCharacterCreate={handleClassicCharacterCreate}
           onPortraitTest={handlePortraitTest}
           onAutoUpdater={handleAutoUpdater}
-          onBattleSystem={handleBattleSystem}
           onBrigandineHex={handleBrigandineHex}
-          onBattlePage={handleBattlePage}
-          onMinimalBattle={handleMinimalBattle}
           onEnhancedMap={handleEnhancedMap}
           onSimpleMap={handleSimpleMap}
           onCombatUIDemo={handleCombatUIDemo}
@@ -586,78 +568,6 @@ function App() {
           >
             Back to Menu
           </button>
-        </div>
-      )}
-      {step === "battlesystem" && (
-        <div style={{ position: 'relative' }}>
-          <button
-            onClick={() => setStep("menu")}
-            style={{
-              position: 'absolute',
-              top: '20px',
-              left: '20px',
-              zIndex: 1000,
-              background: '#374151',
-              color: '#f8fafc',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '10px 15px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: 'bold'
-            }}
-          >
-            Back to Menu
-          </button>
-          <BattleMockup />
-        </div>
-      )}
-      {step === "battle" && (
-        <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
-          <button
-            onClick={() => setStep("menu")}
-            style={{
-              position: 'absolute',
-              top: '20px',
-              left: '20px',
-              zIndex: 1000,
-              background: '#374151',
-              color: '#f8fafc',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '10px 15px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: 'bold'
-            }}
-          >
-            Back to Menu
-          </button>
-          <BattlePage />
-        </div>
-      )}
-      {step === "minimalBattle" && (
-        <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
-          <button
-            onClick={() => setStep("menu")}
-            style={{
-              position: 'absolute',
-              top: '20px',
-              left: '20px',
-              zIndex: 1000,
-              background: '#374151',
-              color: '#f8fafc',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '10px 15px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: 'bold'
-            }}
-          >
-            Back to Menu
-          </button>
-          <MinimalBattlePage />
         </div>
       )}
       {step === "brigandineHex" && (

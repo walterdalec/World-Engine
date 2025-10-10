@@ -32,6 +32,7 @@
     ".tsbuildinfo",
     "packages",
     "planning",
+    "src/_legacy",
     "**/*.test.ts",
     "**/*.test.tsx",
     "**/test/**/*"

@@ -77,35 +77,15 @@ export {
     calculatePartyWealth
 } from './economy';
 
-// React components
-export { BattleScreen } from './components/BattleScreen';
-export { BattleSetupScreen } from './components/BattleSetupScreen';
-export { BattleCanvas } from './components/renderer2d';
-
-// UI components for app navigation
-export { BattleMockup } from './BattleMockup';
-export { BattlePage } from './BattlePage';
-export { MinimalBattlePage } from './MinimalBattlePage';
+// Active UI components
 export { default as HealingSystem } from './HealingSystem';
-export { default as BattleSystem } from './BattleSystem';
 export { default as BrigandineHexBattle } from './BrigandineHexBattle';
 
-
-// Strategic bridge - TODO: Complete integration
-// export { createBattleContext } from './bridge/battle.factory';
-// export { initBattleFromContext } from './bridge/battle.init';
-// export { applyBattleModifiers } from './bridge/battle.adapt';
-// export { launchBattle } from './bridge/battle.bridge';
-// export { snapshotBridge } from './bridge/devtools.bridge';
-
-// Hex utilities (re-export from existing)
-export {
-    cubeDistance,
-    axialToCube,
-    hexNeighbor,
-    hexRing,
-    hexSpiral
-} from './generate_hex';
+// Legacy components moved to src/_legacy/battle/:
+// - BattleMockup, BattlePage, MinimalBattlePage, BattleSystem
+// - BattleScreen, BattleSetupScreen, BattleCanvas
+// - SimpleBattleHUD, SimpleBattleStage, BattleHUD, BattleStage
+// - bridge/, integration/, hex/, components/
 
 // Development utilities
 export const BattleDevTools = {

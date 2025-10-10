@@ -33,9 +33,6 @@ interface Props {
   onClassicCharacterCreate?: () => void;
   onPortraitTest: () => void;
   onAutoUpdater: () => void;
-  onBattleSystem: () => void;
-  onBattlePage: () => void;
-  onMinimalBattle: () => void;
   onBrigandineHex?: () => void;
   onEnhancedMap: () => void;
   onSimpleMap: () => void;
@@ -764,24 +761,7 @@ Recovered ${recovered.length} campaigns`);
                 <p style={{ margin: 0, opacity: 0.9 }}>Manage party health & healing</p>
               </div>
 
-              <div style={newCardStyle} onClick={onBattleSystem}>
-                <div style={{ fontSize: '3rem', marginBottom: '10px' }}>⚔️</div>
-                <h3 style={{ margin: '0 0 5px 0' }}>Battle System</h3>
-                <p style={{ margin: 0, opacity: 0.9 }}>Tactical hex-grid combat</p>
-              </div>
-
-              <div style={newCardStyle} onClick={onBattlePage}>
-                <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🎯</div>
-                <h3 style={{ margin: '0 0 5px 0' }}>Battle Arena</h3>
-                <p style={{ margin: 0, opacity: 0.9 }}>Clean tactical battle interface</p>
-              </div>
-
-              <div style={newCardStyle} onClick={onMinimalBattle}>
-                <div style={{ fontSize: '3rem', marginBottom: '10px' }}>⚡</div>
-                <h3 style={{ margin: '0 0 5px 0' }}>Minimal Battle</h3>
-                <p style={{ margin: 0, opacity: 0.9 }}>Simple tactical combat engine</p>
-              </div>
-
+              {/* Primary tactical battle system */}
               {onBrigandineHex && (
                 <div style={newCardStyle} onClick={onBrigandineHex}>
                   <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🏰</div>
