@@ -4,7 +4,7 @@
 // ──────────────────────────────────────────────────────────────────────────────
 
 import React, { useState, useMemo } from 'react';
-import { generateEncounter, mapBiomeToEncounterBiome, rollEncounter, getEncounterDensity } from './';
+import { generateEncounter, mapBiomeToEncounterBiome, getEncounterDensity } from './';
 import type { EncounterBiome, Encounter, RegionOwner } from './types';
 
 const TEST_BIOMES: EncounterBiome[] = [
