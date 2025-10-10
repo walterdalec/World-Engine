@@ -141,11 +141,9 @@ export function computeMovementField(
     while (pq.size) {
         const key = pq.pop()!;
         const node = nodes.get(key)!;
+
         if (node.cost > maxMP) continue;
         if (node.sealed) continue; // sealed nodes do not fan out
-
-        // Optional exploration cap
-        if (nodes.size > nodeLimit) break;
 
         for (const nb of axialNeighbors(node.pos)) {
             const nbKey = axialKey(nb);
@@ -159,7 +157,10 @@ export function computeMovementField(
             const newCost = node.cost + stepCost;
             if (newCost > maxMP) continue;
 
+            // Optional exploration cap - check before adding new nodes
             const prev = nodes.get(nbKey);
+            if (!prev && nodes.size >= nodeLimit) continue; // Don't add new nodes if at limit
+
             if (!prev || newCost < prev.cost) {
                 // Determine ZoC effect on entry
                 let sealed = false;

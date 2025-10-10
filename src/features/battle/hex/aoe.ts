@@ -132,8 +132,13 @@ export function dominantDirectionIndex(rel: CubeLike): Direction {
  */
 export function aoeLine(center: AxialLike, spec: LineSpec): Axial[] {
     const { dir, length } = spec;
-    const thickness = Math.max(1, spec.thickness ?? 1);
+    const thickness = spec.thickness ?? 1;
     const includeOrigin = spec.includeOrigin ?? true;
+
+    // thickness=0 means no line (empty)
+    if (thickness <= 0) {
+        return includeOrigin ? [{ q: center.q, r: center.r }] : [];
+    }
 
     const results = new Set<string>();
     const start = axialToCube(center);

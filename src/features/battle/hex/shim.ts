@@ -12,7 +12,6 @@
 // ──────────────────────────────────────────────────────────────────────────────
 
 import type { Axial, AxialLike } from './coords'
-import { axialKey } from './coords'
 
 // Canvas #3 — Movement
 import type { MovementOptions, MovementField, MP as MoveMP, MoveCostFn, EdgeBlockerFn, IsOccupiedFn } from './movement'
@@ -128,18 +127,14 @@ export function findPathTo(
             minStepCost: opts.minStepCost,
             tieBreakEpsilon: opts.tieBreakEpsilon,
             edgeBlocker: board.edgeBlocker,
-            isOccupied: (h) => (axialKey(h) === axialKey(goal) && allowGoal ? false : !!board.isOccupied?.(h)),
+            isOccupied: board.isOccupied,
+            allowOccupiedGoal: allowGoal,
             zocHexes: board.zoc,
             zocPenalty: opts.zocPenalty,
             stopOnZoCEnter: opts.stopOnZoCEnter,
             nodeLimit: opts.nodeLimit,
-            hasLineOfSight: board.blocksSightAt || board.blocksSightEdge
-                ? (a, b) => hasLineOfSight(a, b, {
-                    blocksAt: board.blocksSightAt,
-                    blocksEdge: board.blocksSightEdge,
-                    elevationAt: board.elevationAt,
-                })
-                : undefined,
+            // Path smoothing disabled for hex grids - hex movement must follow adjacency
+            hasLineOfSight: undefined,
         },
     )
 
@@ -203,6 +198,7 @@ export function buildAoEMask(
                 blocksAt: board.blocksSightAt,
                 blocksEdge: board.blocksSightEdge,
                 elevationAt: board.elevationAt,
+                seeOpaqueTarget: false, // For AoE, exclude blocker tiles themselves
             }),
         })
     }
@@ -223,17 +219,13 @@ export function findPathToAny(
         minStepCost: opts.minStepCost,
         tieBreakEpsilon: opts.tieBreakEpsilon,
         edgeBlocker: board.edgeBlocker,
-        isOccupied: (h) => (goals.some(g => axialKey(g) === axialKey(h)) && allowGoal ? false : !!board.isOccupied?.(h)),
+        isOccupied: board.isOccupied,
+        allowOccupiedGoal: allowGoal,
         zocHexes: board.zoc,
         zocPenalty: opts.zocPenalty,
         stopOnZoCEnter: opts.stopOnZoCEnter,
         nodeLimit: opts.nodeLimit,
-        hasLineOfSight: board.blocksSightAt || board.blocksSightEdge
-            ? (a, b) => hasLineOfSight(a, b, {
-                blocksAt: board.blocksSightAt,
-                blocksEdge: board.blocksSightEdge,
-                elevationAt: board.elevationAt,
-            })
-            : undefined,
+        // Path smoothing disabled for hex grids - hex movement must follow adjacency
+        hasLineOfSight: undefined,
     })
 }
