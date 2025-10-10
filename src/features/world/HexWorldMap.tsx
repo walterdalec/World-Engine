@@ -54,16 +54,16 @@ interface PlayerPosition {
 export default function HexWorldMap({ seedStr = "hex-world-001", onBack }: HexWorldMapProps) {
     const [playerPos, setPlayerPos] = useState<PlayerPosition>({ q: 10, r: 10 });
     const [worldTiles, setWorldTiles] = useState<WorldTile[]>([]);
-    
+
     // Initialize with starting area explored (player position + neighbors)
     const [exploredTiles, setExploredTiles] = useState<Set<string>>(() => {
         const initial = new Set<string>();
         const startQ = 10;
         const startR = 10;
-        
+
         // Mark starting position
         initial.add(`${startQ},${startR}`);
-        
+
         // Mark 6 neighbors (hex directions)
         initial.add(`${startQ},${startR - 1}`); // North
         initial.add(`${startQ},${startR + 1}`); // South
@@ -71,10 +71,10 @@ export default function HexWorldMap({ seedStr = "hex-world-001", onBack }: HexWo
         initial.add(`${startQ + 1},${startR}`); // Northeast
         initial.add(`${startQ - 1},${startR + 1}`); // Southwest
         initial.add(`${startQ + 1},${startR - 1}`); // Southeast
-        
+
         return initial;
     });
-    
+
     const [activeSettlement, setActiveSettlement] = useState<Settlement | null>(null);
     const [activeEncounter, setActiveEncounter] = useState<MapEncounter | null>(null);
     const [playerCharacters, setPlayerCharacters] = useState<any[]>([]);
@@ -146,26 +146,155 @@ export default function HexWorldMap({ seedStr = "hex-world-001", onBack }: HexWo
         return 'Taiga';
     }, [seededRandom, seedStr]);
 
-    // Get settlement for hex
-    const getSettlement = useCallback((q: number, r: number): Settlement | null => {
-        const settlementChance = seededRandom(q, r, seedStr + "settlement");
+    // Hex distance calculation for settlement spacing
+    const hexDistance = useCallback((q1: number, r1: number, q2: number, r2: number): number => {
+        // Convert axial to cube coordinates
+        const x1 = q1, z1 = r1, y1 = -x1 - z1;
+        const x2 = q2, z2 = r2, y2 = -x2 - z2;
+        return Math.max(Math.abs(x1 - x2), Math.abs(y1 - y2), Math.abs(z1 - z2));
+    }, []);
 
-        if (settlementChance > 0.95) {
-            const types: Settlement['type'][] = ['city', 'town', 'village', 'hut', 'shrine', 'outpost', 'trading_post'];
-            const emojis = ['🏰', '🏘️', '🏡', '🛖', '⛩️', '🗼', '🏪'];
-            const typeIndex = Math.floor(seededRandom(q, r, seedStr + "type") * types.length);
+    // Biome weights for settlement placement (prefer habitable terrain)
+    const getSettlementWeight = useCallback((biome: string): number => {
+        const weights: Record<string, number> = {
+            'Grass': 1.0,      // Best for settlements
+            'Forest': 0.75,    // Good
+            'Savanna': 0.8,    // Good
+            'Coast': 0.6,      // Coastal towns
+            'Taiga': 0.5,      // Frontier settlements
+            'Jungle': 0.4,     // Difficult
+            'Swamp': 0.25,     // Poor
+            'Desert': 0.2,     // Oasis only
+            'Tundra': 0.15,    // Harsh
+            'Mountain': 0.1,   // Mining outposts only
+            'Snow': 0.05,      // Rarely inhabited
+            'Ocean': 0.0       // No settlements
+        };
+        return weights[biome] || 0;
+    }, []);
 
-            return {
-                type: types[typeIndex],
-                name: `Settlement (${q},${r})`,
-                population: Math.floor(seededRandom(q, r, seedStr + "pop") * 1000) + 100,
-                description: `A ${types[typeIndex]} at hex (${q}, ${r})`,
-                emoji: emojis[typeIndex],
-                services: ['rest', 'trade', 'recruit']
-            };
+    // Generate settlements with proper spacing and biome awareness
+    const generateSettlements = useCallback((): Map<string, Settlement> => {
+        const settlements = new Map<string, Settlement>();
+        const candidates: Array<{ q: number; r: number; score: number }> = [];
+        
+        // Generate candidate positions
+        for (let q = 0; q < mapWidth; q++) {
+            for (let r = 0; r < mapHeight; r++) {
+                const biome = getBiome(q, r);
+                const weight = getSettlementWeight(biome);
+                
+                if (weight > 0) {
+                    const randomFactor = seededRandom(q, r, seedStr + "settle-score");
+                    candidates.push({ q, r, score: weight + randomFactor * 0.2 });
+                }
+            }
         }
-        return null;
+
+        // Sort by score (best locations first)
+        candidates.sort((a, b) => b.score - a.score);
+
+        // Place settlements with spacing constraints
+        const minSpacing = 4; // Minimum 4 hexes apart
+        const maxSettlements = Math.floor(mapWidth * mapHeight / 30); // ~1 per 30 tiles
+
+        for (const candidate of candidates) {
+            if (settlements.size >= maxSettlements) break;
+
+            // Check spacing from existing settlements
+            let tooClose = false;
+            for (const key of Array.from(settlements.keys())) {
+                const [eq, er] = key.split(',').map(Number);
+                if (hexDistance(candidate.q, candidate.r, eq, er) < minSpacing) {
+                    tooClose = true;
+                    break;
+                }
+            }
+
+            if (!tooClose) {
+                const biome = getBiome(candidate.q, candidate.r);
+                const settlementType = determineSettlementType(candidate.q, candidate.r, biome);
+                settlements.set(`${candidate.q},${candidate.r}`, settlementType);
+            }
+        }
+
+        console.log(`🏘️ Generated ${settlements.size} settlements with proper spacing`);
+        return settlements;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [mapWidth, mapHeight, getBiome, getSettlementWeight, hexDistance, seededRandom, seedStr]);
+
+    // Determine settlement type based on location and biome
+    const determineSettlementType = useCallback((q: number, r: number, biome: string): Settlement => {
+        const roll = seededRandom(q, r, seedStr + "type");
+        
+        // Biome-specific settlement types
+        let type: Settlement['type'];
+        let emoji: string;
+        let services: string[];
+        
+        if (biome === 'Mountain') {
+            type = roll > 0.7 ? 'outpost' : 'hut';
+            emoji = roll > 0.7 ? '🗼' : '🛖';
+            services = ['rest'];
+        } else if (biome === 'Forest' || biome === 'Jungle') {
+            type = roll > 0.8 ? 'village' : roll > 0.5 ? 'hut' : 'shrine';
+            emoji = roll > 0.8 ? '🏡' : roll > 0.5 ? '🛖' : '⛩️';
+            services = roll > 0.8 ? ['rest', 'trade'] : ['rest'];
+        } else if (biome === 'Coast') {
+            type = roll > 0.7 ? 'trading_post' : 'village';
+            emoji = roll > 0.7 ? '🏪' : '🏡';
+            services = roll > 0.7 ? ['rest', 'trade', 'recruit'] : ['rest', 'trade'];
+        } else if (biome === 'Grass' || biome === 'Savanna') {
+            // Best land - can have larger settlements
+            if (roll > 0.95) {
+                type = 'city';
+                emoji = '🏰';
+                services = ['rest', 'trade', 'recruit', 'bank', 'guild'];
+            } else if (roll > 0.8) {
+                type = 'town';
+                emoji = '🏘️';
+                services = ['rest', 'trade', 'recruit'];
+            } else if (roll > 0.5) {
+                type = 'village';
+                emoji = '🏡';
+                services = ['rest', 'trade'];
+            } else {
+                type = 'hut';
+                emoji = '🛖';
+                services = ['rest'];
+            }
+        } else {
+            // Default for other biomes
+            type = roll > 0.6 ? 'village' : 'hut';
+            emoji = roll > 0.6 ? '🏡' : '�';
+            services = roll > 0.6 ? ['rest', 'trade'] : ['rest'];
+        }
+
+        const population = type === 'city' ? 5000 + Math.floor(seededRandom(q, r, seedStr + "pop") * 10000) :
+                          type === 'town' ? 1000 + Math.floor(seededRandom(q, r, seedStr + "pop") * 4000) :
+                          type === 'village' ? 100 + Math.floor(seededRandom(q, r, seedStr + "pop") * 900) :
+                          10 + Math.floor(seededRandom(q, r, seedStr + "pop") * 90);
+
+        const names = ['Riverside', 'Oakwood', 'Stonehaven', 'Maplegrove', 'Thornhill', 'Silverpeak', 'Goldmeadow', 'Ironforge', 'Misthaven', 'Sunvale'];
+        const nameIndex = Math.floor(seededRandom(q, r, seedStr + "name") * names.length);
+
+        return {
+            type,
+            name: `${names[nameIndex]} (${q},${r})`,
+            population,
+            description: `A ${type} in the ${biome}`,
+            emoji,
+            services
+        };
     }, [seededRandom, seedStr]);
+
+    // Settlements map (generated once)
+    const settlementsMap = React.useMemo(() => generateSettlements(), [generateSettlements]);
+
+    // Get settlement for hex (lookup from generated map)
+    const getSettlement = useCallback((q: number, r: number): Settlement | null => {
+        return settlementsMap.get(`${q},${r}`) || null;
+    }, [settlementsMap]);
 
     // Get encounter for hex using proper encounter system
     const getEncounter = useCallback((q: number, r: number): MapEncounter | null => {
@@ -397,7 +526,7 @@ export default function HexWorldMap({ seedStr = "hex-world-001", onBack }: HexWo
                     <div>↘</div>
                 </div>
                 <div className="mt-2 text-xs text-gray-400 border-t border-gray-600 pt-2">
-                    🖱️ Drag to pan<br/>
+                    🖱️ Drag to pan<br />
                     🔍 Scroll to zoom
                 </div>
             </div>
