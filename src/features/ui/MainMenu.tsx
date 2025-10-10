@@ -42,9 +42,10 @@ interface Props {
   onIntegratedCampaign?: () => void;
   onEngineTest?: () => void;
   onTimeSystemDemo?: () => void;
+  onFactionAIDemo?: () => void;
 }
 
-export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onClassicCharacterCreate, onPortraitTest, onAutoUpdater, onBrigandineHex, onEnhancedMap, onSimpleMap, onCombatUIDemo, onProcedural, onEncounters, onIntegratedCampaign, onEngineTest, onTimeSystemDemo }: Props) {
+export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onClassicCharacterCreate, onPortraitTest, onAutoUpdater, onBrigandineHex, onEnhancedMap, onSimpleMap, onCombatUIDemo, onProcedural, onEncounters, onIntegratedCampaign, onEngineTest, onTimeSystemDemo, onFactionAIDemo }: Props) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [characters, setCharacters] = useState<SavedCharacter[]>([]);
   const [activeTab, setActiveTab] = useState<'campaigns' | 'characters'>('campaigns');
@@ -683,6 +684,14 @@ Recovered ${recovered.length} campaigns`);
                   <div style={{ fontSize: '3rem', marginBottom: '10px' }}>⏰</div>
                   <h3 style={{ margin: '0 0 5px 0' }}>Time System (Canvas 08)</h3>
                   <p style={{ margin: 0, opacity: 0.9 }}>Pause, speed control, idle policies</p>
+                </div>
+              )}
+
+              {onFactionAIDemo && (
+                <div style={{ ...newCardStyle, background: 'linear-gradient(135deg, #a855f7 0%, #6366f1 100%)' }} onClick={onFactionAIDemo}>
+                  <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🏛️</div>
+                  <h3 style={{ margin: '0 0 5px 0' }}>Faction AI (Canvas 09)</h3>
+                  <p style={{ margin: 0, opacity: 0.9 }}>Autonomous factions with goals & planning</p>
                 </div>
               )}
 

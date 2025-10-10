@@ -12,6 +12,7 @@ import EncountersTestPage from "../features/world/encounters/EncountersTestPage"
 import { SimplePortraitTest } from "../features/portraits";
 import { CombatUIDemo } from "../pages/CombatUIDemo";
 import { TimeSystemDemo } from "../pages/TimeSystemDemo";
+import { FactionAIDemo } from "../pages/FactionAIDemo";
 import { EngineApp } from "./EngineApp";
 import { storage } from "../core/services/storage";
 import type { Engine } from "../engine.d";
@@ -38,7 +39,7 @@ function _randomSeed(): string {
 }
 
 function App() {
-  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "enhancedmap" | "simplemap" | "charactercreate" | "classiccharacter" | "portraittest" | "battlesystem" | "battle" | "minimalBattle" | "brigandineHex" | "autoupdater" | "combat-ui-demo" | "procedural" | "encounters" | "integrated-campaign" | "engine-test" | "time-system-demo">("menu");
+  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "enhancedmap" | "simplemap" | "charactercreate" | "classiccharacter" | "portraittest" | "battlesystem" | "battle" | "minimalBattle" | "brigandineHex" | "autoupdater" | "combat-ui-demo" | "procedural" | "encounters" | "integrated-campaign" | "engine-test" | "time-system-demo" | "faction-ai-demo">("menu");
   const [party, setParty] = React.useState<Character[]>([]);
   const [currentCampaign, setCurrentCampaign] = React.useState<any>(null);
   const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0); // Force re-render hook
@@ -339,6 +340,11 @@ function App() {
     setStep("time-system-demo");
   };
 
+  const handleFactionAIDemo = () => {
+    // Canvas 09: Faction AI demo
+    setStep("faction-ai-demo");
+  };
+
   // fake engine stub for now
   // Engine stub - will be replaced with real engine
   const eng: Engine = {
@@ -446,6 +452,7 @@ function App() {
           onIntegratedCampaign={handleIntegratedCampaign}
           onEngineTest={handleEngineTest}
           onTimeSystemDemo={handleTimeSystemDemo}
+          onFactionAIDemo={handleFactionAIDemo}
         />
       )}
       {step === "world" && (
@@ -674,6 +681,9 @@ function App() {
       )}
       {step === "time-system-demo" && (
         <TimeSystemDemo />
+      )}
+      {step === "faction-ai-demo" && (
+        <FactionAIDemo />
       )}
     </>
   );

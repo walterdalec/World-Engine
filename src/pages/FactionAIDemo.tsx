@@ -166,8 +166,8 @@ export function FactionAIDemo() {
                             key={faction.id}
                             onClick={() => setSelectedFaction(faction.id)}
                             className={`p-6 rounded-lg border-2 transition-all duration-200 ${selectedFaction === faction.id
-                                    ? 'bg-gradient-to-br from-purple-900 to-indigo-900 border-purple-500'
-                                    : 'bg-slate-800 border-slate-700 hover:border-slate-600'
+                                ? 'bg-gradient-to-br from-purple-900 to-indigo-900 border-purple-500'
+                                : 'bg-slate-800 border-slate-700 hover:border-slate-600'
                                 }`}
                         >
                             <h3 className="text-xl font-bold text-white mb-2">{faction.name}</h3>
@@ -251,10 +251,10 @@ export function FactionAIDemo() {
                                         <div key={idx} className="bg-slate-900 rounded p-3 border border-slate-700">
                                             <div className="flex items-center justify-between mb-1">
                                                 <span className={`px-2 py-1 rounded text-xs font-bold ${event.eventType === 'goal_generated' ? 'bg-blue-900 text-blue-300' :
-                                                        event.eventType === 'plan_created' ? 'bg-purple-900 text-purple-300' :
-                                                            event.eventType === 'order_issued' ? 'bg-yellow-900 text-yellow-300' :
-                                                                event.eventType === 'order_completed' ? 'bg-green-900 text-green-300' :
-                                                                    'bg-slate-700 text-slate-300'
+                                                    event.eventType === 'plan_created' ? 'bg-purple-900 text-purple-300' :
+                                                        event.eventType === 'order_issued' ? 'bg-yellow-900 text-yellow-300' :
+                                                            event.eventType === 'order_completed' ? 'bg-green-900 text-green-300' :
+                                                                'bg-slate-700 text-slate-300'
                                                     }`}>
                                                     {event.eventType.replace('_', ' ')}
                                                 </span>
@@ -289,8 +289,8 @@ export function FactionAIDemo() {
                                 <div
                                     key={key}
                                     className={`p-3 rounded-lg border ${value
-                                            ? 'bg-green-900 border-green-700 text-green-300'
-                                            : 'bg-slate-900 border-slate-700 text-slate-500'
+                                        ? 'bg-green-900 border-green-700 text-green-300'
+                                        : 'bg-slate-900 border-slate-700 text-slate-500'
                                         }`}
                                 >
                                     <div className="text-xs font-bold">

@@ -26,31 +26,31 @@ export function calculateSuitability(
 ): number {
     const tile = getTile(x, y);
     if (!tile) return -Infinity;
-    
+
     // Check if location is valid
     if (tile.biomeId === 'ocean' || tile.biomeId === 'ice') {
         return -Infinity;
     }
-    
+
     // Biome score
     const biomeScore = BIOME_SUITABILITY[tile.biomeId] || 0.5;
-    
+
     // Water proximity (prefer near rivers/coasts but not floodplains)
     const waterProximity = calculateWaterProximity(x, y, getTile, tile);
-    
+
     // Resource potential
     const resourcePotential = calculateResourcePotential(tile);
-    
+
     // Slope penalty
     const slopePenalty = calculateSlopePenalty(x, y, getTile, tile);
-    
+
     // Combined score
-    const score = 
+    const score =
         weights.wb * biomeScore +
         weights.ww * waterProximity +
         weights.wr * resourcePotential -
         weights.ws * slopePenalty;
-    
+
     return Math.max(0, Math.min(1, score));
 }
 
@@ -72,20 +72,20 @@ function calculateWaterProximity(
         }
         return 1.0; // River access is valuable
     }
-    
+
     // Check nearby tiles for water
     let nearbyWater = 0;
     let oceanAdjacent = false;
-    
+
     for (let dy = -2; dy <= 2; dy++) {
         for (let dx = -2; dx <= 2; dx++) {
             if (dx === 0 && dy === 0) continue;
-            
+
             const neighbor = getTile(x + dx, y + dy);
             if (!neighbor) continue;
-            
+
             const distance = Math.sqrt(dx * dx + dy * dy);
-            
+
             if (neighbor.biomeId === 'ocean') {
                 if (distance <= 1.5) oceanAdjacent = true;
                 nearbyWater += (1.0 / distance) * 0.3;
@@ -94,12 +94,12 @@ function calculateWaterProximity(
             }
         }
     }
-    
+
     // Coastal bonus
     if (oceanAdjacent) {
         return 0.8; // Good for harbors
     }
-    
+
     return Math.min(1.0, nearbyWater);
 }
 
@@ -108,24 +108,24 @@ function calculateWaterProximity(
  */
 function calculateResourcePotential(tile: TileData): number {
     const biomeResources = BIOME_RESOURCES[tile.biomeId] || {};
-    
+
     // Sum base resource values
     const resourceSum = Object.values(biomeResources).reduce((sum, val) => sum + val, 0);
     const baseScore = Math.min(1.0, resourceSum / 3.0); // Normalize to 0-1
-    
+
     // Modifiers from tile properties
     let modifier = 1.0;
-    
+
     // High moisture can boost food production
     if (tile.moisture > 0.6 && tile.biomeId !== 'swamp') {
         modifier *= 1.2;
     }
-    
+
     // Low roughness is easier to work with
     if (tile.roughness < 0.3) {
         modifier *= 1.1;
     }
-    
+
     return Math.min(1.0, baseScore * modifier);
 }
 
@@ -139,23 +139,23 @@ function calculateSlopePenalty(
     tile: TileData
 ): number {
     let maxSlope = 0;
-    
+
     // Check 8 neighbors for elevation change
     for (let dy = -1; dy <= 1; dy++) {
         for (let dx = -1; dx <= 1; dx++) {
             if (dx === 0 && dy === 0) continue;
-            
+
             const neighbor = getTile(x + dx, y + dy);
             if (!neighbor) continue;
-            
+
             const elevDiff = Math.abs(neighbor.elevation - tile.elevation);
             maxSlope = Math.max(maxSlope, elevDiff);
         }
     }
-    
+
     // Also penalize high absolute elevation
     const elevPenalty = Math.max(0, tile.elevation - 0.6) * 0.5;
-    
+
     return Math.min(1.0, maxSlope * 2.0 + elevPenalty);
 }
 
@@ -171,39 +171,39 @@ export function createSettlementMask(
     floodRiskMin: number
 ): boolean[][] {
     const mask: boolean[][] = [];
-    
+
     for (let y = 0; y < worldHeight; y++) {
         mask[y] = [];
         for (let x = 0; x < worldWidth; x++) {
             const tile = getTile(x, y);
-            
+
             if (!tile) {
                 mask[y][x] = false;
                 continue;
             }
-            
+
             // Invalid biomes
             if (tile.biomeId === 'ocean' || tile.biomeId === 'ice') {
                 mask[y][x] = false;
                 continue;
             }
-            
+
             // Too high elevation
             if (tile.elevation > elevMaxForCity) {
                 mask[y][x] = false;
                 continue;
             }
-            
+
             // Floodplain risk
             if (tile.river && tile.elevation < floodRiskMin) {
                 mask[y][x] = false;
                 continue;
             }
-            
+
             mask[y][x] = true;
         }
     }
-    
+
     return mask;
 }
 
@@ -226,15 +226,15 @@ export function calculateCarryingCapacity(biomeMix: Record<string, number>): num
         'mountain': 0.3,
         'ocean': 0.0
     };
-    
+
     let totalFactor = 0;
     let totalWeight = 0;
-    
+
     for (const [biome, fraction] of Object.entries(biomeMix)) {
         const factor = popFactors[biome] || 0.5;
         totalFactor += factor * fraction;
         totalWeight += fraction;
     }
-    
+
     return totalWeight > 0 ? totalFactor / totalWeight : 0;
 }

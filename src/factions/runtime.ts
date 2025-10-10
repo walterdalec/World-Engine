@@ -81,12 +81,12 @@ export function aiTick(ctx: TickContext): void {
 
     // Check if we should run planning
     const hoursSinceLastPlan = currentTimeHours - (aiState.lastPlanningTime / 3600);
-    
+
     // Debug logging every 30 seconds (900 steps at 30fps)
     if (ctx.stepIndex % 900 === 0) {
         console.log(`🏛️ AI Status: ${hoursSinceLastPlan.toFixed(2)}h / ${aiConfig.planningWindowHours}h until next planning (Day ${ctx.day}, Step ${ctx.stepIndex})`);
     }
-    
+
     if (hoursSinceLastPlan >= aiConfig.planningWindowHours) {
         aiPlan(ctx.timeSec, ctx.day, ctx.stepIndex);
     }
