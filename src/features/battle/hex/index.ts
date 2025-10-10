@@ -36,6 +36,14 @@
  * - Visibility field computation (fog of war, AI perception)
  * - Cover/LOS convenience wrappers for combat systems
  * 
+ * Canvas #5 - AoE Templates (aoe.ts):
+ * - Circle/disk and donut/annulus masks for radial effects
+ * - Line/beam with configurable thickness for breath attacks
+ * - Bolt between points with optional truncation
+ * - Cone sectors with aperture control (narrow/medium/wide)
+ * - Set utilities for union/intersection/diff operations
+ * - LOS/blocker filtering for environmental effects
+ * 
  * @module hex
  */
 
@@ -50,3 +58,6 @@ export * from './movement';
 
 // Re-export everything from los (Canvas #4)
 export * from './los';
+
+// Re-export everything from aoe (Canvas #5)
+export * from './aoe';
