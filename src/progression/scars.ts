@@ -37,7 +37,7 @@ const SCAR_REGISTRY: Omit<Scar, 'acquiredDay' | 'id'>[] = [
         visible: false,
         source: 'injury'
     },
-    
+
     // Piercing/slashing scars
     {
         name: 'Deep Scar',
@@ -59,7 +59,7 @@ const SCAR_REGISTRY: Omit<Scar, 'acquiredDay' | 'id'>[] = [
         visible: false,
         source: 'injury'
     },
-    
+
     // Fire scars
     {
         name: 'Smoke-Scorched Lungs',
@@ -83,7 +83,7 @@ const SCAR_REGISTRY: Omit<Scar, 'acquiredDay' | 'id'>[] = [
         visible: true,
         source: 'injury'
     },
-    
+
     // Frost scars
     {
         name: 'Frostbitten Extremities',
@@ -96,7 +96,7 @@ const SCAR_REGISTRY: Omit<Scar, 'acquiredDay' | 'id'>[] = [
         visible: true,
         source: 'injury'
     },
-    
+
     // Poison/necrotic scars
     {
         name: 'Withered Flesh',
@@ -120,7 +120,7 @@ const SCAR_REGISTRY: Omit<Scar, 'acquiredDay' | 'id'>[] = [
         visible: false,
         source: 'injury'
     },
-    
+
     // Revival scars
     {
         name: 'Death\'s Touch',
@@ -146,7 +146,7 @@ const SCAR_REGISTRY: Omit<Scar, 'acquiredDay' | 'id'>[] = [
         locked: true,
         source: 'revival'
     },
-    
+
     // Psychic/special scars
     {
         name: 'Witch-Sight',
@@ -181,7 +181,7 @@ export function rollScarFromWound(
     memberId: CharacterId
 ): Scar | null {
     const rng = new SeededRandom(`${seed}_scar_${memberId}_${wound.day}`);
-    
+
     // Check if scar should be applied
     let shouldScar = false;
     if (wound.kind === 'minor') {
@@ -192,43 +192,43 @@ export function rollScarFromWound(
         // Fatal wounds don't scar (they kill)
         return null;
     }
-    
+
     if (!shouldScar) return null;
-    
+
     // Filter scars by damage tags
     const relevantScars = SCAR_REGISTRY.filter(scar => {
         if (scar.source !== 'injury') return false;
-        
+
         // Match scar to damage tags
         const scarName = scar.name.toLowerCase();
         return wound.tags.some(tag => {
             const tagLower = tag.toLowerCase();
-            return scarName.includes(tagLower) || 
-                   (tag === 'crushing' && scarName.includes('shatter')) ||
-                   (tag === 'crushing' && scarName.includes('broken')) ||
-                   (tag === 'piercing' && scarName.includes('arterial')) ||
-                   (tag === 'slashing' && scarName.includes('scar')) ||
-                   (tag === 'fire' && scarName.includes('burn')) ||
-                   (tag === 'fire' && scarName.includes('scorch')) ||
-                   (tag === 'frost' && scarName.includes('frost')) ||
-                   (tag === 'poison' && scarName.includes('corrupt')) ||
-                   (tag === 'necrotic' && scarName.includes('wither')) ||
-                   (tag === 'psychic' && scarName.includes('witch'));
+            return scarName.includes(tagLower) ||
+                (tag === 'crushing' && scarName.includes('shatter')) ||
+                (tag === 'crushing' && scarName.includes('broken')) ||
+                (tag === 'piercing' && scarName.includes('arterial')) ||
+                (tag === 'slashing' && scarName.includes('scar')) ||
+                (tag === 'fire' && scarName.includes('burn')) ||
+                (tag === 'fire' && scarName.includes('scorch')) ||
+                (tag === 'frost' && scarName.includes('frost')) ||
+                (tag === 'poison' && scarName.includes('corrupt')) ||
+                (tag === 'necrotic' && scarName.includes('wither')) ||
+                (tag === 'psychic' && scarName.includes('witch'));
         });
     });
-    
+
     if (relevantScars.length === 0) {
         // Fallback to generic scar
         const generic = SCAR_REGISTRY.find(s => s.name === 'Deep Scar');
         if (!generic) return null;
-        
+
         return {
             ...generic,
             id: `scar_${memberId}_${wound.day}_${Date.now()}`,
             acquiredDay: wound.day
         };
     }
-    
+
     // Pick random relevant scar
     const chosen = relevantScars[rng.nextInt(0, relevantScars.length - 1)];
     return {
@@ -248,10 +248,10 @@ export function getRevivalScar(
     deathCount: number
 ): Scar {
     const rng = new SeededRandom(`${seed}_revival_scar_${memberId}_${day}`);
-    
+
     // Revival scars get more severe with each death
     const revivalScars = SCAR_REGISTRY.filter(s => s.source === 'revival');
-    
+
     let chosen: typeof SCAR_REGISTRY[0];
     if (deathCount <= 1) {
         // First death - minor revival scar
@@ -260,7 +260,7 @@ export function getRevivalScar(
         // Multiple deaths - worse scars
         chosen = revivalScars[rng.nextInt(0, revivalScars.length - 1)];
     }
-    
+
     return {
         ...chosen,
         id: `scar_revival_${memberId}_${day}_${deathCount}`,
@@ -280,19 +280,19 @@ export function addScar(
     if (currentScars.length < SCAR_LIMITS.MAX_ACTIVE) {
         return [...currentScars, newScar];
     }
-    
+
     // At cap - replace oldest non-locked scar
     const removableScars = currentScars.filter(s => !s.locked);
     if (removableScars.length === 0) {
         // All scars locked, can't add new one
         return currentScars;
     }
-    
+
     // Find oldest removable scar
-    const oldest = removableScars.reduce((old, scar) => 
+    const oldest = removableScars.reduce((old, scar) =>
         scar.acquiredDay < old.acquiredDay ? scar : old
     );
-    
+
     return [
         ...currentScars.filter(s => s.id !== oldest.id),
         newScar
@@ -304,7 +304,7 @@ export function addScar(
  */
 export function calculateScarModifiers(scars: Scar[]): Map<string, number> {
     const mods = new Map<string, number>();
-    
+
     for (const scar of scars) {
         for (const mod of scar.mods) {
             if (mod.stat && mod.amount !== undefined) {
@@ -318,7 +318,7 @@ export function calculateScarModifiers(scars: Scar[]): Map<string, number> {
             }
         }
     }
-    
+
     return mods;
 }
 
@@ -346,7 +346,7 @@ export function hasVisibleScars(scars: Scar[]): boolean {
  */
 export function getScarTooltip(scar: Scar): string {
     let tooltip = `${scar.name}\n${scar.description}\n\n`;
-    
+
     for (const mod of scar.mods) {
         if (mod.stat && mod.amount !== undefined) {
             const sign = mod.amount >= 0 ? '+' : '';
@@ -357,11 +357,11 @@ export function getScarTooltip(scar: Scar): string {
             tooltip += `${sign}${mod.percent}% ${mod.type.replace(/_/g, ' ')}\n`;
         }
     }
-    
+
     if (scar.locked) {
         tooltip += '\n(Story Scar - Cannot be replaced)';
     }
-    
+
     return tooltip;
 }
 

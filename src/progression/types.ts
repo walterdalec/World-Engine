@@ -10,7 +10,7 @@ import type { CharacterId } from '../party/types';
 /**
  * XP source tracking for analytics
  */
-export type XPSource = 
+export type XPSource =
     | 'battle'
     | 'quest'
     | 'exploration'
@@ -31,7 +31,7 @@ export interface Wound {
 /**
  * Damage type tags for injury resolution
  */
-export type DamageTag = 
+export type DamageTag =
     | 'crushing'    // broken bones
     | 'piercing'    // bleeding
     | 'slashing'    // deep cuts
@@ -111,7 +111,7 @@ export interface RevivalAttempt {
 /**
  * Level-up choice (mutually exclusive)
  */
-export type LevelUpChoice = 
+export type LevelUpChoice =
     | { type: 'stat'; stat: string; amount: number }
     | { type: 'skill'; skillId: string }
     | { type: 'trait'; traitId: string };

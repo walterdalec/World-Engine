@@ -15,14 +15,14 @@ import { DEFAULT_XP_FORMULA, BURNOUT_THRESHOLDS } from './types';
 export function calculateXPRequired(level: number, formula: XPFormula = DEFAULT_XP_FORMULA): number {
     // XP_needed(L) = base * L^2 + step * L
     const required = formula.base * Math.pow(level, formula.exponent) + formula.step * level;
-    
+
     // Apply soft cap multiplier for high levels
     if (level >= formula.softCapLevel) {
-        const softCapFactor = 1 + ((1 / formula.softCapMultiplier) - 1) * 
+        const softCapFactor = 1 + ((1 / formula.softCapMultiplier) - 1) *
             Math.min(1, (level - formula.softCapLevel) / 10);
         return Math.floor(required * softCapFactor);
     }
-    
+
     return Math.floor(required);
 }
 
@@ -47,23 +47,23 @@ export function distributeXP(
     minFloorPercent: number = 0.25 // backliners get at least 25%
 ): Map<CharacterId, number> {
     const distribution = new Map<CharacterId, number>();
-    
+
     if (memberIds.length === 0) return distribution;
-    
+
     // Calculate total contribution
     const totalContribution = Array.from(contributions.values()).reduce((sum, c) => sum + c, 0);
-    
+
     // If no contributions tracked, split evenly
     if (totalContribution === 0) {
         const perMember = Math.floor(totalXP / memberIds.length);
         memberIds.forEach(id => distribution.set(id, perMember));
         return distribution;
     }
-    
+
     // Calculate floor XP (guaranteed minimum)
     const floorXP = Math.floor((totalXP * minFloorPercent) / memberIds.length);
     const remainingXP = totalXP - (floorXP * memberIds.length);
-    
+
     // Distribute remaining based on contribution
     memberIds.forEach(id => {
         const contribution = contributions.get(id) || 0;
@@ -71,7 +71,7 @@ export function distributeXP(
         const bonusXP = Math.floor(remainingXP * contributionPercent);
         distribution.set(id, floorXP + bonusXP);
     });
-    
+
     return distribution;
 }
 
@@ -87,7 +87,7 @@ export function grantXP(
     let xp = currentXP + amount;
     let level = currentLevel;
     let leveledUp = false;
-    
+
     // Check for level-ups (can level multiple times from large XP grants)
     while (true) {
         const required = calculateXPRequired(level);
@@ -100,7 +100,7 @@ export function grantXP(
             break;
         }
     }
-    
+
     return { newXP: xp, newLevel: level, leveledUp };
 }
 
@@ -110,10 +110,10 @@ export function grantXP(
 export function calculateBurnout(recentLevelUpDays: number[], currentDay: number): number {
     // Count level-ups in last 7 days
     const recentLevelUps = recentLevelUpDays.filter(day => currentDay - day <= 7).length;
-    
+
     // Each level-up in past week adds 20 burnout
     const burnout = recentLevelUps * 20;
-    
+
     return Math.min(100, burnout);
 }
 
@@ -153,10 +153,10 @@ export function getAbilitySlotsForLevel(level: number): { active: number; passiv
     let active = 2;
     if (level >= 20) active = 4;
     else if (level >= 10) active = 3;
-    
+
     // Passive slots: always capped at 2 (Canvas 15)
     const passive = 2;
-    
+
     return { active, passive };
 }
 
@@ -179,14 +179,14 @@ export function validateLevelUpChoice(
                 return { valid: false, reason: `Stat cap of 25 reached for ${choice.stat}` };
             }
             return { valid: true };
-            
+
         case 'skill':
             // Check if already known
             if (currentSkills.includes(choice.skillId)) {
                 return { valid: false, reason: `Skill ${choice.skillId} already known` };
             }
             return { valid: true };
-            
+
         case 'trait':
             // Check if already known or conflicts
             if (currentTraits.includes(choice.traitId)) {
@@ -194,7 +194,7 @@ export function validateLevelUpChoice(
             }
             // TODO: Check trait trees for conflicts (Canvas 15)
             return { valid: true };
-            
+
         default:
             return { valid: false, reason: 'Invalid choice type' };
     }
@@ -220,14 +220,14 @@ export function applyLevelUpChoice(
                 skills,
                 traits
             };
-            
+
         case 'skill':
             return {
                 stats,
                 skills: [...skills, choice.skillId],
                 traits
             };
-            
+
         case 'trait':
             return {
                 stats,
@@ -251,18 +251,18 @@ export function calculateXPFromSource(
         case 'exploration':
         case 'milestone':
             return baseAmount; // No diminishing returns
-            
+
         case 'training':
             // 50% effectiveness after 10 uses, 25% after 20
             if (timesUsed > 20) return Math.floor(baseAmount * 0.25);
             if (timesUsed > 10) return Math.floor(baseAmount * 0.50);
             return baseAmount;
-            
+
         case 'mentor':
             // Rare, but also diminishes
             if (timesUsed > 5) return Math.floor(baseAmount * 0.50);
             return baseAmount;
-            
+
         default:
             return baseAmount;
     }

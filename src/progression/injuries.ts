@@ -39,23 +39,23 @@ export function rollInjury(
     currentDay: number
 ): Wound | null {
     const rng = new SeededRandom(`${seed}_injury_${memberId}_${currentDay}`);
-    
+
     // Get healer modifiers
     let modifiers = HEALER_MODIFIERS.noHealer;
     if (hasHealer === 'basic') modifiers = HEALER_MODIFIERS.basicHealer;
     if (hasHealer === 'expert') modifiers = HEALER_MODIFIERS.expertHealer;
-    
+
     // Calculate adjusted probabilities
     const chances = {
         minor: Math.min(1.0, INJURY_CHANCES.minor + modifiers.minor),
         major: Math.max(0, INJURY_CHANCES.major + modifiers.major),
         fatal: Math.max(0, INJURY_CHANCES.fatal + modifiers.fatal)
     };
-    
+
     // Normalize probabilities
     const total = chances.minor + chances.major + chances.fatal;
     const roll = rng.nextFloat() * total;
-    
+
     let kind: Wound['kind'];
     if (roll < chances.minor) {
         kind = 'minor';
@@ -64,12 +64,12 @@ export function rollInjury(
     } else {
         kind = 'fatal';
     }
-    
+
     // Fatal wounds result in death, not injury
     if (kind === 'fatal') {
         return null;
     }
-    
+
     return {
         kind,
         tags: damageTags,
@@ -87,16 +87,16 @@ export function processInjury(
     memberId: CharacterId
 ): { events: ProgressionEvent[] } {
     const events: ProgressionEvent[] = [];
-    
+
     // Always record wound
     events.push(createWoundAppliedEvent(memberId, wound));
-    
+
     // Check for scar
     const scar = rollScarFromWound(wound, seed, memberId);
     if (scar) {
         events.push(createScarAppliedEvent(memberId, scar));
     }
-    
+
     return { events };
 }
 
@@ -115,7 +115,7 @@ export function processDeath(
     const droppedLoot = inventory
         .filter(item => !item.soulbound)
         .map(item => item.name);
-    
+
     const deathRecord: DeathRecord = {
         memberId,
         name: memberName,
@@ -124,7 +124,7 @@ export function processDeath(
         cause,
         loot: droppedLoot
     };
-    
+
     const events: ProgressionEvent[] = [
         {
             type: 'death/recorded',
@@ -132,7 +132,7 @@ export function processDeath(
             deathRecord
         }
     ];
-    
+
     return { deathRecord, droppedLoot, events };
 }
 
@@ -146,7 +146,7 @@ export function isFatalWound(
     currentDay: number
 ): boolean {
     const rng = new SeededRandom(`${seed}_fatal_${memberId}_${currentDay}`);
-    
+
     // Fatal wound chance
     const roll = rng.nextFloat();
     return roll < INJURY_CHANCES.fatal;
@@ -169,9 +169,9 @@ export function getWoundDescription(wound: Wound): string {
         holy: 'divine wounds',
         shadow: 'corruption'
     };
-    
+
     const tagList = wound.tags.map(tag => tagDescriptions[tag as DamageTag]).join(', ');
-    
+
     if (wound.kind === 'minor') {
         return `Minor injury: ${tagList}`;
     } else {
@@ -196,7 +196,7 @@ export function getDamageTagDescription(tag: DamageTag): string {
         holy: 'Divine energy burns',
         shadow: 'Corrupting dark energy'
     };
-    
+
     return descriptions[tag];
 }
 
@@ -205,7 +205,7 @@ export function getDamageTagDescription(tag: DamageTag): string {
  */
 export function getRecommendedHealing(damageTags: DamageTag[]): string[] {
     const recommendations = new Set<string>();
-    
+
     for (const tag of damageTags) {
         switch (tag) {
             case 'crushing':
@@ -245,7 +245,7 @@ export function getRecommendedHealing(damageTags: DamageTag[]): string[] {
                 break;
         }
     }
-    
+
     return Array.from(recommendations);
 }
 
@@ -254,18 +254,18 @@ export function getRecommendedHealing(damageTags: DamageTag[]): string[] {
  */
 export function getRecoveryTime(wound: Wound, hasHealer: boolean): number {
     let baseDays = 0;
-    
+
     if (wound.kind === 'minor') {
         baseDays = 3;
     } else if (wound.kind === 'major') {
         baseDays = 7;
     }
-    
+
     // Healer reduces recovery time
     if (hasHealer) {
         baseDays = Math.ceil(baseDays * 0.75);
     }
-    
+
     return baseDays;
 }
 
