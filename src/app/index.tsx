@@ -7,6 +7,7 @@ import { CharacterLibrary, CharacterCreate, NameGenerator, ClassicCharacterCreat
 import { SpellGenerator, SpellAssignment } from "../features/spells";
 import { HealingSystem, BrigandineHexBattle } from "../features/battle";
 import { WorldMapEngine, EnhancedWorldMap, SimpleWorldMap, ProceduralDevTools } from "../features/world";
+import { IntegratedCampaign } from "../features/strategy";
 import EncountersTestPage from "../features/world/encounters/EncountersTestPage";
 import { SimplePortraitTest } from "../features/portraits";
 import { CombatUIDemo } from "../pages/CombatUIDemo";
@@ -321,6 +322,11 @@ function App() {
     setStep("encounters");
   };
 
+  const handleIntegratedCampaign = () => {
+    // Integrated campaign mode - all systems working together
+    setStep("integrated-campaign");
+  };
+
   // fake engine stub for now
   // Engine stub - will be replaced with real engine
   const eng: Engine = {
@@ -425,6 +431,7 @@ function App() {
           onCombatUIDemo={handleCombatUIDemo}
           onProcedural={handleProcedural}
           onEncounters={handleEncounters}
+          onIntegratedCampaign={handleIntegratedCampaign}
         />
       )}
       {step === "world" && (
@@ -493,7 +500,10 @@ function App() {
           >
             Back to Menu
           </button>
-          <CharacterCreate />
+          <CharacterCreate
+            onBack={() => setStep("menu")}
+            onDone={() => setStep("menu")}
+          />
         </div>
       )}
       {step === "classiccharacter" && (
@@ -638,6 +648,12 @@ function App() {
             ← Back to Menu
           </button>
         </div>
+      )}
+      {step === "integrated-campaign" && (
+        <IntegratedCampaign
+          onNavigateToCharacterCreate={handleCharacterCreate}
+          onNavigateToMenu={() => setStep("menu")}
+        />
       )}
     </>
   );

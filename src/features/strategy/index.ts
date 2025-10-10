@@ -8,6 +8,9 @@ export * from './world';
 export * from './economy';
 export * from './time';
 
+// Integrated Campaign Mode
+export { default as IntegratedCampaign } from './IntegratedCampaign';
+
 // Re-export key functions for easy access
 export {
     routeExists,
