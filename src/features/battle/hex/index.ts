@@ -19,6 +19,14 @@
  * - Range (disk) queries for movement and AoE
  * - Rotations and mirrors for formations
  * 
+ * Canvas #3 - Movement & Range Systems (movement.ts):
+ * - Dijkstra-based reachability with MP budgets
+ * - Terrain costs, impassables, occupancy
+ * - Edge blockers (walls, cliffs, doors)
+ * - Zone of Control (ZoC) rules
+ * - Path reconstruction for UI/AI
+ * - Range predicates and move+attack helpers
+ * 
  * @module hex
  */
 
@@ -27,3 +35,6 @@ export * from './coords';
 
 // Re-export everything from math (Canvas #2)
 export * from './math';
+
+// Re-export everything from movement (Canvas #3)
+export * from './movement';
