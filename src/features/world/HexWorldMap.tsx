@@ -6,6 +6,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { WorldHexRenderer } from './components/WorldHexRenderer';
+import { SettlementInterior } from './components/SettlementInterior';
 import { storage } from '../../core/services/storage';
 import { generateEncounter, mapBiomeToEncounterBiome } from './encounters/generator';
 import type { EncounterType } from './encounters/types';
@@ -54,16 +55,16 @@ interface PlayerPosition {
 export default function HexWorldMap({ seedStr = "hex-world-001", onBack }: HexWorldMapProps) {
     const [playerPos, setPlayerPos] = useState<PlayerPosition>({ q: 10, r: 10 });
     const [worldTiles, setWorldTiles] = useState<WorldTile[]>([]);
-
+    
     // Initialize with starting area explored (player position + neighbors)
     const [exploredTiles, setExploredTiles] = useState<Set<string>>(() => {
         const initial = new Set<string>();
         const startQ = 10;
         const startR = 10;
-
+        
         // Mark starting position
         initial.add(`${startQ},${startR}`);
-
+        
         // Mark 6 neighbors (hex directions)
         initial.add(`${startQ},${startR - 1}`); // North
         initial.add(`${startQ},${startR + 1}`); // South
@@ -71,18 +72,17 @@ export default function HexWorldMap({ seedStr = "hex-world-001", onBack }: HexWo
         initial.add(`${startQ + 1},${startR}`); // Northeast
         initial.add(`${startQ - 1},${startR + 1}`); // Southwest
         initial.add(`${startQ + 1},${startR - 1}`); // Southeast
-
+        
         return initial;
     });
-
+    
     const [activeSettlement, setActiveSettlement] = useState<Settlement | null>(null);
     const [activeEncounter, setActiveEncounter] = useState<MapEncounter | null>(null);
     const [playerCharacters, setPlayerCharacters] = useState<any[]>([]);
+    const [viewingSettlementInterior, setViewingSettlementInterior] = useState(false);
 
     const mapWidth = 21;
-    const mapHeight = 21;
-
-    // Load player characters from localStorage
+    const mapHeight = 21;    // Load player characters from localStorage
     useEffect(() => {
         try {
             const saved = JSON.parse(storage.local.getItem('world-engine-saved-characters') || '[]');
@@ -177,13 +177,13 @@ export default function HexWorldMap({ seedStr = "hex-world-001", onBack }: HexWo
     const generateSettlements = useCallback((): Map<string, Settlement> => {
         const settlements = new Map<string, Settlement>();
         const candidates: Array<{ q: number; r: number; score: number }> = [];
-        
+
         // Generate candidate positions
         for (let q = 0; q < mapWidth; q++) {
             for (let r = 0; r < mapHeight; r++) {
                 const biome = getBiome(q, r);
                 const weight = getSettlementWeight(biome);
-                
+
                 if (weight > 0) {
                     const randomFactor = seededRandom(q, r, seedStr + "settle-score");
                     candidates.push({ q, r, score: weight + randomFactor * 0.2 });
@@ -226,12 +226,12 @@ export default function HexWorldMap({ seedStr = "hex-world-001", onBack }: HexWo
     // Determine settlement type based on location and biome
     const determineSettlementType = useCallback((q: number, r: number, biome: string): Settlement => {
         const roll = seededRandom(q, r, seedStr + "type");
-        
+
         // Biome-specific settlement types
         let type: Settlement['type'];
         let emoji: string;
         let services: string[];
-        
+
         if (biome === 'Mountain') {
             type = roll > 0.7 ? 'outpost' : 'hut';
             emoji = roll > 0.7 ? '🗼' : '🛖';
@@ -271,9 +271,9 @@ export default function HexWorldMap({ seedStr = "hex-world-001", onBack }: HexWo
         }
 
         const population = type === 'city' ? 5000 + Math.floor(seededRandom(q, r, seedStr + "pop") * 10000) :
-                          type === 'town' ? 1000 + Math.floor(seededRandom(q, r, seedStr + "pop") * 4000) :
-                          type === 'village' ? 100 + Math.floor(seededRandom(q, r, seedStr + "pop") * 900) :
-                          10 + Math.floor(seededRandom(q, r, seedStr + "pop") * 90);
+            type === 'town' ? 1000 + Math.floor(seededRandom(q, r, seedStr + "pop") * 4000) :
+                type === 'village' ? 100 + Math.floor(seededRandom(q, r, seedStr + "pop") * 900) :
+                    10 + Math.floor(seededRandom(q, r, seedStr + "pop") * 90);
 
         const names = ['Riverside', 'Oakwood', 'Stonehaven', 'Maplegrove', 'Thornhill', 'Silverpeak', 'Goldmeadow', 'Ironforge', 'Misthaven', 'Sunvale'];
         const nameIndex = Math.floor(seededRandom(q, r, seedStr + "name") * names.length);
@@ -460,6 +460,17 @@ export default function HexWorldMap({ seedStr = "hex-world-001", onBack }: HexWo
         setActiveSettlement(null);
     }, []);
 
+    // Enter settlement interior
+    const handleEnterSettlement = useCallback(() => {
+        setViewingSettlementInterior(true);
+    }, []);
+
+    // Exit settlement interior
+    const handleExitSettlement = useCallback(() => {
+        setViewingSettlementInterior(false);
+        setActiveSettlement(null);
+    }, []);
+
     // Handle encounter
     const handleEncounter = useCallback(() => {
         // TODO: Connect to BrigandineHexBattle
@@ -468,7 +479,20 @@ export default function HexWorldMap({ seedStr = "hex-world-001", onBack }: HexWo
     }, [activeEncounter]);
 
     return (
-        <div className="relative w-screen h-screen bg-gray-900 text-white overflow-hidden">
+        <>
+            {/* Settlement Interior View */}
+            {viewingSettlementInterior && activeSettlement && (
+                <SettlementInterior
+                    settlementType={activeSettlement.type}
+                    settlementName={activeSettlement.name}
+                    seed={playerPos.q * 1000 + playerPos.r} // Deterministic seed
+                    onExit={handleExitSettlement}
+                />
+            )}
+
+            {/* World Map View */}
+            {!viewingSettlementInterior && (
+                <div className="relative w-screen h-screen bg-gray-900 text-white overflow-hidden">
             {/* Header */}
             <div className="absolute top-0 left-0 right-0 z-10 bg-gray-800 bg-opacity-90 p-4">
                 <div className="flex justify-between items-center">
@@ -544,12 +568,20 @@ export default function HexWorldMap({ seedStr = "hex-world-001", onBack }: HexWo
                         <div className="mb-4">
                             <strong>Services:</strong> {activeSettlement.services?.join(', ')}
                         </div>
-                        <button
-                            onClick={handleCloseSettlement}
-                            className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded"
-                        >
-                            Leave Settlement
-                        </button>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={handleEnterSettlement}
+                                className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded"
+                            >
+                                🏘️ Enter Settlement
+                            </button>
+                            <button
+                                onClick={handleCloseSettlement}
+                                className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded"
+                            >
+                                Leave
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
@@ -586,6 +618,8 @@ export default function HexWorldMap({ seedStr = "hex-world-001", onBack }: HexWo
                     </div>
                 </div>
             )}
-        </div>
+                </div>
+            )}
+        </>
     );
 }
