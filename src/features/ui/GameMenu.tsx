@@ -1117,7 +1117,7 @@ function SpellsBySchool({ engine, characterId }: { engine: WorldEngine; characte
   const [openSchools, setOpenSchools] = useState<Set<string>>(new Set());
 
   const character = engine.getCharacter(characterId);
-  
+
   const spellsBySchool = useMemo(() => {
     if (!character) return {};
 
