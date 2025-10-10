@@ -10,6 +10,24 @@ AI agents have full permissions to edit, create, modify, and refactor any code i
 - **7-Stat System**: STR/DEX/INT/CON/WIS/CHA/LCK with 27-point budget
 - **Expansion Later**: Additional species (crystalborn, draketh, alloy, voidkin) and archetypes to be added in future updates
 
+## 🌍 WORLD DESIGN PHILOSOPHY — Critical Architecture Decisions
+**Fixed World, Not Infinite Procedural:**
+- ❌ **NO infinite procedural map generation** - We removed this approach
+- ✅ **Fixed world size** - Designed, meaningful world with set boundaries (e.g., 100×100 hexes)
+- ✅ **Pre-generated at campaign start** - Full world created during initialization, not lazy-loaded
+- ✅ **Handcrafted regions with procedural detail** - Designer-placed settlements/factions, procedural terrain filling
+- ✅ **Tactical depth over procedural breadth** - Quality locations and strategic design, not endless exploration
+
+**Character Creation Model:**
+- ✅ **Main player only** - Character creation is single-use for protagonist
+- ✅ **NPCs are premade/procedural** - Companions and enemies use templates, not player creation flow
+- ✅ **Mercenary recruitment** - Hire procedurally-generated units for party, not full character builder
+
+**When reviewing Canvas specifications or TODO items:**
+- 🚫 **Remove**: Chunk caching, lazy loading, infinite expansion, streaming world generation
+- ✅ **Adapt**: Fixed-size grids, pre-generation, designer-placed content with procedural enhancement
+- ✅ **Keep**: Deterministic generation (for consistency), biome/terrain systems, tactical combat
+
 ## Critical Development Guidelines
 
 ### Character System Compatibility

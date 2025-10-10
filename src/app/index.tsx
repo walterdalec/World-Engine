@@ -11,6 +11,8 @@ import { IntegratedCampaign } from "../features/strategy";
 import EncountersTestPage from "../features/world/encounters/EncountersTestPage";
 import { SimplePortraitTest } from "../features/portraits";
 import { CombatUIDemo } from "../pages/CombatUIDemo";
+import { TimeSystemDemo } from "../pages/TimeSystemDemo";
+import { EngineApp } from "./EngineApp";
 import { storage } from "../core/services/storage";
 import type { Engine } from "../engine.d";
 import { DEFAULT_WORLDS } from "../core/config";
@@ -36,7 +38,7 @@ function _randomSeed(): string {
 }
 
 function App() {
-  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "enhancedmap" | "simplemap" | "charactercreate" | "classiccharacter" | "portraittest" | "brigandineHex" | "autoupdater" | "combat-ui-demo" | "procedural" | "encounters">("menu");
+  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "enhancedmap" | "simplemap" | "charactercreate" | "classiccharacter" | "portraittest" | "battlesystem" | "battle" | "minimalBattle" | "brigandineHex" | "autoupdater" | "combat-ui-demo" | "procedural" | "encounters" | "integrated-campaign" | "engine-test" | "time-system-demo">("menu");
   const [party, setParty] = React.useState<Character[]>([]);
   const [currentCampaign, setCurrentCampaign] = React.useState<any>(null);
   const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0); // Force re-render hook
@@ -327,6 +329,16 @@ function App() {
     setStep("integrated-campaign");
   };
 
+  const handleEngineTest = () => {
+    // Canvas 01: New engine skeleton test
+    setStep("engine-test");
+  };
+
+  const handleTimeSystemDemo = () => {
+    // Canvas 08: Time system demo
+    setStep("time-system-demo");
+  };
+
   // fake engine stub for now
   // Engine stub - will be replaced with real engine
   const eng: Engine = {
@@ -432,6 +444,8 @@ function App() {
           onProcedural={handleProcedural}
           onEncounters={handleEncounters}
           onIntegratedCampaign={handleIntegratedCampaign}
+          onEngineTest={handleEngineTest}
+          onTimeSystemDemo={handleTimeSystemDemo}
         />
       )}
       {step === "world" && (
@@ -654,6 +668,12 @@ function App() {
           onNavigateToCharacterCreate={handleCharacterCreate}
           onNavigateToMenu={() => setStep("menu")}
         />
+      )}
+      {step === "engine-test" && (
+        <EngineApp />
+      )}
+      {step === "time-system-demo" && (
+        <TimeSystemDemo />
       )}
     </>
   );

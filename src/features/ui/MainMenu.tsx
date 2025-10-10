@@ -40,9 +40,11 @@ interface Props {
   onProcedural: () => void;
   onEncounters?: () => void;
   onIntegratedCampaign?: () => void;
+  onEngineTest?: () => void;
+  onTimeSystemDemo?: () => void;
 }
 
-export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onClassicCharacterCreate, onPortraitTest, onAutoUpdater, onBrigandineHex, onEnhancedMap, onSimpleMap, onCombatUIDemo, onProcedural, onEncounters }: Props) {
+export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onClassicCharacterCreate, onPortraitTest, onAutoUpdater, onBrigandineHex, onEnhancedMap, onSimpleMap, onCombatUIDemo, onProcedural, onEncounters, onIntegratedCampaign, onEngineTest, onTimeSystemDemo }: Props) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [characters, setCharacters] = useState<SavedCharacter[]>([]);
   const [activeTab, setActiveTab] = useState<'campaigns' | 'characters'>('campaigns');
@@ -665,6 +667,22 @@ Recovered ${recovered.length} campaigns`);
                   <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🌍</div>
                   <h3 style={{ margin: '0 0 5px 0' }}>Integrated Campaign</h3>
                   <p style={{ margin: 0, opacity: 0.9 }}>All systems working together!</p>
+                </div>
+              )}
+
+              {onEngineTest && (
+                <div style={{ ...newCardStyle, background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }} onClick={onEngineTest}>
+                  <div style={{ fontSize: '3rem', marginBottom: '10px' }}>⚙️</div>
+                  <h3 style={{ margin: '0 0 5px 0' }}>Engine Test (Canvas 01)</h3>
+                  <p style={{ margin: 0, opacity: 0.9 }}>New engine skeleton</p>
+                </div>
+              )}
+
+              {onTimeSystemDemo && (
+                <div style={{ ...newCardStyle, background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' }} onClick={onTimeSystemDemo}>
+                  <div style={{ fontSize: '3rem', marginBottom: '10px' }}>⏰</div>
+                  <h3 style={{ margin: '0 0 5px 0' }}>Time System (Canvas 08)</h3>
+                  <p style={{ margin: 0, opacity: 0.9 }}>Pause, speed control, idle policies</p>
                 </div>
               )}
 
