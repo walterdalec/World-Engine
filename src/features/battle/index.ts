@@ -88,6 +88,7 @@ export { BattlePage } from './BattlePage';
 export { MinimalBattlePage } from './MinimalBattlePage';
 export { default as HealingSystem } from './HealingSystem';
 export { default as BattleSystem } from './BattleSystem';
+export { default as BrigandineHexBattle } from './BrigandineHexBattle';
 
 
 // Strategic bridge - TODO: Complete integration

@@ -1,12 +1,8 @@
 // ──────────────────────────────────────────────────────────────────────────────
 // File: src/features/world/encounters/index.ts
-// Purpose: Export encounters and gates system
+// Purpose: Encounters module exports
 // ──────────────────────────────────────────────────────────────────────────────
 
 export * from './types';
-export { 
-    rollEncounter, 
-    getEncounterDensity, 
-    getSpawnChance 
-} from './tables';
+export * from './tables';
 export * from './generator';

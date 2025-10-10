@@ -229,7 +229,10 @@ describe('Canvas #6 — Zones of Control (ZoC)', () => {
         const S: Axial = { q: 0, r: 0 };
         const G: Axial = { q: 4, r: 0 }; // Goal beyond ZoC
         const zoc = new Set([axialKey({ q: 2, r: 0 })]);
-        const res = aStarUniform(S, G, diamondPassable(5), {
+        // Use a narrow corridor (only r=0 allowed) so there's no bypass
+        const narrowCorridor = (h: { q: number; r: number }) =>
+            h.r === 0 && Math.abs(h.q) <= 5;
+        const res = aStar(S, G, (h) => narrowCorridor(h) ? 1 : Infinity, {
             zocHexes: zoc,
             zocPenalty: 0,
             stopOnZoCEnter: true,
