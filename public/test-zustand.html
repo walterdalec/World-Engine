@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zustand Store Inspector</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 20px;
+        }
+
+        pre {
+            background: #000;
+            padding: 20px;
+            border-radius: 8px;
+            overflow: auto;
+        }
+
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #2a2a2a;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🔍 World Engine - Zustand Store Inspector</h1>
+
+    <div class="section">
+        <h2>localStorage Keys</h2>
+        <button onclick="showAllKeys()">Show All LocalStorage Keys</button>
+        <pre id="keys-output"></pre>
+    </div>
+
+    <div class="section">
+        <h2>Game State (Zustand Store)</h2>
+        <button onclick="showGameState()">Show Game State</button>
+        <pre id="gamestate-output"></pre>
+    </div>
+
+    <div class="section">
+        <h2>Character Library (Legacy)</h2>
+        <button onclick="showCharacterLibrary()">Show Character Library</button>
+        <pre id="library-output"></pre>
+    </div>
+
+    <div class="section">
+        <h2>Actions</h2>
+        <button onclick="clearGameState()">Clear Game State</button>
+        <button onclick="clearCharacterLibrary()">Clear Character Library</button>
+        <button onclick="clearAll()">Clear Everything</button>
+    </div>
+
+    <script>
+        function showAllKeys() {
+            const keys = Object.keys(localStorage);
+            const output = document.getElementById('keys-output');
+            output.textContent = JSON.stringify(keys, null, 2);
+        }
+
+        function showGameState() {
+            const gameState = localStorage.getItem('world-engine-game-state');
+            const output = document.getElementById('gamestate-output');
+            if (gameState) {
+                const parsed = JSON.parse(gameState);
+                output.textContent = JSON.stringify(parsed, null, 2);
+
+                // Highlight character count
+                if (parsed.state && parsed.state.characters) {
+                    output.textContent += `\n\n✅ Characters in Zustand Store: ${parsed.state.characters.length}`;
+                }
+            } else {
+                output.textContent = '❌ No game state found in localStorage';
+            }
+        }
+
+        function showCharacterLibrary() {
+            const library = localStorage.getItem('world-engine-characters');
+            const output = document.getElementById('library-output');
+            if (library) {
+                const parsed = JSON.parse(library);
+                output.textContent = JSON.stringify(parsed, null, 2);
+                output.textContent += `\n\n✅ Characters in Library: ${parsed.length}`;
+            } else {
+                output.textContent = '❌ No character library found in localStorage';
+            }
+        }
+
+        function clearGameState() {
+            if (confirm('Clear Zustand game state?')) {
+                localStorage.removeItem('world-engine-game-state');
+                alert('Game state cleared!');
+                showGameState();
+            }
+        }
+
+        function clearCharacterLibrary() {
+            if (confirm('Clear character library?')) {
+                localStorage.removeItem('world-engine-characters');
+                localStorage.removeItem('world-engine-characters-backup');
+                alert('Character library cleared!');
+                showCharacterLibrary();
+            }
+        }
+
+        function clearAll() {
+            if (confirm('Clear ALL localStorage data?')) {
+                localStorage.clear();
+                alert('All data cleared!');
+                location.reload();
+            }
+        }
+
+        // Auto-load on page load
+        window.onload = () => {
+            showAllKeys();
+            showGameState();
+            showCharacterLibrary();
+        };
+    </script>
+</body>
+
+</html>

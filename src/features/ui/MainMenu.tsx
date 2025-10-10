@@ -42,9 +42,10 @@ interface Props {
   onCombatUIDemo: () => void;
   onProcedural: () => void;
   onEncounters?: () => void;
+  onIntegratedCampaign?: () => void;
 }
 
-export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onClassicCharacterCreate, onPortraitTest, onAutoUpdater, onBattleSystem, onBattlePage, onMinimalBattle, onBrigandineHex, onEnhancedMap, onSimpleMap, onCombatUIDemo, onProcedural, onEncounters }: Props) {
+export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onClassicCharacterCreate, onPortraitTest, onAutoUpdater, onBattleSystem, onBattlePage, onMinimalBattle, onBrigandineHex, onEnhancedMap, onSimpleMap, onCombatUIDemo, onProcedural, onEncounters, onIntegratedCampaign }: Props) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [characters, setCharacters] = useState<SavedCharacter[]>([]);
   const [activeTab, setActiveTab] = useState<'campaigns' | 'characters'>('campaigns');
@@ -661,6 +662,14 @@ Recovered ${recovered.length} campaigns`);
                 <h3 style={{ margin: '0 0 5px 0' }}>New Campaign</h3>
                 <p style={{ margin: 0, opacity: 0.9 }}>Start a new adventure</p>
               </div>
+
+              {onIntegratedCampaign && (
+                <div style={{ ...newCardStyle, background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)' }} onClick={onIntegratedCampaign}>
+                  <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🌍</div>
+                  <h3 style={{ margin: '0 0 5px 0' }}>Integrated Campaign</h3>
+                  <p style={{ margin: 0, opacity: 0.9 }}>All systems working together!</p>
+                </div>
+              )}
 
               {campaigns.map(campaign => (
                 <div key={campaign.id} style={cardStyle}>

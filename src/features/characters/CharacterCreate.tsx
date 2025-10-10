@@ -7,6 +7,8 @@ import { CLASS_DEFINITIONS } from '../../core/config';
 import { SimplePortraitPreview } from '../portraits';
 // Gender-locked portrait system
 import { getAvailableArchetypes, getGenderLock } from '../../core/config';
+// Zustand store integration
+import { useGameStore } from '../../store/gameStore';
 
 type Stats = "STR" | "DEX" | "CON" | "INT" | "WIS" | "CHA";
 
@@ -477,7 +479,15 @@ const POINTS_POOL = 27;
 const MIN_STAT = 8;
 const MAX_STAT = 20;
 
-export default function CharacterCreate() {
+interface CharacterCreateProps {
+  onBack?: () => void;
+  onDone?: () => void;
+}
+
+export default function CharacterCreate({ onDone }: CharacterCreateProps = {}) {
+  // Zustand store hook
+  const { updateCurrentCharacter, saveCharacter: saveToStore } = useGameStore();
+
   const [char, setChar] = useState<Character>({
     name: "",
     gender: "",
@@ -492,6 +502,8 @@ export default function CharacterCreate() {
     knownSpells: [],
     knownCantrips: [],
   });
+
+  const [characterSaved, setCharacterSaved] = useState(false);
 
   const pointsSpent = useMemo(() => {
     let spent = 0;
@@ -744,7 +756,39 @@ export default function CharacterCreate() {
       storage.local.setItem('world-engine-characters-backup', JSON.stringify(existingCharacters));
       console.log("Saved to localStorage, total characters:", existingCharacters.length);
 
+      // ALSO save to Zustand store for campaign integration
+      try {
+        // Convert to Zustand store format
+        const storeCharacter = {
+          name: finalizedCharacter.name,
+          species: finalizedCharacter.species,
+          archetype: finalizedCharacter.archetype,
+          gender: finalizedCharacter.gender,
+          background: finalizedCharacter.background || '',
+          stats: finalizedCharacter.stats,
+          traits: finalizedCharacter.traits || [],
+          level: finalizedCharacter.level || 1,
+          experience: 0,
+          hp: 50 + ((finalizedCharacter.level || 1) * 10),
+          maxHp: 50 + ((finalizedCharacter.level || 1) * 10),
+          mp: 20 + ((finalizedCharacter.level || 1) * 5),
+          maxMp: 20 + ((finalizedCharacter.level || 1) * 5),
+          abilities: finalizedCharacter.knownSpells || [],
+          spells: finalizedCharacter.knownCantrips || [],
+          equipment: { weapon: 'Iron Sword', armor: 'Leather Armor', accessory: 'None' }
+        };
+
+        // First update the current character in store, then save it
+        updateCurrentCharacter(storeCharacter as any);
+        saveToStore(); // Now save the current character to the characters array
+        console.log("✅ Character also saved to Zustand store for campaigns");
+      } catch (storeError) {
+        console.error("⚠️ Failed to save to Zustand store:", storeError);
+        // Don't fail the entire save if store save fails
+      }
+
       alert(`${char.name} has been saved to your character library!`);
+      setCharacterSaved(true); // Mark as saved so "Done" button appears
     } catch (error) {
       console.error('Error saving to library:', error);
       alert('Error saving character to library.');
@@ -1377,6 +1421,60 @@ export default function CharacterCreate() {
           <button onClick={loadLast}>Load Last</button>
           <button onClick={resetAll}>Reset</button>
         </div>
+
+        {/* Show navigation buttons after character is saved */}
+        {characterSaved && (
+          <div style={{
+            marginTop: 16,
+            padding: 16,
+            background: "rgba(34, 197, 94, 0.1)",
+            border: "2px solid #22c55e",
+            borderRadius: 8,
+            display: "flex",
+            flexDirection: "column",
+            gap: 8
+          }}>
+            <div style={{ fontSize: 18, fontWeight: "bold", color: "#22c55e", textAlign: "center" }}>
+              ✅ Character Saved Successfully!
+            </div>
+            <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+              {onDone && (
+                <button
+                  onClick={onDone}
+                  style={{
+                    padding: "12px 24px",
+                    background: "#22c55e",
+                    color: "white",
+                    border: "none",
+                    borderRadius: 8,
+                    fontWeight: "bold",
+                    cursor: "pointer",
+                    fontSize: 16
+                  }}
+                >
+                  ✨ Done - Return to Game
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  setCharacterSaved(false);
+                  resetAll();
+                }}
+                style={{
+                  padding: "12px 24px",
+                  background: "#3b82f6",
+                  color: "white",
+                  border: "none",
+                  borderRadius: 8,
+                  fontWeight: "bold",
+                  cursor: "pointer"
+                }}
+              >
+                Create Another Character
+              </button>
+            </div>
+          </div>
+        )}
 
         <div style={card}>
           <h2 style={sectionTitle}>Premade Characters</h2>
