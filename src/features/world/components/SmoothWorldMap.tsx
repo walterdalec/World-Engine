@@ -12,7 +12,7 @@
  */
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { WorldPos } from '../../../core/types';
+import { WorldPos, OverworldSample } from '../../../core/types';
 import { sampleOverworld, initTerrainGenerator } from '../terrain/terrainGenerator';
 
 interface SmoothWorldMapProps {
@@ -28,6 +28,42 @@ export default function SmoothWorldMap({ seed }: SmoothWorldMapProps) {
   const keys = useRef<Record<string, boolean>>({});
   const animationRef = useRef<number>(0);
   const lastFrameRef = useRef<number>(0);
+  
+  // Terrain sample cache to reduce noise calculations
+  const terrainCacheRef = useRef<Map<string, OverworldSample>>(new Map());
+  
+  // Helper to get cached terrain sample
+  const getCachedSample = useCallback((x: number, y: number): OverworldSample => {
+    // Round to grid for caching (cache every 0.5 world units)
+    const gridX = Math.round(x * 2) / 2;
+    const gridY = Math.round(y * 2) / 2;
+    const key = `${gridX},${gridY}`;
+    
+    let sample = terrainCacheRef.current.get(key);
+    if (!sample) {
+      try {
+        sample = sampleOverworld({ x: gridX, y: gridY });
+        terrainCacheRef.current.set(key, sample);
+        
+        // Limit cache size to prevent memory leak
+        if (terrainCacheRef.current.size > 10000) {
+          const firstKey = terrainCacheRef.current.keys().next().value;
+          if (firstKey) terrainCacheRef.current.delete(firstKey);
+        }
+      } catch (error) {
+        console.error('Terrain sampling error:', error);
+        // Return safe default
+        sample = {
+          pos: { x: gridX, y: gridY },
+          height: 0,
+          moisture: 0.5,
+          biome: 'plains',
+          blocked: false
+        };
+      }
+    }
+    return sample;
+  }, []);
   
   // Initialize terrain generator with seed
   useEffect(() => {
@@ -115,95 +151,107 @@ export default function SmoothWorldMap({ seed }: SmoothWorldMapProps) {
       const newX = p.x + vel.x * dt;
       const newY = p.y + vel.y * dt;
       
-      // Check terrain at new position
-      const sample = sampleOverworld({ x: newX, y: newY });
-      
-      // Block movement into impassable terrain
-      if (sample.blocked) {
-        return p; // Don't move if blocked
+      // Check terrain at new position (using cached sample)
+      try {
+        const sample = getCachedSample(newX, newY);
+        
+        // Block movement into impassable terrain
+        if (sample.blocked) {
+          return p; // Don't move if blocked
+        }
+      } catch (error) {
+        console.error('Movement collision check error:', error);
       }
       
       return { x: newX, y: newY };
     });
-  }, [vel]);
+  }, [vel, getCachedSample]);
   
   /**
    * Render terrain and player
    */
   const render = useCallback((ctx: CanvasRenderingContext2D, _dt: number) => {
-    const canvas = ctx.canvas;
-    canvas.width = canvas.clientWidth * window.devicePixelRatio;
-    canvas.height = canvas.clientHeight * window.devicePixelRatio;
-    
-    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-    const displayW = canvas.clientWidth;
-    const displayH = canvas.clientHeight;
-    
-    // Clear background
-    ctx.fillStyle = '#0a0a0a';
-    ctx.fillRect(0, 0, displayW, displayH);
-    
-    // Render terrain around player
-    const scale = 8; // Pixels per world unit
-    const sampleStep = 3; // Sample every N pixels for performance
-    
-    for (let sy = 0; sy < displayH; sy += sampleStep) {
-      for (let sx = 0; sx < displayW; sx += sampleStep) {
-        // Convert screen position to world position
-        const worldX = pos.x + (sx - displayW / 2) / scale;
-        const worldY = pos.y + (sy - displayH / 2) / scale;
-        
-        // Sample terrain
-        const sample = sampleOverworld({ x: worldX, y: worldY });
-        
-        // Get terrain color
-        const color = getTerrainColor(sample.biome, sample.height, sample.moisture);
-        
-        ctx.fillStyle = color;
-        ctx.fillRect(sx, sy, sampleStep, sampleStep);
-      }
-    }
-    
-    // Draw player at center
-    ctx.fillStyle = '#ffffff';
-    ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(displayW / 2, displayH / 2, 6, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    
-    // Draw velocity indicator (facing direction)
-    if (Math.hypot(vel.x, vel.y) > 0.1) {
-      const angle = Math.atan2(vel.y, vel.x);
-      const arrowLen = 15;
-      const endX = displayW / 2 + Math.cos(angle) * arrowLen;
-      const endY = displayH / 2 + Math.sin(angle) * arrowLen;
+    try {
+      const canvas = ctx.canvas;
+      canvas.width = canvas.clientWidth * window.devicePixelRatio;
+      canvas.height = canvas.clientHeight * window.devicePixelRatio;
       
-      ctx.strokeStyle = '#ffff00';
-      ctx.lineWidth = 3;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      const displayW = canvas.clientWidth;
+      const displayH = canvas.clientHeight;
+      
+      // Clear background
+      ctx.fillStyle = '#0a0a0a';
+      ctx.fillRect(0, 0, displayW, displayH);
+      
+      // Render terrain around player
+      const scale = 8; // Pixels per world unit
+      const sampleStep = 6; // INCREASED from 3 to 6 for better performance
+      
+      for (let sy = 0; sy < displayH; sy += sampleStep) {
+        for (let sx = 0; sx < displayW; sx += sampleStep) {
+          // Convert screen position to world position
+          const worldX = pos.x + (sx - displayW / 2) / scale;
+          const worldY = pos.y + (sy - displayH / 2) / scale;
+          
+          // Sample terrain (using cache)
+          const sample = getCachedSample(worldX, worldY);
+          
+          // Get terrain color
+          const color = getTerrainColor(sample.biome, sample.height, sample.moisture);
+          
+          ctx.fillStyle = color;
+          ctx.fillRect(sx, sy, sampleStep, sampleStep);
+        }
+      }
+      
+      // Draw player at center
+      ctx.fillStyle = '#ffffff';
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(displayW / 2, displayH / 2);
-      ctx.lineTo(endX, endY);
+      ctx.arc(displayW / 2, displayH / 2, 6, 0, Math.PI * 2);
+      ctx.fill();
       ctx.stroke();
+      
+      // Draw velocity indicator (facing direction)
+      if (Math.hypot(vel.x, vel.y) > 0.1) {
+        const angle = Math.atan2(vel.y, vel.x);
+        const arrowLen = 15;
+        const endX = displayW / 2 + Math.cos(angle) * arrowLen;
+        const endY = displayH / 2 + Math.sin(angle) * arrowLen;
+        
+        ctx.strokeStyle = '#ffff00';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(displayW / 2, displayH / 2);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+      }
+      
+      // Draw position info
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '14px monospace';
+      ctx.fillText(`Position: (${pos.x.toFixed(1)}, ${pos.y.toFixed(1)})`, 10, 20);
+      
+      const sample = getCachedSample(pos.x, pos.y);
+      ctx.fillText(`Biome: ${sample.biome}`, 10, 40);
+      ctx.fillText(`Height: ${sample.height.toFixed(2)}`, 10, 60);
+      ctx.fillText(`Moisture: ${sample.moisture.toFixed(2)}`, 10, 80);
+      
+      // Controls help
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.font = '12px monospace';
+      ctx.fillText('WASD or Arrows to move', 10, displayH - 20);
+      
+    } catch (error) {
+      console.error('Render error:', error);
+      // Try to recover - draw error message
+      ctx.fillStyle = '#ff0000';
+      ctx.font = '16px monospace';
+      ctx.fillText('Render Error - Check Console', 10, 100);
     }
-    
-    // Draw position info
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '14px monospace';
-    ctx.fillText(`Position: (${pos.x.toFixed(1)}, ${pos.y.toFixed(1)})`, 10, 20);
-    
-    const sample = sampleOverworld(pos);
-    ctx.fillText(`Biome: ${sample.biome}`, 10, 40);
-    ctx.fillText(`Height: ${sample.height.toFixed(2)}`, 10, 60);
-    ctx.fillText(`Moisture: ${sample.moisture.toFixed(2)}`, 10, 80);
-    
-    // Controls help
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-    ctx.font = '12px monospace';
-    ctx.fillText('WASD or Arrows to move', 10, displayH - 20);
-    
-  }, [pos, vel]);
+  }, [pos, vel, getCachedSample]);
   
   return (
     <div className="relative w-full h-full bg-black">
