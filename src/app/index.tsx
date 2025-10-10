@@ -11,6 +11,7 @@ import { IntegratedCampaign } from "../features/strategy";
 import EncountersTestPage from "../features/world/encounters/EncountersTestPage";
 import { SimplePortraitTest } from "../features/portraits";
 import { CombatUIDemo } from "../pages/CombatUIDemo";
+import { EngineApp } from "./EngineApp";
 import { storage } from "../core/services/storage";
 import type { Engine } from "../engine.d";
 import { DEFAULT_WORLDS } from "../core/config";
@@ -36,7 +37,7 @@ function _randomSeed(): string {
 }
 
 function App() {
-  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "enhancedmap" | "simplemap" | "charactercreate" | "classiccharacter" | "portraittest" | "battlesystem" | "battle" | "minimalBattle" | "brigandineHex" | "autoupdater" | "combat-ui-demo" | "procedural" | "encounters" | "integrated-campaign">("menu");
+  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "enhancedmap" | "simplemap" | "charactercreate" | "classiccharacter" | "portraittest" | "battlesystem" | "battle" | "minimalBattle" | "brigandineHex" | "autoupdater" | "combat-ui-demo" | "procedural" | "encounters" | "integrated-campaign" | "engine-test">("menu");
   const [party, setParty] = React.useState<Character[]>([]);
   const [currentCampaign, setCurrentCampaign] = React.useState<any>(null);
   const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0); // Force re-render hook
@@ -342,6 +343,11 @@ function App() {
     setStep("integrated-campaign");
   };
 
+  const handleEngineTest = () => {
+    // Canvas 01: New engine skeleton test
+    setStep("engine-test");
+  };
+
   // fake engine stub for now
   // Engine stub - will be replaced with real engine
   const eng: Engine = {
@@ -450,6 +456,7 @@ function App() {
           onProcedural={handleProcedural}
           onEncounters={handleEncounters}
           onIntegratedCampaign={handleIntegratedCampaign}
+          onEngineTest={handleEngineTest}
         />
       )}
       {step === "world" && (
@@ -744,6 +751,9 @@ function App() {
           onNavigateToCharacterCreate={handleCharacterCreate}
           onNavigateToMenu={() => setStep("menu")}
         />
+      )}
+      {step === "engine-test" && (
+        <EngineApp />
       )}
     </>
   );
