@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { rng } from "../../core/services/random";
 import { storage } from "../../core/services/storage";
 
@@ -119,6 +119,15 @@ export default function BattleSystem({
     }
   }, []);
 
+  // Helper functions for battle calculations
+  const getModifier = (stat: number): number => {
+    return Math.floor((stat - 10) / 2);
+  };
+
+  const rollInitiative = useCallback((dexterity: number): number => {
+    return Math.floor(rng.next() * 20) + 1 + getModifier(dexterity);
+  }, []);
+
   // Initialize battle participants
   useEffect(() => {
     const players: BattleParticipant[] = playerCharacters.map((char, index) => ({
@@ -158,15 +167,7 @@ export default function BattleSystem({
     addToBattleLog(`⚔️ Battle begins! ${encounter.name}`);
     addToBattleLog(`Terrain: ${encounter.terrain}`);
     addToBattleLog('Initiative order: ' + sorted.map(p => `${p.name} (${p.initiative})`).join(', '));
-  }, [playerCharacters, encounter]);
-
-  const getModifier = (stat: number): number => {
-    return Math.floor((stat - 10) / 2);
-  };
-
-  const rollInitiative = (dexterity: number): number => {
-    return Math.floor(rng.next() * 20) + 1 + getModifier(dexterity);
-  };
+  }, [playerCharacters, encounter, rollInitiative]);
 
   const rollD20 = (): number => {
     return Math.floor(rng.next() * 20) + 1;
@@ -192,11 +193,11 @@ export default function BattleSystem({
     setBattleLog(prev => [...prev, message]);
   };
 
-  const getCurrentParticipant = (): BattleParticipant | null => {
+  const getCurrentParticipant = useCallback((): BattleParticipant | null => {
     if (turnOrder.length === 0) return null;
     const currentId = turnOrder[currentTurn];
     return participants.find(p => p.id === currentId) || null;
-  };
+  }, [turnOrder, currentTurn, participants]);
 
   const getAvailableActions = (participant: BattleParticipant): BattleAction[] => {
     const actions: BattleAction[] = [
@@ -576,7 +577,7 @@ export default function BattleSystem({
     }, 1500);
   };
 
-  const handleEnemyTurn = () => {
+  const handleEnemyTurn = useCallback(() => {
     const currentParticipant = getCurrentParticipant();
     if (currentParticipant?.type === 'enemy') {
       processEnemyTurn(currentParticipant);
@@ -584,7 +585,7 @@ export default function BattleSystem({
         nextTurn();
       }, 2000);
     }
-  };
+  }, [getCurrentParticipant, processEnemyTurn, nextTurn]);
 
   // Auto-process enemy turns
   useEffect(() => {
@@ -595,7 +596,7 @@ export default function BattleSystem({
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [currentTurn, battleState]);
+  }, [currentTurn, battleState, getCurrentParticipant, handleEnemyTurn]);
 
   if (battleState === 'setup') {
     return (

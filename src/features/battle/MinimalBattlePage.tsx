@@ -40,7 +40,7 @@ export function MinimalBattlePage() {
 
             return () => clearTimeout(timer);
         }
-    }, [engine.current.id, engine.state.phase, engine.state.turnIndex]);
+    }, [engine, engine.current.id, engine.state.phase, engine.state.turnIndex]);
 
     const onAction = (action: "Move" | "Fight" | "Spells" | "Defend" | "Wait" | "EndTurn") => {
         switch (action) {
