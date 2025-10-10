@@ -1,6 +1,7 @@
 /**
  * Replay Golden Tests - World Engine
  * Tests that ensure deterministic behavior across game systems
+ * @vitest-environment node
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';

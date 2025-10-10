@@ -14,7 +14,8 @@ function axialToCube(hex: HexCoord): { x: number; y: number; z: number } {
     const x = hex.q;
     const z = hex.r;
     const y = -x - z;
-    return { x, y, z };
+    // Ensure we return +0 instead of -0 for consistency
+    return { x: x || 0, y: y || 0, z: z || 0 };
 }
 
 function cubeDistance(a: HexCoord, b: HexCoord): number {
