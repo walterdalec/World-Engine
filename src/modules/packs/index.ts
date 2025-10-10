@@ -16,7 +16,7 @@ export class PacksModule implements EngineModule {
 
         // Respond to pack loading requests
         ctx.events.respond<{ json: string }, { success: boolean; errors: ValidationError[] }>
-            ('packs/load', async (req: { json: string }) => {
+            ('packs/load', async (req) => {
                 try {
                     const data = JSON.parse(req.json);
                     return validateAndRegister(data, this.registry);
