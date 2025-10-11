@@ -1,14 +1,19 @@
 /**
  * Road System - A* Pathfinding with Passes & Fords
  * 
- * Connects settlements with roads that obey impassable mountains/rivers,
- * using passes and fords/bridges. Produces smooth splines for rendering
- * and a tiered network (arterial/minor).
+ * Connects meaningful POIs (settlements, forts, ruins, dungeons) with a tiered road network.
+ * Respects impassable mountains/rivers except at generated passes/fords/bridges.
+ * Produces arterial roads, minor roads, and trails; includes Pixi painters.
+ * 
+ * Network Tiers:
+ * - ARTERIAL: Major roads connecting cities/towns
+ * - MINOR: Spurs connecting villages to main network
+ * - TRAIL: Paths to ruins, dungeons, shrines
  * 
  * Adapted from procedural terrain generation reference code.
  */
 
-import { Graphics } from 'pixi.js';
+import { Graphics, Container } from 'pixi.js';
 
 export interface TerrainData {
     width: number;
@@ -22,13 +27,32 @@ export interface TerrainData {
     passes?: Array<{ x: number; y: number }>;
 }
 
-export interface Settlement {
+export type POITag = 'CITY' | 'TOWN' | 'VILLAGE' | 'HAMLET' | 'FORTRESS' | 'RUIN' | 'DUNGEON' | 'SHRINE';
+
+export interface POI {
+    id?: string;
+    pos?: { x: number; y: number };
+    x?: number;
+    y?: number;
+    q?: number;
+    r?: number;
+    tag?: string;
+    type?: string;
+    settlementType?: string;
+}
+
+export interface Node {
+    id: string;
     pos: { x: number; y: number };
-    settlementType?: 'HAMLET' | 'VILLAGE' | 'TOWN' | 'CITY';
+    tag: POITag;
+    degree: number;
+    raw?: POI;
 }
 
 export interface Road {
-    kind: 'ARTERIAL' | 'MINOR';
+    kind: 'ARTERIAL' | 'MINOR' | 'TRAIL';
+    a: string;
+    b: string;
     poly: Array<{ x: number; y: number }>;
     length: number;
 }
@@ -40,9 +64,25 @@ interface CostFieldOptions {
 }
 
 interface ConnectOptions extends CostFieldOptions {
-    kNearest?: number;
-    arterialMinTier?: 'HAMLET' | 'VILLAGE' | 'TOWN' | 'CITY';
-    addLocalSpurs?: boolean;
+    kHub?: number;
+    maxSpur?: number;
+    maxTrail?: number;
+    arterialMinTier?: POITag;
+    hubTags?: POITag[];
+    minorTags?: POITag[];
+    siteTags?: POITag[];
+}
+
+interface SelectionResult {
+    hubs: Node[];
+    minors: Node[];
+    sites: Node[];
+}
+
+interface PathSearchResult {
+    node: Node;
+    path: Array<{ x: number; y: number }>;
+    pathCost: number;
 }
 
 // ---------- Cost Field ----------
@@ -251,69 +291,165 @@ export function smoothPath(
     return out;
 }
 
-// ---------- Network Build ----------
-export function connectSettlements(settlements: Settlement[], data: TerrainData, opts: ConnectOptions = {}): { roads: Road[] } {
-    const k = opts.kNearest ?? 3;
-    const arterialMinTier = opts.arterialMinTier ?? 'TOWN';
+// ---------- POI Selection & Network Build ----------
+export function selectRoadTargets(pois: POI[], opts: ConnectOptions = {}): SelectionResult {
+    const hubTags = opts.hubTags ?? ['CITY', 'TOWN', 'FORTRESS'];
+    const minorTags = opts.minorTags ?? ['VILLAGE', 'HAMLET'];
+    const siteTags = opts.siteTags ?? ['RUIN', 'DUNGEON', 'SHRINE'];
+
+    const hubs: Node[] = [];
+    const minors: Node[] = [];
+    const sites: Node[] = [];
+
+    for (const p of pois) {
+        const tag = normalizePOITag(p);
+        const node: Node = {
+            id: p.id ?? makePOIId(p),
+            pos: p.pos ?? { x: p.x ?? p.q ?? 0, y: p.y ?? p.r ?? 0 },
+            tag,
+            degree: 0,
+            raw: p,
+        };
+
+        if (hubTags.includes(tag)) hubs.push(node);
+        else if (minorTags.includes(tag)) minors.push(node);
+        else if (siteTags.includes(tag)) sites.push(node);
+    }
+
+    return { hubs, minors, sites };
+}
+
+export function connectPOIs(pois: POI[], data: TerrainData, opts: ConnectOptions = {}): { roads: Road[]; nodes: Node[] } {
+    const { hubs, minors, sites } = selectRoadTargets(pois, opts);
+    const kHub = opts.kHub ?? 3;
+    const maxSpur = opts.maxSpur ?? 380;
+    const maxTrail = opts.maxTrail ?? 280;
 
     const cost = buildCostField(data, opts);
     const roads: Road[] = [];
+    const nodes: Node[] = [...hubs, ...minors, ...sites];
 
-    // Build candidate edges (k-nearest)
-    const edges: Array<{ i: number; j: number; d: number }> = [];
-    for (let i = 0; i < settlements.length; i++) {
-        const A = settlements[i];
-        const dists: Array<{ j: number; d: number }> = [];
-        for (let j = 0; j < settlements.length; j++)
-            if (i !== j) {
-                const B = settlements[j];
-                dists.push({ j, d: Math.hypot(A.pos.x - B.pos.x, A.pos.y - B.pos.y) });
-            }
-        dists
-            .sort((a, b) => a.d - b.d)
-            .slice(0, k)
-            .forEach(({ j, d }) => edges.push({ i, j, d }));
-    }
-
-    // Kruskal-ish connect minimal network first
-    edges.sort((a, b) => a.d - b.d);
-    const parent = new DisjointSet(settlements.length);
-
+    // --- 1) Trunk network among hubs
+    const edges = kNearestEdges(hubs, kHub);
+    const parent = new DisjointSet(hubs.length);
     const planned = new Set<string>();
-    function addRoad(i: number, j: number, kind: 'ARTERIAL' | 'MINOR'): Road | null {
-        const key = i < j ? `${i}-${j}` : `${j}-${i}`;
-        if (planned.has(key)) return null;
-        planned.add(key);
-        const A = settlements[i].pos;
-        const B = settlements[j].pos;
-        const raw = astarPath(data, cost, A, B);
-        if (!raw || raw.length === 0) return null;
-        const simple = simplifyRDP(raw, 1.2);
-        const smooth = smoothPath(simple, { tension: 0.5, segments: 6 });
-        const road: Road = { kind, poly: smooth, length: pathLength(smooth) };
-        roads.push(road);
-        return road;
-    }
 
-    for (const e of edges) {
+    for (const e of edges.sort((a, b) => a.d - b.d)) {
         if (parent.find(e.i) !== parent.find(e.j)) {
-            const kind = isArterial(settlements[e.i], settlements[e.j], arterialMinTier) ? 'ARTERIAL' : 'MINOR';
-            const r = addRoad(e.i, e.j, kind);
-            if (r) parent.union(e.i, e.j);
+            const r = addRoadBetween(hubs[e.i], hubs[e.j], 'ARTERIAL');
+            if (r) {
+                parent.union(e.i, e.j);
+                markDegree(hubs[e.i], hubs[e.j]);
+            }
         }
     }
 
-    // Optional: add short local spurs for remaining nearest-neighbor pairs
-    if (opts.addLocalSpurs) {
-        for (const e of edges.slice(0, settlements.length * 2)) addRoad(e.i, e.j, 'MINOR');
+    // --- 2) Spurs from minors to nearest hub/trunk node
+    for (const m of minors) {
+        const nearest = nearestByPath(m, hubs, data, cost, 3);
+        if (!nearest) continue;
+        if (nearest.pathCost > maxSpur) continue;
+        const r = addRoadPolyline(m, nearest.node, nearest.path, 'MINOR');
+        if (r) markDegree(m, nearest.node);
     }
 
-    return { roads };
+    // --- 3) Trails to sites (ruins/dungeons/shrines)
+    for (const s of sites) {
+        const candidates = [...hubs, ...minors].filter((n) => n.degree > 0);
+        const near = nearestByPath(s, candidates.length ? candidates : hubs, data, cost, 3);
+        if (!near) continue;
+        if (near.pathCost > maxTrail) continue;
+        const r = addRoadPolyline(s, near.node, near.path, 'TRAIL');
+        if (r) markDegree(s, near.node);
+    }
+
+    return { roads, nodes };
+
+    // Helpers
+    function addRoadBetween(A: Node, B: Node, kind: 'ARTERIAL' | 'MINOR' | 'TRAIL'): Road | null {
+        const raw = astarPath(data, cost, A.pos, B.pos);
+        if (!raw.length) return null;
+        return addRoadPolyline(A, B, raw, kind);
+    }
+
+    function addRoadPolyline(A: Node, B: Node, raw: Array<{ x: number; y: number }>, kind: 'ARTERIAL' | 'MINOR' | 'TRAIL'): Road | null {
+        const key = A.id < B.id ? `${A.id}-${B.id}` : `${B.id}-${A.id}`;
+        if (planned.has(key)) return null;
+        planned.add(key);
+        const simple = simplifyRDP(raw, 1.25);
+        const smooth = smoothPath(simple, { tension: 0.5, segments: 6 });
+        const road: Road = { kind, a: A.id, b: B.id, poly: smooth, length: pathLength(smooth) };
+        roads.push(road);
+        return road;
+    }
 }
 
-function isArterial(a: Settlement, b: Settlement, minTier: string): boolean {
-    const rank = (t?: string) => ({ HAMLET: 0, VILLAGE: 1, TOWN: 2, CITY: 3 }[t || 'HAMLET'] || 0);
-    return Math.max(rank(a.settlementType), rank(b.settlementType)) >= rank(minTier);
+function kNearestEdges(nodes: Node[], k: number): Array<{ i: number; j: number; d: number }> {
+    const edges: Array<{ i: number; j: number; d: number }> = [];
+    for (let i = 0; i < nodes.length; i++) {
+        const A = nodes[i];
+        const d: Array<{ j: number; d: number }> = [];
+        for (let j = 0; j < nodes.length; j++)
+            if (i !== j) {
+                const B = nodes[j];
+                d.push({ j, d: Math.hypot(A.pos.x - B.pos.x, A.pos.y - B.pos.y) });
+            }
+        d.sort((a, b) => a.d - b.d)
+            .slice(0, k)
+            .forEach(({ j, d: dist }) => edges.push({ i, j, d: dist }));
+    }
+    return edges;
+}
+
+function nearestByPath(from: Node, targets: Node[], data: TerrainData, cost: Float32Array, sample = 3): PathSearchResult | null {
+    if (!targets.length) return null;
+    const scored: PathSearchResult[] = [];
+
+    // Sample a few nearest by euclidean, then compute true path
+    const near = [...targets]
+        .sort(
+            (a, b) =>
+                Math.hypot(from.pos.x - a.pos.x, from.pos.y - a.pos.y) - Math.hypot(from.pos.x - b.pos.x, from.pos.y - b.pos.y)
+        )
+        .slice(0, Math.min(sample, targets.length));
+
+    for (const t of near) {
+        const raw = astarPath(data, cost, from.pos, t.pos);
+        if (!raw.length) continue;
+        scored.push({ node: t, path: raw, pathCost: pathCostApprox(raw, cost, data.width) });
+    }
+
+    if (!scored.length) return null;
+    scored.sort((a, b) => a.pathCost - b.pathCost);
+    return scored[0];
+}
+
+function pathCostApprox(poly: Array<{ x: number; y: number }>, cost: Float32Array, W: number): number {
+    let s = 0;
+    for (const p of poly) s += cost[((p.y | 0) * W + (p.x | 0))];
+    return s / Math.max(1, poly.length);
+}
+
+function markDegree(a: Node, b: Node): void {
+    a.degree++;
+    b.degree++;
+}
+
+function makePOIId(p: POI): string {
+    return `${(p.tag || p.type || 'POI')}-${Math.round(p.x ?? p.q ?? 0)}-${Math.round(p.y ?? p.r ?? 0)}`;
+}
+
+function normalizePOITag(p: POI): POITag {
+    const t = (p.tag || p.type || p.settlementType || '').toUpperCase();
+    if (t.includes('CITY')) return 'CITY';
+    if (t.includes('TOWN')) return 'TOWN';
+    if (t.includes('VILLAGE')) return 'VILLAGE';
+    if (t.includes('HAMLET')) return 'HAMLET';
+    if (t.includes('FORT')) return 'FORTRESS';
+    if (t.includes('RUIN')) return 'RUIN';
+    if (t.includes('DUNGEON')) return 'DUNGEON';
+    if (t.includes('SHRINE')) return 'SHRINE';
+    return 'HAMLET';
 }
 
 function pathLength(p: Array<{ x: number; y: number }>): number {
@@ -328,9 +464,14 @@ export function paintRoadsPIXI(container: Graphics, roads: Road[], opts: { zInde
     if (opts.zIndex !== undefined) g.zIndex = opts.zIndex;
 
     for (const r of roads) {
-        const lineWidth = r.kind === 'ARTERIAL' ? 3 : 2;
-        const color = r.kind === 'ARTERIAL' ? 0xc2a266 : 0x9b7e45;
-        g.lineStyle(lineWidth, color, 1.0);
+        const style =
+            r.kind === 'ARTERIAL'
+                ? { w: 3, c: 0xc2a266 }
+                : r.kind === 'MINOR'
+                ? { w: 2, c: 0x9b7e45 }
+                : { w: 1, c: 0x556b2f };
+
+        g.lineStyle(style.w, style.c, 1.0);
 
         let first = true;
         for (const p of r.poly) {
@@ -345,6 +486,34 @@ export function paintRoadsPIXI(container: Graphics, roads: Road[], opts: { zInde
 
     container.addChild(g);
     return g;
+}
+
+export function paintRoadEndpointsPIXI(container: Container, nodes: Node[], opts: { zIndex?: number } = {}): Container {
+    const layer = new Container();
+    if (opts.zIndex !== undefined) layer.zIndex = opts.zIndex;
+
+    const colors: Record<POITag, number> = {
+        CITY: 0xffd166,
+        TOWN: 0xf6ae2d,
+        VILLAGE: 0x9ccc65,
+        HAMLET: 0xaed581,
+        FORTRESS: 0xc0392b,
+        RUIN: 0x8d6e63,
+        DUNGEON: 0x7e57c2,
+        SHRINE: 0x64b5f6,
+    };
+
+    for (const n of nodes) {
+        const g = new Graphics();
+        g.beginFill(colors[n.tag] ?? 0xffffff, 1);
+        const r = n.tag === 'CITY' || n.tag === 'FORTRESS' ? 5 : n.tag === 'TOWN' ? 4 : 3;
+        g.drawCircle(n.pos.x, n.pos.y, r);
+        g.endFill();
+        layer.addChild(g);
+    }
+
+    container.addChild(layer);
+    return layer;
 }
 
 // ---------- Utils ----------
