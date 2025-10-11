@@ -46,7 +46,7 @@ const SETTLEMENT_TYPES = {
 
 // Seeded random number generator
 function mulberry32(seed: number) {
-    return function() {
+    return function () {
         let t = seed += 0x6D2B79F5;
         t = Math.imul((t ^ (t >>> 15)), (t | 1));
         t ^= t + Math.imul((t ^ (t >>> 7)), (t | 61));
@@ -76,7 +76,7 @@ export function SettlementInterior({ settlementType, settlementName, seed, onExi
     const layout = useMemo((): SettlementLayout => {
         const rng = mulberry32(seed);
         const def = SETTLEMENT_TYPES[settlementType] || SETTLEMENT_TYPES.hut;
-        
+
         const roads: Road[] = [];
         const buildings: Building[] = [];
 
@@ -97,7 +97,7 @@ export function SettlementInterior({ settlementType, settlementName, seed, onExi
         for (let i = 0; i < buildingCount; i++) {
             const road = roads[Math.floor(rng() * roads.length)];
             const dist = 2 + Math.floor(rng() * (def.radius - 2)); // Stay inside radius
-            
+
             let angle: number;
             if (road.type === 'RADIAL' && road.angle !== undefined) {
                 angle = road.angle + (rng() - 0.5) * 0.3; // Near the road
@@ -142,7 +142,7 @@ export function SettlementInterior({ settlementType, settlementName, seed, onExi
         ctx.beginPath();
         ctx.arc(0, 0, (layout.radius + 5) * 30, 0, Math.PI * 2);
         ctx.fill();
-        
+
         ctx.beginPath();
         ctx.arc(0, 0, layout.radius * 30, 0, Math.PI * 2);
         ctx.fill();
@@ -185,31 +185,31 @@ export function SettlementInterior({ settlementType, settlementName, seed, onExi
         for (const building of layout.buildings) {
             const bx = building.x * 30;
             const by = building.y * 30;
-            
+
             // Building base
             const size = building.type === 'Castle' || building.type === 'Temple' ? 20 :
-                        building.type === 'Guildhall' || building.type === 'Market' ? 16 :
-                        12;
-            
+                building.type === 'Guildhall' || building.type === 'Market' ? 16 :
+                    12;
+
             const color = building.type === 'Castle' ? '#64748b' :
-                         building.type === 'Temple' || building.type === 'Shrine' ? '#fbbf24' :
-                         building.type === 'Market' || building.type === 'Shop' ? '#f97316' :
-                         building.type === 'Inn' || building.type === 'Tavern' ? '#ef4444' :
-                         building.type === 'Barracks' || building.type === 'Guardpost' ? '#475569' :
-                         '#94a3b8'; // Default house
+                building.type === 'Temple' || building.type === 'Shrine' ? '#fbbf24' :
+                    building.type === 'Market' || building.type === 'Shop' ? '#f97316' :
+                        building.type === 'Inn' || building.type === 'Tavern' ? '#ef4444' :
+                            building.type === 'Barracks' || building.type === 'Guardpost' ? '#475569' :
+                                '#94a3b8'; // Default house
 
             ctx.fillStyle = color;
             ctx.strokeStyle = '#1e293b';
             ctx.lineWidth = 2 / camera.scale;
-            ctx.fillRect(bx - size/2, by - size/2, size, size);
-            ctx.strokeRect(bx - size/2, by - size/2, size, size);
+            ctx.fillRect(bx - size / 2, by - size / 2, size, size);
+            ctx.strokeRect(bx - size / 2, by - size / 2, size, size);
 
             // Roof
             ctx.fillStyle = '#7c2d12';
             ctx.beginPath();
-            ctx.moveTo(bx, by - size/2 - 6);
-            ctx.lineTo(bx - size/2 - 3, by - size/2);
-            ctx.lineTo(bx + size/2 + 3, by - size/2);
+            ctx.moveTo(bx, by - size / 2 - 6);
+            ctx.lineTo(bx - size / 2 - 3, by - size / 2);
+            ctx.lineTo(bx + size / 2 + 3, by - size / 2);
             ctx.closePath();
             ctx.fill();
             ctx.stroke();
@@ -221,8 +221,8 @@ export function SettlementInterior({ settlementType, settlementName, seed, onExi
             ctx.font = `${10 / camera.scale}px Arial`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'top';
-            ctx.strokeText(building.type, bx, by + size/2 + 2);
-            ctx.fillText(building.type, bx, by + size/2 + 2);
+            ctx.strokeText(building.type, bx, by + size / 2 + 2);
+            ctx.fillText(building.type, bx, by + size / 2 + 2);
         }
 
         ctx.restore();
@@ -274,14 +274,13 @@ export function SettlementInterior({ settlementType, settlementName, seed, onExi
                 <div className="space-y-1">
                     {Array.from(new Set(layout.buildings.map(b => b.type))).sort().map(type => (
                         <div key={type} className="flex items-center gap-2">
-                            <div className={`w-3 h-3 rounded ${
-                                type === 'Castle' ? 'bg-gray-500' :
-                                type.includes('Temple') || type.includes('Shrine') ? 'bg-yellow-500' :
-                                type.includes('Market') || type.includes('Shop') ? 'bg-orange-500' :
-                                type.includes('Inn') || type.includes('Tavern') ? 'bg-red-500' :
-                                type.includes('Barracks') || type.includes('Guard') ? 'bg-gray-600' :
-                                'bg-gray-400'
-                            }`}></div>
+                            <div className={`w-3 h-3 rounded ${type === 'Castle' ? 'bg-gray-500' :
+                                    type.includes('Temple') || type.includes('Shrine') ? 'bg-yellow-500' :
+                                        type.includes('Market') || type.includes('Shop') ? 'bg-orange-500' :
+                                            type.includes('Inn') || type.includes('Tavern') ? 'bg-red-500' :
+                                                type.includes('Barracks') || type.includes('Guard') ? 'bg-gray-600' :
+                                                    'bg-gray-400'
+                                }`}></div>
                             <span>{type} ({layout.buildings.filter(b => b.type === type).length})</span>
                         </div>
                     ))}

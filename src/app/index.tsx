@@ -6,7 +6,7 @@ import { MainMenu, WorldSetupScreen, VersionDisplay } from "../features/ui";
 import { CharacterLibrary, CharacterCreate, NameGenerator, ClassicCharacterCreator } from "../features/characters";
 import { SpellGenerator, SpellAssignment } from "../features/spells";
 import { HealingSystem, BrigandineHexBattle } from "../features/battle";
-import { EnhancedWorldMap, HexWorldMap, SmoothWorldMap, ProceduralDevTools } from "../features/world";
+import { EnhancedWorldMap, HexWorldMap, WorldMapRouter, ProceduralDevTools } from "../features/world";
 import EncountersTestPage from "../features/world/encounters/EncountersTestPage";
 import { SimplePortraitTest } from "../features/portraits";
 import { CombatUIDemo } from "../pages/CombatUIDemo";
@@ -594,8 +594,9 @@ function App() {
       )}
       {step === "smoothmap" && (
         <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
-          <SmoothWorldMap
+          <WorldMapRouter
             seed={eng?.state?.meta?.seed || "default-smooth-world"}
+            initialRenderer="pixi"
           />
           <button
             onClick={() => setStep("menu")}

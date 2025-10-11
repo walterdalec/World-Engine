@@ -55,16 +55,16 @@ interface PlayerPosition {
 export default function HexWorldMap({ seedStr = "hex-world-001", onBack }: HexWorldMapProps) {
     const [playerPos, setPlayerPos] = useState<PlayerPosition>({ q: 10, r: 10 });
     const [worldTiles, setWorldTiles] = useState<WorldTile[]>([]);
-    
+
     // Initialize with starting area explored (player position + neighbors)
     const [exploredTiles, setExploredTiles] = useState<Set<string>>(() => {
         const initial = new Set<string>();
         const startQ = 10;
         const startR = 10;
-        
+
         // Mark starting position
         initial.add(`${startQ},${startR}`);
-        
+
         // Mark 6 neighbors (hex directions)
         initial.add(`${startQ},${startR - 1}`); // North
         initial.add(`${startQ},${startR + 1}`); // South
@@ -72,10 +72,10 @@ export default function HexWorldMap({ seedStr = "hex-world-001", onBack }: HexWo
         initial.add(`${startQ + 1},${startR}`); // Northeast
         initial.add(`${startQ - 1},${startR + 1}`); // Southwest
         initial.add(`${startQ + 1},${startR - 1}`); // Southeast
-        
+
         return initial;
     });
-    
+
     const [activeSettlement, setActiveSettlement] = useState<Settlement | null>(null);
     const [activeEncounter, setActiveEncounter] = useState<MapEncounter | null>(null);
     const [playerCharacters, setPlayerCharacters] = useState<any[]>([]);
@@ -494,130 +494,130 @@ export default function HexWorldMap({ seedStr = "hex-world-001", onBack }: HexWo
             {!viewingSettlementInterior && (
                 <div className="relative w-screen h-screen bg-gray-900 text-white overflow-hidden">
                     {/* Header */}
-            <div className="absolute top-0 left-0 right-0 z-10 bg-gray-800 bg-opacity-90 p-4">
-                <div className="flex justify-between items-center">
-                    <h1 className="text-2xl font-bold">Hex World Map</h1>
-                    <div className="flex gap-4">
-                        <div className="text-sm">
-                            <div>Position: ({playerPos.q}, {playerPos.r})</div>
-                            <div>Party Size: {playerCharacters.length}</div>
-                        </div>
-                        {onBack && (
-                            <button
-                                onClick={onBack}
-                                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded"
-                            >
-                                ← Back
-                            </button>
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            {/* World Renderer */}
-            <div className="absolute inset-0 pt-20">
-                <WorldHexRenderer
-                    tiles={worldTiles}
-                    playerPos={playerPos}
-                    width={mapWidth}
-                    height={mapHeight}
-                    onTileClick={handleTileClick}
-                    showGrid={true}
-                />
-            </div>
-
-            {/* Controls overlay - top left for visibility */}
-            <div className="absolute top-24 left-4 bg-black bg-opacity-75 p-4 rounded text-sm z-10">
-                <div className="font-bold mb-2">Hex Controls (6 directions):</div>
-                <div className="grid grid-cols-3 gap-1 text-center mb-1">
-                    <div className="bg-gray-700 px-2 py-1 rounded">Q</div>
-                    <div className="bg-gray-700 px-2 py-1 rounded">W</div>
-                    <div className="bg-gray-700 px-2 py-1 rounded">E</div>
-                </div>
-                <div className="grid grid-cols-3 gap-1 text-center text-xs mb-2">
-                    <div>↖</div>
-                    <div>↑</div>
-                    <div>↗</div>
-                </div>
-                <div className="grid grid-cols-3 gap-1 text-center mb-1">
-                    <div className="bg-gray-700 px-2 py-1 rounded">A</div>
-                    <div className="bg-gray-700 px-2 py-1 rounded">S</div>
-                    <div className="bg-gray-700 px-2 py-1 rounded">D</div>
-                </div>
-                <div className="grid grid-cols-3 gap-1 text-center text-xs mb-2">
-                    <div>↙</div>
-                    <div>↓</div>
-                    <div>↘</div>
-                </div>
-                <div className="mt-2 text-xs text-gray-400 border-t border-gray-600 pt-2">
-                    🖱️ Drag to pan<br />
-                    🔍 Scroll to zoom
-                </div>
-            </div>
-
-            {/* Settlement dialog */}
-            {activeSettlement && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 z-20">
-                    <div className="bg-gray-800 p-6 rounded-lg max-w-md">
-                        <h2 className="text-2xl font-bold mb-4">
-                            {activeSettlement.emoji} {activeSettlement.name}
-                        </h2>
-                        <p className="mb-2">Type: {activeSettlement.type}</p>
-                        <p className="mb-2">Population: {activeSettlement.population}</p>
-                        <p className="mb-4">{activeSettlement.description}</p>
-                        <div className="mb-4">
-                            <strong>Services:</strong> {activeSettlement.services?.join(', ')}
-                        </div>
-                        <div className="flex gap-2">
-                            <button
-                                onClick={handleEnterSettlement}
-                                className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded"
-                            >
-                                🏘️ Enter Settlement
-                            </button>
-                            <button
-                                onClick={handleCloseSettlement}
-                                className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded"
-                            >
-                                Leave
-                            </button>
+                    <div className="absolute top-0 left-0 right-0 z-10 bg-gray-800 bg-opacity-90 p-4">
+                        <div className="flex justify-between items-center">
+                            <h1 className="text-2xl font-bold">Hex World Map</h1>
+                            <div className="flex gap-4">
+                                <div className="text-sm">
+                                    <div>Position: ({playerPos.q}, {playerPos.r})</div>
+                                    <div>Party Size: {playerCharacters.length}</div>
+                                </div>
+                                {onBack && (
+                                    <button
+                                        onClick={onBack}
+                                        className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded"
+                                    >
+                                        ← Back
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
 
-            {/* Encounter dialog */}
-            {activeEncounter && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 z-20">
-                    <div className="bg-gray-800 p-6 rounded-lg max-w-md">
-                        <h2 className="text-2xl font-bold mb-4">
-                            {activeEncounter.emoji} Encounter!
-                        </h2>
-                        <p className="mb-2">Type: {activeEncounter.type}</p>
-                        <p className="mb-2">Danger: <span className={
-                            activeEncounter.danger === 'extreme' ? 'text-red-500' :
-                                activeEncounter.danger === 'high' ? 'text-orange-500' :
-                                    activeEncounter.danger === 'medium' ? 'text-yellow-500' :
-                                        'text-green-500'
-                        }>{activeEncounter.danger}</span></p>
-                        <p className="mb-4">{activeEncounter.description}</p>
-                        <div className="flex gap-2">
-                            <button
-                                onClick={handleEncounter}
-                                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 rounded"
-                            >
-                                ⚔️ Fight
-                            </button>
-                            <button
-                                onClick={() => setActiveEncounter(null)}
-                                className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded"
-                            >
-                                🏃 Flee
-                            </button>
+                    {/* World Renderer */}
+                    <div className="absolute inset-0 pt-20">
+                        <WorldHexRenderer
+                            tiles={worldTiles}
+                            playerPos={playerPos}
+                            width={mapWidth}
+                            height={mapHeight}
+                            onTileClick={handleTileClick}
+                            showGrid={true}
+                        />
+                    </div>
+
+                    {/* Controls overlay - top left for visibility */}
+                    <div className="absolute top-24 left-4 bg-black bg-opacity-75 p-4 rounded text-sm z-10">
+                        <div className="font-bold mb-2">Hex Controls (6 directions):</div>
+                        <div className="grid grid-cols-3 gap-1 text-center mb-1">
+                            <div className="bg-gray-700 px-2 py-1 rounded">Q</div>
+                            <div className="bg-gray-700 px-2 py-1 rounded">W</div>
+                            <div className="bg-gray-700 px-2 py-1 rounded">E</div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-1 text-center text-xs mb-2">
+                            <div>↖</div>
+                            <div>↑</div>
+                            <div>↗</div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-1 text-center mb-1">
+                            <div className="bg-gray-700 px-2 py-1 rounded">A</div>
+                            <div className="bg-gray-700 px-2 py-1 rounded">S</div>
+                            <div className="bg-gray-700 px-2 py-1 rounded">D</div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-1 text-center text-xs mb-2">
+                            <div>↙</div>
+                            <div>↓</div>
+                            <div>↘</div>
+                        </div>
+                        <div className="mt-2 text-xs text-gray-400 border-t border-gray-600 pt-2">
+                            🖱️ Drag to pan<br />
+                            🔍 Scroll to zoom
                         </div>
                     </div>
-                </div>
-            )}
+
+                    {/* Settlement dialog */}
+                    {activeSettlement && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 z-20">
+                            <div className="bg-gray-800 p-6 rounded-lg max-w-md">
+                                <h2 className="text-2xl font-bold mb-4">
+                                    {activeSettlement.emoji} {activeSettlement.name}
+                                </h2>
+                                <p className="mb-2">Type: {activeSettlement.type}</p>
+                                <p className="mb-2">Population: {activeSettlement.population}</p>
+                                <p className="mb-4">{activeSettlement.description}</p>
+                                <div className="mb-4">
+                                    <strong>Services:</strong> {activeSettlement.services?.join(', ')}
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={handleEnterSettlement}
+                                        className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded"
+                                    >
+                                        🏘️ Enter Settlement
+                                    </button>
+                                    <button
+                                        onClick={handleCloseSettlement}
+                                        className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded"
+                                    >
+                                        Leave
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Encounter dialog */}
+                    {activeEncounter && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 z-20">
+                            <div className="bg-gray-800 p-6 rounded-lg max-w-md">
+                                <h2 className="text-2xl font-bold mb-4">
+                                    {activeEncounter.emoji} Encounter!
+                                </h2>
+                                <p className="mb-2">Type: {activeEncounter.type}</p>
+                                <p className="mb-2">Danger: <span className={
+                                    activeEncounter.danger === 'extreme' ? 'text-red-500' :
+                                        activeEncounter.danger === 'high' ? 'text-orange-500' :
+                                            activeEncounter.danger === 'medium' ? 'text-yellow-500' :
+                                                'text-green-500'
+                                }>{activeEncounter.danger}</span></p>
+                                <p className="mb-4">{activeEncounter.description}</p>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={handleEncounter}
+                                        className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 rounded"
+                                    >
+                                        ⚔️ Fight
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveEncounter(null)}
+                                        className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded"
+                                    >
+                                        🏃 Flee
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
         </>

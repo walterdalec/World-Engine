@@ -1,319 +1,481 @@
 /**
- * Smooth World Map - Organic Continuous Terrain
+ * Smooth World Map - Organic Continuous Terrain (OPTIMIZED)
  * 
  * HYBRID ARCHITECTURE: Smooth overworld exploration (like M&M)
  * Hex battles will be generated from this terrain when combat triggers.
  * 
  * Features:
  * - 360° WASD movement with momentum
+ * - Drag-to-pan with pointer capture
+ * - Ctrl+wheel zoom (anchored to cursor position)
+ * - Normal wheel for panning
+ * - Ref-based state for 60fps performance
+ * - DPR-aware rendering for Retina displays
  * - Noise-based procedural terrain
  * - Biome-based coloring
- * - Smooth camera follow
  */
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { WorldPos, OverworldSample } from '../../../core/types';
+import React, { useEffect, useRef } from 'react';
+import { WorldPos } from '../../../core/types';
 import { sampleOverworld, initTerrainGenerator } from '../terrain/terrainGenerator';
 
 interface SmoothWorldMapProps {
-  seed: string;
-  onEncounter?: (_pos: WorldPos) => void;
-  onSettlement?: (_pos: WorldPos) => void;
+    seed: string;
+    onEncounter?: (_pos: WorldPos) => void;
+    onSettlement?: (_pos: WorldPos) => void;
 }
+
+type Keys = Record<string, boolean>;
 
 export default function SmoothWorldMap({ seed }: SmoothWorldMapProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [pos, setPos] = useState<WorldPos>({ x: 0, y: 0 });
-  const [vel, setVel] = useState({ x: 0, y: 0 });
-  const keys = useRef<Record<string, boolean>>({});
-  const animationRef = useRef<number>(0);
-  const lastFrameRef = useRef<number>(0);
-  
-  // Terrain sample cache to reduce noise calculations
-  const terrainCacheRef = useRef<Map<string, OverworldSample>>(new Map());
-  
-  // Helper to get cached terrain sample
-  const getCachedSample = useCallback((x: number, y: number): OverworldSample => {
-    // Round to grid for caching (cache every 0.5 world units)
-    const gridX = Math.round(x * 2) / 2;
-    const gridY = Math.round(y * 2) / 2;
-    const key = `${gridX},${gridY}`;
-    
-    let sample = terrainCacheRef.current.get(key);
-    if (!sample) {
-      try {
-        sample = sampleOverworld({ x: gridX, y: gridY });
-        terrainCacheRef.current.set(key, sample);
-        
-        // Limit cache size to prevent memory leak
-        if (terrainCacheRef.current.size > 10000) {
-          const firstKey = terrainCacheRef.current.keys().next().value;
-          if (firstKey) terrainCacheRef.current.delete(firstKey);
-        }
-      } catch (error) {
-        console.error('Terrain sampling error:', error);
-        // Return safe default
-        sample = {
-          pos: { x: gridX, y: gridY },
-          height: 0,
-          moisture: 0.5,
-          biome: 'plains',
-          blocked: false
-        };
-      }
-    }
-    return sample;
-  }, []);
-  
-  // Initialize terrain generator with seed
-  useEffect(() => {
-    initTerrainGenerator(seed);
-    console.log('🌍 SmoothWorldMap initialized with seed:', seed);
-  }, [seed]);
-  
-  // Keyboard input handling
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const key = e.key.toLowerCase();
-      keys.current[key] = e.type === 'keydown';
-      
-      // Prevent arrow key scrolling
-      if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key)) {
-        e.preventDefault();
-      }
-    };
-    
-    window.addEventListener('keydown', onKey);
-    window.addEventListener('keyup', onKey);
-    
-    return () => {
-      window.removeEventListener('keydown', onKey);
-      window.removeEventListener('keyup', onKey);
-    };
-  }, []);
-  
-  // Game loop
-  useEffect(() => {
-    const ctx = canvasRef.current?.getContext('2d');
-    if (!ctx) return;
-    
-    const loop = (timestamp: number) => {
-      const deltaTime = lastFrameRef.current ? (timestamp - lastFrameRef.current) / 1000 : 0.016;
-      lastFrameRef.current = timestamp;
-      
-      updateMovement(deltaTime);
-      render(ctx, deltaTime);
-      
-      animationRef.current = requestAnimationFrame(loop);
-    };
-    
-    animationRef.current = requestAnimationFrame(loop);
-    
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Intentionally empty - we want this to run once
-  
-  /**
-   * Update player movement with momentum
-   */
-  const updateMovement = useCallback((dt: number) => {
-    const speed = 8; // World units per second
-    const accel = { x: 0, y: 0 };
-    
-    // WASD controls
-    if (keys.current['w'] || keys.current['arrowup']) accel.y -= 1;
-    if (keys.current['s'] || keys.current['arrowdown']) accel.y += 1;
-    if (keys.current['a'] || keys.current['arrowleft']) accel.x -= 1;
-    if (keys.current['d'] || keys.current['arrowright']) accel.x += 1;
-    
-    // Alternative movement (QWEASD hex-style also works)
-    if (keys.current['q']) { accel.x -= 0.866; accel.y -= 0.5; }
-    if (keys.current['e']) { accel.x += 0.866; accel.y -= 0.5; }
-    
-    // Normalize diagonal movement
-    const len = Math.hypot(accel.x, accel.y) || 1;
-    const ax = (accel.x / len) * speed;
-    const ay = (accel.y / len) * speed;
-    
-    // Apply acceleration with momentum
-    setVel(v => {
-      const newVx = (v.x + ax * dt * 10) * 0.85; // Friction
-      const newVy = (v.y + ay * dt * 10) * 0.85;
-      return { x: newVx, y: newVy };
-    });
-    
-    // Update position
-    setPos(p => {
-      const newX = p.x + vel.x * dt;
-      const newY = p.y + vel.y * dt;
-      
-      // Check terrain at new position (using cached sample)
-      try {
-        const sample = getCachedSample(newX, newY);
-        
-        // Block movement into impassable terrain
-        if (sample.blocked) {
-          return p; // Don't move if blocked
-        }
-      } catch (error) {
-        console.error('Movement collision check error:', error);
-      }
-      
-      return { x: newX, y: newY };
-    });
-  }, [vel, getCachedSample]);
-  
-  /**
-   * Render terrain and player
-   */
-  const render = useCallback((ctx: CanvasRenderingContext2D, _dt: number) => {
-    try {
-      const canvas = ctx.canvas;
-      canvas.width = canvas.clientWidth * window.devicePixelRatio;
-      canvas.height = canvas.clientHeight * window.devicePixelRatio;
-      
-      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-      const displayW = canvas.clientWidth;
-      const displayH = canvas.clientHeight;
-      
-      // Clear background
-      ctx.fillStyle = '#0a0a0a';
-      ctx.fillRect(0, 0, displayW, displayH);
-      
-      // Render terrain around player
-      const scale = 8; // Pixels per world unit
-      const sampleStep = 6; // INCREASED from 3 to 6 for better performance
-      
-      for (let sy = 0; sy < displayH; sy += sampleStep) {
-        for (let sx = 0; sx < displayW; sx += sampleStep) {
-          // Convert screen position to world position
-          const worldX = pos.x + (sx - displayW / 2) / scale;
-          const worldY = pos.y + (sy - displayH / 2) / scale;
-          
-          // Sample terrain (using cache)
-          const sample = getCachedSample(worldX, worldY);
-          
-          // Get terrain color
-          const color = getTerrainColor(sample.biome, sample.height, sample.moisture);
-          
-          ctx.fillStyle = color;
-          ctx.fillRect(sx, sy, sampleStep, sampleStep);
-        }
-      }
-      
-      // Draw player at center
-      ctx.fillStyle = '#ffffff';
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(displayW / 2, displayH / 2, 6, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-      
-      // Draw velocity indicator (facing direction)
-      if (Math.hypot(vel.x, vel.y) > 0.1) {
-        const angle = Math.atan2(vel.y, vel.x);
-        const arrowLen = 15;
-        const endX = displayW / 2 + Math.cos(angle) * arrowLen;
-        const endY = displayH / 2 + Math.sin(angle) * arrowLen;
-        
-        ctx.strokeStyle = '#ffff00';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(displayW / 2, displayH / 2);
-        ctx.lineTo(endX, endY);
-        ctx.stroke();
-      }
-      
-      // Draw position info
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '14px monospace';
-      ctx.fillText(`Position: (${pos.x.toFixed(1)}, ${pos.y.toFixed(1)})`, 10, 20);
-      
-      const sample = getCachedSample(pos.x, pos.y);
-      ctx.fillText(`Biome: ${sample.biome}`, 10, 40);
-      ctx.fillText(`Height: ${sample.height.toFixed(2)}`, 10, 60);
-      ctx.fillText(`Moisture: ${sample.moisture.toFixed(2)}`, 10, 80);
-      
-      // Controls help
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-      ctx.font = '12px monospace';
-      ctx.fillText('WASD or Arrows to move', 10, displayH - 20);
-      
-    } catch (error) {
-      console.error('Render error:', error);
-      // Try to recover - draw error message
-      ctx.fillStyle = '#ff0000';
-      ctx.font = '16px monospace';
-      ctx.fillText('Render Error - Check Console', 10, 100);
-    }
-  }, [pos, vel, getCachedSample]);
-  
-  return (
-    <div className="relative w-full h-full bg-black">
-      <canvas
-        ref={canvasRef}
-        className="w-full h-full block cursor-crosshair"
-        style={{ imageRendering: 'pixelated' }}
-      />
-      
-      {/* Controls overlay */}
-      <div className="absolute top-4 right-4 bg-black bg-opacity-75 text-white p-4 rounded-lg text-sm font-mono">
-        <div className="font-bold mb-2">🌍 Smooth Overworld</div>
-        <div>WASD / Arrows: Move</div>
-        <div>Q/E: Diagonal</div>
-        <div className="mt-2 text-xs text-gray-400">
-          {vel.x !== 0 || vel.y !== 0 ? '🏃 Moving' : '🧍 Standing'}
-        </div>
-      </div>
-    </div>
-  );
-}
+    const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-/**
- * Get display color for a biome
- */
-function getTerrainColor(biome: string, height: number, moisture: number): string {
-  // Height-based shading
-  const brightness = Math.floor((height + 1) * 25); // -1..1 → 0..50
-  
-  switch (biome) {
-    case 'water':
-      return `rgb(${20 + brightness}, ${50 + brightness}, ${100 + brightness})`;
-    
-    case 'shore':
-      return `rgb(${180 + brightness}, ${160 + brightness}, ${120 + brightness})`;
-    
-    case 'plains':
-      return `rgb(${100 + brightness}, ${180 + brightness}, ${80 + brightness})`;
-    
-    case 'forest':
-      const greenShade = Math.floor(moisture * 50);
-      return `rgb(${30 + brightness}, ${100 + greenShade + brightness}, ${40 + brightness})`;
-    
-    case 'swamp':
-      return `rgb(${60 + brightness}, ${80 + brightness}, ${60 + brightness})`;
-    
-    case 'desert':
-      return `rgb(${200 + brightness}, ${180 + brightness}, ${120 + brightness})`;
-    
-    case 'hills':
-      return `rgb(${120 + brightness}, ${100 + brightness}, ${80 + brightness})`;
-    
-    case 'mountains':
-      return `rgb(${100 + brightness}, ${100 + brightness}, ${100 + brightness})`;
-    
-    case 'snow':
-      return `rgb(${230 + brightness}, ${240 + brightness}, ${250 + brightness})`;
-    
-    case 'volcanic':
-      return `rgb(${80 + brightness}, ${40 + brightness}, ${40 + brightness})`;
-    
-    default:
-      return `rgb(${100 + brightness}, ${100 + brightness}, ${100 + brightness})`;
-  }
+    // Mutable sim state (no React setState during loop for better performance)
+    const posRef = useRef<WorldPos>({ x: 0, y: 0 });
+    const velRef = useRef({ x: 0, y: 0 });
+    const scaleRef = useRef<number>(8); // px per world unit (zoom) - matches old scale
+    const keysRef = useRef<Keys>({});
+    const draggingRef = useRef(false);
+    const dragLastRef = useRef<{ x: number; y: number } | null>(null);
+
+    const rafRef = useRef<number>(0);
+    const timeRef = useRef<number>(performance.now());
+    const dprRef = useRef<number>(Math.max(1, window.devicePixelRatio || 1));
+
+    // Terrain cache to avoid resampling
+    const terrainCacheRef = useRef<Map<string, { r: number; g: number; b: number }>>(new Map());
+    const terrainReadyRef = useRef<boolean>(false);
+
+    // Initialize terrain generator with seed
+    useEffect(() => {
+        console.log('🌱 About to init terrain generator...');
+        // Delay initialization to avoid freezing
+        setTimeout(() => {
+            try {
+                initTerrainGenerator(seed);
+                terrainReadyRef.current = true;
+                console.log('✅ Terrain generator initialized');
+            } catch (err) {
+                console.error('❌ Terrain generator failed:', err);
+            }
+        }, 100); // Small delay to let UI render first
+    }, [seed]);
+
+    // ResizeObserver to avoid resetting canvas every frame
+    useEffect(() => {
+        const cvs = canvasRef.current;
+        if (!cvs) {
+            console.error('❌ Canvas ref not available');
+            return;
+        }
+
+        const parent = cvs.parentElement;
+        if (!parent) {
+            console.error('❌ Canvas parent not available');
+            return;
+        }
+
+        console.log('✅ Setting up ResizeObserver for parent container');
+        const ro = new ResizeObserver(() => {
+            console.log('📐 Parent container resized');
+            resizeCanvas(cvs);
+        });
+        ro.observe(parent); // Watch parent, not canvas!
+        resizeCanvas(cvs);
+        return () => ro.disconnect();
+    }, []);
+
+    // Keyboard
+    useEffect(() => {
+        const onKey = (e: KeyboardEvent) => {
+            const k = e.key.toLowerCase();
+            if (e.type === 'keydown') keysRef.current[k] = true;
+            else keysRef.current[k] = false;
+
+            // Prevent arrow key scrolling
+            if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(k)) {
+                e.preventDefault();
+            }
+        };
+        window.addEventListener('keydown', onKey);
+        window.addEventListener('keyup', onKey);
+        return () => {
+            window.removeEventListener('keydown', onKey);
+            window.removeEventListener('keyup', onKey);
+        };
+    }, []);
+
+    // Wheel: zoom by default; Shift+wheel to pan
+    useEffect(() => {
+        const cvs = canvasRef.current!;
+        const onWheel = (e: WheelEvent) => {
+            e.preventDefault(); // Always prevent page scroll
+
+            // Shift+wheel for panning (uncommon, so requires modifier)
+            if (e.shiftKey) {
+                const panSpeed = 1 / scaleRef.current;
+                posRef.current.x += e.deltaX * panSpeed;
+                posRef.current.y += e.deltaY * panSpeed;
+                return;
+            }
+
+            // Default: zoom in/out
+            const oldScale = scaleRef.current;
+            const zoomFactor = Math.exp(-e.deltaY / 400); // gentle zoom
+            const newScale = clamp(oldScale * zoomFactor, 2, 32);
+
+            // Zoom around mouse position (world-space anchored zoom)
+            const rect = cvs.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const dpr = dprRef.current;
+
+            const worldBefore = screenToWorld(mx * dpr, my * dpr, cvs, posRef.current, oldScale);
+            scaleRef.current = newScale;
+            const worldAfter = screenToWorld(mx * dpr, my * dpr, cvs, posRef.current, newScale);
+
+            // Adjust camera so the point under cursor stays fixed
+            posRef.current.x += worldBefore.x - worldAfter.x;
+            posRef.current.y += worldBefore.y - worldAfter.y;
+        };
+
+        cvs.addEventListener('wheel', onWheel, { passive: false });
+        return () => cvs.removeEventListener('wheel', onWheel as any);
+    }, []);
+
+    // Pointer drag to pan
+    useEffect(() => {
+        const cvs = canvasRef.current!;
+        const onDown = (e: PointerEvent) => {
+            draggingRef.current = true;
+            cvs.setPointerCapture(e.pointerId);
+            dragLastRef.current = { x: e.clientX, y: e.clientY };
+        };
+        const onMove = (e: PointerEvent) => {
+            if (!draggingRef.current || !dragLastRef.current) return;
+            const dx = e.clientX - dragLastRef.current.x;
+            const dy = e.clientY - dragLastRef.current.y;
+            dragLastRef.current = { x: e.clientX, y: e.clientY };
+            const s = scaleRef.current;
+            posRef.current.x -= dx / s;
+            posRef.current.y -= dy / s;
+        };
+        const onUp = (e: PointerEvent) => {
+            draggingRef.current = false;
+            dragLastRef.current = null;
+            cvs.releasePointerCapture(e.pointerId);
+        };
+        cvs.addEventListener('pointerdown', onDown);
+        window.addEventListener('pointermove', onMove);
+        window.addEventListener('pointerup', onUp);
+        return () => {
+            cvs.removeEventListener('pointerdown', onDown);
+            window.removeEventListener('pointermove', onMove);
+            window.removeEventListener('pointerup', onUp);
+        };
+    }, []);
+
+    // Main loop — no React state in here for maximum performance
+    useEffect(() => {
+        let frameCount = 0;
+        let lastFpsTime = performance.now();
+        let fps = 60;
+        let firstFrame = true;
+
+        const tick = () => {
+            const now = performance.now();
+            const dt = Math.min(0.05, (now - timeRef.current) / 1000); // clamp dt
+            timeRef.current = now;
+
+            // FPS calculation
+            frameCount++;
+            if (now - lastFpsTime >= 1000) {
+                fps = frameCount;
+                frameCount = 0;
+                lastFpsTime = now;
+            }
+
+            // Debug first frame
+            if (firstFrame) {
+                const cvs = canvasRef.current;
+                console.log('🎬 First frame render:', {
+                    canvasSize: cvs ? `${cvs.width}x${cvs.height}` : 'no canvas',
+                    position: posRef.current,
+                    scale: scaleRef.current,
+                    dpr: dprRef.current
+                });
+                firstFrame = false;
+            }
+
+            step(dt);
+            render(fps);
+
+            rafRef.current = requestAnimationFrame(tick);
+        };
+
+        console.log('🚀 Starting animation loop');
+        rafRef.current = requestAnimationFrame(tick);
+        return () => {
+            console.log('🛑 Stopping animation loop');
+            cancelAnimationFrame(rafRef.current);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    return (
+        <div className="w-full h-full bg-black relative">
+            <canvas
+                ref={canvasRef}
+                className="block touch-none"
+                style={{
+                    cursor: 'grab',
+                    width: '100%',
+                    height: '100%',
+                    display: 'block'
+                }}
+            />
+
+            {/* Controls overlay */}
+            <div className="absolute top-4 left-4 text-white text-sm font-mono bg-black bg-opacity-70 px-3 py-2 rounded pointer-events-none">
+                <div>Position: ({posRef.current.x.toFixed(1)}, {posRef.current.y.toFixed(1)})</div>
+                <div>Zoom: {(scaleRef.current / 8).toFixed(2)}x (Ctrl+Wheel)</div>
+                <div className="text-xs text-gray-400 mt-2">
+                    WASD/Arrows: Move • Drag: Pan • Ctrl+Wheel: Zoom
+                </div>
+            </div>
+        </div>
+    );
+
+    // ---- Helper Functions ----
+
+    function step(dt: number) {
+        // Keyboard movement (WASD/Arrows)
+        const k = keysRef.current;
+        const aim = { x: 0, y: 0 };
+        if (k['w'] || k['arrowup']) aim.y -= 1;
+        if (k['s'] || k['arrowdown']) aim.y += 1;
+        if (k['a'] || k['arrowleft']) aim.x -= 1;
+        if (k['d'] || k['arrowright']) aim.x += 1;
+
+        // Diagonal movement normalization
+        const len = Math.hypot(aim.x, aim.y) || 1;
+        const ax = (aim.x / len) * 20; // accel units/sec^2
+        const ay = (aim.y / len) * 20;
+
+        // Critically damped-ish motion with momentum
+        velRef.current.x = (velRef.current.x + ax * dt) * 0.90;
+        velRef.current.y = (velRef.current.y + ay * dt) * 0.90;
+
+        // Update position
+        posRef.current.x += velRef.current.x * dt;
+        posRef.current.y += velRef.current.y * dt;
+
+        // Validate position to prevent NaN
+        if (!isFinite(posRef.current.x) || !isFinite(posRef.current.y)) {
+            console.error('Invalid position detected, resetting to origin');
+            posRef.current = { x: 0, y: 0 };
+            velRef.current = { x: 0, y: 0 };
+        }
+    }
+
+    function render(fps: number) {
+        const cvs = canvasRef.current;
+        if (!cvs) {
+            console.warn('⚠️ Render called but no canvas ref');
+            return;
+        }
+
+        const ctx = cvs.getContext('2d');
+        if (!ctx) {
+            console.warn('⚠️ Could not get 2d context');
+            return;
+        }
+
+        const dpr = dprRef.current;
+
+        try {
+            // Clear with a visible color to debug
+            ctx.fillStyle = '#1a1a2e'; // Dark blue-ish background
+            ctx.fillRect(0, 0, cvs.width, cvs.height);
+
+            // Enable image smoothing for better rendering
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+
+            // Viewport info
+            const scale = scaleRef.current;
+            const halfW = cvs.width / 2;
+            const halfH = cvs.height / 2;
+            const center = posRef.current;
+
+            // Validate scale
+            if (!isFinite(scale) || scale <= 0) {
+                console.error('Invalid scale:', scale);
+                return;
+            }
+
+            // Terrain — smaller cells for smoother look
+            // Use logical pixels (not device pixels) for loop to reduce iterations
+            const logicalW = cvs.width / dpr;
+            const logicalH = cvs.height / dpr;
+            const cellSize = 8; // Reduced from 16 for smoother rendering
+
+            // Only render terrain if generator is ready
+            if (!terrainReadyRef.current) {
+                // Draw loading pattern
+                ctx.fillStyle = '#2a2a4e';
+                ctx.font = `${24 * dpr}px monospace`;
+                ctx.fillText('Initializing terrain...', halfW - 100 * dpr, halfH);
+            } else {
+                // Compute world extents per cell
+                for (let ly = 0; ly < logicalH; ly += cellSize) {
+                    for (let lx = 0; lx < logicalW; lx += cellSize) {
+                        // Convert logical screen position to world position
+                        const wx = center.x + (lx * dpr - halfW) / scale;
+                        const wy = center.y + (ly * dpr - halfH) / scale;
+
+                        // Validate world coordinates
+                        if (!isFinite(wx) || !isFinite(wy)) continue;
+
+                        // Create cache key (round to 0.25 world units for better granularity)
+                        const cacheKey = `${Math.round(wx * 4) / 4},${Math.round(wy * 4) / 4}`;
+
+                        let color = terrainCacheRef.current.get(cacheKey);
+                        if (!color) {
+                            try {
+                                const s = sampleOverworld({ x: wx, y: wy });
+                                const [r, g, b] = terrainColor(s.height, s.moisture, s.biome);
+                                color = { r, g, b };
+                                terrainCacheRef.current.set(cacheKey, color);
+
+                                // Limit cache size
+                                if (terrainCacheRef.current.size > 10000) {
+                                    const firstKey = terrainCacheRef.current.keys().next().value;
+                                    if (firstKey) terrainCacheRef.current.delete(firstKey);
+                                }
+                            } catch (err) {
+                                // Skip failed samples silently
+                                continue;
+                            }
+                        }
+
+                        if (color) {
+                            ctx.fillStyle = `rgb(${color.r},${color.g},${color.b})`;
+                            ctx.fillRect(lx * dpr, ly * dpr, cellSize * dpr + 1, cellSize * dpr + 1); // +1 to prevent gaps
+                        }
+                    }
+                }
+            }
+
+            // Player marker at center with direction indicator
+            const playerSize = 6 * dpr;
+
+            // Outer glow
+            ctx.shadowColor = '#00ffff';
+            ctx.shadowBlur = 8 * dpr;
+            ctx.beginPath();
+            ctx.arc(halfW, halfH, playerSize, 0, Math.PI * 2);
+            ctx.fillStyle = '#00ffff';
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Inner dot
+            ctx.beginPath();
+            ctx.arc(halfW, halfH, playerSize * 0.4, 0, Math.PI * 2);
+            ctx.fillStyle = '#0088ff';
+            ctx.fill();
+
+            // Direction indicator if moving
+            const speed = Math.hypot(velRef.current.x, velRef.current.y);
+            if (speed > 0.1) {
+                const angle = Math.atan2(velRef.current.y, velRef.current.x);
+                const arrowLen = playerSize + 8 * dpr;
+                const endX = halfW + Math.cos(angle) * arrowLen;
+                const endY = halfH + Math.sin(angle) * arrowLen;
+
+                ctx.strokeStyle = '#ffff00';
+                ctx.lineWidth = 3 * dpr;
+                ctx.beginPath();
+                ctx.moveTo(halfW, halfH);
+                ctx.lineTo(endX, endY);
+                ctx.stroke();
+
+                // Arrow tip
+                ctx.fillStyle = '#ffff00';
+                ctx.beginPath();
+                ctx.arc(endX, endY, 3 * dpr, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Performance stats overlay (on canvas)
+            ctx.fillStyle = fps < 30 ? '#ff4444' : fps < 50 ? '#ffaa44' : '#44ff44';
+            ctx.font = `${12 * dpr}px monospace`;
+            ctx.fillText(`${fps} FPS`, 10 * dpr, 20 * dpr);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(`Cache: ${terrainCacheRef.current.size}`, 10 * dpr, 35 * dpr);
+            ctx.fillText(`DPR: ${dpr.toFixed(1)}x`, 10 * dpr, 50 * dpr);
+        } catch (err) {
+            console.error('Render error:', err);
+        }
+    }
+
+    function resizeCanvas(cvs: HTMLCanvasElement) {
+        const dpr = Math.max(1, window.devicePixelRatio || 1);
+        dprRef.current = dpr;
+
+        // CRITICAL FIX: Use clientWidth/Height instead of getBoundingClientRect
+        // getBoundingClientRect was returning the canvas buffer size, causing infinite growth!
+        const W = Math.floor(cvs.clientWidth * dpr);
+        const H = Math.floor(cvs.clientHeight * dpr);
+
+        console.log('📏 Resize canvas:', {
+            logical: `${cvs.clientWidth}x${cvs.clientHeight}`,
+            device: `${W}x${H}`,
+            dpr
+        });
+
+        if (cvs.width !== W || cvs.height !== H) {
+            cvs.width = W;
+            cvs.height = H;
+        }
+    }
+
+    function screenToWorld(
+        sx: number,
+        sy: number,
+        cvs: HTMLCanvasElement,
+        center: WorldPos,
+        scale: number
+    ): WorldPos {
+        // sx/sy are device pixels (after * dpr)
+        const halfW = cvs.width / 2;
+        const halfH = cvs.height / 2;
+        return {
+            x: center.x + (sx - halfW) / scale,
+            y: center.y + (sy - halfH) / scale,
+        };
+    }
+
+    function clamp(v: number, lo: number, hi: number) {
+        return Math.max(lo, Math.min(hi, v));
+    }
+
+    function terrainColor(h: number, m: number, biome: string): [number, number, number] {
+        // Biome-based palette matching the original system
+        if (biome === 'water') return [26, 58, 90];
+        if (biome === 'shore') return [60, 80, 90];
+        if (biome === 'forest') return [22, 77, 36];
+        if (biome === 'swamp') return [42, 61, 42];
+        if (biome === 'desert') return [107, 94, 46];
+        if (biome === 'hills') return [90, 81, 49];
+        if (biome === 'mountains') return [120, 110, 100];
+        if (biome === 'snow') return [220, 230, 240];
+        if (biome === 'volcanic') return [80, 40, 30];
+
+        // Default plains with height/moisture variation
+        const g = 80 + Math.floor((h + 1) * 40);
+        const moistureAdjust = Math.floor(m * 20);
+        return [40 + moistureAdjust, clamp(Math.floor(g), 60, 160), 70 + moistureAdjust];
+    }
 }
