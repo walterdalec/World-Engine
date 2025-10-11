@@ -265,20 +265,32 @@ export default function PixiHexBattleDemo() {
 
     // Calculate valid moves for selected unit
     const calculateValidMoves = (unit: Unit): HexPosition[] => {
+        const startTime = performance.now();
         console.log('📍 calculateValidMoves for:', unit.name, 'pos:', unit.pos, 'move:', unit.stats.move);
+        
         if (!unit.pos || unit.hasMoved || unit.isDead) {
             console.log('❌ Cannot calculate moves - no pos, already moved, or dead');
             return [];
         }
 
+        // Safety check: ensure grid has tiles
+        if (!battleState.grid.tiles || battleState.grid.tiles.length === 0) {
+            console.error('❌ CRITICAL: Grid has no tiles! Cannot pathfind.');
+            return [];
+        }
+
         const moves: HexPosition[] = [];
         const maxMove = unit.stats.move;
-        console.log('🎯 Checking hexes within range:', maxMove);
+        let hexesChecked = 0;
+        let pathfindCalls = 0;
+        
+        console.log('🎯 Checking hexes within range:', maxMove, 'Grid tiles:', battleState.grid.tiles.length);
 
         // Only check hexes within the movement range (much smaller search space)
         // Use cube distance for more accurate range checking
         for (let q = unit.pos.q - maxMove; q <= unit.pos.q + maxMove; q++) {
             for (let r = unit.pos.r - maxMove; r <= unit.pos.r + maxMove; r++) {
+                hexesChecked++;
                 const targetPos = { q, r };
 
                 // Skip if same as current position
@@ -295,6 +307,7 @@ export default function PixiHexBattleDemo() {
                 if (occupied) continue;
 
                 // Only do pathfinding for unoccupied, in-range hexes
+                pathfindCalls++;
                 const path = findPath(battleState.grid, unit.pos, targetPos, maxMove);
                 if (path && path.length > 0) {
                     moves.push(targetPos);
@@ -302,7 +315,15 @@ export default function PixiHexBattleDemo() {
             }
         }
 
-        console.log('✅ Found', moves.length, 'valid moves');
+        const endTime = performance.now();
+        console.log('✅ Found', moves.length, 'valid moves in', (endTime - startTime).toFixed(2), 'ms');
+        console.log('📊 Stats: checked', hexesChecked, 'hexes, ran', pathfindCalls, 'pathfinding calls');
+        
+        // Warn if it took too long
+        if (endTime - startTime > 100) {
+            console.warn('⚠️ Pathfinding took', (endTime - startTime).toFixed(2), 'ms - consider optimization');
+        }
+        
         return moves;
     };
 

@@ -126,7 +126,19 @@ export function findPath(
     gScore.set(startKey, 0);
     open.set(startKey, hexDistance(start, goal));
 
+    // Safety: limit iterations to prevent infinite loops
+    const MAX_ITERATIONS = 1000;
+    let iterations = 0;
+
     while (open.size > 0) {
+        iterations++;
+        
+        // Safety check: prevent infinite loops
+        if (iterations > MAX_ITERATIONS) {
+            console.warn('⚠️ Pathfinding exceeded max iterations:', MAX_ITERATIONS);
+            return null;
+        }
+
         // Get node with lowest f score
         let current = "";
         let lowestF = Infinity;
