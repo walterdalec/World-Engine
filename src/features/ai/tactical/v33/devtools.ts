@@ -1,13 +1,22 @@
-export function snapshotV33(brain: any) {
-  const units = brain?.state?.units ?? [];
-  const morale = units
-    .filter((unit: any) => unit.team === 'A' || unit.faction === 'Player')
-    .slice(0, 6)
-    .map((unit: any) => ({ id: unit.id, value: unit.aiMorale?.value, status: unit.aiMorale?.status }));
+export function attachV33(_brain: any, _world: any, _state: any): void {
+    // V33 DevTools - placeholder for development utilities
+    console.log('🧠 AI v33 DevTools attached');
+}
 
-  return {
-    rallyLast: brain?.v33?.lastRally,
-    escorts: brain?.v33?.escorts?.length ?? 0,
-    morale,
-  };
+export function snapshotV33Runtime(brain: any): any {
+    return {
+        version: 'v33',
+        morale: brain?.v33?.escorts?.length || 0,
+        rally: brain?.v33?.lastRally || -999,
+        timestamp: Date.now()
+    };
+}
+
+export function debugMoraleState(units: any[]): void {
+    console.log('🎭 Morale Debug:');
+    for (const unit of units) {
+        if (unit.aiMorale) {
+            console.log(`  ${unit.id}: ${unit.aiMorale.status} (${unit.aiMorale.value})`);
+        }
+    }
 }
