@@ -253,6 +253,7 @@ export default function PixiHexBattleDemo() {
     }, [actionMode, selectedUnit, validMoves]);
 
     // Sync selectedUnit with battleState - keep reference fresh
+    // IMPORTANT: Only depend on battleState, NOT selectedUnit, to avoid render loops
     useEffect(() => {
         if (selectedUnit) {
             const currentUnit = battleState.units.find(u => u.id === selectedUnit.id);
@@ -261,7 +262,8 @@ export default function PixiHexBattleDemo() {
                 setSelectedUnit(currentUnit);
             }
         }
-    }, [battleState, selectedUnit]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [battleState]); // Only re-run when battleState changes, not selectedUnit
 
     // Calculate valid moves for selected unit - USE ENGINE'S WORKING IMPLEMENTATION
     const calculateValidMoves = (unit: Unit): HexPosition[] => {
@@ -304,6 +306,12 @@ export default function PixiHexBattleDemo() {
         console.log('🎯 Hex clicked:', hex, 'Mode:', actionMode, 'Selected unit:', selectedUnit?.name);
         console.log('📊 State check - validMoves:', validMoves.length, 'validTargets:', validTargets.length);
 
+        // CRITICAL: Capture current state at click time to avoid timing issues
+        const currentActionMode = actionMode;
+        const currentSelectedUnit = selectedUnit;
+        const currentValidMoves = validMoves;
+        const currentValidTargets = validTargets;
+
         // Check if there's a unit at this hex
         const unit = battleState.units.find(u =>
             u.pos && u.pos.q === hex.q && u.pos.r === hex.r && !u.isDead
@@ -311,26 +319,26 @@ export default function PixiHexBattleDemo() {
         console.log('🔍 Unit at hex:', unit?.name || 'none');
 
         // Priority 1: Handle active action modes (move/attack) before select mode
-        if (actionMode === 'move' && selectedUnit) {
+        if (currentActionMode === 'move' && currentSelectedUnit) {
             console.log('🚶 Checking move mode...');
             // Move mode - check if hex is valid move target
-            const isValidMove = validMoves.some(m => m.q === hex.q && m.r === hex.r);
+            const isValidMove = currentValidMoves.some(m => m.q === hex.q && m.r === hex.r);
             console.log('✓ Is valid move?', isValidMove);
             if (isValidMove) {
                 console.log('🚶 Moving unit to:', hex);
                 setBattleState(prev => {
-                    const success = moveUnit(prev, selectedUnit.id, hex);
+                    const success = moveUnit(prev, currentSelectedUnit.id, hex);
                     if (success) {
                         // Mark unit as moved
                         const newUnits = prev.units.map(u => {
-                            if (u.id === selectedUnit.id) {
+                            if (u.id === currentSelectedUnit.id) {
                                 return { ...u, hasMoved: true };
                             }
                             return u;
                         });
 
                         // Update selectedUnit reference to the new unit object
-                        const updatedUnit = newUnits.find(u => u.id === selectedUnit.id);
+                        const updatedUnit = newUnits.find(u => u.id === currentSelectedUnit.id);
                         if (updatedUnit) {
                             setSelectedUnit(updatedUnit);
                         }
@@ -344,15 +352,15 @@ export default function PixiHexBattleDemo() {
             }
             // If not a valid move, do nothing (stay in move mode)
             return;
-        } else if (actionMode === 'attack' && selectedUnit) {
+        } else if (currentActionMode === 'attack' && currentSelectedUnit) {
             console.log('⚔️ Checking attack mode...');
             // Attack mode - check if unit is valid target
-            const isValidTarget = validTargets.some(t => t.q === hex.q && t.r === hex.r);
+            const isValidTarget = currentValidTargets.some(t => t.q === hex.q && t.r === hex.r);
             console.log('✓ Is valid target?', isValidTarget, 'Unit faction:', unit?.faction);
-            if (isValidTarget && unit && unit.faction !== selectedUnit.faction) {
+            if (isValidTarget && unit && unit.faction !== currentSelectedUnit.faction) {
                 console.log('⚔️ Attacking:', unit.name);
                 // Simple attack: deal damage based on attacker's ATK vs defender's DEF
-                const damage = Math.max(1, selectedUnit.stats.atk - Math.floor(unit.stats.def * 0.5));
+                const damage = Math.max(1, currentSelectedUnit.stats.atk - Math.floor(unit.stats.def * 0.5));
 
                 setBattleState(prev => {
                     const newUnits = prev.units.map(u => {
@@ -364,19 +372,19 @@ export default function PixiHexBattleDemo() {
                                 isDead: newHp <= 0,
                             };
                         }
-                        if (u.id === selectedUnit.id) {
+                        if (u.id === currentSelectedUnit.id) {
                             return { ...u, hasActed: true };
                         }
                         return u;
                     });
 
-                    const newLog = [...prev.log, `${selectedUnit.name} attacks ${unit.name} for ${damage} damage!`];
+                    const newLog = [...prev.log, `${currentSelectedUnit.name} attacks ${unit.name} for ${damage} damage!`];
                     if (unit.stats.hp - damage <= 0) {
                         newLog.push(`${unit.name} has fallen!`);
                     }
 
                     // Update selectedUnit reference after attack
-                    const updatedUnit = newUnits.find(u => u.id === selectedUnit.id);
+                    const updatedUnit = newUnits.find(u => u.id === currentSelectedUnit.id);
                     if (updatedUnit) {
                         setSelectedUnit(updatedUnit);
                     }
@@ -392,7 +400,7 @@ export default function PixiHexBattleDemo() {
 
         // Priority 2: Default select mode behavior
         console.log('👆 Default select mode...');
-        if (actionMode === 'select' || !selectedUnit) {
+        if (currentActionMode === 'select' || !currentSelectedUnit) {
             // Select mode or no unit selected - select unit
             if (unit && unit.faction === 'Player') {
                 console.log('👤 Unit selected:', unit.name);
