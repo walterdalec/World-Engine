@@ -16,6 +16,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { WorldNoise } from '../../proc/noise';
 import { SeededRandom } from '../../seededGenerators';
 import { useGameStore } from '../../store/gameStore';
+import { CampaignBattleBridge } from './CampaignBattleBridge';
 
 // Types for integrated campaign
 interface IntegratedCampaignProps {
@@ -97,6 +98,12 @@ export const IntegratedCampaign: React.FC<IntegratedCampaignProps> = ({
     const [isInitializing, setIsInitializing] = useState(true);
     const [currentView, setCurrentView] = useState<'world' | 'party' | 'factions' | 'battle'>('world');
     const [logs, setLogs] = useState<string[]>([]);
+
+    // Battle state
+    const [activeBattle, setActiveBattle] = useState<{
+        encounterType: string;
+        partyLevel: number;
+    } | null>(null);
 
     const { characters } = useGameStore();
 
@@ -259,7 +266,14 @@ export const IntegratedCampaign: React.FC<IntegratedCampaignProps> = ({
                 const encounterTypes = ['Bandits', 'Monsters', 'Undead', 'Beasts'];
                 const encounterType = encounterTypes[Math.floor(rng.next() * encounterTypes.length)];
                 addLog(`🎲 Encounter: ${encounterType}!`);
-                // TODO: Trigger battle system
+
+                // Trigger battle!
+                setActiveBattle({
+                    encounterType,
+                    partyLevel: Math.max(1, Math.floor(prev.party.reduce((sum, p) => sum + p.level, 0) / prev.party.length))
+                });
+                setCurrentView('battle');
+
                 return {
                     ...prev,
                     currentDay: newDay,
@@ -323,6 +337,40 @@ export const IntegratedCampaign: React.FC<IntegratedCampaignProps> = ({
             };
         });
     }, [campaignState, addLog]);
+
+    // Battle result handlers
+    const handleBattleComplete = useCallback((won: boolean, xp: number, gold: number) => {
+        if (!campaignState) return;
+
+        addLog(won ? `⚔️ Victory! Gained ${xp} XP and ${gold} gold` : '💀 Defeated in battle...');
+
+        // Update campaign state with battle results
+        setCampaignState(prev => {
+            if (!prev) return prev;
+
+            const updatedParty = prev.party.map(char => ({
+                ...char,
+                experience: char.experience + (won ? Math.floor(xp / prev.party.length) : 0),
+                hp: won ? char.hp : Math.max(1, Math.floor(char.hp * 0.5)) // Half HP if defeated
+            }));
+
+            return {
+                ...prev,
+                party: updatedParty,
+                partyGold: prev.partyGold + (won ? gold : -Math.floor(gold * 0.2)) // Lose some gold on defeat
+            };
+        });
+
+        // Clear battle and return to world view
+        setActiveBattle(null);
+        setCurrentView('world');
+    }, [campaignState, addLog]);
+
+    const handleBattleCancel = useCallback(() => {
+        addLog('🏃 Fled from battle!');
+        setActiveBattle(null);
+        setCurrentView('world');
+    }, [addLog]);
 
     // Guard: No characters created yet
     if (characters.length === 0) {
@@ -450,6 +498,17 @@ export const IntegratedCampaign: React.FC<IntegratedCampaignProps> = ({
                                 </p>
                             </div>
                         </div>
+                    )}
+
+                    {currentView === 'battle' && activeBattle && (
+                        <CampaignBattleBridge
+                            partyPosition={campaignState.partyPosition}
+                            partyLevel={activeBattle.partyLevel}
+                            encounterType={activeBattle.encounterType}
+                            campaignSeed={campaignState.seed}
+                            onBattleComplete={handleBattleComplete}
+                            onBattleCancel={handleBattleCancel}
+                        />
                     )}
 
                     {currentView === 'party' && (
