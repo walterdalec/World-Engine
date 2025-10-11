@@ -316,7 +316,7 @@ export default function PixiHexBattleDemo() {
                 // Only do pathfinding for unoccupied, in-range hexes
                 pathfindCalls++;
                 console.log('  🔍 Pathfind call', pathfindCalls, ':', unit.pos, '→', targetPos);
-                
+
                 try {
                     const path = findPath(battleState.grid, unit.pos, targetPos, maxMove);
                     console.log('  ✓ Path result:', path ? path.length : 'null');

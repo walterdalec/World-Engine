@@ -14,9 +14,32 @@ import {
     processTurnEndMorale,
     processUnitDeath,
     getMoraleStatus
-} from "./morale";// Grid utilities
+} from "./morale";
+
+// Grid utilities
 export function tileAt(grid: BattleGrid, pos: HexPosition): HexTile | undefined {
+    // OPTIMIZED: Use find with early return instead of full iteration
+    // For 121 tiles this is still O(n) but reasonably fast
     return grid.tiles.find(t => t.q === pos.q && t.r === pos.r);
+}
+
+// Fast tile lookup using a Map (created on demand)
+let tileCache: Map<string, HexTile> | null = null;
+let cachedGridId: string | null = null;
+
+export function tileAtFast(grid: BattleGrid, pos: HexPosition): HexTile | undefined {
+    // Create cache if it doesn't exist or grid changed
+    const gridId = JSON.stringify(grid.tiles.length); // Simple grid identity
+    if (!tileCache || cachedGridId !== gridId) {
+        console.log('    🗺️ Building tile cache for', grid.tiles.length, 'tiles');
+        tileCache = new Map();
+        grid.tiles.forEach(tile => {
+            tileCache!.set(getTileKey(tile), tile);
+        });
+        cachedGridId = gridId;
+    }
+    
+    return tileCache.get(getTileKey(pos));
 }
 
 export function getTileKey(pos: HexPosition): string {
@@ -117,7 +140,7 @@ export function findPath(
     maxCost: number = 20
 ): HexPosition[] | null {
     console.log('    🔎 findPath START:', start, '→', goal, 'maxCost:', maxCost);
-    
+
     const open = new Map<string, number>(); // key -> f score
     const gScore = new Map<string, number>(); // key -> g score
     const came = new Map<string, string>(); // child -> parent
@@ -136,6 +159,10 @@ export function findPath(
 
     while (open.size > 0) {
         iterations++;
+        
+        if (iterations === 1) {
+            console.log('    🔄 FIRST ITERATION START');
+        }
 
         // Safety check: prevent infinite loops
         if (iterations > MAX_ITERATIONS) {
@@ -143,20 +170,29 @@ export function findPath(
             return null;
         }
 
-        // Log every 50 iterations to see if we're looping
-        if (iterations % 50 === 0) {
-            console.log('    🔄 Iteration', iterations, 'open size:', open.size);
+        // Log every iteration initially to find the freeze
+        if (iterations <= 5 || iterations % 50 === 0) {
+            console.log('    🔄 Iteration', iterations, 'START - open size:', open.size);
         }
 
         // Get node with lowest f score
         let current = "";
         let lowestF = Infinity;
+        
+        if (iterations <= 5) {
+            console.log('    🔄 About to forEach over open map...');
+        }
+        
         open.forEach((f, key) => {
             if (f < lowestF) {
                 lowestF = f;
                 current = key;
             }
         });
+
+        if (iterations <= 5) {
+            console.log('    🔄 forEach complete, current:', current, 'f:', lowestF);
+        }
 
         if (current === goalKey) {
             console.log('    ✅ Path found! Iterations:', iterations);
@@ -171,13 +207,21 @@ export function findPath(
             return path;
         }
 
+        if (iterations <= 5) {
+            console.log('    🔄 Deleting current from open...');
+        }
+        
         open.delete(current);
         const [cq, cr] = current.split(',').map(Number);
         const currentPos = { q: cq, r: cr };
 
+        if (iterations <= 5) {
+            console.log('    🔄 Getting neighbors of', currentPos);
+        }
+
         for (const neighbor of hexNeighbors(currentPos)) {
             const neighborKey = getTileKey(neighbor);
-            const tile = tileAt(grid, neighbor);
+            const tile = tileAtFast(grid, neighbor); // Use fast cached lookup
 
             if (!tile || !tile.passable) continue;
             if (tile.occupied) continue; // Skip occupied tiles
