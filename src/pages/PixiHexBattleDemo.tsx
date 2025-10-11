@@ -232,6 +232,11 @@ export default function PixiHexBattleDemo() {
     const [validMoves, setValidMoves] = useState<HexPosition[]>([]);
     const [validTargets, setValidTargets] = useState<HexPosition[]>([]);
 
+    // Debug: Track state changes
+    React.useEffect(() => {
+        console.log('🔄 STATE CHANGE - actionMode:', actionMode, 'selectedUnit:', selectedUnit?.name, 'validMoves:', validMoves.length);
+    }, [actionMode, selectedUnit, validMoves]);
+
     // Calculate valid moves for selected unit
     const calculateValidMoves = (unit: Unit): HexPosition[] => {
         if (!unit.pos || unit.hasMoved || unit.isDead) return [];
