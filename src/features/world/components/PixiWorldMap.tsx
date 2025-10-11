@@ -178,7 +178,10 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
     // Performance tracking
     const [fps, setFps] = useState(60);
     const fpsRef = useRef<number[]>([]);
-    const lastFrameRef = useRef<number>(performance.now());    // Initialize terrain generator
+    const lastFrameRef = useRef<number>(performance.now());
+    
+    // UI state (for debug overlay reactivity)
+    const [debugInfo, setDebugInfo] = useState({ x: 0, y: 0, chunks: 0, cache: 0 });    // Initialize terrain generator
     useEffect(() => {
         console.log('🌱 [Pixi] Initializing terrain generator with seed:', seed);
         setTimeout(() => {
@@ -316,6 +319,16 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
                 setFps(Math.round(avgFps));
                 fpsText.text = `FPS: ${Math.round(avgFps)}`;
                 fpsText.style.fill = avgFps >= 55 ? 0x00ff00 : avgFps >= 30 ? 0xffff00 : 0xff0000;
+                
+                // Update debug info periodically (every 10 frames for React overlay)
+                if (Math.floor(now / 100) % 10 === 0) {
+                    setDebugInfo({
+                        x: posRef.current.x,
+                        y: posRef.current.y,
+                        chunks: renderedChunksRef.current.size,
+                        cache: terrainCacheRef.current.size
+                    });
+                }
 
                 // WASD movement
                 const keys = keysRef.current;
@@ -597,11 +610,11 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
                 }}
             >
                 <div>🎮 WASD: Move | Mouse: Drag/Zoom</div>
-                <div>📍 Pos: ({posRef.current.x.toFixed(1)}, {posRef.current.y.toFixed(1)})</div>
-                <div>📏 Distance: {Math.sqrt(posRef.current.x * posRef.current.x + posRef.current.y * posRef.current.y).toFixed(1)} units from spawn</div>
-                <div>🗺️ Chunk: ({Math.floor(posRef.current.x / 32)}, {Math.floor(posRef.current.y / 32)}) | Size: 32 units</div>
-                <div>🎨 GPU: Pixi.js v8 | Loaded: {renderedChunksRef.current.size} chunks</div>
-                <div>💾 Cache: {terrainCacheRef.current.size} terrain samples</div>
+                <div>📍 Pos: ({debugInfo.x.toFixed(1)}, {debugInfo.y.toFixed(1)})</div>
+                <div>📏 Distance: {Math.sqrt(debugInfo.x * debugInfo.x + debugInfo.y * debugInfo.y).toFixed(1)} units from spawn</div>
+                <div>🗺️ Chunk: ({Math.floor(debugInfo.x / 32)}, {Math.floor(debugInfo.y / 32)}) | Size: 32 units</div>
+                <div>🎨 GPU: Pixi.js v8 | Loaded: {debugInfo.chunks} chunks</div>
+                <div>💾 Cache: {debugInfo.cache} terrain samples</div>
                 <div style={{ color: fps >= 55 ? '#0f0' : fps >= 30 ? '#ff0' : '#f00' }}>
                     ⚡ FPS: {fps}
                 </div>
