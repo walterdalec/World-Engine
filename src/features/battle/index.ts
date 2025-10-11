@@ -18,6 +18,10 @@ export type {
     BattleResult
 } from './types';
 
+// Phase Engine (Brigandine-style turn system)
+export { PhaseEngine } from './phaseEngine';
+export type { BattleEvent } from './phaseEngine';
+
 // Morale & Psychology System (TODO #10)
 export * from './morale';
 
