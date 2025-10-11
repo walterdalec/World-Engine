@@ -280,10 +280,10 @@ export default function PixiHexBattleDemo() {
         for (let q = unit.pos.q - maxMove; q <= unit.pos.q + maxMove; q++) {
             for (let r = unit.pos.r - maxMove; r <= unit.pos.r + maxMove; r++) {
                 const targetPos = { q, r };
-                
+
                 // Skip if same as current position
                 if (q === unit.pos.q && r === unit.pos.r) continue;
-                
+
                 // Quick distance check before expensive pathfinding
                 const distance = hexDistance(unit.pos, targetPos);
                 if (distance > maxMove) continue;
@@ -354,13 +354,13 @@ export default function PixiHexBattleDemo() {
                             }
                             return u;
                         });
-                        
+
                         // Update selectedUnit reference to the new unit object
                         const updatedUnit = newUnits.find(u => u.id === selectedUnit.id);
                         if (updatedUnit) {
                             setSelectedUnit(updatedUnit);
                         }
-                        
+
                         return { ...prev, units: newUnits };
                     }
                     return prev;
@@ -400,7 +400,7 @@ export default function PixiHexBattleDemo() {
                     if (unit.stats.hp - damage <= 0) {
                         newLog.push(`${unit.name} has fallen!`);
                     }
-                    
+
                     // Update selectedUnit reference after attack
                     const updatedUnit = newUnits.find(u => u.id === selectedUnit.id);
                     if (updatedUnit) {
@@ -662,6 +662,8 @@ export default function PixiHexBattleDemo() {
                     padding: '20px',
                     overflowY: 'auto',
                     color: 'white',
+                    position: 'relative',
+                    zIndex: 10,
                 }}>
                     <h2 style={{ margin: '0 0 16px 0', fontSize: '16px' }}>Battle Info</h2>
 
@@ -709,7 +711,15 @@ export default function PixiHexBattleDemo() {
 
                             {/* Tactical Actions */}
                             {selectedUnit.faction === 'Player' && battleState.phase === 'UnitsTurn' && (
-                                <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                <div style={{ 
+                                    marginTop: '12px', 
+                                    display: 'flex', 
+                                    flexDirection: 'column', 
+                                    gap: '6px',
+                                    position: 'relative',
+                                    zIndex: 20,
+                                    pointerEvents: 'auto',
+                                }}>
                                     <button
                                         onClick={handleMoveMode}
                                         disabled={selectedUnit.hasMoved || actionMode === 'move'}
@@ -723,6 +733,9 @@ export default function PixiHexBattleDemo() {
                                             fontSize: '12px',
                                             fontWeight: 'bold',
                                             opacity: selectedUnit.hasMoved ? 0.5 : 1,
+                                            position: 'relative',
+                                            zIndex: 21,
+                                            pointerEvents: selectedUnit.hasMoved ? 'none' : 'auto',
                                         }}
                                     >
                                         🚶 {actionMode === 'move' ? 'Click destination...' : 'Move'}
@@ -740,6 +753,9 @@ export default function PixiHexBattleDemo() {
                                             fontSize: '12px',
                                             fontWeight: 'bold',
                                             opacity: selectedUnit.hasActed ? 0.5 : 1,
+                                            position: 'relative',
+                                            zIndex: 21,
+                                            pointerEvents: selectedUnit.hasActed ? 'none' : 'auto',
                                         }}
                                     >
                                         ⚔️ {actionMode === 'attack' ? 'Select target...' : 'Attack'}
