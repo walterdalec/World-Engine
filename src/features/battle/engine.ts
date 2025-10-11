@@ -456,24 +456,47 @@ export function moveUnit(state: BattleState, unitId: string, targetPos: HexPosit
 
 // Get valid movement positions for a unit
 export function getValidMoves(state: BattleState, unitId: string): HexPosition[] {
+    console.log('  🔍 getValidMoves called for unit:', unitId);
     const unit = state.units.find(u => u.id === unitId);
-    if (!unit || !unit.pos) return [];
+    if (!unit || !unit.pos) {
+        console.log('  ❌ No unit or no position');
+        return [];
+    }
 
     const validMoves: HexPosition[] = [];
     const maxRange = unit.stats.move;
+    console.log('  📏 Max range:', maxRange, 'from pos:', unit.pos);
 
     // Use spiral to get all hexes within movement range
     for (let range = 1; range <= maxRange; range++) {
-        for (const hex of hexRing(unit.pos, range)) {
+        console.log('  🔄 Checking ring', range);
+        const ring = hexRing(unit.pos, range);
+        console.log('  📍 Ring has', ring.length, 'hexes');
+        
+        let checked = 0;
+        for (const hex of ring) {
+            checked++;
+            if (checked <= 3 || checked % 10 === 0) {
+                console.log('    Checking hex', checked, '/', ring.length, ':', hex);
+            }
+            
             const tile = tileAtFast(state.grid, hex); // Use fast cached lookup
             if (tile && tile.passable && !tile.occupied) {
+                if (checked <= 3) {
+                    console.log('    ✓ Tile passable, calling findPath...');
+                }
                 const path = findPath(state.grid, unit.pos, hex, maxRange);
+                if (checked <= 3) {
+                    console.log('    ✓ Path result:', path ? path.length : 'null');
+                }
                 if (path && path.length <= maxRange + 1) { // +1 because path includes start
                     validMoves.push(hex);
                 }
             }
         }
+        console.log('  ✅ Ring', range, 'complete, found', validMoves.length, 'moves so far');
     }
 
+    console.log('  🎯 Total valid moves:', validMoves.length);
     return validMoves;
 }
