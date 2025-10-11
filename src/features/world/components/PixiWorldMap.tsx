@@ -78,7 +78,7 @@ function initTerrainGenerator(seed: string) {
         hash |= 0;
     }
     terrainSeed = Math.abs(hash);
-    
+
     // Initialize noise generators
     nElev = makeNoise2D(terrainSeed ^ 0x11a2);
     nTemp = makeNoise2D(terrainSeed ^ 0x33b4);
@@ -598,8 +598,10 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
             >
                 <div>🎮 WASD: Move | Mouse: Drag/Zoom</div>
                 <div>📍 Pos: ({posRef.current.x.toFixed(1)}, {posRef.current.y.toFixed(1)})</div>
-                <div>🎨 GPU: Pixi.js v8 | Chunks: {renderedChunksRef.current.size}</div>
-                <div>💾 Cache: {terrainCacheRef.current.size} samples</div>
+                <div>📏 Distance: {Math.sqrt(posRef.current.x * posRef.current.x + posRef.current.y * posRef.current.y).toFixed(1)} units from spawn</div>
+                <div>🗺️ Chunk: ({Math.floor(posRef.current.x / 32)}, {Math.floor(posRef.current.y / 32)}) | Size: 32 units</div>
+                <div>🎨 GPU: Pixi.js v8 | Loaded: {renderedChunksRef.current.size} chunks</div>
+                <div>💾 Cache: {terrainCacheRef.current.size} terrain samples</div>
                 <div style={{ color: fps >= 55 ? '#0f0' : fps >= 30 ? '#ff0' : '#f00' }}>
                     ⚡ FPS: {fps}
                 </div>
