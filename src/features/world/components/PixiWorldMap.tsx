@@ -18,8 +18,58 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Application, Container, Graphics, Text, TextStyle } from 'pixi.js';
 
-// Simple terrain generation (inline implementation)
+// Advanced terrain generation with FBM, domain warp, and biome blending
 let terrainSeed = 0;
+
+// Fast hash and noise functions
+function hash32(x: number): number {
+    x |= 0;
+    x = Math.imul(x ^ (x >>> 16), 0x7feb352d);
+    x = Math.imul(x ^ (x >>> 15), 0x846ca68b);
+    x = (x ^ (x >>> 16)) >>> 0;
+    return x;
+}
+
+function rand2(ix: number, iy: number, seed: number): number {
+    return hash32(seed ^ hash32(ix * 374761393 ^ iy * 668265263)) / 4294967296;
+}
+
+function smoothstep(t: number): number {
+    return t * t * (3 - 2 * t);
+}
+
+function lerp(a: number, b: number, t: number): number {
+    return a + (b - a) * t;
+}
+
+function makeNoise2D(seed: number): (_x: number, _y: number) => number {
+    return (x: number, y: number) => {
+        const ix = Math.floor(x), iy = Math.floor(y);
+        const fx = x - ix, fy = y - iy;
+        const v00 = rand2(ix, iy, seed), v10 = rand2(ix + 1, iy, seed);
+        const v01 = rand2(ix, iy + 1, seed), v11 = rand2(ix + 1, iy + 1, seed);
+        const sx = smoothstep(fx), sy = smoothstep(fy);
+        const nx0 = lerp(v00, v10, sx);
+        const nx1 = lerp(v01, v11, sx);
+        return lerp(nx0, nx1, sy) * 2 - 1; // [-1..1]
+    };
+}
+
+function fbm2(noise: (_x: number, _y: number) => number, x: number, y: number, octaves = 5, lacunarity = 2, gain = 0.5): number {
+    let amp = 1, freq = 1, sum = 0, norm = 0;
+    for (let i = 0; i < octaves; i++) {
+        sum += noise(x * freq, y * freq) * amp;
+        norm += amp;
+        amp *= gain;
+        freq *= lacunarity;
+    }
+    return sum / norm;
+}
+
+// Noise generators (created per seed)
+let nElev: ((_x: number, _y: number) => number) | null = null;
+let nTemp: ((_x: number, _y: number) => number) | null = null;
+let nMoist: ((_x: number, _y: number) => number) | null = null;
 
 function initTerrainGenerator(seed: string) {
     let hash = 0;
@@ -28,53 +78,59 @@ function initTerrainGenerator(seed: string) {
         hash |= 0;
     }
     terrainSeed = Math.abs(hash);
-}
-
-function noise2d(x: number, y: number, seed: number): number {
-    const n = Math.sin(x * 12.9898 + y * 78.233 + seed) * 43758.5453;
-    return n - Math.floor(n);
-}
-
-function smoothNoise(x: number, y: number, scale: number, seed: number): number {
-    const ix = Math.floor(x / scale);
-    const iy = Math.floor(y / scale);
-    const fx = (x / scale) - ix;
-    const fy = (y / scale) - iy;
-
-    const v1 = noise2d(ix, iy, seed);
-    const v2 = noise2d(ix + 1, iy, seed);
-    const v3 = noise2d(ix, iy + 1, seed);
-    const v4 = noise2d(ix + 1, iy + 1, seed);
-
-    const i1 = v1 * (1 - fx) + v2 * fx;
-    const i2 = v3 * (1 - fx) + v4 * fx;
-
-    return i1 * (1 - fy) + i2 * fy;
+    
+    // Initialize noise generators
+    nElev = makeNoise2D(terrainSeed ^ 0x11a2);
+    nTemp = makeNoise2D(terrainSeed ^ 0x33b4);
+    nMoist = makeNoise2D(terrainSeed ^ 0x55c6);
 }
 
 function sampleOverworld(pos: { x: number; y: number }): { height: number; moisture: number; biome: string } {
-    const height = (
-        smoothNoise(pos.x, pos.y, 50, terrainSeed) * 0.5 +
-        smoothNoise(pos.x, pos.y, 25, terrainSeed + 1) * 0.3 +
-        smoothNoise(pos.x, pos.y, 10, terrainSeed + 2) * 0.2
-    );
+    if (!nElev || !nTemp || !nMoist) {
+        return { height: 0.5, moisture: 0.5, biome: 'Grassland' };
+    }
 
-    const moisture = smoothNoise(pos.x, pos.y, 40, terrainSeed + 1000);
-    const temperature = smoothNoise(pos.x, pos.y, 60, terrainSeed + 2000);
+    const freq = 0.004 / 1.25; // World scale
+    const warpAmp = 20 * 2.5;
+
+    // Domain warp for organic shapes
+    const wx = pos.x * freq, wy = pos.y * freq;
+    const dwx = wx + fbm2(nElev, wx * 0.8, wy * 0.8, 4, 2.01, 0.55) * (warpAmp * 0.0025);
+    const dwy = wy + fbm2(nMoist, wx * 0.7, wy * 0.7, 4, 2.03, 0.56) * (warpAmp * 0.0025);
+
+    // Generate terrain values with FBM
+    let height = fbm2(nElev, dwx, dwy, 6, 2.0, 0.5);
+    let temperature = fbm2(nTemp, wx * 0.7, wy * 0.7, 4, 2.0, 0.5);
+    let moisture = fbm2(nMoist, wx * 0.75, wy * 0.75, 4, 2.0, 0.5);
+
+    // Normalize to [0,1]
+    height = (height + 1) / 2;
+    temperature = (temperature + 1) / 2;
+    moisture = (moisture + 1) / 2;
+
+    // Determine biome with better logic
+    const seaLevel = 0.36; // Lower sea level for more land
+    const snowLevel = 0.68;
 
     let biome = 'Grassland';
-    if (height < 0.4) biome = 'Ocean';
-    else if (height < 0.45) biome = 'Beach';
-    else if (temperature > 0.7) {
-        biome = moisture > 0.5 ? 'Jungle' : 'Desert';
-    } else if (temperature < 0.3) {
-        biome = height > 0.7 ? 'Snow' : 'Tundra';
-    } else if (moisture < 0.3) {
+    if (height < seaLevel) {
+        biome = height < seaLevel - 0.08 ? 'DeepOcean' : 'Ocean';
+    } else if (height < seaLevel + 0.03) {
+        biome = 'Beach';
+    } else if (height > snowLevel) {
+        biome = 'Snow';
+    } else if (height > 0.65) {
+        biome = 'Mountain';
+    } else if (moisture > 0.7 && height < 0.55) {
+        biome = 'Swamp';
+    } else if (moisture > 0.6) {
+        biome = temperature > 0.65 ? 'Jungle' : 'Forest';
+    } else if (moisture < 0.35) {
         biome = 'Desert';
-    } else if (moisture > 0.7) {
-        biome = height > 0.6 ? 'Forest' : 'Swamp';
+    } else if (temperature < 0.35) {
+        biome = 'Taiga';
     } else {
-        biome = height > 0.6 ? 'Forest' : 'Grassland';
+        biome = height > 0.5 ? 'Hills' : 'Grassland';
     }
 
     return { height, moisture, biome };
@@ -491,26 +547,25 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
     };
 
     // Terrain color palette (same as SmoothWorldMap)
-    const terrainColor = (height: number, moisture: number, biome: string): [number, number, number] => {
-        // Deep water
-        if (height < 0.3) return [30, 60, 114];
-        // Shallow water
-        if (height < 0.4) return [52, 101, 164];
-        // Beach
-        if (height < 0.45) return [194, 178, 128];
+    const terrainColor = (_height: number, _moisture: number, biome: string): [number, number, number] => {
+        // Water biomes with depth-based colors
+        if (biome === 'DeepOcean') return [15, 45, 95];
+        if (biome === 'Ocean') return [30, 90, 160];
+        if (biome === 'Beach') return [238, 214, 175];
 
-        // Land biomes
+        // Land biomes with more varied colors
         switch (biome) {
-            case 'Desert': return [210, 180, 140];
-            case 'Grassland': return [100, 160, 80];
+            case 'Grassland': return [120, 180, 80];
+            case 'Hills': return [140, 160, 90];
             case 'Forest': return [34, 139, 34];
-            case 'Taiga': return [60, 100, 60];
-            case 'Tundra': return [150, 150, 150];
-            case 'Snow': return [240, 240, 255];
-            case 'Swamp': return [100, 120, 80];
-            case 'Savanna': return [160, 140, 80];
-            case 'Jungle': return [20, 100, 20];
-            default: return [120, 120, 120];
+            case 'Desert': return [238, 205, 144];
+            case 'Swamp': return [100, 130, 100];
+            case 'Taiga': return [70, 120, 80];
+            case 'Tundra': return [180, 200, 195];
+            case 'Snow': return [250, 250, 255];
+            case 'Jungle': return [34, 180, 34];
+            case 'Mountain': return [160, 140, 120];
+            default: return [120, 180, 80]; // Default to grassland
         }
     };
 
