@@ -140,6 +140,10 @@ export default function PhaseBattleDemo() {
         const engine = engineRef.current;
         if (!engine) return;
 
+        console.log('🖱️ Hex clicked:', hex);
+        console.log('📍 Selected unit:', selectedUnit?.name, selectedUnit?.id);
+        console.log('🎯 Valid moves:', validMoves);
+
         // Check if there's a unit at this hex
         const unitAtHex = battleState.units.find(u =>
             u.pos && u.pos.q === hex.q && u.pos.r === hex.r && !u.isDead
@@ -147,14 +151,18 @@ export default function PhaseBattleDemo() {
 
         if (unitAtHex && unitAtHex.faction === 'Player') {
             // Select player unit
+            console.log('✅ Selecting player unit:', unitAtHex.name);
             setSelectedUnitId(unitAtHex.id);
             const moves = engine.getValidMoves(unitAtHex.id);
             const targets = engine.getValidTargets(unitAtHex.id);
+            console.log('🎯 Valid moves for unit:', moves);
             setValidMoves(moves);
             setValidTargets(targets);
         } else if (selectedUnit && validMoves.some(m => m.q === hex.q && m.r === hex.r)) {
             // Move to valid hex
+            console.log('🚶 Attempting move to:', hex);
             const success = engine.move(selectedUnit.id, hex);
+            console.log('✅ Move success:', success);
             if (success) {
                 setBattleState({ ...battleState });
                 // Update valid moves and targets after moving
@@ -164,6 +172,7 @@ export default function PhaseBattleDemo() {
             }
         } else {
             // Clear selection
+            console.log('❌ Clearing selection (clicked empty hex or invalid target)');
             setSelectedUnitId(null);
             setValidMoves([]);
             setValidTargets([]);
