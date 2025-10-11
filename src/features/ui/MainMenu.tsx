@@ -36,6 +36,7 @@ interface Props {
   onBrigandineHex?: () => void;
   onEnhancedMap: () => void;
   onSimpleMap: () => void;
+  onPixiMap: () => void;
   onCombatUIDemo: () => void;
   onProcedural: () => void;
   onEncounters?: () => void;
@@ -44,7 +45,7 @@ interface Props {
   onTimeSystemDemo?: () => void;
 }
 
-export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onClassicCharacterCreate, onPortraitTest, onAutoUpdater, onBrigandineHex, onEnhancedMap, onSimpleMap, onCombatUIDemo, onProcedural, onEncounters, onIntegratedCampaign, onEngineTest, onTimeSystemDemo }: Props) {
+export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onClassicCharacterCreate, onPortraitTest, onAutoUpdater, onBrigandineHex, onEnhancedMap, onSimpleMap, onPixiMap, onCombatUIDemo, onProcedural, onEncounters, onIntegratedCampaign, onEngineTest, onTimeSystemDemo }: Props) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [characters, setCharacters] = useState<SavedCharacter[]>([]);
   const [activeTab, setActiveTab] = useState<'campaigns' | 'characters'>('campaigns');
@@ -807,6 +808,12 @@ Recovered ${recovered.length} campaigns`);
                 <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🌍</div>
                 <h3 style={{ margin: '0 0 5px 0' }}>Exploration Map</h3>
                 <p style={{ margin: 0, opacity: 0.9 }}>Simple campaign world map</p>
+              </div>
+
+              <div style={newCardStyle} onClick={onPixiMap}>
+                <div style={{ fontSize: '3rem', marginBottom: '10px' }}>✨</div>
+                <h3 style={{ margin: '0 0 5px 0' }}>Smooth Map (GPU)</h3>
+                <p style={{ margin: 0, opacity: 0.9 }}>Pixi.js GPU-accelerated terrain</p>
               </div>
 
               <div style={newCardStyle} onClick={onProcedural}>

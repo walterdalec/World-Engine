@@ -6,7 +6,7 @@ import { MainMenu, WorldSetupScreen, VersionDisplay } from "../features/ui";
 import { CharacterLibrary, CharacterCreate, NameGenerator, ClassicCharacterCreator } from "../features/characters";
 import { SpellGenerator, SpellAssignment } from "../features/spells";
 import { HealingSystem, BrigandineHexBattle } from "../features/battle";
-import { WorldMapEngine, EnhancedWorldMap, SimpleWorldMap, ProceduralDevTools } from "../features/world";
+import { WorldMapEngine, EnhancedWorldMap, SimpleWorldMap, PixiWorldMap, ProceduralDevTools } from "../features/world";
 import { IntegratedCampaign } from "../features/strategy";
 import EncountersTestPage from "../features/world/encounters/EncountersTestPage";
 import { SimplePortraitTest } from "../features/portraits";
@@ -38,7 +38,7 @@ function _randomSeed(): string {
 }
 
 function App() {
-  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "enhancedmap" | "simplemap" | "charactercreate" | "classiccharacter" | "portraittest" | "battlesystem" | "battle" | "minimalBattle" | "brigandineHex" | "autoupdater" | "combat-ui-demo" | "procedural" | "encounters" | "integrated-campaign" | "engine-test" | "time-system-demo">("menu");
+  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "enhancedmap" | "simplemap" | "piximap" | "charactercreate" | "classiccharacter" | "portraittest" | "battlesystem" | "battle" | "minimalBattle" | "brigandineHex" | "autoupdater" | "combat-ui-demo" | "procedural" | "encounters" | "integrated-campaign" | "engine-test" | "time-system-demo">("menu");
   const [party, setParty] = React.useState<Character[]>([]);
   const [currentCampaign, setCurrentCampaign] = React.useState<any>(null);
   const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0); // Force re-render hook
@@ -309,6 +309,11 @@ function App() {
     setStep("simplemap");
   };
 
+  const handlePixiMap = () => {
+    // GPU-accelerated smooth world map with Pixi.js
+    setStep("piximap");
+  };
+
   const handleCombatUIDemo = () => {
     // Combat UI demonstration with mock data
     setStep("combat-ui-demo");
@@ -440,6 +445,7 @@ function App() {
           onBrigandineHex={handleBrigandineHex}
           onEnhancedMap={handleEnhancedMap}
           onSimpleMap={handleSimpleMap}
+          onPixiMap={handlePixiMap}
           onCombatUIDemo={handleCombatUIDemo}
           onProcedural={handleProcedural}
           onEncounters={handleEncounters}
@@ -593,6 +599,33 @@ function App() {
           <SimpleWorldMap
             seedStr={eng?.state?.meta?.seed}
             onBack={() => setStep("menu")}
+          />
+        </div>
+      )}
+      {step === "piximap" && (
+        <div style={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden' }}>
+          <button
+            onClick={() => setStep("menu")}
+            style={{
+              position: 'absolute',
+              top: '20px',
+              left: '20px',
+              zIndex: 1000,
+              background: '#374151',
+              color: '#f8fafc',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '10px 15px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+            }}
+          >
+            ← Back to Menu
+          </button>
+          <PixiWorldMap
+            seed={eng?.state?.meta?.seed || "default-seed"}
           />
         </div>
       )}

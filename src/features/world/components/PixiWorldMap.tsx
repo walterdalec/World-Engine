@@ -97,7 +97,7 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const appRef = useRef<Application | null>(null);
     const worldContainerRef = useRef<Container | null>(null);
-    
+
     // Camera state
     const cameraRef = useRef({ x: 0, y: 0, scale: 8 }); // 8 pixels per world unit
     const dragRef = useRef<{ active: boolean; startX: number; startY: number; startCamX: number; startCamY: number }>({
