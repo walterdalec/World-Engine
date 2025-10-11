@@ -107,6 +107,80 @@ export const IntegratedCampaign: React.FC<IntegratedCampaignProps> = ({
 
     const { characters, updateCurrentCharacter, saveCharacter } = useGameStore();
 
+    // Sync characters from Character Library localStorage to game store
+    useEffect(() => {
+        console.log('🔄 Checking for Character Library characters to sync...');
+        
+        try {
+            const libraryCharsJson = localStorage.getItem('world-engine-characters');
+            if (!libraryCharsJson) {
+                console.log('📚 No Character Library characters found');
+                return;
+            }
+
+            const libraryChars = JSON.parse(libraryCharsJson);
+            console.log(`📚 Found ${libraryChars.length} characters in Character Library`);
+
+            // Only sync if game store is empty
+            if (characters.length === 0 && libraryChars.length > 0) {
+                console.log('🔄 Syncing Character Library → Game Store...');
+                
+                libraryChars.forEach((savedChar: any) => {
+                    const char = savedChar.data; // Character Library format has .data field
+                    if (!char) return;
+
+                    // Convert to game store format
+                    const gameStoreChar = {
+                        id: savedChar.id || char.name,
+                        name: char.name,
+                        species: char.species,
+                        archetype: char.archetype,
+                        background: char.background || '',
+                        world: 'Verdance', // Default world
+                        pronouns: char.gender === 'Male' ? 'he/him' : char.gender === 'Female' ? 'she/her' : 'they/them',
+                        stats: {
+                            might: char.stats?.STR || 10,
+                            agility: char.stats?.DEX || 10,
+                            intellect: char.stats?.INT || 10,
+                            awareness: char.stats?.WIS || 10,
+                            vitality: char.stats?.CON || 10,
+                            presence: char.stats?.CHA || 10,
+                            luck: char.stats?.LCK || 10
+                        },
+                        level: char.level || 1,
+                        experience: 0,
+                        hp: 50 + ((char.level || 1) * 10),
+                        maxHp: 50 + ((char.level || 1) * 10),
+                        mp: 20 + ((char.level || 1) * 5),
+                        maxMp: 20 + ((char.level || 1) * 5),
+                        traits: char.traits || [],
+                        abilities: [],
+                        spells: char.knownSpells || [],
+                        cantrips: char.knownCantrips || [],
+                        equipment: {
+                            weapon: 'Iron Sword',
+                            armor: 'Leather Armor',
+                            accessory: 'None',
+                            items: []
+                        },
+                        portraitUrl: char.portraitUrl || ''
+                    } as any;
+
+                    console.log(`✅ Importing: ${char.name} (${char.species} ${char.archetype})`);
+                    updateCurrentCharacter(gameStoreChar);
+                    saveCharacter();
+                });
+
+                console.log('🎉 Character sync complete!');
+            } else if (characters.length > 0) {
+                console.log('✅ Game store already has characters, skipping sync');
+            }
+        } catch (error) {
+            console.error('❌ Error syncing characters:', error);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Run once on mount (intentionally excluding dependencies to prevent re-sync)
+
     // Initialize campaign
     useEffect(() => {
         console.log('🌍 Campaign effect triggered. isInitializing:', isInitializing, 'characters.length:', characters.length);
