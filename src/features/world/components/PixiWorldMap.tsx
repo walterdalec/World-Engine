@@ -142,19 +142,26 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
         const width = container.clientWidth;
         const height = container.clientHeight;
 
-        // Create Pixi application
+        // Create Pixi application with Canvas2D renderer (no WebGL chunks)
         const app = new Application();
 
         (async () => {
-            await app.init({
-                width,
-                height,
-                backgroundColor: 0x1a1a2e,
-                resolution: window.devicePixelRatio || 1,
-                autoDensity: true,
-                antialias: false, // Pixel-perfect for retro aesthetic
-                powerPreference: 'high-performance',
-            });
+            try {
+                await app.init({
+                    width,
+                    height,
+                    backgroundColor: 0x1a1a2e,
+                    resolution: window.devicePixelRatio || 1,
+                    autoDensity: true,
+                    antialias: false, // Pixel-perfect for retro aesthetic
+                    powerPreference: 'high-performance',
+                    preference: 'webgl', // Prefer WebGL but fallback to canvas
+                });
+                console.log('✅ [Pixi] Application initialized with', app.renderer.type);
+            } catch (error) {
+                console.error('❌ [Pixi] Failed to initialize:', error);
+                return;
+            }
 
             container.appendChild(app.canvas as HTMLCanvasElement);
             appRef.current = app;
@@ -353,9 +360,9 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
         const viewTop = camY - screenHeight / (2 * scale);
         const viewBottom = camY + screenHeight / (2 * scale);
 
-        // Chunk size in world units
-        const chunkSize = 32; // 32 world units per chunk
-        const cellSize = 4; // 4 world units per terrain cell
+        // Dynamic chunk and cell size based on zoom (less detail when zoomed out)
+        const chunkSize = scale < 4 ? 64 : 32; // Larger chunks when zoomed out
+        const cellSize = scale < 4 ? 16 : scale < 8 ? 8 : 4; // Adaptive cell size
 
         // Calculate visible chunk range
         const minChunkX = Math.floor(viewLeft / chunkSize) - 1;
@@ -366,59 +373,98 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
         // Track which chunks should exist
         const activeChunks = new Set<string>();
 
-        // Render visible chunks
+        // Limit chunks per frame to maintain FPS
+        const maxChunksPerFrame = 4;
+        let chunksCreated = 0;
+
+        // Render visible chunks (prioritize center)
+        const centerChunkX = Math.floor(camX / chunkSize);
+        const centerChunkY = Math.floor(camY / chunkSize);
+        
+        // Sort chunks by distance from center
+        const chunkList: Array<[number, number]> = [];
         for (let cy = minChunkY; cy <= maxChunkY; cy++) {
             for (let cx = minChunkX; cx <= maxChunkX; cx++) {
-                const chunkKey = `${cx},${cy}`;
-                activeChunks.add(chunkKey);
+                chunkList.push([cx, cy]);
+            }
+        }
+        chunkList.sort((a, b) => {
+            const distA = Math.abs(a[0] - centerChunkX) + Math.abs(a[1] - centerChunkY);
+            const distB = Math.abs(b[0] - centerChunkX) + Math.abs(b[1] - centerChunkY);
+            return distA - distB;
+        });
 
-                // Skip if already rendered
-                if (renderedChunksRef.current.has(chunkKey)) continue;
+        // Render chunks
+        for (const [cx, cy] of chunkList) {
+            const chunkKey = `${cx},${cy}`;
+            activeChunks.add(chunkKey);
 
-                // Create chunk
-                const chunk = new Graphics();
-                chunk.label = chunkKey;
+            // Skip if already rendered
+            if (renderedChunksRef.current.has(chunkKey)) continue;
 
-                // Render terrain cells in this chunk
-                for (let ly = 0; ly < chunkSize; ly += cellSize) {
-                    for (let lx = 0; lx < chunkSize; lx += cellSize) {
-                        const wx = cx * chunkSize + lx;
-                        const wy = cy * chunkSize + ly;
+            // Limit chunks created per frame
+            if (chunksCreated >= maxChunksPerFrame) break;
+            chunksCreated++;
 
-                        // Get terrain color (cached)
-                        const cacheKey = `${Math.round(wx * 4) / 4},${Math.round(wy * 4) / 4}`;
-                        let color = terrainCacheRef.current.get(cacheKey);
+            // Create chunk with batched rendering
+            const chunk = new Graphics();
+            chunk.label = chunkKey;
 
-                        if (!color) {
-                            try {
-                                const sample = sampleOverworld({ x: wx, y: wy });
-                                const [r, g, b] = terrainColor(sample.height, sample.moisture, sample.biome);
-                                color = { r, g, b };
-                                terrainCacheRef.current.set(cacheKey, color);
+            // Batch cells by color for efficient rendering
+            const colorBatches = new Map<number, Array<{x: number, y: number}>>();
 
-                                // Limit cache size
-                                if (terrainCacheRef.current.size > 20000) {
-                                    const firstKey = terrainCacheRef.current.keys().next().value;
-                                    if (firstKey) terrainCacheRef.current.delete(firstKey);
-                                }
-                            } catch (err) {
-                                continue;
+            // Sample terrain cells in this chunk
+            for (let ly = 0; ly < chunkSize; ly += cellSize) {
+                for (let lx = 0; lx < chunkSize; lx += cellSize) {
+                    const wx = cx * chunkSize + lx;
+                    const wy = cy * chunkSize + ly;
+
+                    // Get terrain color (cached)
+                    const cacheKey = `${Math.round(wx / cellSize) * cellSize},${Math.round(wy / cellSize) * cellSize}`;
+                    let color = terrainCacheRef.current.get(cacheKey);
+
+                    if (!color) {
+                        try {
+                            const sample = sampleOverworld({ x: wx, y: wy });
+                            const [r, g, b] = terrainColor(sample.height, sample.moisture, sample.biome);
+                            color = { r, g, b };
+                            terrainCacheRef.current.set(cacheKey, color);
+
+                            // Limit cache size
+                            if (terrainCacheRef.current.size > 20000) {
+                                const firstKey = terrainCacheRef.current.keys().next().value;
+                                if (firstKey) terrainCacheRef.current.delete(firstKey);
                             }
-                        }
-
-                        if (color) {
-                            const hexColor = (color.r << 16) | (color.g << 8) | color.b;
-                            chunk.rect(lx, ly, cellSize, cellSize);
-                            chunk.fill(hexColor);
+                        } catch (err) {
+                            continue;
                         }
                     }
-                }
 
-                // Position chunk in world
-                chunk.position.set(cx * chunkSize, cy * chunkSize);
-                terrainContainer.addChild(chunk);
-                renderedChunksRef.current.add(chunkKey);
+                    if (color) {
+                        const hexColor = (color.r << 16) | (color.g << 8) | color.b;
+                        
+                        // Batch cells by color
+                        if (!colorBatches.has(hexColor)) {
+                            colorBatches.set(hexColor, []);
+                        }
+                        colorBatches.get(hexColor)!.push({x: lx, y: ly});
+                    }
+                }
             }
+
+            // Draw all batched cells
+            colorBatches.forEach((positions, hexColor) => {
+                chunk.rect(positions[0].x, positions[0].y, cellSize, cellSize);
+                for (let i = 1; i < positions.length; i++) {
+                    chunk.rect(positions[i].x, positions[i].y, cellSize, cellSize);
+                }
+                chunk.fill(hexColor);
+            });
+
+            // Position chunk in world
+            chunk.position.set(cx * chunkSize, cy * chunkSize);
+            terrainContainer.addChild(chunk);
+            renderedChunksRef.current.add(chunkKey);
         }
 
         // Remove chunks that are too far away (memory management)
@@ -426,12 +472,12 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
         for (const child of children) {
             if (child.label && !activeChunks.has(child.label)) {
                 const [cx, cy] = child.label.split(',').map(Number);
-                const distX = Math.abs(cx - (minChunkX + maxChunkX) / 2);
-                const distY = Math.abs(cy - (minChunkY + maxChunkY) / 2);
+                const distX = Math.abs(cx - (centerChunkX));
+                const distY = Math.abs(cy - (centerChunkY));
                 const dist = Math.sqrt(distX * distX + distY * distY);
 
                 // Remove if very far from viewport
-                if (dist > 10) {
+                if (dist > 15) {
                     terrainContainer.removeChild(child);
                     child.destroy();
                     renderedChunksRef.current.delete(child.label);
