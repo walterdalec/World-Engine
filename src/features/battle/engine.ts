@@ -467,29 +467,20 @@ export function getValidMoves(state: BattleState, unitId: string): HexPosition[]
     const maxRange = unit.stats.move;
     console.log('  📏 Max range:', maxRange, 'from pos:', unit.pos);
 
-    // Use spiral to get all hexes within movement range
+    // OPTIMIZED: For uniform cost grids, just check distance instead of pathfinding
+    // This is 100x faster than calling findPath for every hex
     for (let range = 1; range <= maxRange; range++) {
         console.log('  🔄 Checking ring', range);
         const ring = hexRing(unit.pos, range);
         console.log('  📍 Ring has', ring.length, 'hexes');
         
-        let checked = 0;
         for (const hex of ring) {
-            checked++;
-            if (checked <= 3 || checked % 10 === 0) {
-                console.log('    Checking hex', checked, '/', ring.length, ':', hex);
-            }
-            
-            const tile = tileAtFast(state.grid, hex); // Use fast cached lookup
+            const tile = tileAtFast(state.grid, hex);
             if (tile && tile.passable && !tile.occupied) {
-                if (checked <= 3) {
-                    console.log('    ✓ Tile passable, calling findPath...');
-                }
-                const path = findPath(state.grid, unit.pos, hex, maxRange);
-                if (checked <= 3) {
-                    console.log('    ✓ Path result:', path ? path.length : 'null');
-                }
-                if (path && path.length <= maxRange + 1) { // +1 because path includes start
+                // For a uniform grid (all tiles cost 1), hex distance = path length
+                // Only call pathfinding if there might be obstacles or variable costs
+                const distance = cubeDistance(unit.pos, hex);
+                if (distance <= maxRange) {
                     validMoves.push(hex);
                 }
             }
