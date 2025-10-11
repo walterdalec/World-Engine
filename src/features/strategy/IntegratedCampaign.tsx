@@ -105,7 +105,7 @@ export const IntegratedCampaign: React.FC<IntegratedCampaignProps> = ({
         partyLevel: number;
     } | null>(null);
 
-    const { characters } = useGameStore();
+    const { characters, updateCurrentCharacter, saveCharacter } = useGameStore();
 
     // Initialize campaign
     useEffect(() => {
@@ -202,6 +202,30 @@ export const IntegratedCampaign: React.FC<IntegratedCampaignProps> = ({
     const addLog = useCallback((message: string) => {
         setLogs(prev => [...prev.slice(-19), `[Day ${campaignState?.currentDay || 0}] ${message}`]);
     }, [campaignState?.currentDay]);
+
+    // Quick start with test character
+    const createTestCharacter = useCallback(() => {
+        console.log('🎮 Creating test character...');
+        updateCurrentCharacter({
+            name: 'Test Hero',
+            species: 'Human',
+            archetype: 'Knight',
+            world: 'Verdance',
+            gender: 'male',
+            pronouns: 'he/him',
+            level: 1,
+            experience: 0,
+            hitPoints: 60,
+            stats: { might: 15, agility: 12, intellect: 10, awareness: 14 },
+            traits: ['Brave', 'Strong'],
+            flaws: [],
+            background: 'A brave knight ready for adventure',
+            equipment: { weapon: 'Iron Sword', armor: 'Leather Armor', items: [] },
+            abilities: []
+        } as any); // Use 'as any' to bypass type check for now
+        saveCharacter();
+        addLog('🎮 Test character created!');
+    }, [updateCurrentCharacter, saveCharacter, addLog]);
 
     // Advance day (main game loop)
     const advanceDay = useCallback(() => {
@@ -384,6 +408,12 @@ export const IntegratedCampaign: React.FC<IntegratedCampaignProps> = ({
                     </p>
                     <div className="space-y-2">
                         <button
+                            onClick={createTestCharacter}
+                            className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-3 px-6 rounded-lg"
+                        >
+                            ⚡ Quick Start (Test Character)
+                        </button>
+                        <button
                             onClick={() => {
                                 if (onNavigateToCharacterCreate) {
                                     onNavigateToCharacterCreate();
@@ -393,7 +423,7 @@ export const IntegratedCampaign: React.FC<IntegratedCampaignProps> = ({
                             }}
                             className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-lg"
                         >
-                            ✨ Create Character
+                            ✨ Create Custom Character
                         </button>
                         <button
                             onClick={() => {
