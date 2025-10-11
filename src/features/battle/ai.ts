@@ -11,8 +11,6 @@ import {
 } from "../ai/tactical/v31";
 import * as TacticalV32 from "../ai/tactical/v32";
 import * as TacticalV33 from "../ai/tactical/v33";
-import * as TacticalV34 from "../ai/tactical/v34";
-import * as TacticalV35 from "../ai/tactical/v35";
 
 const NEIGHBOR_DIRS: readonly ThreatHex[] = [
     { q: 1, r: 0 },
@@ -26,14 +24,12 @@ const NEIGHBOR_DIRS: readonly ThreatHex[] = [
 interface TacticalRuntime {
     brain: any;
     lastTickTurn: number;
-    world?: any;
 }
 
 const runtimes = new Map<string, TacticalRuntime>();
 
 function ensureRuntime(state: BattleState): TacticalRuntime {
     let runtime = runtimes.get(state.id);
-    const worldRef = (state as any)?.world ?? (state as any)?.context?.world;
     if (!runtime) {
         const anchor = {
             q: Math.floor(state.grid.width / 2),
@@ -44,15 +40,10 @@ function ensureRuntime(state: BattleState): TacticalRuntime {
         };
         attachV30(brain, state as any);
         attachV31(brain, state as any);
-        (TacticalV32.attachV32 as any)(brain, worldRef, state as any);
-        (TacticalV33.attachV33 as any)(brain, worldRef, state as any);
-        (TacticalV34.attachV34 as any)(brain, worldRef, state as any);
-        (TacticalV35.attachV35 as any)(brain, worldRef, state as any);
-        brain.world = worldRef ?? brain.world;
-        runtime = { brain, lastTickTurn: -1, world: worldRef };
+        TacticalV32.attachV32(brain, undefined, state as any);
+        TacticalV33.attachV33(brain, undefined, state as any);
+        runtime = { brain, lastTickTurn: -1 };
         runtimes.set(state.id, runtime);
-    } else if (worldRef && !runtime.world) {
-        runtime.world = worldRef;
     }
     return runtime;
 }
@@ -61,11 +52,8 @@ function tickField(runtime: TacticalRuntime, state: BattleState) {
     if (runtime.lastTickTurn === state.turn) return;
     v30Tick(runtime.brain, state as any);
     v31Tick(runtime.brain, state as any);
-    if (runtime.world && runtime.brain?.v35) runtime.brain.v35.world = runtime.world;
-    (TacticalV32.v32Tick as any)(runtime.brain, runtime.world, state as any);
-    (TacticalV33.v33Tick as any)(runtime.brain, runtime.world, state as any);
-    (TacticalV34.v34Tick as any)(runtime.brain, runtime.world, state as any);
-    (TacticalV35.v35Tick as any)(runtime.brain, state as any);
+    TacticalV32.v32Tick(runtime.brain, undefined, state as any);
+    TacticalV33.v33Tick(runtime.brain, undefined, state as any);
     runtime.lastTickTurn = state.turn;
 }
 
