@@ -38,7 +38,7 @@ export function tileAtFast(grid: BattleGrid, pos: HexPosition): HexTile | undefi
         });
         cachedGridId = gridId;
     }
-    
+
     return tileCache.get(getTileKey(pos));
 }
 
@@ -139,8 +139,6 @@ export function findPath(
     goal: HexPosition,
     maxCost: number = 20
 ): HexPosition[] | null {
-    console.log('    🔎 findPath START:', start, '→', goal, 'maxCost:', maxCost);
-
     const open = new Map<string, number>(); // key -> f score
     const gScore = new Map<string, number>(); // key -> g score
     const came = new Map<string, string>(); // child -> parent
@@ -152,36 +150,21 @@ export function findPath(
     open.set(startKey, hexDistance(start, goal));
 
     // Safety: limit iterations to prevent infinite loops
-    const MAX_ITERATIONS = 200; // Reduced from 1000 for faster timeout
+    const MAX_ITERATIONS = 500; // Increased for larger searches
     let iterations = 0;
-
-    console.log('    🔎 Starting A* loop, open size:', open.size);
 
     while (open.size > 0) {
         iterations++;
-        
-        if (iterations === 1) {
-            console.log('    🔄 FIRST ITERATION START');
-        }
 
         // Safety check: prevent infinite loops
         if (iterations > MAX_ITERATIONS) {
-            console.warn('    ⚠️ Pathfinding exceeded max iterations:', MAX_ITERATIONS, 'returning null');
+            console.warn('    ⚠️ Pathfinding exceeded max iterations:', MAX_ITERATIONS, 'for', start, '→', goal);
             return null;
-        }
-
-        // Log every iteration initially to find the freeze
-        if (iterations <= 5 || iterations % 50 === 0) {
-            console.log('    🔄 Iteration', iterations, 'START - open size:', open.size);
         }
 
         // Get node with lowest f score
         let current = "";
         let lowestF = Infinity;
-        
-        if (iterations <= 5) {
-            console.log('    🔄 About to forEach over open map...');
-        }
         
         open.forEach((f, key) => {
             if (f < lowestF) {
@@ -190,12 +173,7 @@ export function findPath(
             }
         });
 
-        if (iterations <= 5) {
-            console.log('    🔄 forEach complete, current:', current, 'f:', lowestF);
-        }
-
         if (current === goalKey) {
-            console.log('    ✅ Path found! Iterations:', iterations);
             // Reconstruct path
             const path: HexPosition[] = [];
             let key = current;
@@ -207,17 +185,9 @@ export function findPath(
             return path;
         }
 
-        if (iterations <= 5) {
-            console.log('    🔄 Deleting current from open...');
-        }
-        
         open.delete(current);
         const [cq, cr] = current.split(',').map(Number);
         const currentPos = { q: cq, r: cr };
-
-        if (iterations <= 5) {
-            console.log('    🔄 Getting neighbors of', currentPos);
-        }
 
         for (const neighbor of hexNeighbors(currentPos)) {
             const neighborKey = getTileKey(neighbor);
@@ -239,8 +209,8 @@ export function findPath(
         }
     }
 
-    console.log('    ⚠️ No path found after', iterations, 'iterations');
-    return null; // No path found
+    // Path not found (silent - this is common for blocked/expensive paths)
+    return null;
 }
 
 // Ability targeting and validation

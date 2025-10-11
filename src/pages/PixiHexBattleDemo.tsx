@@ -290,10 +290,10 @@ export default function PixiHexBattleDemo() {
         // Use cube distance for more accurate range checking
         for (let q = unit.pos.q - maxMove; q <= unit.pos.q + maxMove; q++) {
             for (let r = unit.pos.r - maxMove; r <= unit.pos.r + maxMove; r++) {
-                // Emergency timeout check every iteration
-                if (performance.now() - startTime > 500) {
-                    console.error('❌ TIMEOUT: Pathfinding exceeded 500ms! Aborting.');
-                    console.error('  Checked', hexesChecked, 'hexes, made', pathfindCalls, 'pathfind calls');
+                // Emergency timeout check every 10 hexes to reduce overhead
+                if (hexesChecked % 10 === 0 && performance.now() - startTime > 1000) {
+                    console.error('❌ TIMEOUT: Pathfinding exceeded 1000ms! Aborting.');
+                    console.error('  Checked', hexesChecked, 'hexes, made', pathfindCalls, 'pathfind calls, found', moves.length, 'moves');
                     return moves;
                 }
 
@@ -315,16 +315,24 @@ export default function PixiHexBattleDemo() {
 
                 // Only do pathfinding for unoccupied, in-range hexes
                 pathfindCalls++;
-                console.log('  🔍 Pathfind call', pathfindCalls, ':', unit.pos, '→', targetPos);
+                
+                // Only log first 3 and last few calls to reduce console spam
+                if (pathfindCalls <= 3 || pathfindCalls % 10 === 0) {
+                    console.log('  🔍 Pathfind call', pathfindCalls, ':', unit.pos, '→', targetPos);
+                }
 
                 try {
                     const path = findPath(battleState.grid, unit.pos, targetPos, maxMove);
-                    console.log('  ✓ Path result:', path ? path.length : 'null');
+                    
+                    if (pathfindCalls <= 3 || pathfindCalls % 10 === 0) {
+                        console.log('  ✓ Path result:', path ? path.length : 'null');
+                    }
+                    
                     if (path && path.length > 0) {
                         moves.push(targetPos);
                     }
                 } catch (error) {
-                    console.error('❌ Pathfinding error:', error);
+                    console.error('❌ Pathfinding error on call', pathfindCalls, ':', error);
                     // Continue to next hex instead of crashing
                 }
             }
