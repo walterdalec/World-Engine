@@ -95,7 +95,8 @@ export const IntegratedCampaign: React.FC<IntegratedCampaignProps> = ({
     onNavigateToMenu
 }) => {
     const [campaignState, setCampaignState] = useState<CampaignState | null>(null);
-    const [isInitializing, setIsInitializing] = useState(true);
+    const [showCampaignMenu, setShowCampaignMenu] = useState(true); // Show menu first
+    const [isInitializing, setIsInitializing] = useState(false); // Don't auto-initialize
     const [currentView, setCurrentView] = useState<'world' | 'party' | 'factions' | 'battle'>('world');
     const [logs, setLogs] = useState<string[]>([]);
 
@@ -110,7 +111,7 @@ export const IntegratedCampaign: React.FC<IntegratedCampaignProps> = ({
     // Sync characters from Character Library localStorage to game store
     useEffect(() => {
         console.log('🔄 Checking for Character Library characters to sync...');
-        
+
         try {
             const libraryCharsJson = localStorage.getItem('world-engine-characters');
             if (!libraryCharsJson) {
@@ -124,7 +125,7 @@ export const IntegratedCampaign: React.FC<IntegratedCampaignProps> = ({
             // Only sync if game store is empty
             if (characters.length === 0 && libraryChars.length > 0) {
                 console.log('🔄 Syncing Character Library → Game Store...');
-                
+
                 libraryChars.forEach((savedChar: any) => {
                     const char = savedChar.data; // Character Library format has .data field
                     if (!char) return;
@@ -181,101 +182,108 @@ export const IntegratedCampaign: React.FC<IntegratedCampaignProps> = ({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // Run once on mount (intentionally excluding dependencies to prevent re-sync)
 
-    // Initialize campaign
-    useEffect(() => {
-        console.log('🌍 Campaign effect triggered. isInitializing:', isInitializing, 'characters.length:', characters.length);
-
-        if (isInitializing) {
-            if (characters.length > 0) {
-                console.log('🌍 Initializing Integrated Campaign...');
-
-                const seed = `campaign-${Date.now()}`;
-
-                // Convert characters to campaign format (with safe type casting)
-                const party: CampaignCharacter[] = characters.slice(0, 4).map((char: any) => ({
-                    id: char.id || char.name,
-                    name: char.name,
-                    species: char.species,
-                    archetype: char.archetype,
-                    level: char.level || 1,
-                    experience: char.experience || 0,
-                    hp: char.hp || 50 + ((char.level || 1) * 10),
-                    maxHp: char.maxHp || 50 + ((char.level || 1) * 10),
-                    mp: char.mp || 20 + ((char.level || 1) * 5),
-                    maxMp: char.maxMp || 20 + ((char.level || 1) * 5),
-                    stats: char.stats || {},
-                    equipment: char.equipment || { weapon: 'Iron Sword', armor: 'Leather Armor', accessory: 'None' },
-                    abilities: Array.isArray(char.abilities) ? char.abilities.map((a: any) => a.name || a) : [],
-                    spells: Array.isArray(char.spells) ? char.spells : []
-                }));
-
-                // Initialize factions
-                const factions: Faction[] = [
-                    {
-                        id: 'crimson-empire',
-                        name: 'Crimson Empire',
-                        color: '#dc2626',
-                        territories: 8,
-                        resources: { gold: 1000, recruits: 50, magic: 30 },
-                        relations: { 'azure-kingdom': -50, 'emerald-alliance': 20 },
-                        aggression: 0.7,
-                        economy: 0.6
-                    },
-                    {
-                        id: 'azure-kingdom',
-                        name: 'Azure Kingdom',
-                        color: '#2563eb',
-                        territories: 10,
-                        resources: { gold: 1200, recruits: 45, magic: 40 },
-                        relations: { 'crimson-empire': -50, 'emerald-alliance': 10 },
-                        aggression: 0.5,
-                        economy: 0.8
-                    },
-                    {
-                        id: 'emerald-alliance',
-                        name: 'Emerald Alliance',
-                        color: '#16a34a',
-                        territories: 6,
-                        resources: { gold: 800, recruits: 60, magic: 25 },
-                        relations: { 'crimson-empire': 20, 'azure-kingdom': 10 },
-                        aggression: 0.4,
-                        economy: 0.7
-                    }
-                ];
-
-                const newCampaign: CampaignState = {
-                    seed,
-                    currentDay: 1,
-                    currentSeason: 'Spring',
-                    weather: 'Clear',
-                    party,
-                    partyGold: 500,
-                    partyPosition: { x: 0, y: 0 },
-                    worldNoise: new WorldNoise(seed),
-                    exploredTiles: new Set(['0,0']),
-                    factions,
-                    encounterChance: 0.3,
-                    lastEncounterDay: 0
-                };
-
-                console.log('🌍 Campaign state created:', newCampaign);
-                setCampaignState(newCampaign);
-                setIsInitializing(false);
-                addLog('🌍 Campaign initialized successfully!');
-                addLog(`🎮 Party of ${party.length} ready for adventure`);
-                addLog(`🏰 ${factions.length} factions compete for control`);
-            } else {
-                // No characters found, stop initializing
-                console.log('🌍 No characters found, stopping initialization');
-                setIsInitializing(false);
-            }
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isInitializing, characters]);
-
     const addLog = useCallback((message: string) => {
         setLogs(prev => [...prev.slice(-19), `[Day ${campaignState?.currentDay || 0}] ${message}`]);
     }, [campaignState?.currentDay]);
+
+    // Start a new campaign
+    const startNewCampaign = useCallback(() => {
+        if (characters.length === 0) {
+            console.log('❌ No characters available to start campaign');
+            return;
+        }
+
+        console.log('🌍 Starting new campaign...');
+        setShowCampaignMenu(false);
+        setIsInitializing(true);
+
+        const seed = `campaign-${Date.now()}`;
+
+        // Convert characters to campaign format
+        const party: CampaignCharacter[] = characters.slice(0, 4).map((char: any) => ({
+            id: char.id || char.name,
+            name: char.name,
+            species: char.species,
+            archetype: char.archetype,
+            level: char.level || 1,
+            experience: char.experience || 0,
+            hp: char.hp || 50 + ((char.level || 1) * 10),
+            maxHp: char.maxHp || 50 + ((char.level || 1) * 10),
+            mp: char.mp || 20 + ((char.level || 1) * 5),
+            maxMp: char.maxMp || 20 + ((char.level || 1) * 5),
+            stats: char.stats || {},
+            equipment: char.equipment || { weapon: 'Iron Sword', armor: 'Leather Armor', accessory: 'None' },
+            abilities: Array.isArray(char.abilities) ? char.abilities.map((a: any) => a.name || a) : [],
+            spells: Array.isArray(char.spells) ? char.spells : []
+        }));
+
+        // Initialize factions
+        const factions: Faction[] = [
+            {
+                id: 'crimson-empire',
+                name: 'Crimson Empire',
+                color: '#dc2626',
+                territories: 8,
+                resources: { gold: 1000, recruits: 50, magic: 30 },
+                relations: { 'azure-kingdom': -50, 'emerald-alliance': 20 },
+                aggression: 0.7,
+                economy: 0.6
+            },
+            {
+                id: 'azure-kingdom',
+                name: 'Azure Kingdom',
+                color: '#2563eb',
+                territories: 10,
+                resources: { gold: 1200, recruits: 45, magic: 40 },
+                relations: { 'crimson-empire': -50, 'emerald-alliance': 10 },
+                aggression: 0.5,
+                economy: 0.8
+            },
+            {
+                id: 'emerald-alliance',
+                name: 'Emerald Alliance',
+                color: '#16a34a',
+                territories: 6,
+                resources: { gold: 800, recruits: 60, magic: 25 },
+                relations: { 'crimson-empire': 20, 'azure-kingdom': 10 },
+                aggression: 0.4,
+                economy: 0.7
+            }
+        ];
+
+        const newCampaign: CampaignState = {
+            seed,
+            currentDay: 1,
+            currentSeason: 'Spring',
+            weather: 'Clear',
+            party,
+            partyGold: 500,
+            partyPosition: { x: 0, y: 0 },
+            worldNoise: new WorldNoise(seed),
+            exploredTiles: new Set(['0,0']),
+            factions,
+            encounterChance: 0.3,
+            lastEncounterDay: 0
+        };
+
+        console.log('🌍 Campaign state created:', newCampaign);
+        setCampaignState(newCampaign);
+        setIsInitializing(false);
+
+        // Add to logs (need to use setTimeout since state updates are async)
+        setTimeout(() => {
+            addLog('🌍 Campaign initialized successfully!');
+            addLog(`🎮 Party of ${party.length} ready for adventure`);
+            addLog(`🏰 ${factions.length} factions compete for control`);
+        }, 100);
+    }, [characters, addLog]);
+
+    // Continue existing campaign (placeholder for now)
+    const continueCampaign = useCallback(() => {
+        console.log('🔄 Continue campaign - not implemented yet');
+        // TODO: Load from localStorage
+        addLog('🔄 No saved campaign found');
+    }, [addLog]);
 
     // Quick start with test character
     const createTestCharacter = useCallback(() => {
@@ -470,48 +478,112 @@ export const IntegratedCampaign: React.FC<IntegratedCampaignProps> = ({
         setCurrentView('world');
     }, [addLog]);
 
-    // Guard: No characters created yet
-    if (characters.length === 0) {
+    // Campaign Menu - Show before initializing
+    if (showCampaignMenu && !campaignState) {
+        const hasSavedCampaign = false; // TODO: Check localStorage for saved campaign
+
         return (
             <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-                <div className="text-center max-w-md">
-                    <div className="text-6xl mb-4">👥</div>
-                    <h1 className="text-3xl font-bold mb-2">No Characters Found</h1>
-                    <p className="text-gray-400 mb-6">
-                        You need to create at least one character before starting an integrated campaign.
+                <div className="text-center max-w-2xl">
+                    <div className="text-6xl mb-4">⚔️</div>
+                    <h1 className="text-4xl font-bold mb-2">Integrated Campaign</h1>
+                    <p className="text-gray-400 mb-8">
+                        Experience the full World Engine with strategic faction warfare, 
+                        tactical battles, and endless exploration.
                     </p>
-                    <div className="space-y-2">
-                        <button
-                            onClick={createTestCharacter}
-                            className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-3 px-6 rounded-lg"
-                        >
-                            ⚡ Quick Start (Test Character)
-                        </button>
-                        <button
-                            onClick={() => {
-                                if (onNavigateToCharacterCreate) {
-                                    onNavigateToCharacterCreate();
-                                } else {
-                                    window.location.href = '#/create';
-                                }
-                            }}
-                            className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-lg"
-                        >
-                            ✨ Create Custom Character
-                        </button>
-                        <button
-                            onClick={() => {
-                                if (onNavigateToMenu) {
-                                    onNavigateToMenu();
-                                } else {
-                                    window.location.href = '#/menu';
-                                }
-                            }}
-                            className="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg"
-                        >
-                            ← Back to Menu
-                        </button>
-                    </div>
+                    
+                    {characters.length === 0 ? (
+                        // No characters - need to create first
+                        <div className="bg-gray-800 rounded-lg p-6 mb-4">
+                            <div className="text-4xl mb-4">👥</div>
+                            <h2 className="text-2xl font-bold mb-2">No Characters Found</h2>
+                            <p className="text-gray-400 mb-6">
+                                You need to create at least one character before starting a campaign.
+                            </p>
+                            <div className="space-y-2">
+                                <button
+                                    onClick={createTestCharacter}
+                                    className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-3 px-6 rounded-lg"
+                                >
+                                    ⚡ Quick Start (Test Character)
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        if (onNavigateToCharacterCreate) {
+                                            onNavigateToCharacterCreate();
+                                        } else {
+                                            window.location.href = '#/create';
+                                        }
+                                    }}
+                                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-lg"
+                                >
+                                    ✨ Create Custom Character
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        // Has characters - show campaign options
+                        <div className="space-y-4">
+                            <div className="bg-gray-800 rounded-lg p-6 border-2 border-green-500">
+                                <h2 className="text-2xl font-bold mb-2">🆕 New Campaign</h2>
+                                <p className="text-gray-400 mb-4">
+                                    Start a fresh adventure with your party of {characters.length} character{characters.length !== 1 ? 's' : ''}.
+                                </p>
+                                <button
+                                    onClick={startNewCampaign}
+                                    className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-3 px-6 rounded-lg"
+                                >
+                                    🌍 Start New Campaign
+                                </button>
+                            </div>
+
+                            {hasSavedCampaign && (
+                                <div className="bg-gray-800 rounded-lg p-6 border-2 border-blue-500">
+                                    <h2 className="text-2xl font-bold mb-2">📖 Continue Campaign</h2>
+                                    <p className="text-gray-400 mb-4">
+                                        Resume your last adventure.
+                                    </p>
+                                    <button
+                                        onClick={continueCampaign}
+                                        className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold py-3 px-6 rounded-lg"
+                                    >
+                                        🔄 Continue Campaign
+                                    </button>
+                                </div>
+                            )}
+
+                            <div className="bg-gray-800 rounded-lg p-4">
+                                <p className="text-sm text-gray-400 mb-2">
+                                    <strong>Available Characters:</strong>
+                                </p>
+                                <div className="flex flex-wrap gap-2 justify-center">
+                                    {characters.slice(0, 4).map((char: any, i: number) => (
+                                        <div key={i} className="bg-gray-700 px-3 py-1 rounded text-sm">
+                                            {char.name} ({char.species} {char.archetype})
+                                        </div>
+                                    ))}
+                                    {characters.length > 4 && (
+                                        <div className="bg-gray-700 px-3 py-1 rounded text-sm text-gray-400">
+                                            +{characters.length - 4} more
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <button
+                        onClick={() => {
+                            if (onNavigateToMenu) {
+                                onNavigateToMenu();
+                            } else {
+                                window.location.href = '#/menu';
+                            }
+                        }}
+                        className="mt-6 w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg"
+                    >
+                        ← Back to Main Menu
+                    </button>
                 </div>
             </div>
         );
