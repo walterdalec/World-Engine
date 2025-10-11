@@ -3,7 +3,7 @@
  * Test page for the GPU-accelerated hex battle renderer
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PixiHexBattle } from '../features/battle';
 import { findPath, moveUnit, hexDistance } from '../features/battle/engine';
 import type { BattleState, Unit, HexPosition } from '../features/battle/types';
@@ -181,15 +181,30 @@ function createSampleBattle(): BattleState {
         },
     ];
 
+    // Create a simple grid with all passable terrain
+    const gridTiles = [];
+    for (let q = -5; q <= 5; q++) {
+        for (let r = -5; r <= 5; r++) {
+            gridTiles.push({
+                q,
+                r,
+                terrain: 'Grass' as const,
+                passable: true,
+                elevation: 0,
+                cover: 0,
+            });
+        }
+    }
+
     return {
         id: 'demo_battle_001',
         units: [...playerUnits, ...enemyUnits],
         turn: 1,
-        phase: 'HeroTurn',
+        phase: 'UnitsTurn',  // Start in UnitsTurn so we can move immediately
         grid: {
             width: 11,
             height: 11,
-            tiles: [],
+            tiles: gridTiles,
         },
         context: {
             seed: 'demo_battle_001',
@@ -233,16 +248,32 @@ export default function PixiHexBattleDemo() {
     const [validTargets, setValidTargets] = useState<HexPosition[]>([]);
 
     // Debug: Track state changes
-    React.useEffect(() => {
+    useEffect(() => {
         console.log('🔄 STATE CHANGE - actionMode:', actionMode, 'selectedUnit:', selectedUnit?.name, 'validMoves:', validMoves.length);
     }, [actionMode, selectedUnit, validMoves]);
 
+    // Sync selectedUnit with battleState - keep reference fresh
+    useEffect(() => {
+        if (selectedUnit) {
+            const currentUnit = battleState.units.find(u => u.id === selectedUnit.id);
+            if (currentUnit && currentUnit !== selectedUnit) {
+                console.log('🔄 Syncing selectedUnit with battleState');
+                setSelectedUnit(currentUnit);
+            }
+        }
+    }, [battleState, selectedUnit]);
+
     // Calculate valid moves for selected unit
     const calculateValidMoves = (unit: Unit): HexPosition[] => {
-        if (!unit.pos || unit.hasMoved || unit.isDead) return [];
+        console.log('📍 calculateValidMoves for:', unit.name, 'pos:', unit.pos, 'move:', unit.stats.move);
+        if (!unit.pos || unit.hasMoved || unit.isDead) {
+            console.log('❌ Cannot calculate moves - no pos, already moved, or dead');
+            return [];
+        }
 
         const moves: HexPosition[] = [];
         const maxMove = unit.stats.move;
+        console.log('🎯 Checking hexes within range:', maxMove);
 
         // Check all hexes within movement range
         for (let q = -5; q <= 5; q++) {
@@ -264,6 +295,7 @@ export default function PixiHexBattleDemo() {
             }
         }
 
+        console.log('✅ Found', moves.length, 'valid moves');
         return moves;
     };
 
