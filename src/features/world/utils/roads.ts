@@ -468,8 +468,8 @@ export function paintRoadsPIXI(container: Container, roads: Road[], opts: { zInd
             r.kind === 'ARTERIAL'
                 ? { w: 3, c: 0xc2a266 }
                 : r.kind === 'MINOR'
-                ? { w: 2, c: 0x9b7e45 }
-                : { w: 1, c: 0x556b2f };
+                    ? { w: 2, c: 0x9b7e45 }
+                    : { w: 1, c: 0x556b2f };
 
         g.lineStyle(style.w, style.c, 1.0);
 

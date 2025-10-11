@@ -141,33 +141,33 @@ function sampleOverworld(pos: { x: number; y: number }): { height: number; moist
 function generatePOIs(seed: number, worldSize = 1000): POI[] {
     const pois: POI[] = [];
     const rng = (x: number) => (Math.sin(x * 12.9898 + seed) * 43758.5453) % 1;
-    
+
     // Generate settlements based on biome suitability
     const candidates = 100; // Sample 100 random positions
     for (let i = 0; i < candidates; i++) {
         const x = (rng(i * 3) * 2 - 1) * worldSize;
         const y = (rng(i * 3 + 1) * 2 - 1) * worldSize;
-        
+
         const sample = sampleOverworld({ x, y });
-        
+
         // Only place settlements on suitable terrain
         if (sample.height < 0.36 || sample.height > 0.7) continue; // No water or high mountains
         if (sample.biome === 'Swamp' || sample.biome === 'Desert') continue; // Avoid harsh biomes
-        
+
         // Determine settlement type based on terrain quality
         const quality = sample.height * sample.moisture;
         let tag: string;
         const roll = rng(i * 3 + 2);
-        
+
         if (quality > 0.35 && roll < 0.05) tag = 'CITY';
         else if (quality > 0.3 && roll < 0.15) tag = 'TOWN';
         else if (quality > 0.25 && roll < 0.35) tag = 'VILLAGE';
         else if (roll < 0.45) tag = 'HAMLET';
         else continue; // Skip this position
-        
+
         pois.push({ id: `settlement-${i}`, pos: { x, y }, tag });
     }
-    
+
     // Add fortresses (strategic positions)
     for (let i = 0; i < 5; i++) {
         const angle = (i / 5) * Math.PI * 2;
@@ -176,7 +176,7 @@ function generatePOIs(seed: number, worldSize = 1000): POI[] {
         const y = Math.sin(angle) * dist;
         pois.push({ id: `fortress-${i}`, pos: { x, y }, tag: 'FORTRESS' });
     }
-    
+
     // Add ruins/dungeons (scattered)
     for (let i = 0; i < 15; i++) {
         const x = (rng(i * 7 + 100) * 2 - 1) * worldSize * 0.8;
@@ -184,7 +184,7 @@ function generatePOIs(seed: number, worldSize = 1000): POI[] {
         const tag = rng(i * 7 + 102) < 0.5 ? 'RUIN' : 'DUNGEON';
         pois.push({ id: `site-${i}`, pos: { x, y }, tag });
     }
-    
+
     return pois;
 }
 
@@ -193,16 +193,16 @@ function createTerrainDataForRoads(worldSize = 1000, resolution = 4): TerrainDat
     const width = Math.floor(worldSize / resolution);
     const height = Math.floor(worldSize / resolution);
     const tileCost = new Float32Array(width * height);
-    
+
     // Sample terrain and create cost field
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
             const wx = (x - width / 2) * resolution;
             const wy = (y - height / 2) * resolution;
             const sample = sampleOverworld({ x: wx, y: wy });
-            
+
             let cost = 1.0;
-            
+
             // Water is impassable (will be set to INF by buildCostField)
             if (sample.height < 0.36) cost = 1e9;
             // Mountains are difficult
@@ -215,11 +215,11 @@ function createTerrainDataForRoads(worldSize = 1000, resolution = 4): TerrainDat
             else if (sample.biome === 'Swamp') cost = 3.0;
             // Grassland is fast
             else if (sample.biome === 'Grassland') cost = 0.8;
-            
+
             tileCost[y * width + x] = cost;
         }
     }
-    
+
     return { width, height, tileCost, seaLevel: 0.36 };
 }
 
@@ -269,10 +269,57 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
 
     // UI state (for debug overlay reactivity)
     const [debugInfo, setDebugInfo] = useState({ x: 0, y: 0, chunks: 0, cache: 0 });
-    
+
     // Roads state
     const roadsGeneratedRef = useRef(false);
     const roadsContainerRef = useRef<Container | null>(null);
+
+    // Road generation function
+    const generateRoadsNetwork = () => {
+        if (!terrainReadyRef.current || roadsGeneratedRef.current || !roadsContainerRef.current) {
+            console.log('🛣️ [Pixi] Roads check:', {
+                terrainReady: terrainReadyRef.current,
+                roadsGenerated: roadsGeneratedRef.current,
+                containerExists: !!roadsContainerRef.current,
+            });
+            return;
+        }
+
+        console.log('🛣️ [Pixi] Generating roads...');
+        const seedNum = parseInt(seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0).toString());
+
+        const pois = generatePOIs(seedNum, 500); // 500 unit world size
+        console.log(`📍 [Pixi] Generated ${pois.length} POIs:`, pois.slice(0, 5));
+
+        const terrainData = createTerrainDataForRoads(1000, 4); // 1000 units, 4 pixels per sample
+        console.log(`🗺️ [Pixi] Terrain data:`, {
+            width: terrainData.width,
+            height: terrainData.height,
+            costSamples: terrainData.tileCost.length,
+        });
+
+        const { roads, nodes } = connectPOIs(pois, terrainData, {
+            kHub: 3,
+            maxSpur: 420,
+            maxTrail: 300,
+        });
+
+        console.log(`🛣️ [Pixi] Generated ${roads.length} roads connecting ${nodes.length} nodes`);
+        if (roads.length > 0) console.log('📍 First road:', roads[0]);
+        if (nodes.length > 0) console.log('📍 First node:', nodes[0]);
+
+        // Render roads
+        const roadsGraphic = paintRoadsPIXI(roadsContainerRef.current, roads, { zIndex: 10 });
+        const nodesContainer = paintRoadEndpointsPIXI(roadsContainerRef.current, nodes, { zIndex: 11 });
+
+        console.log('✅ [Pixi] Roads rendered!', {
+            roadsGraphic,
+            nodesContainer,
+            roadsContainerChildren: roadsContainerRef.current.children.length,
+        });
+
+        roadsGeneratedRef.current = true;
+    };
 
     // Initialize terrain generator
     useEffect(() => {
@@ -282,33 +329,6 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
             terrainReadyRef.current = true;
             console.log('✅ [Pixi] Terrain generator ready!');
         }, 100);
-    }, [seed]);
-    
-    // Generate roads when terrain is ready
-    useEffect(() => {
-        if (!terrainReadyRef.current || roadsGeneratedRef.current || !roadsContainerRef.current) return;
-        
-        console.log('🛣️ [Pixi] Generating roads...');
-        const seedNum = parseInt(seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0).toString());
-        
-        const pois = generatePOIs(seedNum, 500); // 500 unit world size
-        console.log(`📍 [Pixi] Generated ${pois.length} POIs`);
-        
-        const terrainData = createTerrainDataForRoads(1000, 4); // 1000 units, 4 pixels per sample
-        const { roads, nodes } = connectPOIs(pois, terrainData, {
-            kHub: 3,
-            maxSpur: 420,
-            maxTrail: 300,
-        });
-        
-        console.log(`🛣️ [Pixi] Generated ${roads.length} roads connecting ${nodes.length} nodes`);
-        
-        // Render roads
-        paintRoadsPIXI(roadsContainerRef.current, roads, { zIndex: 10 });
-        paintRoadEndpointsPIXI(roadsContainerRef.current, nodes, { zIndex: 11 });
-        
-        roadsGeneratedRef.current = true;
-        console.log('✅ [Pixi] Roads rendered!');
     }, [seed]);
 
     // Initialize Pixi application
@@ -359,6 +379,14 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
             const roadsContainer = new Container();
             worldContainer.addChild(roadsContainer);
             roadsContainerRef.current = roadsContainer;
+            
+            // Trigger road generation now that container exists
+            console.log('🛣️ [Pixi] Roads container created, triggering generation...');
+            setTimeout(() => {
+                if (terrainReadyRef.current && !roadsGeneratedRef.current) {
+                    generateRoadsNetwork();
+                }
+            }, 200);
 
             // Create player marker
             const player = new Graphics();
