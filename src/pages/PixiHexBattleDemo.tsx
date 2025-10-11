@@ -267,7 +267,7 @@ export default function PixiHexBattleDemo() {
     const calculateValidMoves = (unit: Unit): HexPosition[] => {
         const startTime = performance.now();
         console.log('📍 calculateValidMoves for:', unit.name, 'pos:', unit.pos, 'move:', unit.stats.move);
-        
+
         if (!unit.pos || unit.hasMoved || unit.isDead) {
             console.log('❌ Cannot calculate moves - no pos, already moved, or dead');
             return [];
@@ -283,13 +283,20 @@ export default function PixiHexBattleDemo() {
         const maxMove = unit.stats.move;
         let hexesChecked = 0;
         let pathfindCalls = 0;
-        
+
         console.log('🎯 Checking hexes within range:', maxMove, 'Grid tiles:', battleState.grid.tiles.length);
 
         // Only check hexes within the movement range (much smaller search space)
         // Use cube distance for more accurate range checking
         for (let q = unit.pos.q - maxMove; q <= unit.pos.q + maxMove; q++) {
             for (let r = unit.pos.r - maxMove; r <= unit.pos.r + maxMove; r++) {
+                // Emergency timeout check every iteration
+                if (performance.now() - startTime > 500) {
+                    console.error('❌ TIMEOUT: Pathfinding exceeded 500ms! Aborting.');
+                    console.error('  Checked', hexesChecked, 'hexes, made', pathfindCalls, 'pathfind calls');
+                    return moves;
+                }
+
                 hexesChecked++;
                 const targetPos = { q, r };
 
@@ -308,9 +315,17 @@ export default function PixiHexBattleDemo() {
 
                 // Only do pathfinding for unoccupied, in-range hexes
                 pathfindCalls++;
-                const path = findPath(battleState.grid, unit.pos, targetPos, maxMove);
-                if (path && path.length > 0) {
-                    moves.push(targetPos);
+                console.log('  🔍 Pathfind call', pathfindCalls, ':', unit.pos, '→', targetPos);
+                
+                try {
+                    const path = findPath(battleState.grid, unit.pos, targetPos, maxMove);
+                    console.log('  ✓ Path result:', path ? path.length : 'null');
+                    if (path && path.length > 0) {
+                        moves.push(targetPos);
+                    }
+                } catch (error) {
+                    console.error('❌ Pathfinding error:', error);
+                    // Continue to next hex instead of crashing
                 }
             }
         }
@@ -318,12 +333,12 @@ export default function PixiHexBattleDemo() {
         const endTime = performance.now();
         console.log('✅ Found', moves.length, 'valid moves in', (endTime - startTime).toFixed(2), 'ms');
         console.log('📊 Stats: checked', hexesChecked, 'hexes, ran', pathfindCalls, 'pathfinding calls');
-        
+
         // Warn if it took too long
         if (endTime - startTime > 100) {
             console.warn('⚠️ Pathfinding took', (endTime - startTime).toFixed(2), 'ms - consider optimization');
         }
-        
+
         return moves;
     };
 
@@ -732,10 +747,10 @@ export default function PixiHexBattleDemo() {
 
                             {/* Tactical Actions */}
                             {selectedUnit.faction === 'Player' && battleState.phase === 'UnitsTurn' && (
-                                <div style={{ 
-                                    marginTop: '12px', 
-                                    display: 'flex', 
-                                    flexDirection: 'column', 
+                                <div style={{
+                                    marginTop: '12px',
+                                    display: 'flex',
+                                    flexDirection: 'column',
                                     gap: '6px',
                                     position: 'relative',
                                     zIndex: 20,

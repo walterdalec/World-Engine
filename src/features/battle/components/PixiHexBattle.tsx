@@ -201,7 +201,7 @@ export default function PixiHexBattle({
             // Set initial zoom and center on the battle (origin)
             viewport.setZoom(1.5, true);
             viewport.moveCenter(0, 0);
-            
+
             // Fit the battle grid nicely in view
             viewport.fit(true, 400, 400);  // Fit 400x400 area around origin
 
@@ -418,9 +418,9 @@ export default function PixiHexBattle({
     }, [battleState, selectedHex, selectedUnit, validMoves, validTargets]);
 
     return (
-        <div style={{ 
-            position: 'relative', 
-            width: '100%', 
+        <div style={{
+            position: 'relative',
+            width: '100%',
             height: '100%',
             overflow: 'hidden',  // Prevent any scrolling on container
         }}>

@@ -116,6 +116,8 @@ export function findPath(
     goal: HexPosition,
     maxCost: number = 20
 ): HexPosition[] | null {
+    console.log('    🔎 findPath START:', start, '→', goal, 'maxCost:', maxCost);
+    
     const open = new Map<string, number>(); // key -> f score
     const gScore = new Map<string, number>(); // key -> g score
     const came = new Map<string, string>(); // child -> parent
@@ -127,16 +129,23 @@ export function findPath(
     open.set(startKey, hexDistance(start, goal));
 
     // Safety: limit iterations to prevent infinite loops
-    const MAX_ITERATIONS = 1000;
+    const MAX_ITERATIONS = 200; // Reduced from 1000 for faster timeout
     let iterations = 0;
+
+    console.log('    🔎 Starting A* loop, open size:', open.size);
 
     while (open.size > 0) {
         iterations++;
-        
+
         // Safety check: prevent infinite loops
         if (iterations > MAX_ITERATIONS) {
-            console.warn('⚠️ Pathfinding exceeded max iterations:', MAX_ITERATIONS);
+            console.warn('    ⚠️ Pathfinding exceeded max iterations:', MAX_ITERATIONS, 'returning null');
             return null;
+        }
+
+        // Log every 50 iterations to see if we're looping
+        if (iterations % 50 === 0) {
+            console.log('    🔄 Iteration', iterations, 'open size:', open.size);
         }
 
         // Get node with lowest f score
@@ -147,7 +156,10 @@ export function findPath(
                 lowestF = f;
                 current = key;
             }
-        }); if (current === goalKey) {
+        });
+
+        if (current === goalKey) {
+            console.log('    ✅ Path found! Iterations:', iterations);
             // Reconstruct path
             const path: HexPosition[] = [];
             let key = current;
@@ -183,6 +195,7 @@ export function findPath(
         }
     }
 
+    console.log('    ⚠️ No path found after', iterations, 'iterations');
     return null; // No path found
 }
 
