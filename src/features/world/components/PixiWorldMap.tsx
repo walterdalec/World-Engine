@@ -179,7 +179,7 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
     const [fps, setFps] = useState(60);
     const fpsRef = useRef<number[]>([]);
     const lastFrameRef = useRef<number>(performance.now());
-    
+
     // UI state (for debug overlay reactivity)
     const [debugInfo, setDebugInfo] = useState({ x: 0, y: 0, chunks: 0, cache: 0 });    // Initialize terrain generator
     useEffect(() => {
@@ -319,7 +319,7 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
                 setFps(Math.round(avgFps));
                 fpsText.text = `FPS: ${Math.round(avgFps)}`;
                 fpsText.style.fill = avgFps >= 55 ? 0x00ff00 : avgFps >= 30 ? 0xffff00 : 0xff0000;
-                
+
                 // Update debug info periodically (every 10 frames for React overlay)
                 if (Math.floor(now / 100) % 10 === 0) {
                     setDebugInfo({
