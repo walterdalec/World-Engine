@@ -274,8 +274,8 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
     const roadsGeneratedRef = useRef(false);
     const roadsContainerRef = useRef<Container | null>(null);
 
-    // Road generation function (TEMPORARILY DISABLED FOR DEBUGGING)
-    const _generateRoadsNetwork = () => {
+    // Road generation function with debug markers
+    const generateRoadsNetwork = () => {
         try {
             if (!terrainReadyRef.current || roadsGeneratedRef.current || !roadsContainerRef.current) {
                 console.log('🛣️ [Pixi] Roads check:', {
@@ -286,11 +286,34 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
                 return;
             }
 
-            console.log('🛣️ [Pixi] Generating roads...');
+            console.log('🛣️ [Pixi] Generating roads and POIs...');
             const seedNum = parseInt(seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0).toString());
 
-            const pois = generatePOIs(seedNum, 500); // 500 unit world size
+            // Generate POIs closer to spawn for easier discovery
+            const pois = generatePOIs(seedNum, 300); // Reduced from 500 to 300 units
             console.log(`📍 [Pixi] Generated ${pois.length} POIs:`, pois.slice(0, 5));
+
+            // Add large debug markers at POI locations (visible from far away)
+            for (const poi of pois) {
+                if (!poi.pos) continue; // Skip if position is undefined
+                
+                const debugMarker = new Graphics();
+                
+                // Draw a large circle
+                debugMarker.circle(poi.pos.x, poi.pos.y, 10); // 10 unit radius
+                
+                // Color by type
+                let color = 0xffff00; // Yellow for settlements
+                if (poi.tag === 'FORTRESS') color = 0xff0000; // Red
+                else if (poi.tag === 'RUIN' || poi.tag === 'DUNGEON') color = 0x800080; // Purple
+                
+                debugMarker.fill(color);
+                debugMarker.stroke({ width: 2, color: 0xffffff });
+                
+                roadsContainerRef.current!.addChild(debugMarker);
+            }
+
+            console.log(`🎯 [Pixi] Added ${pois.length} debug markers`);
 
             const terrainData = createTerrainDataForRoads(1000, 4); // 1000 units, 4 pixels per sample
             console.log(`🗺️ [Pixi] Terrain data:`, {
@@ -310,18 +333,16 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
             if (nodes.length > 0) console.log('📍 First node:', nodes[0]);
 
             // Render roads
-            const roadsGraphic = paintRoadsPIXI(roadsContainerRef.current, roads, { zIndex: 10 });
-            const nodesContainer = paintRoadEndpointsPIXI(roadsContainerRef.current, nodes, { zIndex: 11 });
+            paintRoadsPIXI(roadsContainerRef.current, roads, { zIndex: 10 });
+            paintRoadEndpointsPIXI(roadsContainerRef.current, nodes, { zIndex: 11 });
 
-            console.log('✅ [Pixi] Roads rendered!', {
-                roadsGraphic,
-                nodesContainer,
-                roadsContainerChildren: roadsContainerRef.current.children.length,
-            });
+            console.log('✅ [Pixi] Roads rendered! Container children:', roadsContainerRef.current.children.length);
 
             roadsGeneratedRef.current = true;
         } catch (error) {
             console.error('❌ [Pixi] Road generation failed:', error);
+            // Show error but don't crash the map
+            console.error(error);
         }
     };
 
@@ -386,12 +407,11 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
 
             // Trigger road generation now that container exists
             console.log('🛣️ [Pixi] Roads container created, triggering generation...');
-            // TEMPORARILY DISABLED FOR DEBUGGING
-            // setTimeout(() => {
-            //     if (terrainReadyRef.current && !roadsGeneratedRef.current) {
-            //         generateRoadsNetwork();
-            //     }
-            // }, 200);
+            setTimeout(() => {
+                if (terrainReadyRef.current && !roadsGeneratedRef.current) {
+                    generateRoadsNetwork();
+                }
+            }, 500); // Increased delay to ensure terrain is fully ready
 
             // Create player marker
             const player = new Graphics();
@@ -399,6 +419,15 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
             player.fill(0xff0000);
             player.stroke({ width: 2, color: 0xffffff });
             worldContainer.addChild(player);
+
+            // Add spawn point marker (cross at origin)
+            const spawnMarker = new Graphics();
+            spawnMarker.moveTo(-20, 0);
+            spawnMarker.lineTo(20, 0);
+            spawnMarker.moveTo(0, -20);
+            spawnMarker.lineTo(0, 20);
+            spawnMarker.stroke({ width: 3, color: 0x00ff00 }); // Bright green cross
+            worldContainer.addChild(spawnMarker);
 
             // Create FPS display (on stage, not world)
             const fpsStyle = new TextStyle({
