@@ -40,6 +40,7 @@ interface Props {
   onSmoothMap?: () => void;
   onCombatUIDemo: () => void;
   onPixiHexBattle?: () => void;
+  onPhaseBattle?: () => void;
   onProcedural: () => void;
   onEncounters?: () => void;
   onIntegratedCampaign?: () => void;
@@ -49,7 +50,7 @@ interface Props {
   onPartyFrameworkDemo?: () => void;
 }
 
-export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onClassicCharacterCreate, onPortraitTest, onAutoUpdater, onBrigandineHex, onEnhancedMap, onSimpleMap, onHexMap, onSmoothMap, onCombatUIDemo, onPixiHexBattle, onProcedural, onEncounters, onIntegratedCampaign, onEngineTest, onTimeSystemDemo, onFactionAIDemo, onPartyFrameworkDemo }: Props) {
+export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onClassicCharacterCreate, onPortraitTest, onAutoUpdater, onBrigandineHex, onEnhancedMap, onSimpleMap, onHexMap, onSmoothMap, onCombatUIDemo, onPixiHexBattle, onPhaseBattle, onProcedural, onEncounters, onIntegratedCampaign, onEngineTest, onTimeSystemDemo, onFactionAIDemo, onPartyFrameworkDemo }: Props) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [characters, setCharacters] = useState<SavedCharacter[]>([]);
   const [activeTab, setActiveTab] = useState<'campaigns' | 'characters'>('campaigns');
@@ -811,6 +812,14 @@ Recovered ${recovered.length} campaigns`);
                   <div style={{ fontSize: '3rem', marginBottom: '10px' }}>⚔️</div>
                   <h3 style={{ margin: '0 0 5px 0' }}>Pixi Hex Battle</h3>
                   <p style={{ margin: 0, opacity: 0.9 }}>GPU-accelerated hex battle renderer</p>
+                </div>
+              )}
+
+              {onPhaseBattle && (
+                <div style={newCardStyle} onClick={onPhaseBattle}>
+                  <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🎯</div>
+                  <h3 style={{ margin: '0 0 5px 0' }}>Phase Battle Demo</h3>
+                  <p style={{ margin: 0, opacity: 0.9 }}>Brigandine-style phase-based combat</p>
                 </div>
               )}
 

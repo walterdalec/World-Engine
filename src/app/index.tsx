@@ -12,6 +12,7 @@ import EncountersTestPage from "../features/world/encounters/EncountersTestPage"
 import { SimplePortraitTest } from "../features/portraits";
 import { CombatUIDemo } from "../pages/CombatUIDemo";
 import PixiHexBattleDemo from "../pages/PixiHexBattleDemo";
+import PhaseBattleDemo from "../pages/PhaseBattleDemo";
 import { TimeSystemDemo } from "../pages/TimeSystemDemo";
 import { FactionAIDemo } from "../pages/FactionAIDemo";
 import PartyFrameworkDemo from "../pages/PartyFrameworkDemo";
@@ -41,7 +42,7 @@ function _randomSeed(): string {
 }
 
 function App() {
-  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "enhancedmap" | "simplemap" | "hexmap" | "smoothmap" | "charactercreate" | "classiccharacter" | "portraittest" | "battlesystem" | "battle" | "minimalBattle" | "brigandineHex" | "autoupdater" | "combat-ui-demo" | "pixi-hex-battle" | "procedural" | "encounters" | "integrated-campaign" | "engine-test" | "time-system-demo" | "faction-ai-demo" | "party-framework-demo">("menu");
+  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "enhancedmap" | "simplemap" | "hexmap" | "smoothmap" | "charactercreate" | "classiccharacter" | "portraittest" | "battlesystem" | "battle" | "minimalBattle" | "brigandineHex" | "autoupdater" | "combat-ui-demo" | "pixi-hex-battle" | "phase-battle" | "procedural" | "encounters" | "integrated-campaign" | "engine-test" | "time-system-demo" | "faction-ai-demo" | "party-framework-demo">("menu");
   const [party, setParty] = React.useState<Character[]>([]);
   const [currentCampaign, setCurrentCampaign] = React.useState<any>(null);
   const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0); // Force re-render hook
@@ -332,6 +333,11 @@ function App() {
     setStep("pixi-hex-battle");
   };
 
+  const handlePhaseBattle = () => {
+    // Phase-based battle demo (Brigandine-style)
+    setStep("phase-battle");
+  };
+
   const handleProcedural = () => {
     // Procedural generation dev tools
     setStep("procedural");
@@ -472,6 +478,7 @@ function App() {
           onSmoothMap={handleSmoothMap}
           onCombatUIDemo={handleCombatUIDemo}
           onPixiHexBattle={handlePixiHexBattle}
+          onPhaseBattle={handlePhaseBattle}
           onProcedural={handleProcedural}
           onEncounters={handleEncounters}
           onIntegratedCampaign={handleIntegratedCampaign}
@@ -712,6 +719,7 @@ function App() {
           <PixiHexBattleDemo />
         </div>
       )}
+      {step === "phase-battle" && <PhaseBattleDemo />}
       {step === "procedural" && (
         <div style={{ position: 'relative' }}>
           <ProceduralDevTools />
