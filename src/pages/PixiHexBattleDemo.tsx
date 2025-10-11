@@ -275,22 +275,29 @@ export default function PixiHexBattleDemo() {
         const maxMove = unit.stats.move;
         console.log('🎯 Checking hexes within range:', maxMove);
 
-        // Check all hexes within movement range
-        for (let q = -5; q <= 5; q++) {
-            for (let r = -5; r <= 5; r++) {
+        // Only check hexes within the movement range (much smaller search space)
+        // Use cube distance for more accurate range checking
+        for (let q = unit.pos.q - maxMove; q <= unit.pos.q + maxMove; q++) {
+            for (let r = unit.pos.r - maxMove; r <= unit.pos.r + maxMove; r++) {
                 const targetPos = { q, r };
+                
+                // Skip if same as current position
+                if (q === unit.pos.q && r === unit.pos.r) continue;
+                
+                // Quick distance check before expensive pathfinding
                 const distance = hexDistance(unit.pos, targetPos);
+                if (distance > maxMove) continue;
 
-                if (distance <= maxMove && distance > 0) {
-                    // Check if path exists and no unit is there
-                    const path = findPath(battleState.grid, unit.pos, targetPos, maxMove);
-                    const occupied = battleState.units.some(u =>
-                        u.pos && u.pos.q === q && u.pos.r === r && !u.isDead
-                    );
+                // Check if occupied by another unit
+                const occupied = battleState.units.some(u =>
+                    u.pos && u.pos.q === q && u.pos.r === r && !u.isDead
+                );
+                if (occupied) continue;
 
-                    if (path && path.length > 0 && !occupied) {
-                        moves.push(targetPos);
-                    }
+                // Only do pathfinding for unoccupied, in-range hexes
+                const path = findPath(battleState.grid, unit.pos, targetPos, maxMove);
+                if (path && path.length > 0) {
+                    moves.push(targetPos);
                 }
             }
         }
