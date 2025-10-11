@@ -167,11 +167,13 @@ export default function PixiHexBattle({
             appRef.current = app;
 
             // Create viewport for camera control
+            // Battle grid is 11x11 hexes centered at origin (-5 to 5)
+            // Hex size is 32, so grid spans roughly -160 to 160 in each direction
             const viewport = new Viewport({
                 screenWidth: width,
                 screenHeight: height,
-                worldWidth: 2000,
-                worldHeight: 2000,
+                worldWidth: 800,      // Smaller world focused on battle area
+                worldHeight: 800,
                 events: app.renderer.events,
             });
 
@@ -191,17 +193,17 @@ export default function PixiHexBattle({
                 .decelerate({
                     friction: 0.9,
                 })
-                .clamp({
-                    direction: 'all',
-                })
                 .clampZoom({
                     minScale: 0.5,   // Can zoom out to see more
                     maxScale: 4,     // Can zoom in closer
                 });
 
-            // Set initial zoom and center
-            viewport.setZoom(2, true);
+            // Set initial zoom and center on the battle (origin)
+            viewport.setZoom(1.5, true);
             viewport.moveCenter(0, 0);
+            
+            // Fit the battle grid nicely in view
+            viewport.fit(true, 400, 400);  // Fit 400x400 area around origin
 
             // Create FPS display
             const fpsStyle = new TextStyle({
