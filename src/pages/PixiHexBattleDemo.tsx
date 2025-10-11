@@ -283,17 +283,21 @@ export default function PixiHexBattleDemo() {
     };
 
     const handleHexClick = (hex: HexPosition) => {
-        console.log('🎯 Hex clicked:', hex, 'Mode:', actionMode);
+        console.log('🎯 Hex clicked:', hex, 'Mode:', actionMode, 'Selected unit:', selectedUnit?.name);
+        console.log('📊 State check - validMoves:', validMoves.length, 'validTargets:', validTargets.length);
 
         // Check if there's a unit at this hex
         const unit = battleState.units.find(u =>
             u.pos && u.pos.q === hex.q && u.pos.r === hex.r && !u.isDead
         );
+        console.log('🔍 Unit at hex:', unit?.name || 'none');
 
         // Priority 1: Handle active action modes (move/attack) before select mode
         if (actionMode === 'move' && selectedUnit) {
+            console.log('🚶 Checking move mode...');
             // Move mode - check if hex is valid move target
             const isValidMove = validMoves.some(m => m.q === hex.q && m.r === hex.r);
+            console.log('✓ Is valid move?', isValidMove);
             if (isValidMove) {
                 console.log('🚶 Moving unit to:', hex);
                 setBattleState(prev => {
@@ -316,8 +320,10 @@ export default function PixiHexBattleDemo() {
             // If not a valid move, do nothing (stay in move mode)
             return;
         } else if (actionMode === 'attack' && selectedUnit) {
+            console.log('⚔️ Checking attack mode...');
             // Attack mode - check if unit is valid target
             const isValidTarget = validTargets.some(t => t.q === hex.q && t.r === hex.r);
+            console.log('✓ Is valid target?', isValidTarget, 'Unit faction:', unit?.faction);
             if (isValidTarget && unit && unit.faction !== selectedUnit.faction) {
                 console.log('⚔️ Attacking:', unit.name);
                 // Simple attack: deal damage based on attacker's ATK vs defender's DEF
@@ -354,6 +360,7 @@ export default function PixiHexBattleDemo() {
         }
 
         // Priority 2: Default select mode behavior
+        console.log('👆 Default select mode...');
         if (actionMode === 'select' || !selectedUnit) {
             // Select mode or no unit selected - select unit
             if (unit && unit.faction === 'Player') {
@@ -458,19 +465,29 @@ export default function PixiHexBattleDemo() {
     };
 
     const handleMoveMode = () => {
-        if (!selectedUnit || selectedUnit.hasMoved || selectedUnit.faction !== 'Player') return;
+        console.log('🔵 Move button clicked! Unit:', selectedUnit?.name, 'hasMoved:', selectedUnit?.hasMoved);
+        if (!selectedUnit || selectedUnit.hasMoved || selectedUnit.faction !== 'Player') {
+            console.log('❌ Cannot enter move mode - unit invalid or already moved');
+            return;
+        }
+        console.log('✅ Entering move mode...');
         setActionMode('move');
         const moves = calculateValidMoves(selectedUnit);
         setValidMoves(moves);
-        console.log('🚶 Move mode - valid hexes:', moves.length);
+        console.log('🚶 Move mode - valid hexes:', moves.length, moves);
     };
 
     const handleAttackMode = () => {
-        if (!selectedUnit || selectedUnit.hasActed || selectedUnit.faction !== 'Player') return;
+        console.log('🔴 Attack button clicked! Unit:', selectedUnit?.name, 'hasActed:', selectedUnit?.hasActed);
+        if (!selectedUnit || selectedUnit.hasActed || selectedUnit.faction !== 'Player') {
+            console.log('❌ Cannot enter attack mode - unit invalid or already acted');
+            return;
+        }
+        console.log('✅ Entering attack mode...');
         setActionMode('attack');
         const targets = calculateValidTargets(selectedUnit);
         setValidTargets(targets);
-        console.log('⚔️ Attack mode - valid targets:', targets.length);
+        console.log('⚔️ Attack mode - valid targets:', targets.length, targets);
     };
 
     const handleCancelAction = () => {
