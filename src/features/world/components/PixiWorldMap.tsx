@@ -410,56 +410,85 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
             const chunk = new Graphics();
             chunk.label = chunkKey;
 
-            // Batch cells by color for efficient rendering
-            const colorBatches = new Map<number, Array<{ x: number, y: number }>>();
-
-            // Sample terrain cells in this chunk
+            // Render with smooth color interpolation for seamless look
+            const subCellSize = cellSize / 2; // Oversample for smoother gradients
+            
+            // Sample terrain cells in this chunk with interpolation
             for (let ly = 0; ly < chunkSize; ly += cellSize) {
                 for (let lx = 0; lx < chunkSize; lx += cellSize) {
                     const wx = cx * chunkSize + lx;
                     const wy = cy * chunkSize + ly;
 
-                    // Get terrain color (cached)
-                    const cacheKey = `${Math.round(wx / cellSize) * cellSize},${Math.round(wy / cellSize) * cellSize}`;
-                    let color = terrainCacheRef.current.get(cacheKey);
+                    // Sample at 4 corners for bilinear interpolation
+                    const corners = [
+                        { dx: 0, dy: 0 },
+                        { dx: cellSize, dy: 0 },
+                        { dx: 0, dy: cellSize },
+                        { dx: cellSize, dy: cellSize }
+                    ];
 
-                    if (!color) {
-                        try {
-                            const sample = sampleOverworld({ x: wx, y: wy });
-                            const [r, g, b] = terrainColor(sample.height, sample.moisture, sample.biome);
-                            color = { r, g, b };
-                            terrainCacheRef.current.set(cacheKey, color);
+                    const cornerColors = corners.map(({ dx, dy }) => {
+                        const cacheKey = `${wx + dx},${wy + dy}`;
+                        let color = terrainCacheRef.current.get(cacheKey);
 
-                            // Limit cache size
-                            if (terrainCacheRef.current.size > 20000) {
-                                const firstKey = terrainCacheRef.current.keys().next().value;
-                                if (firstKey) terrainCacheRef.current.delete(firstKey);
+                        if (!color) {
+                            try {
+                                const sample = sampleOverworld({ x: wx + dx, y: wy + dy });
+                                const [r, g, b] = terrainColor(sample.height, sample.moisture, sample.biome);
+                                color = { r, g, b };
+                                terrainCacheRef.current.set(cacheKey, color);
+
+                                // Limit cache size
+                                if (terrainCacheRef.current.size > 30000) {
+                                    const firstKey = terrainCacheRef.current.keys().next().value;
+                                    if (firstKey) terrainCacheRef.current.delete(firstKey);
+                                }
+                            } catch (err) {
+                                color = { r: 120, g: 120, b: 120 };
                             }
-                        } catch (err) {
-                            continue;
                         }
-                    }
+                        return color;
+                    });
 
-                    if (color) {
-                        const hexColor = (color.r << 16) | (color.g << 8) | color.b;
+                    // Draw subdivided cells with interpolated colors for smooth gradients
+                    for (let sy = 0; sy < cellSize; sy += subCellSize) {
+                        for (let sx = 0; sx < cellSize; sx += subCellSize) {
+                            // Bilinear interpolation weights
+                            const u = sx / cellSize;
+                            const v = sy / cellSize;
 
-                        // Batch cells by color
-                        if (!colorBatches.has(hexColor)) {
-                            colorBatches.set(hexColor, []);
+                            // Interpolate color from 4 corners
+                            const c00 = cornerColors[0]; // top-left
+                            const c10 = cornerColors[1]; // top-right
+                            const c01 = cornerColors[2]; // bottom-left
+                            const c11 = cornerColors[3]; // bottom-right
+
+                            const r = Math.round(
+                                c00.r * (1 - u) * (1 - v) +
+                                c10.r * u * (1 - v) +
+                                c01.r * (1 - u) * v +
+                                c11.r * u * v
+                            );
+                            const g = Math.round(
+                                c00.g * (1 - u) * (1 - v) +
+                                c10.g * u * (1 - v) +
+                                c01.g * (1 - u) * v +
+                                c11.g * u * v
+                            );
+                            const b = Math.round(
+                                c00.b * (1 - u) * (1 - v) +
+                                c10.b * u * (1 - v) +
+                                c01.b * (1 - u) * v +
+                                c11.b * u * v
+                            );
+
+                            const hexColor = (r << 16) | (g << 8) | b;
+                            chunk.rect(lx + sx, ly + sy, subCellSize, subCellSize);
+                            chunk.fill(hexColor);
                         }
-                        colorBatches.get(hexColor)!.push({ x: lx, y: ly });
                     }
                 }
             }
-
-            // Draw all batched cells
-            colorBatches.forEach((positions, hexColor) => {
-                chunk.rect(positions[0].x, positions[0].y, cellSize, cellSize);
-                for (let i = 1; i < positions.length; i++) {
-                    chunk.rect(positions[i].x, positions[i].y, cellSize, cellSize);
-                }
-                chunk.fill(hexColor);
-            });
 
             // Position chunk in world
             chunk.position.set(cx * chunkSize, cy * chunkSize);
@@ -475,7 +504,7 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
                 const parts = child.label.split('-');
                 const coords = parts[0].split(',').map(Number);
                 const [cx, cy] = coords;
-                
+
                 const distX = Math.abs(cx - (centerChunkX));
                 const distY = Math.abs(cy - (centerChunkY));
                 const dist = Math.sqrt(distX * distX + distY * distY);
