@@ -242,10 +242,15 @@ function createSampleBattle(): BattleState {
 export default function PixiHexBattleDemo() {
     const [battleState, setBattleState] = useState<BattleState>(createSampleBattle());
     const [selectedHex, setSelectedHex] = useState<HexPosition | null>(null);
-    const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
+    const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null); // Store ID, not object!
     const [actionMode, setActionMode] = useState<ActionMode>('select');
     const [validMoves, setValidMoves] = useState<HexPosition[]>([]);
     const [validTargets, setValidTargets] = useState<HexPosition[]>([]);
+
+    // Get the actual unit from battleState when needed
+    const selectedUnit = selectedUnitId 
+        ? battleState.units.find(u => u.id === selectedUnitId) || null
+        : null;
 
     // Debug: Track state changes
     useEffect(() => {
@@ -254,16 +259,17 @@ export default function PixiHexBattleDemo() {
 
     // Sync selectedUnit with battleState - keep reference fresh
     // IMPORTANT: Only depend on battleState, NOT selectedUnit, to avoid render loops
-    useEffect(() => {
-        if (selectedUnit) {
-            const currentUnit = battleState.units.find(u => u.id === selectedUnit.id);
-            if (currentUnit && currentUnit !== selectedUnit) {
-                console.log('🔄 Syncing selectedUnit with battleState');
-                setSelectedUnit(currentUnit);
-            }
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [battleState]); // Only re-run when battleState changes, not selectedUnit
+    // NOTE: No longer needed since we store ID instead of object!
+    // useEffect(() => {
+    //     if (selectedUnit) {
+    //         const currentUnit = battleState.units.find(u => u.id === selectedUnit.id);
+    //         if (currentUnit && currentUnit !== selectedUnit) {
+    //             console.log('🔄 Syncing selectedUnit with battleState');
+    //             setSelectedUnitId(currentUnit.id);
+    //         }
+    //     }
+    //     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // }, [battleState]); // Only re-run when battleState changes, not selectedUnit
 
     // Calculate valid moves for selected unit - USE ENGINE'S WORKING IMPLEMENTATION
     const calculateValidMoves = (unit: Unit): HexPosition[] => {
@@ -337,12 +343,7 @@ export default function PixiHexBattleDemo() {
                             return u;
                         });
 
-                        // Update selectedUnit reference to the new unit object
-                        const updatedUnit = newUnits.find(u => u.id === currentSelectedUnit.id);
-                        if (updatedUnit) {
-                            setSelectedUnit(updatedUnit);
-                        }
-
+                        // No need to update selectedUnitId - ID doesn't change
                         return { ...prev, units: newUnits };
                     }
                     return prev;
@@ -383,12 +384,7 @@ export default function PixiHexBattleDemo() {
                         newLog.push(`${unit.name} has fallen!`);
                     }
 
-                    // Update selectedUnit reference after attack
-                    const updatedUnit = newUnits.find(u => u.id === currentSelectedUnit.id);
-                    if (updatedUnit) {
-                        setSelectedUnit(updatedUnit);
-                    }
-
+                    // No need to update selectedUnitId - ID doesn't change
                     return { ...prev, units: newUnits, log: newLog };
                 });
                 setActionMode('select');
@@ -404,13 +400,13 @@ export default function PixiHexBattleDemo() {
             // Select mode or no unit selected - select unit
             if (unit && unit.faction === 'Player') {
                 console.log('👤 Unit selected:', unit.name);
-                setSelectedUnit(unit);
+                setSelectedUnitId(unit.id); // Store ID, not object!
                 setSelectedHex(null);
                 setValidMoves([]);
                 setValidTargets([]);
             } else {
                 setSelectedHex(hex);
-                setSelectedUnit(null);
+                setSelectedUnitId(null); // Clear selection
                 setValidMoves([]);
                 setValidTargets([]);
             }
@@ -429,8 +425,7 @@ export default function PixiHexBattleDemo() {
                         stats: { ...u.stats, hp: newHp },
                         isDead: newHp <= 0,
                     };
-                    // Update selected unit ref
-                    setSelectedUnit(updatedUnit);
+                    // No need to update selectedUnitId - ID doesn't change
                     return updatedUnit;
                 }
                 return u;
@@ -454,8 +449,7 @@ export default function PixiHexBattleDemo() {
                         stats: { ...u.stats, hp: Math.min(u.stats.maxHp, u.stats.hp + 25) },
                         isDead: false,
                     };
-                    // Update selected unit ref
-                    setSelectedUnit(updatedUnit);
+                    // No need to update selectedUnitId - ID doesn't change
                     return updatedUnit;
                 }
                 return u;
@@ -497,7 +491,7 @@ export default function PixiHexBattleDemo() {
     const handleReset = () => {
         setBattleState(createSampleBattle());
         setSelectedHex(null);
-        setSelectedUnit(null);
+        setSelectedUnitId(null); // Clear ID
         setActionMode('select');
         setValidMoves([]);
         setValidTargets([]);
@@ -548,7 +542,7 @@ export default function PixiHexBattleDemo() {
             return { ...prev, units: newUnits };
         });
 
-        setSelectedUnit(null);
+        setSelectedUnitId(null); // Clear selection
         setActionMode('select');
         setValidMoves([]);
         setValidTargets([]);
