@@ -156,6 +156,30 @@ export type {
 } from './gen';
 
 // ============================================================================
+// RESOLUTION ENGINE
+// ============================================================================
+
+export {
+  resolveRound
+} from './resolve';
+
+export type {
+  RoundResult
+} from './resolve';
+
+// ============================================================================
+// MORALE SYSTEM
+// ============================================================================
+
+export {
+  checkMoraleThreshold,
+  applyFearFromCasualties,
+  applyFearFromSurrounded,
+  applyFearFromCommanderDown,
+  calculateRetreatPath
+} from './morale';
+
+// ============================================================================
 // UTILITIES
 // ============================================================================
 
