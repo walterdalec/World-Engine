@@ -360,9 +360,9 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
         const viewTop = camY - screenHeight / (2 * scale);
         const viewBottom = camY + screenHeight / (2 * scale);
 
-        // Dynamic chunk and cell size based on zoom (less detail when zoomed out)
-        const chunkSize = scale < 4 ? 64 : 32; // Larger chunks when zoomed out
-        const cellSize = scale < 4 ? 16 : scale < 8 ? 8 : 4; // Adaptive cell size
+        // Fixed chunk size for consistency (no adaptive sizing to avoid gaps)
+        const chunkSize = 32; // Always use 32 world units per chunk
+        const cellSize = scale < 6 ? 8 : 4; // Only vary cell size for performance
 
         // Calculate visible chunk range
         const minChunkX = Math.floor(viewLeft / chunkSize) - 1;
@@ -373,14 +373,14 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
         // Track which chunks should exist
         const activeChunks = new Set<string>();
 
-        // Limit chunks per frame to maintain FPS
-        const maxChunksPerFrame = 4;
+        // More aggressive chunk loading to fill gaps faster
+        const maxChunksPerFrame = 12;
         let chunksCreated = 0;
 
         // Render visible chunks (prioritize center)
         const centerChunkX = Math.floor(camX / chunkSize);
         const centerChunkY = Math.floor(camY / chunkSize);
-        
+
         // Sort chunks by distance from center
         const chunkList: Array<[number, number]> = [];
         for (let cy = minChunkY; cy <= maxChunkY; cy++) {
@@ -396,7 +396,7 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
 
         // Render chunks
         for (const [cx, cy] of chunkList) {
-            const chunkKey = `${cx},${cy}`;
+            const chunkKey = `${cx},${cy}-${cellSize}`; // Include cell size in key
             activeChunks.add(chunkKey);
 
             // Skip if already rendered
@@ -411,7 +411,7 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
             chunk.label = chunkKey;
 
             // Batch cells by color for efficient rendering
-            const colorBatches = new Map<number, Array<{x: number, y: number}>>();
+            const colorBatches = new Map<number, Array<{ x: number, y: number }>>();
 
             // Sample terrain cells in this chunk
             for (let ly = 0; ly < chunkSize; ly += cellSize) {
@@ -442,12 +442,12 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
 
                     if (color) {
                         const hexColor = (color.r << 16) | (color.g << 8) | color.b;
-                        
+
                         // Batch cells by color
                         if (!colorBatches.has(hexColor)) {
                             colorBatches.set(hexColor, []);
                         }
-                        colorBatches.get(hexColor)!.push({x: lx, y: ly});
+                        colorBatches.get(hexColor)!.push({ x: lx, y: ly });
                     }
                 }
             }
@@ -467,17 +467,22 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
             renderedChunksRef.current.add(chunkKey);
         }
 
-        // Remove chunks that are too far away (memory management)
+        // Remove chunks that are too far away OR have wrong cell size (memory management)
         const children = terrainContainer.children.slice();
         for (const child of children) {
             if (child.label && !activeChunks.has(child.label)) {
-                const [cx, cy] = child.label.split(',').map(Number);
+                // Parse chunk key to get coordinates
+                const parts = child.label.split('-');
+                const coords = parts[0].split(',').map(Number);
+                const [cx, cy] = coords;
+                
                 const distX = Math.abs(cx - (centerChunkX));
                 const distY = Math.abs(cy - (centerChunkY));
                 const dist = Math.sqrt(distX * distX + distY * distY);
 
-                // Remove if very far from viewport
-                if (dist > 15) {
+                // Remove if very far from viewport OR wrong cell size
+                const oldCellSize = parts[1] ? parseInt(parts[1]) : 4;
+                if (dist > 15 || oldCellSize !== cellSize) {
                     terrainContainer.removeChild(child);
                     child.destroy();
                     renderedChunksRef.current.delete(child.label);
