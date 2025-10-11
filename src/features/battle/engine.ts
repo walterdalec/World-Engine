@@ -165,7 +165,7 @@ export function findPath(
         // Get node with lowest f score
         let current = "";
         let lowestF = Infinity;
-        
+
         open.forEach((f, key) => {
             if (f < lowestF) {
                 lowestF = f;
@@ -465,7 +465,7 @@ export function getValidMoves(state: BattleState, unitId: string): HexPosition[]
     // Use spiral to get all hexes within movement range
     for (let range = 1; range <= maxRange; range++) {
         for (const hex of hexRing(unit.pos, range)) {
-            const tile = tileAt(state.grid, hex);
+            const tile = tileAtFast(state.grid, hex); // Use fast cached lookup
             if (tile && tile.passable && !tile.occupied) {
                 const path = findPath(state.grid, unit.pos, hex, maxRange);
                 if (path && path.length <= maxRange + 1) { // +1 because path includes start
