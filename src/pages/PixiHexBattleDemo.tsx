@@ -354,6 +354,13 @@ export default function PixiHexBattleDemo() {
                             }
                             return u;
                         });
+                        
+                        // Update selectedUnit reference to the new unit object
+                        const updatedUnit = newUnits.find(u => u.id === selectedUnit.id);
+                        if (updatedUnit) {
+                            setSelectedUnit(updatedUnit);
+                        }
+                        
                         return { ...prev, units: newUnits };
                     }
                     return prev;
@@ -392,6 +399,12 @@ export default function PixiHexBattleDemo() {
                     const newLog = [...prev.log, `${selectedUnit.name} attacks ${unit.name} for ${damage} damage!`];
                     if (unit.stats.hp - damage <= 0) {
                         newLog.push(`${unit.name} has fallen!`);
+                    }
+                    
+                    // Update selectedUnit reference after attack
+                    const updatedUnit = newUnits.find(u => u.id === selectedUnit.id);
+                    if (updatedUnit) {
+                        setSelectedUnit(updatedUnit);
                     }
 
                     return { ...prev, units: newUnits, log: newLog };

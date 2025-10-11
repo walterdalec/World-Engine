@@ -190,6 +190,13 @@ export default function PixiHexBattle({
                 })
                 .decelerate({
                     friction: 0.9,
+                })
+                .clamp({
+                    direction: 'all',
+                })
+                .clampZoom({
+                    minScale: 0.5,   // Can zoom out to see more
+                    maxScale: 4,     // Can zoom in closer
                 });
 
             // Set initial zoom and center
