@@ -459,7 +459,7 @@ function pathLength(p: Array<{ x: number; y: number }>): number {
 }
 
 // ---------- Pixi Painting ----------
-export function paintRoadsPIXI(container: Graphics, roads: Road[], opts: { zIndex?: number } = {}): Graphics {
+export function paintRoadsPIXI(container: Container, roads: Road[], opts: { zIndex?: number } = {}): Graphics {
     const g = new Graphics();
     if (opts.zIndex !== undefined) g.zIndex = opts.zIndex;
 
