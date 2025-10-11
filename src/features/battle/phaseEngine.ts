@@ -53,7 +53,7 @@ export class PhaseEngine {
 
     emit(event: BattleEvent): void {
         this.events.push(event);
-        
+
         // Also add to battle log for UI display
         const logMessage = this.formatEventForLog(event);
         if (logMessage) {
@@ -63,7 +63,7 @@ export class PhaseEngine {
 
     private formatEventForLog(event: BattleEvent): string | null {
         const getUnitName = (id: string) => this.state.units.find(u => u.id === id)?.name ?? id;
-        
+
         switch (event.type) {
             case 'BattleStart':
                 return `⚔️ Battle begins! (Round ${event.round})`;
@@ -105,7 +105,7 @@ export class PhaseEngine {
 
     endPhase(faction: 'Player' | 'Enemy'): void {
         this.emit({ type: 'PhaseEnd', phase: faction });
-        
+
         // Check for battle end
         if (this.checkBattleEnd()) {
             return;
@@ -122,11 +122,11 @@ export class PhaseEngine {
 
     private endRound(): void {
         this.emit({ type: 'RoundEnd', round: this.state.turn });
-        
+
         // Process end-of-turn effects
         this.tickStatusEffects();
         this.tickCooldowns();
-        
+
         // Start new round
         this.state.turn++;
         this.startPhase('Player');
@@ -162,9 +162,9 @@ export class PhaseEngine {
     // ------------------------------------------------------------------------
 
     private getUnitsOfFaction(faction: 'Player' | 'Enemy'): Unit[] {
-        return this.state.units.filter(u => 
-            u.faction === faction && 
-            !u.isDead && 
+        return this.state.units.filter(u =>
+            u.faction === faction &&
+            !u.isDead &&
             !u.isCommander &&
             u.pos !== undefined
         );
@@ -175,10 +175,10 @@ export class PhaseEngine {
     }
 
     private getUnitAt(pos: HexPosition): Unit | undefined {
-        return this.state.units.find(u => 
-            !u.isDead && 
+        return this.state.units.find(u =>
+            !u.isDead &&
             u.pos &&
-            u.pos.q === pos.q && 
+            u.pos.q === pos.q &&
             u.pos.r === pos.r
         );
     }
@@ -191,10 +191,10 @@ export class PhaseEngine {
         const unit = this.getUnit(unitId);
         if (!unit || unit.isDead || !unit.pos) return false;
         if (this.hasMovedThisPhase(unitId)) return false;
-        
+
         const currentPhase = this.state.phase === 'HeroTurn' || this.state.phase === 'UnitsTurn' ? 'Player' : 'Enemy';
         if (unit.faction !== currentPhase) return false;
-        
+
         return true;
     }
 
@@ -231,16 +231,16 @@ export class PhaseEngine {
         // Execute move
         const from = { ...unit.pos };
         const cost = hexDistance(from, to);
-        
+
         unit.pos = { ...to };
         this.markMoved(unitId);
 
-        this.emit({ 
-            type: 'Move', 
-            unitId, 
-            from, 
-            to, 
-            cost 
+        this.emit({
+            type: 'Move',
+            unitId,
+            from,
+            to,
+            cost
         });
 
         return true;
@@ -254,10 +254,10 @@ export class PhaseEngine {
         const unit = this.getUnit(unitId);
         if (!unit || unit.isDead || !unit.pos) return false;
         if (this.hasActedThisPhase(unitId)) return false;
-        
+
         const currentPhase = this.state.phase === 'HeroTurn' || this.state.phase === 'UnitsTurn' ? 'Player' : 'Enemy';
         if (unit.faction !== currentPhase) return false;
-        
+
         return true;
     }
 
@@ -278,7 +278,7 @@ export class PhaseEngine {
     attack(attackerId: string, defenderId: string): boolean {
         const attacker = this.getUnit(attackerId);
         const defender = this.getUnit(defenderId);
-        
+
         if (!attacker || !defender) return false;
         if (!this.canAttack(attackerId)) return false;
         if (!attacker.pos || !defender.pos) return false;
@@ -288,12 +288,12 @@ export class PhaseEngine {
         if (!validTargets.find(t => t.id === defenderId)) return false;
 
         const dist = hexDistance(attacker.pos, defender.pos);
-        
-        this.emit({ 
-            type: 'Attack', 
-            attackerId, 
-            defenderId, 
-            range: dist 
+
+        this.emit({
+            type: 'Attack',
+            attackerId,
+            defenderId,
+            range: dist
         });
 
         // Calculate damage: ATK vs DEF
@@ -303,21 +303,21 @@ export class PhaseEngine {
 
         // Apply damage
         defender.stats.hp = Math.max(0, defender.stats.hp - damage);
-        
-        this.emit({ 
-            type: 'Damage', 
-            targetId: defenderId, 
-            amount: damage, 
-            remaining: defender.stats.hp 
+
+        this.emit({
+            type: 'Damage',
+            targetId: defenderId,
+            amount: damage,
+            remaining: defender.stats.hp
         });
 
         // Check for death
         if (defender.stats.hp <= 0 && !defender.isDead) {
             defender.isDead = true;
-            this.emit({ 
-                type: 'Death', 
-                unitId: defenderId, 
-                killedBy: attackerId 
+            this.emit({
+                type: 'Death',
+                unitId: defenderId,
+                killedBy: attackerId
             });
         }
 
@@ -332,14 +332,14 @@ export class PhaseEngine {
     private tickStatusEffects(): void {
         for (const unit of this.state.units) {
             if (unit.isDead) continue;
-            
+
             unit.statuses = unit.statuses.filter(status => {
                 status.duration--;
                 if (status.duration <= 0) {
-                    this.emit({ 
-                        type: 'StatusExpired', 
-                        targetId: unit.id, 
-                        statusId: status.id 
+                    this.emit({
+                        type: 'StatusExpired',
+                        targetId: unit.id,
+                        statusId: status.id
                     });
                     return false;
                 }
@@ -379,19 +379,19 @@ export class PhaseEngine {
         }
 
         if (winner) {
-            this.emit({ 
-                type: 'BattleEnd', 
-                winner, 
-                round: this.state.turn 
+            this.emit({
+                type: 'BattleEnd',
+                winner,
+                round: this.state.turn
             });
-            
+
             // Update battle state
             if (winner === 'Player') {
                 this.state.phase = 'Victory';
             } else {
                 this.state.phase = 'Defeat';
             }
-            
+
             return true;
         }
 
@@ -430,7 +430,7 @@ export class PhaseEngine {
                 const moveTarget = this.findMoveTowardEnemy(unit, enemies);
                 if (moveTarget) {
                     this.move(unit.id, moveTarget);
-                    
+
                     // After moving, check if now in attack range
                     const newTargets = this.getValidTargets(unit.id);
                     if (newTargets.length > 0 && !this.hasActedThisPhase(unit.id)) {
@@ -448,7 +448,7 @@ export class PhaseEngine {
 
     private findNearestEnemy(unit: Unit, candidates: Unit[]): Unit | null {
         if (!unit.pos) return null;
-        
+
         let nearest: Unit | null = null;
         let minDist = Infinity;
 
@@ -466,7 +466,7 @@ export class PhaseEngine {
 
     private findMoveTowardEnemy(unit: Unit, enemies: Unit[]): HexPosition | null {
         if (!unit.pos) return null;
-        
+
         const nearest = this.findNearestEnemy(unit, enemies);
         if (!nearest || !nearest.pos) return null;
 

@@ -116,7 +116,7 @@ export default function PhaseBattleDemo() {
     const engineRef = useRef<PhaseEngine | null>(null);
 
     // Derive selectedUnit from ID
-    const selectedUnit = selectedUnitId 
+    const selectedUnit = selectedUnitId
         ? battleState.units.find(u => u.id === selectedUnitId) || null
         : null;
 
@@ -237,7 +237,7 @@ export default function PhaseBattleDemo() {
                     <span style={{ marginRight: '20px' }}>
                         <strong>Round:</strong> {battleState.turn}
                     </span>
-                    <span style={{ 
+                    <span style={{
                         padding: '4px 12px',
                         background: isPlayerPhase ? '#2a4' : '#a24',
                         borderRadius: '4px',

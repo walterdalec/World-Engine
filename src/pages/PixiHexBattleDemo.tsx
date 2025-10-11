@@ -248,7 +248,7 @@ export default function PixiHexBattleDemo() {
     const [validTargets, setValidTargets] = useState<HexPosition[]>([]);
 
     // Get the actual unit from battleState when needed
-    const selectedUnit = selectedUnitId 
+    const selectedUnit = selectedUnitId
         ? battleState.units.find(u => u.id === selectedUnitId) || null
         : null;
 
