@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { PixiHexBattle } from '../features/battle';
-import { findPath, moveUnit, hexDistance } from '../features/battle/engine';
+import { moveUnit, hexDistance, getValidMoves } from '../features/battle/engine';
 import type { BattleState, Unit, HexPosition } from '../features/battle/types';
 
 // Action modes for interaction
@@ -263,7 +263,7 @@ export default function PixiHexBattleDemo() {
         }
     }, [battleState, selectedUnit]);
 
-    // Calculate valid moves for selected unit
+    // Calculate valid moves for selected unit - USE ENGINE'S WORKING IMPLEMENTATION
     const calculateValidMoves = (unit: Unit): HexPosition[] => {
         const startTime = performance.now();
         console.log('📍 calculateValidMoves for:', unit.name, 'pos:', unit.pos, 'move:', unit.stats.move);
@@ -273,84 +273,14 @@ export default function PixiHexBattleDemo() {
             return [];
         }
 
-        // Safety check: ensure grid has tiles
-        if (!battleState.grid.tiles || battleState.grid.tiles.length === 0) {
-            console.error('❌ CRITICAL: Grid has no tiles! Cannot pathfind.');
-            return [];
-        }
-
-        const moves: HexPosition[] = [];
-        const maxMove = unit.stats.move;
-        let hexesChecked = 0;
-        let pathfindCalls = 0;
-
-        console.log('🎯 Checking hexes within range:', maxMove, 'Grid tiles:', battleState.grid.tiles.length);
-
-        // Only check hexes within the movement range (much smaller search space)
-        // Use cube distance for more accurate range checking
-        for (let q = unit.pos.q - maxMove; q <= unit.pos.q + maxMove; q++) {
-            for (let r = unit.pos.r - maxMove; r <= unit.pos.r + maxMove; r++) {
-                // Emergency timeout check every 10 hexes to reduce overhead
-                if (hexesChecked % 10 === 0 && performance.now() - startTime > 1000) {
-                    console.error('❌ TIMEOUT: Pathfinding exceeded 1000ms! Aborting.');
-                    console.error('  Checked', hexesChecked, 'hexes, made', pathfindCalls, 'pathfind calls, found', moves.length, 'moves');
-                    return moves;
-                }
-
-                hexesChecked++;
-                const targetPos = { q, r };
-
-                // Skip if same as current position
-                if (q === unit.pos.q && r === unit.pos.r) continue;
-
-                // Quick distance check before expensive pathfinding
-                const distance = hexDistance(unit.pos, targetPos);
-                if (distance > maxMove) continue;
-
-                // Check if occupied by another unit
-                const occupied = battleState.units.some(u =>
-                    u.pos && u.pos.q === q && u.pos.r === r && !u.isDead
-                );
-                if (occupied) continue;
-
-                // Only do pathfinding for unoccupied, in-range hexes
-                pathfindCalls++;
-                
-                // Only log first 3 and last few calls to reduce console spam
-                if (pathfindCalls <= 3 || pathfindCalls % 10 === 0) {
-                    console.log('  🔍 Pathfind call', pathfindCalls, ':', unit.pos, '→', targetPos);
-                }
-
-                try {
-                    const path = findPath(battleState.grid, unit.pos, targetPos, maxMove);
-                    
-                    if (pathfindCalls <= 3 || pathfindCalls % 10 === 0) {
-                        console.log('  ✓ Path result:', path ? path.length : 'null');
-                    }
-                    
-                    if (path && path.length > 0) {
-                        moves.push(targetPos);
-                    }
-                } catch (error) {
-                    console.error('❌ Pathfinding error on call', pathfindCalls, ':', error);
-                    // Continue to next hex instead of crashing
-                }
-            }
-        }
+        // Use the existing working getValidMoves from engine
+        const moves = getValidMoves(battleState, unit.id);
 
         const endTime = performance.now();
         console.log('✅ Found', moves.length, 'valid moves in', (endTime - startTime).toFixed(2), 'ms');
-        console.log('📊 Stats: checked', hexesChecked, 'hexes, ran', pathfindCalls, 'pathfinding calls');
-
-        // Warn if it took too long
-        if (endTime - startTime > 100) {
-            console.warn('⚠️ Pathfinding took', (endTime - startTime).toFixed(2), 'ms - consider optimization');
-        }
 
         return moves;
-    };
-
-    // Calculate valid attack targets for selected unit
+    };    // Calculate valid attack targets for selected unit
     const calculateValidTargets = (unit: Unit): HexPosition[] => {
         if (!unit.pos || unit.hasActed || unit.isDead) return [];
 
