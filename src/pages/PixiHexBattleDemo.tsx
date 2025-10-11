@@ -290,21 +290,8 @@ export default function PixiHexBattleDemo() {
             u.pos && u.pos.q === hex.q && u.pos.r === hex.r && !u.isDead
         );
 
-        if (actionMode === 'select' || !selectedUnit) {
-            // Select mode or no unit selected - select unit
-            if (unit && unit.faction === 'Player') {
-                console.log('👤 Unit selected:', unit.name);
-                setSelectedUnit(unit);
-                setSelectedHex(null);
-                setValidMoves([]);
-                setValidTargets([]);
-            } else {
-                setSelectedHex(hex);
-                setSelectedUnit(null);
-                setValidMoves([]);
-                setValidTargets([]);
-            }
-        } else if (actionMode === 'move' && selectedUnit) {
+        // Priority 1: Handle active action modes (move/attack) before select mode
+        if (actionMode === 'move' && selectedUnit) {
             // Move mode - check if hex is valid move target
             const isValidMove = validMoves.some(m => m.q === hex.q && m.r === hex.r);
             if (isValidMove) {
@@ -326,10 +313,12 @@ export default function PixiHexBattleDemo() {
                 setActionMode('select');
                 setValidMoves([]);
             }
-        } else if (actionMode === 'attack' && selectedUnit && unit) {
+            // If not a valid move, do nothing (stay in move mode)
+            return;
+        } else if (actionMode === 'attack' && selectedUnit) {
             // Attack mode - check if unit is valid target
             const isValidTarget = validTargets.some(t => t.q === hex.q && t.r === hex.r);
-            if (isValidTarget && unit.faction !== selectedUnit.faction) {
+            if (isValidTarget && unit && unit.faction !== selectedUnit.faction) {
                 console.log('⚔️ Attacking:', unit.name);
                 // Simple attack: deal damage based on attacker's ATK vs defender's DEF
                 const damage = Math.max(1, selectedUnit.stats.atk - Math.floor(unit.stats.def * 0.5));
@@ -358,6 +347,25 @@ export default function PixiHexBattleDemo() {
                     return { ...prev, units: newUnits, log: newLog };
                 });
                 setActionMode('select');
+                setValidTargets([]);
+            }
+            // If not a valid target, do nothing (stay in attack mode)
+            return;
+        }
+
+        // Priority 2: Default select mode behavior
+        if (actionMode === 'select' || !selectedUnit) {
+            // Select mode or no unit selected - select unit
+            if (unit && unit.faction === 'Player') {
+                console.log('👤 Unit selected:', unit.name);
+                setSelectedUnit(unit);
+                setSelectedHex(null);
+                setValidMoves([]);
+                setValidTargets([]);
+            } else {
+                setSelectedHex(hex);
+                setSelectedUnit(null);
+                setValidMoves([]);
                 setValidTargets([]);
             }
         }
