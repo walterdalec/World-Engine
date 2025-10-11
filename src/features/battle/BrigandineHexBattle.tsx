@@ -460,10 +460,28 @@ export default function BrigandineHexBattle({ onBack }: { onBack?: () => void })
         const targetUnit = unitAt(p);
 
         if (mode === "move") {
-            if (!reach) return;
+            if (!reach) {
+                setLogs((l) => [`⚠️ No valid moves available for ${act.name}`, ...l]);
+                return;
+            }
             const info = reach.reachable.get(axialKey(p));
-            if (!info) return;
+            if (!info) {
+                // Clicking on unreachable tile - provide feedback
+                if (targetUnit) {
+                    setLogs((l) => [`⚠️ Cannot move to occupied hex (${p.q},${p.r})`, ...l]);
+                } else {
+                    const tileInfo = tileAt(p);
+                    if (tileInfo) {
+                        const terrainIcon = TERRAIN[tileInfo.terrain].icon;
+                        setLogs((l) => [`⚠️ ${terrainIcon} at (${p.q},${p.r}) is out of range or blocked`, ...l]);
+                    } else {
+                        setLogs((l) => [`⚠️ Hex (${p.q},${p.r}) is out of range or blocked`, ...l]);
+                    }
+                }
+                return;
+            }
 
+            // Valid move - execute it
             setUnits((prev) =>
                 prev.map((u) => (u.id === act.id ? { ...u, pos: p, ap: Math.max(0, u.ap - 1) } : u))
             );
