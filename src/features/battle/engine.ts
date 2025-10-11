@@ -467,22 +467,18 @@ export function getValidMoves(state: BattleState, unitId: string): HexPosition[]
     const maxRange = unit.stats.move;
     console.log('  📏 Max range:', maxRange, 'from pos:', unit.pos);
 
-    // OPTIMIZED: For uniform cost grids, just check distance instead of pathfinding
-    // This is 100x faster than calling findPath for every hex
+    // Simple hex-based movement: check all hexes within N rings
+    // No distance check needed - hexRing already gives us correct hexes at each range
     for (let range = 1; range <= maxRange; range++) {
         console.log('  🔄 Checking ring', range);
         const ring = hexRing(unit.pos, range);
         console.log('  📍 Ring has', ring.length, 'hexes');
-        
+
         for (const hex of ring) {
             const tile = tileAtFast(state.grid, hex);
+            // If tile exists, is passable, and not occupied - it's valid!
             if (tile && tile.passable && !tile.occupied) {
-                // For a uniform grid (all tiles cost 1), hex distance = path length
-                // Only call pathfinding if there might be obstacles or variable costs
-                const distance = cubeDistance(unit.pos, hex);
-                if (distance <= maxRange) {
-                    validMoves.push(hex);
-                }
+                validMoves.push(hex);
             }
         }
         console.log('  ✅ Ring', range, 'complete, found', validMoves.length, 'moves so far');
