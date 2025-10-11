@@ -36,6 +36,8 @@ interface Props {
   onBrigandineHex?: () => void;
   onEnhancedMap: () => void;
   onSimpleMap: () => void;
+  onHexMap?: () => void;
+  onSmoothMap?: () => void;
   onCombatUIDemo: () => void;
   onProcedural: () => void;
   onEncounters?: () => void;
@@ -46,7 +48,7 @@ interface Props {
   onPartyFrameworkDemo?: () => void;
 }
 
-export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onClassicCharacterCreate, onPortraitTest, onAutoUpdater, onBrigandineHex, onEnhancedMap, onSimpleMap, onCombatUIDemo, onProcedural, onEncounters, onIntegratedCampaign, onEngineTest, onTimeSystemDemo, onFactionAIDemo, onPartyFrameworkDemo }: Props) {
+export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onClassicCharacterCreate, onPortraitTest, onAutoUpdater, onBrigandineHex, onEnhancedMap, onSimpleMap, onHexMap, onSmoothMap, onCombatUIDemo, onProcedural, onEncounters, onIntegratedCampaign, onEngineTest, onTimeSystemDemo, onFactionAIDemo, onPartyFrameworkDemo }: Props) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [characters, setCharacters] = useState<SavedCharacter[]>([]);
   const [activeTab, setActiveTab] = useState<'campaigns' | 'characters'>('campaigns');
@@ -826,6 +828,22 @@ Recovered ${recovered.length} campaigns`);
                 <h3 style={{ margin: '0 0 5px 0' }}>Exploration Map</h3>
                 <p style={{ margin: 0, opacity: 0.9 }}>Simple campaign world map</p>
               </div>
+
+              {onHexMap && (
+                <div style={newCardStyle} onClick={onHexMap}>
+                  <div style={{ fontSize: '3rem', marginBottom: '10px' }}>⬡</div>
+                  <h3 style={{ margin: '0 0 5px 0' }}>Hex World Map</h3>
+                  <p style={{ margin: 0, opacity: 0.9 }}>Professional hex-based overworld</p>
+                </div>
+              )}
+
+              {onSmoothMap && (
+                <div style={newCardStyle} onClick={onSmoothMap}>
+                  <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🌊</div>
+                  <h3 style={{ margin: '0 0 5px 0' }}>Smooth World Map</h3>
+                  <p style={{ margin: 0, opacity: 0.9 }}>Organic continuous terrain (NEW!)</p>
+                </div>
+              )}
 
               <div style={newCardStyle} onClick={onProcedural}>
                 <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🗺️</div>

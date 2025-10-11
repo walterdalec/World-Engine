@@ -6,7 +6,7 @@ import { MainMenu, WorldSetupScreen, VersionDisplay } from "../features/ui";
 import { CharacterLibrary, CharacterCreate, NameGenerator, ClassicCharacterCreator } from "../features/characters";
 import { SpellGenerator, SpellAssignment } from "../features/spells";
 import { HealingSystem, BrigandineHexBattle } from "../features/battle";
-import { WorldMapEngine, EnhancedWorldMap, SimpleWorldMap, ProceduralDevTools } from "../features/world";
+import { WorldMapEngine, EnhancedWorldMap, SimpleWorldMap, HexWorldMap, WorldMapRouter, ProceduralDevTools } from "../features/world";
 import { IntegratedCampaign } from "../features/strategy";
 import EncountersTestPage from "../features/world/encounters/EncountersTestPage";
 import { SimplePortraitTest } from "../features/portraits";
@@ -40,7 +40,7 @@ function _randomSeed(): string {
 }
 
 function App() {
-  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "enhancedmap" | "simplemap" | "charactercreate" | "classiccharacter" | "portraittest" | "battlesystem" | "battle" | "minimalBattle" | "brigandineHex" | "autoupdater" | "combat-ui-demo" | "procedural" | "encounters" | "integrated-campaign" | "engine-test" | "time-system-demo" | "faction-ai-demo" | "party-framework-demo">("menu");
+  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "enhancedmap" | "simplemap" | "hexmap" | "smoothmap" | "charactercreate" | "classiccharacter" | "portraittest" | "battlesystem" | "battle" | "minimalBattle" | "brigandineHex" | "autoupdater" | "combat-ui-demo" | "procedural" | "encounters" | "integrated-campaign" | "engine-test" | "time-system-demo" | "faction-ai-demo" | "party-framework-demo">("menu");
   const [party, setParty] = React.useState<Character[]>([]);
   const [currentCampaign, setCurrentCampaign] = React.useState<any>(null);
   const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0); // Force re-render hook
@@ -311,6 +311,16 @@ function App() {
     setStep("simplemap");
   };
 
+  const handleHexMap = () => {
+    // Hex-based overworld map
+    setStep("hexmap");
+  };
+
+  const handleSmoothMap = () => {
+    // Smooth continuous terrain overworld (hybrid architecture)
+    setStep("smoothmap");
+  };
+
   const handleCombatUIDemo = () => {
     // Combat UI demonstration with mock data
     setStep("combat-ui-demo");
@@ -452,6 +462,8 @@ function App() {
           onBrigandineHex={handleBrigandineHex}
           onEnhancedMap={handleEnhancedMap}
           onSimpleMap={handleSimpleMap}
+          onHexMap={handleHexMap}
+          onSmoothMap={handleSmoothMap}
           onCombatUIDemo={handleCombatUIDemo}
           onProcedural={handleProcedural}
           onEncounters={handleEncounters}
@@ -502,7 +514,7 @@ function App() {
         <HealingSystem onBack={() => setStep("menu")} />
       )}
       {step === "worldmap" && (
-        <WorldMapEngine
+        <HexWorldMap
           seedStr={eng?.state?.meta?.seed}
           onBack={() => setStep("menu")}
         />
@@ -604,10 +616,45 @@ function App() {
       )}
       {step === "simplemap" && (
         <div style={{ position: 'relative' }}>
-          <SimpleWorldMap
+          <HexWorldMap
             seedStr={eng?.state?.meta?.seed}
             onBack={() => setStep("menu")}
           />
+        </div>
+      )}
+      {step === "hexmap" && (
+        <div style={{ position: 'relative' }}>
+          <HexWorldMap
+            seedStr={eng?.state?.meta?.seed}
+            onBack={() => setStep("menu")}
+          />
+        </div>
+      )}
+      {step === "smoothmap" && (
+        <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
+          <WorldMapRouter
+            seed={eng?.state?.meta?.seed || "default-smooth-world"}
+            initialRenderer="pixi"
+          />
+          <button
+            onClick={() => setStep("menu")}
+            style={{
+              position: 'absolute',
+              top: '20px',
+              left: '20px',
+              zIndex: 1000,
+              background: '#374151',
+              color: '#f8fafc',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '10px 15px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold'
+            }}
+          >
+            ← Back to Menu
+          </button>
         </div>
       )}
       {step === "combat-ui-demo" && (
