@@ -80,6 +80,7 @@ export {
 // Active UI components
 export { default as HealingSystem } from './HealingSystem';
 export { default as BrigandineHexBattle } from './BrigandineHexBattle';
+export { default as PixiHexBattle } from './components/PixiHexBattle';
 
 // Legacy components moved to src/_legacy/battle/:
 // - BattleMockup, BattlePage, MinimalBattlePage, BattleSystem

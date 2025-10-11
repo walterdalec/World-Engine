@@ -35,11 +35,11 @@ export function CampaignBattleBridge({
         // Simple combat simulation
         const playerDamage = Math.floor(Math.random() * 20) + 10;
         const enemyDamage = Math.floor(Math.random() * 15) + 5;
-        
+
         setEnemyHP(prev => Math.max(0, prev - playerDamage));
         setPlayerHP(prev => Math.max(0, prev - enemyDamage));
         setBattleTurn(t => t + 1);
-        
+
         console.log(`⚔️ Turn ${battleTurn}: Player dealt ${playerDamage}, Enemy dealt ${enemyDamage}`);
     };
 
