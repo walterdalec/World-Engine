@@ -277,6 +277,11 @@ export default function PixiHexBattle({
                 }
             });
 
+            // Prevent mouse wheel from scrolling the page
+            (app.canvas as HTMLCanvasElement).addEventListener('wheel', (e) => {
+                e.preventDefault();
+            }, { passive: false });
+
             console.log('✅ [PixiHexBattle] Event handlers registered');
         })();
 
@@ -413,7 +418,12 @@ export default function PixiHexBattle({
     }, [battleState, selectedHex, selectedUnit, validMoves, validTargets]);
 
     return (
-        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+        <div style={{ 
+            position: 'relative', 
+            width: '100%', 
+            height: '100%',
+            overflow: 'hidden',  // Prevent any scrolling on container
+        }}>
             <div
                 ref={containerRef}
                 style={{
@@ -421,6 +431,7 @@ export default function PixiHexBattle({
                     height: '100%',
                     overflow: 'hidden',
                     cursor: 'grab',
+                    touchAction: 'none',  // Disable touch scrolling
                 }}
             />
             <div
