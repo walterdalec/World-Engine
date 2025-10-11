@@ -6,7 +6,7 @@ import { MainMenu, WorldSetupScreen, VersionDisplay } from "../features/ui";
 import { CharacterLibrary, CharacterCreate, NameGenerator, ClassicCharacterCreator } from "../features/characters";
 import { SpellGenerator, SpellAssignment } from "../features/spells";
 import { HealingSystem, BrigandineHexBattle } from "../features/battle";
-import { WorldMapEngine, EnhancedWorldMap, SimpleWorldMap, HexWorldMap, WorldMapRouter, ProceduralDevTools } from "../features/world";
+import { EnhancedWorldMap, HexWorldMap, WorldMapRouter, ProceduralDevTools } from "../features/world";
 import { IntegratedCampaign } from "../features/strategy";
 import EncountersTestPage from "../features/world/encounters/EncountersTestPage";
 import { SimplePortraitTest } from "../features/portraits";
