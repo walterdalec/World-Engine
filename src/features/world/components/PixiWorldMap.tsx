@@ -118,6 +118,10 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
                     right: 5000,
                     top: -5000,
                     bottom: 5000,
+                })
+                .clampZoom({
+                    minScale: 0.5,   // Maximum zoom out (prevents crash)
+                    maxScale: 16,    // Maximum zoom in
                 });
 
             // Set initial zoom
