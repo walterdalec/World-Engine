@@ -12,7 +12,7 @@
  * This is the "real game" experience.
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { WorldNoise } from '../../proc/noise';
 import { SeededRandom } from '../../seededGenerators';
 import { useGameStore } from '../../store/gameStore';
@@ -108,79 +108,36 @@ export const IntegratedCampaign: React.FC<IntegratedCampaignProps> = ({
 
     const { characters, updateCurrentCharacter, saveCharacter } = useGameStore();
 
-    // Sync characters from Character Library localStorage to game store
-    useEffect(() => {
-        console.log('🔄 Checking for Character Library characters to sync...');
+    // Load characters directly from Character Library if game store is empty
+    const availableCharacters = React.useMemo(() => {
+        if (characters.length > 0) {
+            return characters;
+        }
 
+        // Try to load from Character Library localStorage
         try {
             const libraryCharsJson = localStorage.getItem('world-engine-characters');
-            if (!libraryCharsJson) {
-                console.log('📚 No Character Library characters found');
-                return;
-            }
+            if (!libraryCharsJson) return [];
 
             const libraryChars = JSON.parse(libraryCharsJson);
             console.log(`📚 Found ${libraryChars.length} characters in Character Library`);
 
-            // Only sync if game store is empty
-            if (characters.length === 0 && libraryChars.length > 0) {
-                console.log('🔄 Syncing Character Library → Game Store...');
-
-                libraryChars.forEach((savedChar: any) => {
-                    const char = savedChar.data; // Character Library format has .data field
-                    if (!char) return;
-
-                    // Convert to game store format
-                    const gameStoreChar = {
-                        id: savedChar.id || char.name,
-                        name: char.name,
-                        species: char.species,
-                        archetype: char.archetype,
-                        background: char.background || '',
-                        world: 'Verdance', // Default world
-                        pronouns: char.gender === 'Male' ? 'he/him' : char.gender === 'Female' ? 'she/her' : 'they/them',
-                        stats: {
-                            might: char.stats?.STR || 10,
-                            agility: char.stats?.DEX || 10,
-                            intellect: char.stats?.INT || 10,
-                            awareness: char.stats?.WIS || 10,
-                            vitality: char.stats?.CON || 10,
-                            presence: char.stats?.CHA || 10,
-                            luck: char.stats?.LCK || 10
-                        },
-                        level: char.level || 1,
-                        experience: 0,
-                        hp: 50 + ((char.level || 1) * 10),
-                        maxHp: 50 + ((char.level || 1) * 10),
-                        mp: 20 + ((char.level || 1) * 5),
-                        maxMp: 20 + ((char.level || 1) * 5),
-                        traits: char.traits || [],
-                        abilities: [],
-                        spells: char.knownSpells || [],
-                        cantrips: char.knownCantrips || [],
-                        equipment: {
-                            weapon: 'Iron Sword',
-                            armor: 'Leather Armor',
-                            accessory: 'None',
-                            items: []
-                        },
-                        portraitUrl: char.portraitUrl || ''
-                    } as any;
-
-                    console.log(`✅ Importing: ${char.name} (${char.species} ${char.archetype})`);
-                    updateCurrentCharacter(gameStoreChar);
-                    saveCharacter();
-                });
-
-                console.log('🎉 Character sync complete!');
-            } else if (characters.length > 0) {
-                console.log('✅ Game store already has characters, skipping sync');
-            }
+            // Convert to display format (don't save to store yet)
+            return libraryChars.map((savedChar: any) => {
+                const char = savedChar.data;
+                return {
+                    name: char.name,
+                    species: char.species,
+                    archetype: char.archetype,
+                    level: char.level || 1,
+                    libraryData: savedChar // Keep original for later conversion
+                };
+            });
         } catch (error) {
-            console.error('❌ Error syncing characters:', error);
+            console.error('❌ Error loading Character Library:', error);
+            return [];
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); // Run once on mount (intentionally excluding dependencies to prevent re-sync)
+    }, [characters]);
 
     const addLog = useCallback((message: string) => {
         setLogs(prev => [...prev.slice(-19), `[Day ${campaignState?.currentDay || 0}] ${message}`]);
@@ -188,7 +145,7 @@ export const IntegratedCampaign: React.FC<IntegratedCampaignProps> = ({
 
     // Start a new campaign
     const startNewCampaign = useCallback(() => {
-        if (characters.length === 0) {
+        if (availableCharacters.length === 0) {
             console.log('❌ No characters available to start campaign');
             return;
         }
@@ -199,23 +156,47 @@ export const IntegratedCampaign: React.FC<IntegratedCampaignProps> = ({
 
         const seed = `campaign-${Date.now()}`;
 
-        // Convert characters to campaign format
-        const party: CampaignCharacter[] = characters.slice(0, 4).map((char: any) => ({
-            id: char.id || char.name,
-            name: char.name,
-            species: char.species,
-            archetype: char.archetype,
-            level: char.level || 1,
-            experience: char.experience || 0,
-            hp: char.hp || 50 + ((char.level || 1) * 10),
-            maxHp: char.maxHp || 50 + ((char.level || 1) * 10),
-            mp: char.mp || 20 + ((char.level || 1) * 5),
-            maxMp: char.maxMp || 20 + ((char.level || 1) * 5),
-            stats: char.stats || {},
-            equipment: char.equipment || { weapon: 'Iron Sword', armor: 'Leather Armor', accessory: 'None' },
-            abilities: Array.isArray(char.abilities) ? char.abilities.map((a: any) => a.name || a) : [],
-            spells: Array.isArray(char.spells) ? char.spells : []
-        }));
+        // Use ONLY the first character as the main protagonist
+        const mainChar: any = availableCharacters[0];
+
+        // If loading from library, convert the data
+        let charData = mainChar;
+        if (mainChar.libraryData) {
+            const libChar = mainChar.libraryData.data;
+            charData = {
+                id: mainChar.libraryData.id || libChar.name,
+                name: libChar.name,
+                species: libChar.species,
+                archetype: libChar.archetype,
+                level: libChar.level || 1,
+                stats: libChar.stats || {},
+                hp: 50 + ((libChar.level || 1) * 10),
+                maxHp: 50 + ((libChar.level || 1) * 10),
+                mp: 20 + ((libChar.level || 1) * 5),
+                maxMp: 20 + ((libChar.level || 1) * 5),
+                experience: 0,
+                equipment: { weapon: 'Iron Sword', armor: 'Leather Armor', accessory: 'None' },
+                abilities: [],
+                spells: libChar.knownSpells || []
+            };
+        }
+
+        const party: CampaignCharacter[] = [{
+            id: charData.id || charData.name,
+            name: charData.name,
+            species: charData.species,
+            archetype: charData.archetype,
+            level: charData.level || 1,
+            experience: charData.experience || 0,
+            hp: charData.hp || 50 + ((charData.level || 1) * 10),
+            maxHp: charData.maxHp || 50 + ((charData.level || 1) * 10),
+            mp: charData.mp || 20 + ((charData.level || 1) * 5),
+            maxMp: charData.maxMp || 20 + ((charData.level || 1) * 5),
+            stats: charData.stats || {},
+            equipment: charData.equipment || { weapon: 'Iron Sword', armor: 'Leather Armor', accessory: 'None' },
+            abilities: Array.isArray(charData.abilities) ? charData.abilities.map((a: any) => a.name || a) : [],
+            spells: Array.isArray(charData.spells) ? charData.spells : []
+        }];
 
         // Initialize factions
         const factions: Faction[] = [
@@ -273,10 +254,11 @@ export const IntegratedCampaign: React.FC<IntegratedCampaignProps> = ({
         // Add to logs (need to use setTimeout since state updates are async)
         setTimeout(() => {
             addLog('🌍 Campaign initialized successfully!');
-            addLog(`🎮 Party of ${party.length} ready for adventure`);
+            addLog(`🎮 ${mainChar.name} the ${mainChar.species} ${mainChar.archetype} begins their journey`);
             addLog(`🏰 ${factions.length} factions compete for control`);
+            addLog('💡 Recruit companions and mercenaries as you explore');
         }, 100);
-    }, [characters, addLog]);
+    }, [availableCharacters, addLog]);
 
     // Continue existing campaign (placeholder for now)
     const continueCampaign = useCallback(() => {
@@ -488,11 +470,11 @@ export const IntegratedCampaign: React.FC<IntegratedCampaignProps> = ({
                     <div className="text-6xl mb-4">⚔️</div>
                     <h1 className="text-4xl font-bold mb-2">Integrated Campaign</h1>
                     <p className="text-gray-400 mb-8">
-                        Experience the full World Engine with strategic faction warfare, 
+                        Experience the full World Engine with strategic faction warfare,
                         tactical battles, and endless exploration.
                     </p>
-                    
-                    {characters.length === 0 ? (
+
+                    {availableCharacters.length === 0 ? (
                         // No characters - need to create first
                         <div className="bg-gray-800 rounded-lg p-6 mb-4">
                             <div className="text-4xl mb-4">👥</div>
@@ -527,7 +509,9 @@ export const IntegratedCampaign: React.FC<IntegratedCampaignProps> = ({
                             <div className="bg-gray-800 rounded-lg p-6 border-2 border-green-500">
                                 <h2 className="text-2xl font-bold mb-2">🆕 New Campaign</h2>
                                 <p className="text-gray-400 mb-4">
-                                    Start a fresh adventure with your party of {characters.length} character{characters.length !== 1 ? 's' : ''}.
+                                    Start a fresh adventure with <strong>{availableCharacters[0].name}</strong> the {availableCharacters[0].species} {availableCharacters[0].archetype}.
+                                    <br />
+                                    <span className="text-sm">Recruit companions and mercenaries during your journey.</span>
                                 </p>
                                 <button
                                     onClick={startNewCampaign}
@@ -552,23 +536,28 @@ export const IntegratedCampaign: React.FC<IntegratedCampaignProps> = ({
                                 </div>
                             )}
 
-                            <div className="bg-gray-800 rounded-lg p-4">
-                                <p className="text-sm text-gray-400 mb-2">
-                                    <strong>Available Characters:</strong>
-                                </p>
-                                <div className="flex flex-wrap gap-2 justify-center">
-                                    {characters.slice(0, 4).map((char: any, i: number) => (
-                                        <div key={i} className="bg-gray-700 px-3 py-1 rounded text-sm">
-                                            {char.name} ({char.species} {char.archetype})
-                                        </div>
-                                    ))}
-                                    {characters.length > 4 && (
-                                        <div className="bg-gray-700 px-3 py-1 rounded text-sm text-gray-400">
-                                            +{characters.length - 4} more
-                                        </div>
-                                    )}
+                            {availableCharacters.length > 1 && (
+                                <div className="bg-gray-800 rounded-lg p-4">
+                                    <p className="text-sm text-gray-400 mb-2">
+                                        <strong>Other Characters Available:</strong>
+                                    </p>
+                                    <div className="flex flex-wrap gap-2 justify-center">
+                                        {availableCharacters.slice(1, 5).map((char: any, i: number) => (
+                                            <div key={i} className="bg-gray-700 px-3 py-1 rounded text-sm">
+                                                {char.name} ({char.species} {char.archetype})
+                                            </div>
+                                        ))}
+                                        {availableCharacters.length > 5 && (
+                                            <div className="bg-gray-700 px-3 py-1 rounded text-sm text-gray-400">
+                                                +{availableCharacters.length - 5} more
+                                            </div>
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-2 text-center">
+                                        (Future feature: Choose which character to play as)
+                                    </p>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     )}
 
