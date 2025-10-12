@@ -15,6 +15,7 @@ interface WorldMapRouterProps {
     seed: string;
     onEncounter?: (_pos: WorldPos) => void;
     onSettlement?: (_pos: WorldPos) => void;
+    onPositionChange?: (_pos: WorldPos) => void;
     initialRenderer?: 'canvas' | 'pixi';
 }
 
@@ -24,6 +25,7 @@ export default function WorldMapRouter({
     seed,
     onEncounter,
     onSettlement,
+    onPositionChange,
     initialRenderer = 'pixi' // Default to Pixi (GPU-accelerated)
 }: WorldMapRouterProps) {
     const [renderer, setRenderer] = useState<RendererType>(initialRenderer);
@@ -59,12 +61,14 @@ export default function WorldMapRouter({
                     seed={seed}
                     onEncounter={onEncounter}
                     onSettlement={onSettlement}
+                    onPositionChange={onPositionChange}
                 />
             ) : (
                 <PixiWorldMap
                     seed={seed}
                     onEncounter={onEncounter}
                     onSettlement={onSettlement}
+                    onPositionChange={onPositionChange}
                 />
             )}
 

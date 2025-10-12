@@ -23,11 +23,12 @@ interface SmoothWorldMapProps {
     seed: string;
     onEncounter?: (_pos: WorldPos) => void;
     onSettlement?: (_pos: WorldPos) => void;
+    onPositionChange?: (_pos: WorldPos) => void;
 }
 
 type Keys = Record<string, boolean>;
 
-export default function SmoothWorldMap({ seed }: SmoothWorldMapProps) {
+export default function SmoothWorldMap({ seed, onPositionChange }: SmoothWorldMapProps) {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
     // Mutable sim state (no React setState during loop for better performance)
@@ -40,6 +41,9 @@ export default function SmoothWorldMap({ seed }: SmoothWorldMapProps) {
 
     const rafRef = useRef<number>(0);
     const timeRef = useRef<number>(performance.now());
+
+    const emitTimeRef = useRef<number>(0);
+    const emitPosRef = useRef<WorldPos>({ x: 0, y: 0 });
     const dprRef = useRef<number>(Math.max(1, window.devicePixelRatio || 1));
 
     // Terrain cache to avoid resampling
@@ -275,6 +279,18 @@ export default function SmoothWorldMap({ seed }: SmoothWorldMapProps) {
             console.error('Invalid position detected, resetting to origin');
             posRef.current = { x: 0, y: 0 };
             velRef.current = { x: 0, y: 0 };
+        }
+
+        if (onPositionChange) {
+            const dx = posRef.current.x - emitPosRef.current.x;
+            const dy = posRef.current.y - emitPosRef.current.y;
+            const dist = Math.hypot(dx, dy);
+            const now = timeRef.current;
+            if (dist > 0.5 || now - emitTimeRef.current > 500) {
+                onPositionChange({ x: posRef.current.x, y: posRef.current.y });
+                emitPosRef.current = { x: posRef.current.x, y: posRef.current.y };
+                emitTimeRef.current = now;
+            }
         }
     }
 

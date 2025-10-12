@@ -1,8 +1,6 @@
 import {
     Application,
-    BLEND_MODES,
     Container,
-    SCALE_MODES,
     Sprite,
     Texture
 } from 'pixi.js';
@@ -81,10 +79,10 @@ export interface TerrainOverlayContext {
 
 export interface TerrainOverlayDefinition {
     id: string;
-    paint: (ctx: CanvasRenderingContext2D, context: TerrainOverlayContext) => void;
+    paint: (_ctx: CanvasRenderingContext2D, _context: TerrainOverlayContext) => void;
     hash?: string;
     opacity?: number;
-    blendMode?: BLEND_MODES;
+    blendMode?: string; // Pixi v8 uses string literals like 'normal', 'add', 'multiply'
     zIndex?: number;
 }
 
@@ -490,7 +488,7 @@ function generateTerrainPixels(
 function updateOverlays(app: TerrainApplication, options: ResolvedTerrainOptions, baseHash: string): void {
     if (!options.overlays.length) {
         if (app.overlayLayer) {
-            app.overlayLayer.removeChildren().forEach(child => child.destroy({ texture: true, baseTexture: true }));
+            app.overlayLayer.removeChildren().forEach(child => child.destroy({ texture: true })); // Pixi v8: no baseTexture option
         }
         app.__overlaySprites?.clear();
         app.__overlayHashes?.clear();
@@ -524,7 +522,7 @@ function updateOverlays(app: TerrainApplication, options: ResolvedTerrainOptions
         }
 
         if (sprite) {
-            sprite.destroy({ texture: true, baseTexture: true });
+            sprite.destroy({ texture: true }); // Pixi v8: no baseTexture option
         }
 
         const canvas = document.createElement('canvas');
@@ -538,10 +536,10 @@ function updateOverlays(app: TerrainApplication, options: ResolvedTerrainOptions
         overlay.paint(ctx, context);
 
         const texture = Texture.from(canvas);
-        texture.baseTexture.scaleMode = SCALE_MODES.LINEAR;
+        texture.source.scaleMode = 'linear'; // Pixi v8: texture.source instead of baseTexture
         sprite = new Sprite(texture);
         sprite.alpha = overlay.opacity ?? 1;
-        sprite.blendMode = overlay.blendMode ?? BLEND_MODES.NORMAL;
+        sprite.blendMode = (overlay.blendMode ?? 'normal') as any; // Pixi v8: string literal, cast for compatibility
         sprite.zIndex = overlay.zIndex ?? 0;
 
         app.overlayLayer!.addChild(sprite);
@@ -550,12 +548,12 @@ function updateOverlays(app: TerrainApplication, options: ResolvedTerrainOptions
     }
 
     // Remove overlays that are no longer active
-    for (const [id, sprite] of overlaySprites) {
+    for (const [id, sprite] of Array.from(overlaySprites.entries())) { // Convert to array for iteration
         if (!activeIds.has(id)) {
             if (sprite.parent) {
                 sprite.parent.removeChild(sprite);
             }
-            sprite.destroy({ texture: true, baseTexture: true });
+            sprite.destroy({ texture: true }); // Pixi v8: no baseTexture option
             overlaySprites.delete(id);
             overlayHashes.delete(id);
         }
@@ -596,15 +594,15 @@ export function generateTerrain(app: Application, overrides: TerrainOptionsOverr
         throw new Error('Unable to acquire 2D context for terrain canvas');
     }
 
-    const image = new ImageData(pixels, options.width, options.height);
-    ctx.putImageData(image, 0, 0);
+    const imageData = new ImageData(new Uint8ClampedArray(pixels) as any, options.width, options.height);
+    ctx.putImageData(imageData, 0, 0);
 
     const texture = Texture.from(canvas);
-    texture.baseTexture.scaleMode = SCALE_MODES.LINEAR;
+    texture.source.scaleMode = 'linear'; // Pixi v8: texture.source instead of baseTexture
 
     if (terrainApp.__terrainSprite) {
         terrainApp.terrainLayer?.removeChild(terrainApp.__terrainSprite);
-        terrainApp.__terrainSprite.destroy({ texture: true, baseTexture: true });
+        terrainApp.__terrainSprite.destroy({ texture: true }); // Pixi v8: no baseTexture option
     }
 
     const sprite = new Sprite(texture);
@@ -639,7 +637,7 @@ export function exportPNG(app: Application, name = 'terrain.png'): void {
     link.click();
 }
 
-export function makeOverlaySprite(width: number, height: number, paintFn2D: (ctx: CanvasRenderingContext2D) => void): Sprite {
+export function makeOverlaySprite(width: number, height: number, paintFn2D: (_ctx: CanvasRenderingContext2D) => void): Sprite {
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
@@ -652,6 +650,6 @@ export function makeOverlaySprite(width: number, height: number, paintFn2D: (ctx
     paintFn2D(ctx);
 
     const texture = Texture.from(canvas);
-    texture.baseTexture.scaleMode = SCALE_MODES.LINEAR;
+    texture.source.scaleMode = 'linear'; // Pixi v8: texture.source instead of baseTexture
     return new Sprite(texture);
 }
