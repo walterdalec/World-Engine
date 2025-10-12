@@ -11,11 +11,19 @@ import SmoothWorldMap from './SmoothWorldMap';
 import PixiWorldMap from './PixiWorldMap';
 import { WorldPos } from '../../../core/types';
 
+interface RouterLandmark {
+    id: string;
+    type: 'settlement' | 'encounter' | 'point';
+    position: WorldPos;
+    label?: string;
+}
+
 interface WorldMapRouterProps {
     seed: string;
     onEncounter?: (_pos: WorldPos) => void;
     onSettlement?: (_pos: WorldPos) => void;
     onPositionChange?: (_pos: WorldPos) => void;
+    landmarks?: RouterLandmark[];
     initialRenderer?: 'canvas' | 'pixi';
 }
 
@@ -26,6 +34,7 @@ export default function WorldMapRouter({
     onEncounter,
     onSettlement,
     onPositionChange,
+    landmarks,
     initialRenderer = 'pixi' // Default to Pixi (GPU-accelerated)
 }: WorldMapRouterProps) {
     const [renderer, setRenderer] = useState<RendererType>(initialRenderer);
@@ -62,6 +71,7 @@ export default function WorldMapRouter({
                     onEncounter={onEncounter}
                     onSettlement={onSettlement}
                     onPositionChange={onPositionChange}
+                    landmarks={landmarks}
                 />
             ) : (
                 <PixiWorldMap
@@ -69,6 +79,7 @@ export default function WorldMapRouter({
                     onEncounter={onEncounter}
                     onSettlement={onSettlement}
                     onPositionChange={onPositionChange}
+                    landmarks={landmarks}
                 />
             )}
 

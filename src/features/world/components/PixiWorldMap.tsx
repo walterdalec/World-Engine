@@ -5,7 +5,7 @@
  * it to campaign systems: movement callbacks, encounter rolls, and settlement discovery.
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Application, Container, Graphics, Text, TextStyle } from 'pixi.js';
 import { Viewport } from 'pixi-viewport';
 import { WorldPos } from '../../../core/types';
@@ -14,15 +14,24 @@ import {
     generateTerrain,
     pickPixelScale,
     setSeedAndRegenerate,
-    TerrainOptionsOverrides
+    TerrainOptionsOverrides,
+    TerrainOverlayDefinition
 } from '../terrain/pixiTerrainRenderer';
 import { SeededRandom } from '../../../proc/noise';
+
+interface WorldLandmark {
+    id: string;
+    type: 'settlement' | 'encounter' | 'point';
+    position: WorldPos;
+    label?: string;
+}
 
 interface PixiWorldMapProps {
     seed: string;
     onEncounter?: (_pos: WorldPos) => void;
     onSettlement?: (_pos: WorldPos) => void;
     onPositionChange?: (_pos: WorldPos) => void;
+    landmarks?: WorldLandmark[];
 }
 
 type Keys = Record<string, boolean>;
@@ -66,15 +75,23 @@ const clonePos = (pos: WorldPos): WorldPos => ({ x: pos.x, y: pos.y });
 
 const settlementFriendlyBiomes = new Set(['plains', 'forest', 'hills', 'shore']);
 
+const LANDMARK_STYLE: Record<WorldLandmark['type'], { fill: string; stroke: string }> = {
+    settlement: { fill: '#ffcc66', stroke: '#3a2500' },
+    encounter: { fill: '#ff6666', stroke: '#3a0000' },
+    point: { fill: '#66b3ff', stroke: '#102b4c' }
+};
+
 export default function PixiWorldMap({
     seed,
     onEncounter,
     onSettlement,
-    onPositionChange
+    onPositionChange,
+    landmarks = []
 }: PixiWorldMapProps) {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const appRef = useRef<TerrainApp | null>(null);
     const viewportRef = useRef<Viewport | null>(null);
+    const wheelHandlerRef = useRef<((_e: WheelEvent) => void) | null>(null);
 
     const posRef = useRef<WorldPos>({ x: 0, y: 0 });
     const prevPosRef = useRef<WorldPos>({ x: 0, y: 0 });
@@ -98,6 +115,63 @@ export default function PixiWorldMap({
     const [fps, setFps] = useState(60);
     const fpsSamplesRef = useRef<number[]>([]);
     const lastFrameRef = useRef<number>(performance.now());
+
+    const landmarkOverlays = useMemo<TerrainOverlayDefinition[]>(() => {
+        if (!landmarks || landmarks.length === 0) {
+            return [];
+        }
+
+        const hash = landmarks
+            .map(l => `${l.id}:${l.type}:${l.position.x.toFixed(2)}:${l.position.y.toFixed(2)}:${l.label ?? ''}`)
+            .join('|');
+
+        return [
+            {
+                id: 'landmarks',
+                hash,
+                zIndex: 10,
+                opacity: 0.95,
+                paint: (ctx, context) => {
+                    ctx.clearRect(0, 0, context.width, context.height);
+                    const fontSize = Math.max(10, Math.round(10 * context.pixelScale));
+                    ctx.font = `${fontSize}px monospace`;
+                    ctx.textBaseline = 'middle';
+
+                    for (const landmark of landmarks) {
+                        const px = landmark.position.x * WORLD_UNIT_TO_PIXEL;
+                        const py = landmark.position.y * WORLD_UNIT_TO_PIXEL;
+
+                        const style = LANDMARK_STYLE[landmark.type] ?? LANDMARK_STYLE.point;
+                        const size = Math.max(6, Math.round(8 * context.pixelScale));
+
+                        ctx.fillStyle = style.fill;
+                        ctx.strokeStyle = style.stroke;
+                        ctx.lineWidth = Math.max(1, context.pixelScale);
+
+                        if (landmark.type === 'settlement') {
+                            ctx.beginPath();
+                            ctx.rect(px - size / 2, py - size / 2, size, size);
+                            ctx.fill();
+                            ctx.stroke();
+                        } else {
+                            ctx.beginPath();
+                            ctx.arc(px, py, size / 2, 0, Math.PI * 2);
+                            ctx.fill();
+                            ctx.stroke();
+                        }
+
+                        if (landmark.label) {
+                            ctx.fillStyle = '#ffffff';
+                            ctx.strokeStyle = 'rgba(0,0,0,0.6)';
+                            ctx.lineWidth = Math.max(2, context.pixelScale * 1.5);
+                            ctx.strokeText(landmark.label, px + size, py);
+                            ctx.fillText(landmark.label, px + size, py);
+                        }
+                    }
+                }
+            }
+        ];
+    }, [landmarks]);
 
     useEffect(() => {
         let cancelled = false;
@@ -158,6 +232,14 @@ export default function PixiWorldMap({
             container.appendChild(app.canvas as HTMLCanvasElement);
             appRef.current = app;
 
+            // Prevent page scrolling on mouse wheel over canvas
+            const canvas = app.canvas as HTMLCanvasElement;
+            const preventScroll = (e: WheelEvent) => {
+                e.preventDefault();
+            };
+            wheelHandlerRef.current = preventScroll;
+            canvas.addEventListener('wheel', preventScroll, { passive: false });
+
             const viewport = new Viewport({
                 screenWidth,
                 screenHeight,
@@ -190,7 +272,8 @@ export default function PixiWorldMap({
             const initialOverrides: TerrainOptionsOverrides = {
                 seed,
                 width: mapSize.width,
-                height: mapSize.height
+                height: mapSize.height,
+                overlays: landmarkOverlays
             };
             generateTerrain(app, initialOverrides);
             attachTerrainLayers(app, viewport);
@@ -313,10 +396,10 @@ export default function PixiWorldMap({
                             sample.biome === 'mountains'
                                 ? 0.45
                                 : sample.biome === 'forest'
-                                ? 0.35
-                                : sample.biome === 'swamp'
-                                ? 0.3
-                                : 0.22;
+                                    ? 0.35
+                                    : sample.biome === 'swamp'
+                                        ? 0.3
+                                        : 0.22;
                         if (rng.next() < biomeModifier) {
                             onEncounter(clonePos(posRef.current));
                             lastEventTimeRef.current.encounter = now;
@@ -387,6 +470,13 @@ export default function PixiWorldMap({
             window.removeEventListener('keydown', onKeyDown);
             window.removeEventListener('keyup', onKeyUp);
             window.removeEventListener('resize', onResize);
+
+            // Remove wheel event listener from canvas
+            if (appRef.current?.canvas && wheelHandlerRef.current) {
+                const canvas = appRef.current.canvas as HTMLCanvasElement;
+                canvas.removeEventListener('wheel', wheelHandlerRef.current);
+            }
+
             if (appRef.current) {
                 appRef.current.destroy(true, { children: true });
             }
@@ -403,9 +493,21 @@ export default function PixiWorldMap({
     useEffect(() => {
         if (!appRef.current || !viewportRef.current || !terrainReadyRef.current) return;
 
+        generateTerrain(appRef.current, {
+            width: mapPixelSizeRef.current.width,
+            height: mapPixelSizeRef.current.height,
+            overlays: landmarkOverlays
+        });
+        attachTerrainLayers(appRef.current, viewportRef.current);
+    }, [landmarkOverlays]);
+
+    useEffect(() => {
+        if (!appRef.current || !viewportRef.current || !terrainReadyRef.current) return;
+
         const overrides: TerrainOptionsOverrides = {
             width: mapPixelSizeRef.current.width,
             height: mapPixelSizeRef.current.height,
+            overlays: landmarkOverlays,
             forceRegenerate: true
         };
 

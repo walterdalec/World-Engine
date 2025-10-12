@@ -19,16 +19,24 @@ import React, { useEffect, useRef } from 'react';
 import { WorldPos } from '../../../core/types';
 import { sampleOverworld, initTerrainGenerator } from '../terrain/terrainGenerator';
 
+interface WorldLandmark {
+    id: string;
+    type: 'settlement' | 'encounter' | 'point';
+    position: WorldPos;
+    label?: string;
+}
+
 interface SmoothWorldMapProps {
     seed: string;
     onEncounter?: (_pos: WorldPos) => void;
     onSettlement?: (_pos: WorldPos) => void;
     onPositionChange?: (_pos: WorldPos) => void;
+    landmarks?: WorldLandmark[];
 }
 
 type Keys = Record<string, boolean>;
 
-export default function SmoothWorldMap({ seed, onPositionChange }: SmoothWorldMapProps) {
+export default function SmoothWorldMap({ seed, onPositionChange, landmarks }: SmoothWorldMapProps) {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
     // Mutable sim state (no React setState during loop for better performance)
@@ -385,6 +393,48 @@ export default function SmoothWorldMap({ seed, onPositionChange }: SmoothWorldMa
 
             // Player marker at center with direction indicator
             const playerSize = 6 * dpr;
+
+            if (landmarks?.length) {
+                ctx.save();
+                ctx.lineWidth = 2 * dpr;
+                ctx.font = `${10 * dpr}px monospace`;
+                ctx.textBaseline = 'middle';
+                for (const landmark of landmarks) {
+                    const dx = landmark.position.x - center.x;
+                    const dy = landmark.position.y - center.y;
+                    const sx = halfW + dx * scale;
+                    const sy = halfH + dy * scale;
+                    if (sx < -32 || sy < -32 || sx > cvs.width + 32 || sy > cvs.height + 32) {
+                        continue;
+                    }
+
+                    const size = 6 * dpr;
+                    if (landmark.type === 'settlement') {
+                        ctx.fillStyle = '#ffcc66';
+                        ctx.strokeStyle = '#3a2500';
+                        ctx.beginPath();
+                        ctx.rect(sx - size / 2, sy - size / 2, size, size);
+                        ctx.fill();
+                        ctx.stroke();
+                    } else {
+                        ctx.fillStyle = '#ff6666';
+                        ctx.strokeStyle = '#3a0000';
+                        ctx.beginPath();
+                        ctx.arc(sx, sy, size / 2, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.stroke();
+                    }
+
+                    if (landmark.label) {
+                        ctx.fillStyle = '#ffffff';
+                        ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+                        ctx.lineWidth = 3 * dpr;
+                        ctx.strokeText(landmark.label, sx + size, sy);
+                        ctx.fillText(landmark.label, sx + size, sy);
+                    }
+                }
+                ctx.restore();
+            }
 
             // Outer glow
             ctx.shadowColor = '#00ffff';

@@ -13,6 +13,7 @@
  */
 
 import React, { useState, useCallback } from 'react';
+import { WorldPos } from '../../core/types';
 import { WorldNoise } from '../../proc/noise';
 import { SeededRandom } from '../../seededGenerators';
 import { useGameStore } from '../../store/gameStore';
@@ -35,6 +36,7 @@ interface CampaignState {
     party: CampaignCharacter[];
     partyGold: number;
     partyPosition: { x: number; y: number };
+    landmarks: CampaignLandmark[];
 
     // World state
     worldNoise: WorldNoise;
@@ -63,6 +65,14 @@ interface CampaignCharacter {
     equipment: Record<string, string>;
     abilities: string[];
     spells: string[];
+}
+
+interface CampaignLandmark {
+    id: string;
+    type: 'settlement' | 'encounter' | 'point';
+    position: WorldPos;
+    label: string;
+    discoveredAt: number;
 }
 
 interface Faction {
@@ -143,6 +153,50 @@ export const IntegratedCampaign: React.FC<IntegratedCampaignProps> = ({
     const addLog = useCallback((message: string) => {
         setLogs(prev => [...prev.slice(-19), `[Day ${campaignState?.currentDay || 0}] ${message}`]);
     }, [campaignState?.currentDay]);
+
+    const registerLandmark = useCallback((position: WorldPos, type: CampaignLandmark['type'], label?: string) => {
+        setCampaignState(prev => {
+            if (!prev) return prev;
+
+            const existing = prev.landmarks.some(landmark => {
+                if (landmark.type !== type) return false;
+                const dx = landmark.position.x - position.x;
+                const dy = landmark.position.y - position.y;
+                return Math.hypot(dx, dy) < 5;
+            });
+
+            if (existing) {
+                return prev;
+            }
+
+            const index = prev.landmarks.filter(l => l.type === type).length + 1;
+            const resolvedLabel =
+                label ??
+                (type === 'settlement'
+                    ? `Settlement ${index}`
+                    : type === 'encounter'
+                    ? `Encounter ${index}`
+                    : `Point ${index}`);
+
+            const roundedPosition = {
+                x: parseFloat(position.x.toFixed(1)),
+                y: parseFloat(position.y.toFixed(1))
+            };
+
+            const nextLandmark: CampaignLandmark = {
+                id: `${type}-${Date.now()}-${Math.round(position.x)}-${Math.round(position.y)}`,
+                type,
+                position: roundedPosition,
+                label: resolvedLabel,
+                discoveredAt: Date.now()
+            };
+
+            return {
+                ...prev,
+                landmarks: [...prev.landmarks, nextLandmark]
+            };
+        });
+    }, [setCampaignState]);
 
     // Start a new campaign
     const startNewCampaign = useCallback(() => {
@@ -241,6 +295,7 @@ export const IntegratedCampaign: React.FC<IntegratedCampaignProps> = ({
             party,
             partyGold: 500,
             partyPosition: { x: 0, y: 0 },
+            landmarks: [],
             worldNoise: new WorldNoise(seed),
             exploredTiles: new Set(['0,0']),
             factions,
@@ -622,53 +677,46 @@ export const IntegratedCampaign: React.FC<IntegratedCampaignProps> = ({
                 {/* Left Panel - Main View */}
                 <div className="lg:col-span-2 bg-gray-800 rounded-lg overflow-hidden">
                     {currentView === 'world' && (
-                        <div className="h-full">
-                            <div className="bg-gray-700 p-2 border-b border-gray-600">
-                                <h2 className="text-lg font-bold">🗺️ World Map</h2>
-                                <p className="text-xs text-gray-400">
-                                    Use WASD to move • Mouse wheel to zoom • Drag to pan
-                                </p>
-                            </div>
-                            <div className="relative" style={{ height: '600px' }}>
-                                <PixiWorldMap
-                                    seed={campaignState.seed}
-                                    onPositionChange={(pos) => {
-                                        setCampaignState(prev => {
-                                            if (!prev) return prev;
-                                            return {
-                                                ...prev,
-                                                partyPosition: pos
-                                            };
-                                        });
-                                    }}
-                                    onEncounter={(pos) => {
-                                        // Update party position and trigger encounter
-                                        setCampaignState(prev => {
-                                            if (!prev) return prev;
-                                            return {
-                                                ...prev,
-                                                partyPosition: pos
-                                            };
-                                        });
-                                        addLog(`⚔️ Random encounter at (${pos.x}, ${pos.y})!`);
-                                        triggerEncounter();
-                                    }}
-                                    onSettlement={(pos) => {
-                                        setCampaignState(prev => {
-                                            if (!prev) return prev;
-                                            return {
-                                                ...prev,
-                                                partyPosition: pos
-                                            };
-                                        });
-                                        addLog(`🏘️ Discovered settlement at (${pos.x}, ${pos.y})`);
-                                    }}
-                                />
-                            </div>
+                        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 10 }}>
+                            <PixiWorldMap
+                                seed={campaignState.seed}
+                                landmarks={campaignState.landmarks}
+                                onPositionChange={(pos) => {
+                                    setCampaignState(prev => {
+                                        if (!prev) return prev;
+                                        return {
+                                            ...prev,
+                                            partyPosition: pos
+                                        };
+                                    });
+                                }}
+                                onEncounter={(pos) => {
+                                    // Update party position and trigger encounter
+                                    setCampaignState(prev => {
+                                        if (!prev) return prev;
+                                        return {
+                                            ...prev,
+                                            partyPosition: pos
+                                        };
+                                    });
+                                    registerLandmark(pos, 'encounter');
+                                    addLog(`⚔️ Random encounter at (${pos.x}, ${pos.y})!`);
+                                    triggerEncounter();
+                                }}
+                                onSettlement={(pos) => {
+                                    setCampaignState(prev => {
+                                        if (!prev) return prev;
+                                        return {
+                                            ...prev,
+                                            partyPosition: pos
+                                        };
+                                    });
+                                    registerLandmark(pos, 'settlement');
+                                    addLog(`🏘️ Discovered settlement at (${pos.x}, ${pos.y})`);
+                                }}
+                            />
                         </div>
-                    )}
-
-                    {currentView === 'battle' && activeBattle && (
+                    )}                    {currentView === 'battle' && activeBattle && (
                         <CampaignBattleBridge
                             partyPosition={campaignState.partyPosition}
                             partyLevel={activeBattle.partyLevel}
@@ -753,6 +801,24 @@ export const IntegratedCampaign: React.FC<IntegratedCampaignProps> = ({
                         ))}
                     </div>
 
+                    {campaignState.landmarks.length > 0 && (
+                        <div className="mb-4">
+                            <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-2">
+                                Known Landmarks
+                            </h3>
+                            <div className="space-y-1 text-xs text-gray-400">
+                                {campaignState.landmarks.slice(-6).reverse().map(landmark => (
+                                    <div key={landmark.id} className="flex items-center justify-between bg-gray-700 bg-opacity-60 rounded px-2 py-1">
+                                        <span className="font-semibold text-gray-200">{landmark.label}</span>
+                                        <span>
+                                            ({landmark.position.x}, {landmark.position.y})
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     <div className="space-y-2">
                         <button
                             onClick={advanceDay}
@@ -780,3 +846,8 @@ export const IntegratedCampaign: React.FC<IntegratedCampaignProps> = ({
 };
 
 export default IntegratedCampaign;
+
+
+
+
+
