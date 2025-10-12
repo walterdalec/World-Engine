@@ -108,22 +108,22 @@ export class TerrainGenerator {
     /**
      * Determine biome based on elevation and moisture
      * 
-     * Elevation ranges:
-     * - < -0.4: Deep water
-     * - -0.4 to -0.1: Shore
-     * - -0.1 to 0.3: Plains/Forest/Swamp (by moisture)
+     * Elevation ranges (adjusted for better land distribution):
+     * - < -0.6: Deep water
+     * - -0.6 to -0.2: Shore
+     * - -0.2 to 0.3: Plains/Forest/Swamp (by moisture)
      * - 0.3 to 0.6: Hills
      * - 0.6 to 0.8: Mountains
      * - > 0.8: Snow peaks
      */
     private determineBiome(height: number, moisture: number): Biome {
         // Deep water
-        if (height < -0.4) {
+        if (height < -0.6) {
             return 'water';
         }
 
         // Shallow water / shore
-        if (height < -0.1) {
+        if (height < -0.2) {
             return 'shore';
         }
 
