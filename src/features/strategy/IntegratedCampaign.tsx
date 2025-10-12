@@ -17,6 +17,7 @@ import { WorldNoise } from '../../proc/noise';
 import { SeededRandom } from '../../seededGenerators';
 import { useGameStore } from '../../store/gameStore';
 import { CampaignBattleBridge } from './CampaignBattleBridge';
+import PixiWorldMap from '../world/components/PixiWorldMap';
 
 // Types for integrated campaign
 interface IntegratedCampaignProps {
@@ -391,40 +392,20 @@ export const IntegratedCampaign: React.FC<IntegratedCampaignProps> = ({
         });
     }, [campaignState, addLog]);
 
-    // Explore tile
-    const exploreTile = useCallback((dx: number, dy: number) => {
+    // Trigger random encounter (from world map)
+    const triggerEncounter = useCallback(() => {
         if (!campaignState) return;
 
-        setCampaignState(prev => {
-            if (!prev) return prev;
+        const rng = new SeededRandom(campaignState.seed + Date.now());
+        const encounterTypes = ['Bandits', 'Monsters', 'Undead', 'Beasts'];
+        const encounterType = encounterTypes[Math.floor(rng.next() * encounterTypes.length)];
 
-            const newX = prev.partyPosition.x + dx;
-            const newY = prev.partyPosition.y + dy;
-            const tileKey = `${newX},${newY}`;
-
-            const newExplored = new Set(prev.exploredTiles);
-            newExplored.add(tileKey);
-
-            const elevation = prev.worldNoise.getElevation(newX * 10, newY * 10);
-            const temperature = prev.worldNoise.getTemperature(newX * 10, newY * 10, elevation, 100);
-            const moisture = prev.worldNoise.getMoisture(newX * 10, newY * 10, elevation);
-
-            let biome = 'Grass';
-            if (elevation < 0.3) biome = 'Ocean';
-            else if (elevation > 0.8) biome = 'Mountain';
-            else if (temperature < 0.3) biome = 'Tundra';
-            else if (moisture < 0.3) biome = 'Desert';
-            else if (moisture > 0.7) biome = 'Forest';
-
-            addLog(`🗺️ Discovered ${biome} at (${newX}, ${newY})`);
-
-            return {
-                ...prev,
-                partyPosition: { x: newX, y: newY },
-                exploredTiles: newExplored
-            };
+        setActiveBattle({
+            encounterType,
+            partyLevel: Math.max(1, campaignState.party[0]?.level || 1)
         });
-    }, [campaignState, addLog]);
+        setCurrentView('battle');
+    }, [campaignState]);
 
     // Battle result handlers
     const handleBattleComplete = useCallback((won: boolean, xp: number, gold: number) => {
@@ -639,28 +620,41 @@ export const IntegratedCampaign: React.FC<IntegratedCampaignProps> = ({
             {/* Main Content */}
             <div className="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left Panel - Main View */}
-                <div className="lg:col-span-2 bg-gray-800 rounded-lg p-6">
+                <div className="lg:col-span-2 bg-gray-800 rounded-lg overflow-hidden">
                     {currentView === 'world' && (
-                        <div>
-                            <h2 className="text-xl font-bold mb-4">🗺️ World Map</h2>
-                            <div className="bg-gray-700 rounded p-4 mb-4">
-                                <p className="text-center text-gray-400 mb-4">
-                                    Position: ({campaignState.partyPosition.x}, {campaignState.partyPosition.y})
+                        <div className="h-full">
+                            <div className="bg-gray-700 p-2 border-b border-gray-600">
+                                <h2 className="text-lg font-bold">🗺️ World Map</h2>
+                                <p className="text-xs text-gray-400">
+                                    Use WASD to move • Mouse wheel to zoom • Drag to pan
                                 </p>
-                                <div className="grid grid-cols-3 gap-2 max-w-xs mx-auto">
-                                    <button onClick={() => exploreTile(-1, -1)} className="bg-gray-600 hover:bg-gray-500 p-4 rounded">↖️</button>
-                                    <button onClick={() => exploreTile(0, -1)} className="bg-gray-600 hover:bg-gray-500 p-4 rounded">⬆️</button>
-                                    <button onClick={() => exploreTile(1, -1)} className="bg-gray-600 hover:bg-gray-500 p-4 rounded">↗️</button>
-                                    <button onClick={() => exploreTile(-1, 0)} className="bg-gray-600 hover:bg-gray-500 p-4 rounded">⬅️</button>
-                                    <div className="bg-blue-600 p-4 rounded text-center">📍</div>
-                                    <button onClick={() => exploreTile(1, 0)} className="bg-gray-600 hover:bg-gray-500 p-4 rounded">➡️</button>
-                                    <button onClick={() => exploreTile(-1, 1)} className="bg-gray-600 hover:bg-gray-500 p-4 rounded">↙️</button>
-                                    <button onClick={() => exploreTile(0, 1)} className="bg-gray-600 hover:bg-gray-500 p-4 rounded">⬇️</button>
-                                    <button onClick={() => exploreTile(1, 1)} className="bg-gray-600 hover:bg-gray-500 p-4 rounded">↘️</button>
-                                </div>
-                                <p className="text-center text-sm text-gray-400 mt-4">
-                                    Explored: {campaignState.exploredTiles.size} tiles
-                                </p>
+                            </div>
+                            <div className="relative" style={{ height: '600px' }}>
+                                <PixiWorldMap 
+                                    seed={campaignState.seed}
+                                    onEncounter={(pos) => {
+                                        // Update party position and trigger encounter
+                                        setCampaignState(prev => {
+                                            if (!prev) return prev;
+                                            return {
+                                                ...prev,
+                                                partyPosition: pos
+                                            };
+                                        });
+                                        addLog(`⚔️ Random encounter at (${pos.x}, ${pos.y})!`);
+                                        triggerEncounter();
+                                    }}
+                                    onSettlement={(pos) => {
+                                        setCampaignState(prev => {
+                                            if (!prev) return prev;
+                                            return {
+                                                ...prev,
+                                                partyPosition: pos
+                                            };
+                                        });
+                                        addLog(`🏘️ Discovered settlement at (${pos.x}, ${pos.y})`);
+                                    }}
+                                />
                             </div>
                         </div>
                     )}
