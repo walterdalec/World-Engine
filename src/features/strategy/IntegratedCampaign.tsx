@@ -630,7 +630,7 @@ export const IntegratedCampaign: React.FC<IntegratedCampaignProps> = ({
                                 </p>
                             </div>
                             <div className="relative" style={{ height: '600px' }}>
-                                <PixiWorldMap 
+                                <PixiWorldMap
                                     seed={campaignState.seed}
                                     onEncounter={(pos) => {
                                         // Update party position and trigger encounter

@@ -1,25 +1,21 @@
 /**
- * Pixi World Map - GPU-Accelerated Terrain Renderer
- * 
- * HYBRID ARCHITECTURE: Smooth overworld exploration with GPU acceleration
- * Hex battles will be generated from this terrain when combat triggers.
- * 
- * Features:
- * - GPU-accelerated sprite rendering (60fps on large maps)
- * - Pixi Viewport for smooth pan/zoom with inertia
- * - Automatic tile culling (only renders visible terrain)
- * - Texture atlas for efficient batch rendering
- * - WASD movement with momentum physics
- * - Mouse wheel zoom (anchored to cursor)
- * - Drag-to-pan with smooth deceleration
- * - Retina display support (DPR aware)
+ * Pixi World Map - CPU generated terrain + Pixi viewport
+ *
+ * This component renders the overworld terrain produced by the procedural
+ * canvas pipeline (`pixiTerrainRenderer`) and wires it into a Pixi viewport
+ * for smooth pan / zoom and WASD movement.
  */
 
 import React, { useEffect, useRef, useState } from 'react';
 import { Application, Container, Graphics, Text, TextStyle } from 'pixi.js';
 import { Viewport } from 'pixi-viewport';
 import { WorldPos } from '../../../core/types';
-import { sampleOverworld, initTerrainGenerator } from '../terrain/terrainGenerator';
+import {
+    generateTerrain,
+    pickPixelScale,
+    setSeedAndRegenerate,
+    TerrainOptionsOverrides
+} from '../terrain/pixiTerrainRenderer';
 
 interface PixiWorldMapProps {
     seed: string;
@@ -29,144 +25,151 @@ interface PixiWorldMapProps {
 
 type Keys = Record<string, boolean>;
 
+type TerrainApp = Application & {
+    terrainLayer?: Container;
+    overlayLayer?: Container;
+};
+
+const PLAYER_RADIUS = 10;
+const ACCELERATION = 520;
+const DRAG = 0.86;
+
+const computeMapDimensions = (screenWidth: number, screenHeight: number) => {
+    const minWidth = 1600;
+    const minHeight = 900;
+    const width = Math.max(minWidth, Math.ceil(screenWidth * 1.6));
+    const height = Math.max(minHeight, Math.ceil(screenHeight * 1.6));
+    return { width, height };
+};
+
+const attachTerrainLayers = (app: TerrainApp, viewport: Viewport) => {
+    if (app.terrainLayer && app.terrainLayer.parent !== viewport) {
+        app.terrainLayer.parent?.removeChild(app.terrainLayer);
+        viewport.addChildAt(app.terrainLayer, 0);
+    }
+    if (app.overlayLayer && app.overlayLayer.parent !== viewport) {
+        app.overlayLayer.parent?.removeChild(app.overlayLayer);
+        viewport.addChild(app.overlayLayer);
+    }
+};
+
 export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
     const containerRef = useRef<HTMLDivElement | null>(null);
-    const appRef = useRef<Application | null>(null);
+    const appRef = useRef<TerrainApp | null>(null);
     const viewportRef = useRef<Viewport | null>(null);
 
-    // Game state
     const posRef = useRef<WorldPos>({ x: 0, y: 0 });
     const velRef = useRef({ x: 0, y: 0 });
     const keysRef = useRef<Keys>({});
-    const terrainReadyRef = useRef<boolean>(false);
+    const terrainReadyRef = useRef(false);
 
-    // Terrain rendering state
-    const terrainContainerRef = useRef<Container | null>(null);
-    const renderedChunksRef = useRef<Set<string>>(new Set());
-    const terrainCacheRef = useRef<Map<string, { r: number; g: number; b: number }>>(new Map());
+    const mapSizeRef = useRef<{ width: number; height: number }>({ width: 0, height: 0 });
+    const pixelScaleRef = useRef(1);
 
-    // Performance tracking
     const [fps, setFps] = useState(60);
-    const fpsRef = useRef<number[]>([]);
+    const fpsSamplesRef = useRef<number[]>([]);
     const lastFrameRef = useRef<number>(performance.now());
 
-    // Initialize terrain generator
     useEffect(() => {
-        console.log('🌱 [Pixi] Initializing terrain generator with seed:', seed);
-        setTimeout(() => {
-            initTerrainGenerator(seed);
-            terrainReadyRef.current = true;
-            console.log('✅ [Pixi] Terrain generator ready!');
-        }, 100);
-    }, [seed]);
-
-    // Initialize Pixi application
-    useEffect(() => {
-        if (!containerRef.current) return;
-
-        console.log('🎬 [Pixi] Initializing Pixi application...');
-
         const container = containerRef.current;
-        const width = container.clientWidth;
-        const height = container.clientHeight;
+        if (!container) return;
 
-        // Create Pixi application
-        const app = new Application();
+        const screenWidth = container.clientWidth || 1280;
+        const screenHeight = container.clientHeight || 720;
+        const mapSize = computeMapDimensions(screenWidth, screenHeight);
+        mapSizeRef.current = mapSize;
+        pixelScaleRef.current = pickPixelScale(mapSize.width, mapSize.height);
+
+        const app = new Application() as TerrainApp;
 
         (async () => {
             await app.init({
-                width,
-                height,
+                width: screenWidth,
+                height: screenHeight,
                 backgroundColor: 0x1a1a2e,
                 resolution: window.devicePixelRatio || 1,
                 autoDensity: true,
-                antialias: false, // Pixel-perfect for retro aesthetic
-                powerPreference: 'high-performance',
+                antialias: false,
+                powerPreference: 'high-performance'
             });
 
             container.appendChild(app.canvas as HTMLCanvasElement);
             appRef.current = app;
 
-            // Create viewport for camera control
             const viewport = new Viewport({
-                screenWidth: width,
-                screenHeight: height,
-                worldWidth: 10000,
-                worldHeight: 10000,
-                events: app.renderer.events,
+                screenWidth,
+                screenHeight,
+                worldWidth: mapSize.width,
+                worldHeight: mapSize.height,
+                events: app.renderer.events
             });
 
-            // IMPORTANT: Cast viewport as Container for Pixi v8 compatibility
             app.stage.addChild(viewport as any);
             viewportRef.current = viewport;
 
-            // Enable viewport plugins
             viewport
-                .drag({
-                    mouseButtons: 'left',
-                })
+                .drag({ mouseButtons: 'left' })
                 .pinch()
-                .wheel({
-                    smooth: 3,
-                    percent: 0.1,
-                })
-                .decelerate({
-                    friction: 0.9,
-                })
+                .wheel({ smooth: 3, percent: 0.1 })
+                .decelerate({ friction: 0.9 })
                 .clamp({
-                    left: -5000,
-                    right: 5000,
-                    top: -5000,
-                    bottom: 5000,
+                    left: 0,
+                    right: mapSize.width,
+                    top: 0,
+                    bottom: mapSize.height
                 })
                 .clampZoom({
-                    minScale: 0.5,   // Maximum zoom out (prevents crash)
-                    maxScale: 16,    // Maximum zoom in
+                    minScale: 0.5,
+                    maxScale: 8
                 });
 
-            // Set initial zoom
-            viewport.setZoom(8, true); // 8 pixels per world unit
+            viewport.setZoom(1, true);
 
-            // Create terrain container
-            const terrainContainer = new Container();
-            (viewport as any).addChild(terrainContainer);
-            terrainContainerRef.current = terrainContainer;
+            const initialOverrides: TerrainOptionsOverrides = {
+                seed,
+                width: mapSize.width,
+                height: mapSize.height
+            };
+            generateTerrain(app, initialOverrides);
+            attachTerrainLayers(app, viewport);
+            terrainReadyRef.current = true;
 
-            // Create player marker
             const player = new Graphics();
-            player.circle(0, 0, 8);
-            player.fill(0xff0000);
+            player.circle(0, 0, PLAYER_RADIUS);
+            player.fill(0xff2244);
             player.stroke({ width: 2, color: 0xffffff });
-            (viewport as any).addChild(player);
+            viewport.addChild(player);
 
-            // Create FPS display
+            const spawnX = mapSize.width / 2;
+            const spawnY = mapSize.height / 2;
+            posRef.current = { x: spawnX, y: spawnY };
+            player.position.set(spawnX, spawnY);
+            viewport.moveCenter(spawnX, spawnY);
+
             const fpsStyle = new TextStyle({
                 fontFamily: 'monospace',
                 fontSize: 14,
-                fill: 0x00ff00,
+                fill: 0x00ff00
             });
             const fpsText = new Text({ text: 'FPS: 60', style: fpsStyle });
             fpsText.position.set(10, 10);
             app.stage.addChild(fpsText);
 
-            console.log('✅ [Pixi] Application initialized!');
-
-            // Main render loop
             app.ticker.add(() => {
                 const now = performance.now();
                 const dt = (now - lastFrameRef.current) / 1000;
                 lastFrameRef.current = now;
 
-                // Update FPS
-                const currentFps = 1 / dt;
-                fpsRef.current.push(currentFps);
-                if (fpsRef.current.length > 30) fpsRef.current.shift();
-                const avgFps = fpsRef.current.reduce((a, b) => a + b, 0) / fpsRef.current.length;
-                setFps(Math.round(avgFps));
-                fpsText.text = `FPS: ${Math.round(avgFps)}`;
-                fpsText.style.fill = avgFps >= 55 ? 0x00ff00 : avgFps >= 30 ? 0xffff00 : 0xff0000;
+                const currentFps = dt > 0 ? 1 / dt : 60;
+                const samples = fpsSamplesRef.current;
+                samples.push(currentFps);
+                if (samples.length > 30) samples.shift();
+                const avgFps = samples.reduce((a, b) => a + b, 0) / samples.length;
+                const roundedFps = Math.round(avgFps);
+                setFps(roundedFps);
+                fpsText.text = `FPS: ${roundedFps}`;
+                fpsText.style.fill = roundedFps >= 55 ? 0x00ff00 : roundedFps >= 30 ? 0xffff00 : 0xff0000;
 
-                // WASD movement
                 const keys = keysRef.current;
                 let inputX = 0;
                 let inputY = 0;
@@ -176,61 +179,49 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
                 if (keys['KeyA'] || keys['ArrowLeft']) inputX -= 1;
                 if (keys['KeyD'] || keys['ArrowRight']) inputX += 1;
 
-                // Normalize diagonal movement
                 if (inputX !== 0 && inputY !== 0) {
                     inputX *= 0.707;
                     inputY *= 0.707;
                 }
 
-                // Apply acceleration
-                const accel = 500 * dt;
-                velRef.current.x += inputX * accel;
-                velRef.current.y += inputY * accel;
+                velRef.current.x += inputX * ACCELERATION * dt;
+                velRef.current.y += inputY * ACCELERATION * dt;
 
-                // Apply drag
-                const drag = 0.85;
-                velRef.current.x *= drag;
-                velRef.current.y *= drag;
+                velRef.current.x *= DRAG;
+                velRef.current.y *= DRAG;
 
-                // Update position
                 posRef.current.x += velRef.current.x * dt;
                 posRef.current.y += velRef.current.y * dt;
 
-                // Move viewport to follow player
-                viewport.moveCenter(posRef.current.x * 8, posRef.current.y * 8);
+                const maxX = mapSizeRef.current.width;
+                const maxY = mapSizeRef.current.height;
+                posRef.current.x = Math.max(0, Math.min(maxX, posRef.current.x));
+                posRef.current.y = Math.max(0, Math.min(maxY, posRef.current.y));
 
-                // Update player marker
-                player.position.set(posRef.current.x * 8, posRef.current.y * 8);
-
-                // Render terrain chunks
-                if (terrainReadyRef.current) {
-                    renderVisibleTerrain(viewport, terrainContainer);
-                }
+                player.position.set(posRef.current.x, posRef.current.y);
+                viewport.moveCenter(posRef.current.x, posRef.current.y);
             });
         })();
 
-        // Keyboard handlers
-        const onKeyDown = (e: KeyboardEvent) => {
-            keysRef.current[e.code] = true;
+        const onKeyDown = (event: KeyboardEvent) => {
+            keysRef.current[event.code] = true;
         };
-        const onKeyUp = (e: KeyboardEvent) => {
-            keysRef.current[e.code] = false;
+        const onKeyUp = (event: KeyboardEvent) => {
+            keysRef.current[event.code] = false;
         };
 
         window.addEventListener('keydown', onKeyDown);
         window.addEventListener('keyup', onKeyUp);
 
-        // Handle window resize
         const onResize = () => {
             if (!containerRef.current || !appRef.current || !viewportRef.current) return;
-            const w = containerRef.current.clientWidth;
-            const h = containerRef.current.clientHeight;
+            const w = containerRef.current.clientWidth || 1280;
+            const h = containerRef.current.clientHeight || 720;
             appRef.current.renderer.resize(w, h);
-            viewportRef.current.resize(w, h);
+            viewportRef.current.resize(w, h, mapSizeRef.current.width, mapSizeRef.current.height);
         };
         window.addEventListener('resize', onResize);
 
-        // Cleanup
         return () => {
             window.removeEventListener('keydown', onKeyDown);
             window.removeEventListener('keyup', onKeyUp);
@@ -238,126 +229,27 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
             if (appRef.current) {
                 appRef.current.destroy(true, { children: true });
             }
+            appRef.current = null;
+            viewportRef.current = null;
+            terrainReadyRef.current = false;
+            fpsSamplesRef.current = [];
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Render visible terrain chunks
-    const renderVisibleTerrain = (viewport: Viewport, terrainContainer: Container) => {
-        // Get visible world bounds
-        const bounds = viewport.getVisibleBounds();
-        // Note: viewport.scaled property available in pixi-viewport v5
+    useEffect(() => {
+        if (!appRef.current || !viewportRef.current || !terrainReadyRef.current) return;
 
-        // Chunk size in world units
-        const chunkSize = 32; // 32 world units per chunk
-        const cellSize = 4; // 4 world units per terrain cell
+        const overrides: TerrainOptionsOverrides = {
+            width: mapSizeRef.current.width,
+            height: mapSizeRef.current.height,
+            forceRegenerate: true
+        };
 
-        // Calculate visible chunk range
-        const minChunkX = Math.floor(bounds.x / 8 / chunkSize) - 1;
-        const maxChunkX = Math.ceil((bounds.x + bounds.width) / 8 / chunkSize) + 1;
-        const minChunkY = Math.floor(bounds.y / 8 / chunkSize) - 1;
-        const maxChunkY = Math.ceil((bounds.y + bounds.height) / 8 / chunkSize) + 1;
-
-        // Track which chunks should exist
-        const activeChunks = new Set<string>();
-
-        // Render visible chunks
-        for (let cy = minChunkY; cy <= maxChunkY; cy++) {
-            for (let cx = minChunkX; cx <= maxChunkX; cx++) {
-                const chunkKey = `${cx},${cy}`;
-                activeChunks.add(chunkKey);
-
-                // Skip if already rendered
-                if (renderedChunksRef.current.has(chunkKey)) continue;
-
-                // Create chunk
-                const chunk = new Graphics();
-                chunk.label = chunkKey;
-
-                // Render terrain cells in this chunk
-                for (let ly = 0; ly < chunkSize; ly += cellSize) {
-                    for (let lx = 0; lx < chunkSize; lx += cellSize) {
-                        const wx = cx * chunkSize + lx;
-                        const wy = cy * chunkSize + ly;
-
-                        // Get terrain color (cached)
-                        const cacheKey = `${Math.round(wx * 4) / 4},${Math.round(wy * 4) / 4}`;
-                        let color = terrainCacheRef.current.get(cacheKey);
-
-                        if (!color) {
-                            try {
-                                const sample = sampleOverworld({ x: wx, y: wy });
-                                const [r, g, b] = terrainColor(sample.height, sample.moisture, sample.biome);
-                                color = { r, g, b };
-                                terrainCacheRef.current.set(cacheKey, color);
-
-                                // Limit cache size
-                                if (terrainCacheRef.current.size > 20000) {
-                                    const firstKey = terrainCacheRef.current.keys().next().value;
-                                    if (firstKey) terrainCacheRef.current.delete(firstKey);
-                                }
-                            } catch (err) {
-                                continue;
-                            }
-                        }
-
-                        if (color) {
-                            const hexColor = (color.r << 16) | (color.g << 8) | color.b;
-                            chunk.rect(lx * 8, ly * 8, cellSize * 8, cellSize * 8);
-                            chunk.fill(hexColor);
-                        }
-                    }
-                }
-
-                // Position chunk in world
-                chunk.position.set(cx * chunkSize * 8, cy * chunkSize * 8);
-                terrainContainer.addChild(chunk);
-                renderedChunksRef.current.add(chunkKey);
-            }
-        }
-
-        // Remove chunks that are too far away (memory management)
-        const children = terrainContainer.children.slice();
-        for (const child of children) {
-            if (child.label && !activeChunks.has(child.label)) {
-                const [cx, cy] = child.label.split(',').map(Number);
-                const distX = Math.abs(cx - (minChunkX + maxChunkX) / 2);
-                const distY = Math.abs(cy - (minChunkY + maxChunkY) / 2);
-                const dist = Math.sqrt(distX * distX + distY * distY);
-
-                // Remove if very far from viewport
-                if (dist > 10) {
-                    terrainContainer.removeChild(child);
-                    child.destroy();
-                    renderedChunksRef.current.delete(child.label);
-                }
-            }
-        }
-    };
-
-    // Terrain color palette (same as SmoothWorldMap)
-    const terrainColor = (height: number, moisture: number, biome: string): [number, number, number] => {
-        // Deep water
-        if (height < 0.3) return [30, 60, 114];
-        // Shallow water
-        if (height < 0.4) return [52, 101, 164];
-        // Beach
-        if (height < 0.45) return [194, 178, 128];
-
-        // Land biomes
-        switch (biome) {
-            case 'Desert': return [210, 180, 140];
-            case 'Grassland': return [100, 160, 80];
-            case 'Forest': return [34, 139, 34];
-            case 'Taiga': return [60, 100, 60];
-            case 'Tundra': return [150, 150, 150];
-            case 'Snow': return [240, 240, 255];
-            case 'Swamp': return [100, 120, 80];
-            case 'Savanna': return [160, 140, 80];
-            case 'Jungle': return [20, 100, 20];
-            default: return [120, 120, 120];
-        }
-    };
+        setSeedAndRegenerate(appRef.current, seed, overrides);
+        attachTerrainLayers(appRef.current, viewportRef.current);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [seed]);
 
     return (
         <div style={{ width: '100%', height: '100%', position: 'relative' }}>
@@ -367,11 +259,10 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
                     width: '100%',
                     height: '100%',
                     overflow: 'hidden',
-                    touchAction: 'none',
+                    touchAction: 'none'
                 }}
             />
 
-            {/* Info overlay */}
             <div
                 style={{
                     position: 'absolute',
@@ -383,15 +274,20 @@ export default function PixiWorldMap({ seed }: PixiWorldMapProps) {
                     borderRadius: 4,
                     fontFamily: 'monospace',
                     fontSize: 12,
-                    pointerEvents: 'none',
+                    pointerEvents: 'none'
                 }}
             >
-                <div>🎮 WASD: Move | Mouse: Drag/Zoom</div>
-                <div>📍 Pos: ({posRef.current.x.toFixed(1)}, {posRef.current.y.toFixed(1)})</div>
-                <div>🎨 GPU: Pixi.js v8 | Chunks: {renderedChunksRef.current.size}</div>
-                <div>💾 Cache: {terrainCacheRef.current.size} samples</div>
+                <div>WASD: Move | Mouse: Drag/Zoom</div>
+                <div>
+                    Pos: ({posRef.current.x.toFixed(0)}, {posRef.current.y.toFixed(0)})
+                </div>
+                <div>
+                    Terrain: {mapSizeRef.current.width}×{mapSizeRef.current.height} px | pixelScale≈
+                    {pixelScaleRef.current}
+                </div>
+                <div>Seed: {seed}</div>
                 <div style={{ color: fps >= 55 ? '#0f0' : fps >= 30 ? '#ff0' : '#f00' }}>
-                    ⚡ FPS: {fps}
+                    FPS: {fps}
                 </div>
             </div>
         </div>
