@@ -6,3 +6,7 @@ planning/
 src/_legacy/
 *.d.ts
 .tsbuildinfo
+
+# Legacy planning files not in active use
+brigandine_battle_phase.ts
+src/features/battle/movement_kernel.ts

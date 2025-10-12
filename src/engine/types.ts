@@ -16,11 +16,11 @@ export interface TickContext {
 
 export interface EngineModule {
     id: string;                         // unique module id
-    init?(ctx: InitContext): void | Promise<void>;
-    start?(ctx: StartContext): void;
-    stop?(ctx: StopContext): void;
-    tick?(ctx: TickContext): void;      // called by Engine each fixed step
-    onEvent?(ev: EngineEvent): void;    // optional global listener
+    init?(_ctx: InitContext): void | Promise<void>;
+    start?(_ctx: StartContext): void;
+    stop?(_ctx: StopContext): void;
+    tick?(_ctx: TickContext): void;      // called by Engine each fixed step
+    onEvent?(_ev: EngineEvent): void;    // optional global listener
 }
 
 export interface InitContext {
@@ -38,15 +38,15 @@ export type EngineEvent = {
 };
 
 export interface EventBus {
-    emit<T = unknown>(type: string, payload?: T): void;
-    on<T = unknown>(type: string, handler: (p: T) => void): () => void;
-    once<T = unknown>(type: string, handler: (p: T) => void): void;
-    request<TReq = unknown, TRes = unknown>(type: string, payload?: TReq): Promise<TRes>;
-    respond<TReq = unknown, TRes = unknown>(type: string, fn: (p: TReq) => Promise<TRes>): void;
+    emit<T = unknown>(_type: string, _payload?: T): void;
+    on<T = unknown>(_type: string, _handler: (_p: T) => void): () => void;
+    once<T = unknown>(_type: string, _handler: (_p: T) => void): void;
+    request<TReq = unknown, TRes = unknown>(_type: string, _payload?: TReq): Promise<TRes>;
+    respond<TReq = unknown, TRes = unknown>(_type: string, _fn: (_p: TReq) => Promise<TRes>): void;
 }
 
 export interface ModuleRegistry {
-    register(mod: EngineModule): void;
-    get(id: string): EngineModule | undefined;
+    register(_mod: EngineModule): void;
+    get(_id: string): EngineModule | undefined;
     list(): EngineModule[];
 }

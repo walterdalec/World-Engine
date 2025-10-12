@@ -6,8 +6,8 @@
 import { EventBus } from './types';
 
 export class SimpleEventBus implements EventBus {
-    private listeners = new Map<string, Set<(p: any) => void>>();
-    private responders = new Map<string, (p: any) => Promise<any>>();
+    private listeners = new Map<string, Set<(_p: any) => void>>();
+    private responders = new Map<string, (_p: any) => Promise<any>>();
 
     emit<T>(type: string, payload?: T): void {
         const set = this.listeners.get(type);
@@ -15,17 +15,17 @@ export class SimpleEventBus implements EventBus {
         set.forEach(h => h(payload));
     }
 
-    on<T>(type: string, handler: (p: T) => void): () => void {
+    on<T>(type: string, handler: (_p: T) => void): () => void {
         const set = this.listeners.get(type) ?? new Set();
         set.add(handler as any);
         this.listeners.set(type, set);
         return () => set.delete(handler as any);
     }
 
-    once<T>(type: string, handler: (p: T) => void): void {
-        const off = this.on<T>(type, (p) => {
+    once<T>(type: string, handler: (_p: T) => void): void {
+        const off = this.on<T>(type, (_p) => {
             off();
-            handler(p);
+            handler(_p);
         });
     }
 
@@ -36,7 +36,7 @@ export class SimpleEventBus implements EventBus {
     }
 
     // Optional: register a single responder per type
-    respond<TReq, TRes>(type: string, fn: (p: TReq) => Promise<TRes>): void {
+    respond<TReq, TRes>(type: string, fn: (_p: TReq) => Promise<TRes>): void {
         this.responders.set(type, fn as any);
     }
 }

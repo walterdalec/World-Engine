@@ -10,8 +10,8 @@ export class FixedStepper {
     private last = performance.now();
 
     constructor(
-        private readonly dtFixed: number,
-        private readonly tick: (ctx: TickContext) => void
+        private readonly _dtFixed: number,
+        private readonly _tick: (_ctx: TickContext) => void
     ) { }
 
     start(ctx: Omit<TickContext, 'frameDt' | 'time'> & { time?: number }): () => void {
@@ -26,15 +26,15 @@ export class FixedStepper {
             this.last = now;
             this.accumulator += frameDt;
 
-            while (this.accumulator >= this.dtFixed) {
-                simTime += this.dtFixed;
-                this.tick({
+            while (this.accumulator >= this._dtFixed) {
+                simTime += this._dtFixed;
+                this._tick({
                     ...ctx,
-                    dtFixed: this.dtFixed,
+                    dtFixed: this._dtFixed,
                     frameDt,
                     time: simTime
                 });
-                this.accumulator -= this.dtFixed;
+                this.accumulator -= this._dtFixed;
             }
 
             requestAnimationFrame(loop);
