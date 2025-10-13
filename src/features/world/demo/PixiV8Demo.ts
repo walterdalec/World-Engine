@@ -13,18 +13,19 @@ import { TerrainAdapter, BiomeGrid } from '../renderers/TerrainAdapter';
  * Demo configuration
  */
 const DEMO_CONFIG = {
-    tileSize: 16,           // 16x16 pixel tiles
-    chunkSizeTiles: 64,     // 64x64 tiles per chunk = 1024x1024 pixels
+    tileSize: 4,            // 4x4 pixel tiles (MUCH smaller for strategic view)
+    chunkSizeTiles: 128,    // 128x128 tiles per chunk = 512x512 pixels
     atlasGrid: { cols: 4, rows: 4 }, // 16-tile atlas (4x4 grid)
     canvasWidth: 1280,
     canvasHeight: 720,
+    worldSizeTiles: 256,    // 256x256 tile world = 4x4 chunks
 };
 
 /**
  * Create a fake atlas for testing (single-color tiles)
  */
-function createTestAtlas(): PIXI.Texture {
-    const size = 64; // 4x4 grid of 16x16 tiles
+function createTestAtlas(tileSize: number): PIXI.Texture {
+    const size = tileSize * 4; // 4x4 grid
     const canvas = document.createElement('canvas');
     canvas.width = size;
     canvas.height = size;
@@ -50,7 +51,6 @@ function createTestAtlas(): PIXI.Texture {
         '#5c4033', // 15: wasteland
     ];
 
-    const tileSize = 16;
     for (let i = 0; i < colors.length; i++) {
         const row = Math.floor(i / 4);
         const col = i % 4;
@@ -59,7 +59,7 @@ function createTestAtlas(): PIXI.Texture {
 
         // Add subtle border for visibility
         ctx.strokeStyle = 'rgba(0,0,0,0.2)';
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 0.5;
         ctx.strokeRect(col * tileSize, row * tileSize, tileSize, tileSize);
     }
 
@@ -113,7 +113,7 @@ export async function initPixiV8Demo(container: HTMLElement): Promise<() => void
     container.appendChild(app.canvas as HTMLCanvasElement);
 
     // Create test atlas
-    const atlas = createTestAtlas();
+    const atlas = createTestAtlas(DEMO_CONFIG.tileSize);
 
     // Create overworld layer
     const worldLayer = new OverworldLayer({
@@ -132,26 +132,30 @@ export async function initPixiV8Demo(container: HTMLElement): Promise<() => void
         chunkSizeTiles: DEMO_CONFIG.chunkSizeTiles,
     });
 
-    // Generate test terrain
-    const biomeGrid = generateTestBiomeGrid(128, 128); // 128x128 tiles = 2x2 chunks
+    // Generate test terrain - 4x4 chunks = 512x512 tiles
+    const biomeGrid = generateTestBiomeGrid(
+        DEMO_CONFIG.worldSizeTiles,
+        DEMO_CONFIG.worldSizeTiles
+    );
 
-    // Load visible chunks
-    const chunksToLoad = [
-        { x: 0, y: 0 },
-        { x: 1, y: 0 },
-        { x: 0, y: 1 },
-        { x: 1, y: 1 },
-    ];
+    // Load all 4x4 chunks (16 total)
+    const chunksToLoad = [];
+    for (let cy = 0; cy < 4; cy++) {
+        for (let cx = 0; cx < 4; cx++) {
+            chunksToLoad.push({ x: cx, y: cy });
+        }
+    }
 
     for (const chunk of chunksToLoad) {
         const chunkData = adapter.convertToChunk(biomeGrid, chunk.x, chunk.y);
         worldLayer.upsertChunk(chunkData);
     }
 
-    // Center camera
+    // Center camera on world
+    const worldPixelSize = DEMO_CONFIG.worldSizeTiles * DEMO_CONFIG.tileSize;
     worldLayer.position.set(
-        DEMO_CONFIG.canvasWidth / 2 - (DEMO_CONFIG.chunkSizeTiles * DEMO_CONFIG.tileSize),
-        DEMO_CONFIG.canvasHeight / 2 - (DEMO_CONFIG.chunkSizeTiles * DEMO_CONFIG.tileSize)
+        DEMO_CONFIG.canvasWidth / 2 - worldPixelSize / 2,
+        DEMO_CONFIG.canvasHeight / 2 - worldPixelSize / 2
     );
 
     // Add pan/zoom controls
@@ -193,9 +197,13 @@ export async function initPixiV8Demo(container: HTMLElement): Promise<() => void
 
     console.log('🎮 Pixi v8 Demo initialized');
     console.log('📊 Stats:', {
-        chunks: chunksToLoad.length,
-        tilesPerChunk: DEMO_CONFIG.chunkSizeTiles * DEMO_CONFIG.chunkSizeTiles,
-        totalTiles: chunksToLoad.length * DEMO_CONFIG.chunkSizeTiles * DEMO_CONFIG.chunkSizeTiles,
+        tileSize: `${DEMO_CONFIG.tileSize}px`,
+        chunkSizeTiles: DEMO_CONFIG.chunkSizeTiles,
+        worldSizeTiles: DEMO_CONFIG.worldSizeTiles,
+        chunks: 16, // 4x4 chunk grid
+        tilesPerChunk: DEMO_CONFIG.chunkSizeTiles * DEMO_CONFIG.chunkSizeTiles, // 16,384
+        totalTiles: DEMO_CONFIG.worldSizeTiles * DEMO_CONFIG.worldSizeTiles, // 65,536
+        worldPixelSize: `${DEMO_CONFIG.worldSizeTiles * DEMO_CONFIG.tileSize}px`, // 1024px
         atlasSize: `${atlas.width}x${atlas.height}`,
     });
 
