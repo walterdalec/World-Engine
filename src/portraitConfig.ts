@@ -42,34 +42,34 @@ export const PORTRAIT_CONFIGS: AllPortraitConfigs = {
         // Male classes
         'Knight': {
             genderLocked: 'male',
-            imagePath: '/World-Engine/assets/portraits-realistic/human-knight-male.png',
+            imagePath: '/World-Engine/assets/portraits-realistic/human-knight-male.jpg',
             description: 'Human warrior with heavy armor and weapons'
         },
         'Ranger': {
             genderLocked: 'male',
-            imagePath: '/World-Engine/assets/portraits-realistic/human-ranger-male.png',
+            imagePath: '/World-Engine/assets/portraits-realistic/human-ranger-male.jpg',
             description: 'Human scout and wasteland survivor'
         },
         'Chanter': {
             genderLocked: 'male',
-            imagePath: '/World-Engine/assets/portraits-realistic/human-chanter-male.png',
+            imagePath: '/World-Engine/assets/portraits-realistic/human-chanter-male.jpg',
             description: 'Human priest and bone singer'
         },
 
         // Female classes
         'Mystic': {
             genderLocked: 'female',
-            imagePath: '/World-Engine/assets/portraits-realistic/human-mystic-female.png',
+            imagePath: '/World-Engine/assets/portraits-realistic/human-mystic-female.jpg',
             description: 'Human spellcaster with elemental magic'
         },
         'Guardian': {
             genderLocked: 'female',
-            imagePath: '/World-Engine/assets/portraits-realistic/human-guardian-female.png',
+            imagePath: '/World-Engine/assets/portraits-realistic/human-guardian-female.jpg',
             description: 'Human nature protector and healer'
         },
         'Corsair': {
             genderLocked: 'female',
-            imagePath: '/World-Engine/assets/portraits-realistic/human-corsair-female.png',
+            imagePath: '/World-Engine/assets/portraits-realistic/human-corsair-female.jpg',
             description: 'Human sky pirate and void warrior'
         }
     },
@@ -78,34 +78,34 @@ export const PORTRAIT_CONFIGS: AllPortraitConfigs = {
         // Male classes
         'Knight': {
             genderLocked: 'male',
-            imagePath: '/World-Engine/assets/portraits-realistic/sylvanborn-knight-male.png',
+            imagePath: '/World-Engine/assets/portraits-realistic/sylvanborn-knight-male.jpg',
             description: 'Sylvanborn warrior-druid with natural armor'
         },
         'Ranger': {
             genderLocked: 'male',
-            imagePath: '/World-Engine/assets/portraits-realistic/sylvanborn-ranger-male.png',
+            imagePath: '/World-Engine/assets/portraits-realistic/sylvanborn-ranger-male.jpg',
             description: 'Sylvanborn forest wanderer and tracker'
         },
         'Chanter': {
             genderLocked: 'male',
-            imagePath: '/World-Engine/assets/portraits-realistic/sylvanborn-chanter-male.png',
+            imagePath: '/World-Engine/assets/portraits-realistic/sylvanborn-chanter-male.jpg',
             description: 'Sylvanborn sage and ancient singer'
         },
 
         // Female classes
         'Mystic': {
             genderLocked: 'female',
-            imagePath: '/World-Engine/assets/portraits-realistic/sylvanborn-mystic-female.png',
+            imagePath: '/World-Engine/assets/portraits-realistic/sylvanborn-mystic-female.jpg',
             description: 'Sylvanborn nature mage with plant magic'
         },
         'Guardian': {
             genderLocked: 'female',
-            imagePath: '/World-Engine/assets/portraits-realistic/sylvanborn-guardian-female.png',
+            imagePath: '/World-Engine/assets/portraits-realistic/sylvanborn-guardian-female.jpg',
             description: 'Sylvanborn grove protector and life keeper'
         },
         'Corsair': {
             genderLocked: 'female',
-            imagePath: '/World-Engine/assets/portraits-realistic/sylvanborn-corsair-female.png',
+            imagePath: '/World-Engine/assets/portraits-realistic/sylvanborn-corsair-female.jpg',
             description: 'Sylvanborn shadow dancer and void walker'
         }
     },
@@ -114,34 +114,34 @@ export const PORTRAIT_CONFIGS: AllPortraitConfigs = {
         // Male classes
         'Knight': {
             genderLocked: 'male',
-            imagePath: '/World-Engine/assets/portraits-realistic/nightborn-knight-male.png',
+            imagePath: '/World-Engine/assets/portraits-realistic/nightborn-knight-male.jpg',
             description: 'Nightborn shadow warrior with dark armor'
         },
         'Ranger': {
             genderLocked: 'male',
-            imagePath: '/World-Engine/assets/portraits-realistic/nightborn-ranger-male.png',
+            imagePath: '/World-Engine/assets/portraits-realistic/nightborn-ranger-male.jpg',
             description: 'Nightborn shadow scout and stalker'
         },
         'Chanter': {
             genderLocked: 'male',
-            imagePath: '/World-Engine/assets/portraits-realistic/nightborn-chanter-male.png',
+            imagePath: '/World-Engine/assets/portraits-realistic/nightborn-chanter-male.jpg',
             description: 'Nightborn death priest and void singer'
         },
 
         // Female classes
         'Mystic': {
             genderLocked: 'female',
-            imagePath: '/World-Engine/assets/portraits-realistic/nightborn-mystic-female.png',
+            imagePath: '/World-Engine/assets/portraits-realistic/nightborn-mystic-female.jpg',
             description: 'Nightborn shadow mage with void magic'
         },
         'Guardian': {
             genderLocked: 'female',
-            imagePath: '/World-Engine/assets/portraits-realistic/nightborn-guardian-female.png',
+            imagePath: '/World-Engine/assets/portraits-realistic/nightborn-guardian-female.jpg',
             description: 'Nightborn dark protector and shadow healer'
         },
         'Corsair': {
             genderLocked: 'female',
-            imagePath: '/World-Engine/assets/portraits-realistic/nightborn-corsair-female.png',
+            imagePath: '/World-Engine/assets/portraits-realistic/nightborn-corsair-female.jpg',
             description: 'Nightborn void pirate and darkness master'
         }
     },
@@ -150,34 +150,34 @@ export const PORTRAIT_CONFIGS: AllPortraitConfigs = {
         // Male classes
         'Knight': {
             genderLocked: 'male',
-            imagePath: '/World-Engine/assets/portraits-realistic/stormcaller-knight-male.png',
+            imagePath: '/World-Engine/assets/portraits-realistic/stormcaller-knight-male.jpg',
             description: 'Stormcaller sky warrior with storm weapons'
         },
         'Ranger': {
             genderLocked: 'male',
-            imagePath: '/World-Engine/assets/portraits-realistic/stormcaller-ranger-male.png',
+            imagePath: '/World-Engine/assets/portraits-realistic/stormcaller-ranger-male.jpg',
             description: 'Stormcaller wind rider and weather tracker'
         },
         'Chanter': {
             genderLocked: 'male',
-            imagePath: '/World-Engine/assets/portraits-realistic/stormcaller-chanter-male.png',
+            imagePath: '/World-Engine/assets/portraits-realistic/stormcaller-chanter-male.jpg',
             description: 'Stormcaller storm priest and wind singer'
         },
 
         // Female classes
         'Mystic': {
             genderLocked: 'female',
-            imagePath: '/World-Engine/assets/portraits-realistic/stormcaller-mystic-female.png',
+            imagePath: '/World-Engine/assets/portraits-realistic/stormcaller-mystic-female.jpg',
             description: 'Stormcaller lightning mage with storm magic'
         },
         'Guardian': {
             genderLocked: 'female',
-            imagePath: '/World-Engine/assets/portraits-realistic/stormcaller-guardian-female.png',
+            imagePath: '/World-Engine/assets/portraits-realistic/stormcaller-guardian-female.jpg',
             description: 'Stormcaller sky protector and storm keeper'
         },
         'Corsair': {
             genderLocked: 'female',
-            imagePath: '/World-Engine/assets/portraits-realistic/stormcaller-corsair-female.png',
+            imagePath: '/World-Engine/assets/portraits-realistic/stormcaller-corsair-female.jpg',
             description: 'Stormcaller tempest pirate and void storm master'
         }
     }
