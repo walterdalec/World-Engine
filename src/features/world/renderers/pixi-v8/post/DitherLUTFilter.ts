@@ -8,8 +8,8 @@
 import * as PIXI from "pixi.js";
 
 export interface DitherLUTOptions {
-  strength: number;
-  lut: PIXI.Texture;
+    strength: number;
+    lut: PIXI.Texture;
 }
 
 /**
@@ -17,12 +17,12 @@ export interface DitherLUTOptions {
  * For now, acts as a transparent container that can hold uniforms.
  */
 export class DitherLUTFilter {
-  public uniforms: Record<string, unknown>;
+    public uniforms: Record<string, unknown>;
 
-  constructor(opts: DitherLUTOptions) {
-    this.uniforms = {
-      uStrength: opts.strength,
-      uLUT: opts.lut,
-    };
-  }
+    constructor(opts: DitherLUTOptions) {
+        this.uniforms = {
+            uStrength: opts.strength,
+            uLUT: opts.lut,
+        };
+    }
 }

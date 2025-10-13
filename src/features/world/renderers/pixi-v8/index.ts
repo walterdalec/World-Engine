@@ -9,10 +9,10 @@ export { PathStripLayer } from './paths/PathStripLayer';
 export { DitherLUTFilter } from './post/DitherLUTFilter';
 
 export type {
-  ChunkData,
-  Polyline,
-  OverworldConfig,
-  TileIndex,
+    ChunkData,
+    Polyline,
+    OverworldConfig,
+    TileIndex,
 } from './OverworldLayer';
 
 export type { TileMeshOpts } from './TileMesh';
