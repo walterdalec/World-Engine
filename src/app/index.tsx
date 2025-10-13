@@ -16,6 +16,7 @@ import PhaseBattleDemo from "../pages/PhaseBattleDemo";
 import { TimeSystemDemo } from "../pages/TimeSystemDemo";
 import { FactionAIDemo } from "../pages/FactionAIDemo";
 import PartyFrameworkDemo from "../pages/PartyFrameworkDemo";
+import { PixiV8TestPage } from "../pages/PixiV8TestPage";
 import { EngineApp } from "./EngineApp";
 import { storage } from "../core/services/storage";
 import type { Engine } from "../engine.d";
@@ -42,7 +43,7 @@ function _randomSeed(): string {
 }
 
 function App() {
-  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "enhancedmap" | "simplemap" | "hexmap" | "smoothmap" | "charactercreate" | "classiccharacter" | "portraittest" | "battlesystem" | "battle" | "minimalBattle" | "brigandineHex" | "autoupdater" | "combat-ui-demo" | "pixi-hex-battle" | "phase-battle" | "procedural" | "encounters" | "integrated-campaign" | "engine-test" | "time-system-demo" | "faction-ai-demo" | "party-framework-demo">("menu");
+  const [step, setStep] = React.useState<"menu" | "world" | "party" | "namegen" | "spellgen" | "spellassign" | "healing" | "worldmap" | "enhancedmap" | "simplemap" | "hexmap" | "smoothmap" | "charactercreate" | "classiccharacter" | "portraittest" | "battlesystem" | "battle" | "minimalBattle" | "brigandineHex" | "autoupdater" | "combat-ui-demo" | "pixi-hex-battle" | "phase-battle" | "procedural" | "encounters" | "integrated-campaign" | "engine-test" | "time-system-demo" | "faction-ai-demo" | "party-framework-demo" | "pixi-v8-test">("menu");
   const [party, setParty] = React.useState<Character[]>([]);
   const [currentCampaign, setCurrentCampaign] = React.useState<any>(null);
   const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0); // Force re-render hook
@@ -373,6 +374,11 @@ function App() {
     setStep("party-framework-demo");
   };
 
+  const handlePixiV8Test = () => {
+    // Pixi v8 Renderer Test
+    setStep("pixi-v8-test");
+  };
+
   // fake engine stub for now
   // Engine stub - will be replaced with real engine
   const eng: Engine = {
@@ -486,6 +492,7 @@ function App() {
           onTimeSystemDemo={handleTimeSystemDemo}
           onFactionAIDemo={handleFactionAIDemo}
           onPartyFrameworkDemo={handlePartyFrameworkDemo}
+          onPixiV8Test={handlePixiV8Test}
         />
       )}
       {step === "world" && (
@@ -780,6 +787,9 @@ function App() {
       )}
       {step === "party-framework-demo" && (
         <PartyFrameworkDemo />
+      )}
+      {step === "pixi-v8-test" && (
+        <PixiV8TestPage onBack={() => setStep("menu")} />
       )}
     </>
   );

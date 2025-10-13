@@ -48,9 +48,10 @@ interface Props {
   onTimeSystemDemo?: () => void;
   onFactionAIDemo?: () => void;
   onPartyFrameworkDemo?: () => void;
+  onPixiV8Test?: () => void;
 }
 
-export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onClassicCharacterCreate, onPortraitTest, onAutoUpdater, onBrigandineHex, onEnhancedMap, onSimpleMap, onHexMap, onSmoothMap, onCombatUIDemo, onPixiHexBattle, onPhaseBattle, onProcedural, onEncounters, onIntegratedCampaign, onEngineTest, onTimeSystemDemo, onFactionAIDemo, onPartyFrameworkDemo }: Props) {
+export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onClassicCharacterCreate, onPortraitTest, onAutoUpdater, onBrigandineHex, onEnhancedMap, onSimpleMap, onHexMap, onSmoothMap, onCombatUIDemo, onPixiHexBattle, onPhaseBattle, onProcedural, onEncounters, onIntegratedCampaign, onEngineTest, onTimeSystemDemo, onFactionAIDemo, onPartyFrameworkDemo, onPixiV8Test }: Props) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [characters, setCharacters] = useState<SavedCharacter[]>([]);
   const [activeTab, setActiveTab] = useState<'campaigns' | 'characters'>('campaigns');
@@ -868,6 +869,14 @@ Recovered ${recovered.length} campaigns`);
                 <h3 style={{ margin: '0 0 5px 0' }}>Procedural Gen</h3>
                 <p style={{ margin: 0, opacity: 0.9 }}>Dev tools for world generation</p>
               </div>
+
+              {onPixiV8Test && (
+                <div style={newCardStyle} onClick={onPixiV8Test}>
+                  <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🎮</div>
+                  <h3 style={{ margin: '0 0 5px 0' }}>Pixi v8 Renderer Test</h3>
+                  <p style={{ margin: 0, opacity: 0.9 }}>GPU-accelerated terrain (NEW!)</p>
+                </div>
+              )}
 
               {onEncounters && (
                 <div style={newCardStyle} onClick={onEncounters}>
