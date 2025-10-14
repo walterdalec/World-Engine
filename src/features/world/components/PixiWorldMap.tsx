@@ -295,6 +295,8 @@ export default function PixiWorldMap({
             const handleMouseDown = (e: MouseEvent) => {
                 if (e.button === 2) { // Right click
                     e.preventDefault();
+                    e.stopPropagation(); // Prevent viewport drag
+                    console.log('🎮 Starting dimetric drag');
                     rightDragRef.current = {
                         active: true,
                         startX: e.clientX,
@@ -302,7 +304,7 @@ export default function PixiWorldMap({
                         startScaleY: dimetricRef.current.scaleY,
                         startShearX: dimetricRef.current.shearX
                     };
-                    canvas.style.cursor = 'grab';
+                    canvas.style.cursor = 'grabbing';
                 }
             };
 
@@ -318,6 +320,8 @@ export default function PixiWorldMap({
                 const newShearX = Math.max(0.0, Math.min(0.8, drag.startShearX + deltaX * 0.002));
                 const newScaleY = Math.max(0.3, Math.min(1.0, drag.startScaleY - deltaY * 0.002));
 
+                console.log('🎮 Dimetric update:', { scaleY: newScaleY.toFixed(2), shearX: newShearX.toFixed(2) });
+
                 dimetricRef.current = { scaleY: newScaleY, shearX: newShearX };
                 setDimetric(app, dimetricRef.current);
                 setDimetricDisplay({ scaleY: newScaleY, shearX: newShearX });
@@ -325,6 +329,7 @@ export default function PixiWorldMap({
 
             const handleMouseUp = (e: MouseEvent) => {
                 if (e.button === 2 && rightDragRef.current.active) {
+                    console.log('🎮 Ending dimetric drag');
                     rightDragRef.current.active = false;
                     canvas.style.cursor = '';
                 }
@@ -343,8 +348,8 @@ export default function PixiWorldMap({
             };
 
             canvas.addEventListener('mousedown', handleMouseDown);
-            canvas.addEventListener('mousemove', handleMouseMove);
-            canvas.addEventListener('mouseup', handleMouseUp);
+            document.addEventListener('mousemove', handleMouseMove); // Document-level for smooth dragging
+            document.addEventListener('mouseup', handleMouseUp); // Document-level to catch release outside canvas
             canvas.addEventListener('contextmenu', handleContextMenu);
 
             const player = new Graphics();
@@ -546,14 +551,14 @@ export default function PixiWorldMap({
             }
 
             // Remove dimetric control event listeners
-            if (appRef.current?.canvas) {
+            const handlers = dimetricHandlersRef.current;
+            if (appRef.current?.canvas && handlers.mousedown) {
                 const canvas = appRef.current.canvas as HTMLCanvasElement;
-                const handlers = dimetricHandlersRef.current;
-                if (handlers.mousedown) canvas.removeEventListener('mousedown', handlers.mousedown);
-                if (handlers.mousemove) canvas.removeEventListener('mousemove', handlers.mousemove);
-                if (handlers.mouseup) canvas.removeEventListener('mouseup', handlers.mouseup);
-                if (handlers.contextmenu) canvas.removeEventListener('contextmenu', handlers.contextmenu);
+                canvas.removeEventListener('mousedown', handlers.mousedown);
+                canvas.removeEventListener('contextmenu', handlers.contextmenu!);
             }
+            if (handlers.mousemove) document.removeEventListener('mousemove', handlers.mousemove);
+            if (handlers.mouseup) document.removeEventListener('mouseup', handlers.mouseup);
 
             if (appRef.current) {
                 appRef.current.destroy(true, { children: true });
