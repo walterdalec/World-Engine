@@ -14,6 +14,7 @@ import {
     generateTerrain,
     pickPixelScale,
     setSeedAndRegenerate,
+    setDimetric,
     TerrainOptionsOverrides,
     TerrainOverlayDefinition
 } from '../terrain/pixiTerrainRenderer';
@@ -115,6 +116,17 @@ export default function PixiWorldMap({
     const [fps, setFps] = useState(60);
     const fpsSamplesRef = useRef<number[]>([]);
     const lastFrameRef = useRef<number>(performance.now());
+
+    // Dimetric camera controls
+    const dimetricRef = useRef({ scaleY: 0.5, shearX: 0.5 });
+    const [dimetricDisplay, setDimetricDisplay] = useState({ scaleY: 0.5, shearX: 0.5 });
+    const rightDragRef = useRef({ active: false, startX: 0, startY: 0, startScaleY: 0.5, startShearX: 0.5 });
+    const dimetricHandlersRef = useRef<{
+        mousedown: ((_e: MouseEvent) => void) | null;
+        mousemove: ((_e: MouseEvent) => void) | null;
+        mouseup: ((_e: MouseEvent) => void) | null;
+        contextmenu: ((_e: MouseEvent) => void) | null;
+    }>({ mousedown: null, mousemove: null, mouseup: null, contextmenu: null });
 
     const landmarkOverlays = useMemo<TerrainOverlayDefinition[]>(() => {
         if (!landmarks || landmarks.length === 0) {
@@ -278,6 +290,62 @@ export default function PixiWorldMap({
             generateTerrain(app, initialOverrides);
             attachTerrainLayers(app, viewport);
             terrainReadyRef.current = true;
+
+            // Right-click drag to adjust dimetric view angle
+            const handleMouseDown = (e: MouseEvent) => {
+                if (e.button === 2) { // Right click
+                    e.preventDefault();
+                    rightDragRef.current = {
+                        active: true,
+                        startX: e.clientX,
+                        startY: e.clientY,
+                        startScaleY: dimetricRef.current.scaleY,
+                        startShearX: dimetricRef.current.shearX
+                    };
+                    canvas.style.cursor = 'grab';
+                }
+            };
+
+            const handleMouseMove = (e: MouseEvent) => {
+                if (!rightDragRef.current.active) return;
+
+                const drag = rightDragRef.current;
+                const deltaX = e.clientX - drag.startX;
+                const deltaY = e.clientY - drag.startY;
+
+                // Horizontal drag adjusts shearX (rotation)
+                // Vertical drag adjusts scaleY (viewing angle steepness)
+                const newShearX = Math.max(0.0, Math.min(0.8, drag.startShearX + deltaX * 0.002));
+                const newScaleY = Math.max(0.3, Math.min(1.0, drag.startScaleY - deltaY * 0.002));
+
+                dimetricRef.current = { scaleY: newScaleY, shearX: newShearX };
+                setDimetric(app, dimetricRef.current);
+                setDimetricDisplay({ scaleY: newScaleY, shearX: newShearX });
+            };
+
+            const handleMouseUp = (e: MouseEvent) => {
+                if (e.button === 2 && rightDragRef.current.active) {
+                    rightDragRef.current.active = false;
+                    canvas.style.cursor = '';
+                }
+            };
+
+            const handleContextMenu = (e: MouseEvent) => {
+                e.preventDefault(); // Prevent default context menu
+            };
+
+            // Store handlers for cleanup
+            dimetricHandlersRef.current = {
+                mousedown: handleMouseDown,
+                mousemove: handleMouseMove,
+                mouseup: handleMouseUp,
+                contextmenu: handleContextMenu
+            };
+
+            canvas.addEventListener('mousedown', handleMouseDown);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('mouseup', handleMouseUp);
+            canvas.addEventListener('contextmenu', handleContextMenu);
 
             const player = new Graphics();
             player.circle(0, 0, PLAYER_RADIUS);
@@ -477,6 +545,16 @@ export default function PixiWorldMap({
                 canvas.removeEventListener('wheel', wheelHandlerRef.current);
             }
 
+            // Remove dimetric control event listeners
+            if (appRef.current?.canvas) {
+                const canvas = appRef.current.canvas as HTMLCanvasElement;
+                const handlers = dimetricHandlersRef.current;
+                if (handlers.mousedown) canvas.removeEventListener('mousedown', handlers.mousedown);
+                if (handlers.mousemove) canvas.removeEventListener('mousemove', handlers.mousemove);
+                if (handlers.mouseup) canvas.removeEventListener('mouseup', handlers.mouseup);
+                if (handlers.contextmenu) canvas.removeEventListener('contextmenu', handlers.contextmenu);
+            }
+
             if (appRef.current) {
                 appRef.current.destroy(true, { children: true });
             }
@@ -560,7 +638,7 @@ export default function PixiWorldMap({
                     pointerEvents: 'none'
                 }}
             >
-                <div>WASD: Move | Mouse: Drag/Zoom</div>
+                <div>WASD: Move | Mouse: Drag/Zoom | Right-Click: Camera Angle</div>
                 <div>
                     Pos (world): {posRef.current.x.toFixed(1)}, {posRef.current.y.toFixed(1)}
                 </div>
@@ -569,6 +647,9 @@ export default function PixiWorldMap({
                     {Math.round(mapWorldSizeRef.current.height)} wu | pixelScale~{pixelScaleRef.current}
                 </div>
                 <div>Seed: {seed}</div>
+                <div>
+                    Camera: scaleY={dimetricDisplay.scaleY.toFixed(2)} shearX={dimetricDisplay.shearX.toFixed(2)}
+                </div>
                 <div style={{ color: fps >= 55 ? '#0f0' : fps >= 30 ? '#ff0' : '#f00' }}>FPS: {fps}</div>
             </div>
         </div>

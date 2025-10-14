@@ -40,6 +40,7 @@ interface Props {
   onSmoothMap?: () => void;
   onCombatUIDemo: () => void;
   onPixiHexBattle?: () => void;
+  onFreeMoveBattle?: () => void;
   onPhaseBattle?: () => void;
   onProcedural: () => void;
   onEncounters?: () => void;
@@ -51,7 +52,7 @@ interface Props {
   onPixiV8Test?: () => void;
 }
 
-export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onClassicCharacterCreate, onPortraitTest, onAutoUpdater, onBrigandineHex, onEnhancedMap, onSimpleMap, onHexMap, onSmoothMap, onCombatUIDemo, onPixiHexBattle, onPhaseBattle, onProcedural, onEncounters, onIntegratedCampaign, onEngineTest, onTimeSystemDemo, onFactionAIDemo, onPartyFrameworkDemo, onPixiV8Test }: Props) {
+export function MainMenu({ onNewCampaign, onLoadCampaign, onNameGenerator, onSpellGenerator, onSpellAssignment, onHealingSystem, onCharacterCreate, onClassicCharacterCreate, onPortraitTest, onAutoUpdater, onBrigandineHex, onEnhancedMap, onSimpleMap, onHexMap, onSmoothMap, onCombatUIDemo, onPixiHexBattle, onFreeMoveBattle, onPhaseBattle, onProcedural, onEncounters, onIntegratedCampaign, onEngineTest, onTimeSystemDemo, onFactionAIDemo, onPartyFrameworkDemo, onPixiV8Test }: Props) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [characters, setCharacters] = useState<SavedCharacter[]>([]);
   const [activeTab, setActiveTab] = useState<'campaigns' | 'characters'>('campaigns');
@@ -813,6 +814,13 @@ Recovered ${recovered.length} campaigns`);
                   <div style={{ fontSize: '3rem', marginBottom: '10px' }}>⚔️</div>
                   <h3 style={{ margin: '0 0 5px 0' }}>Pixi Hex Battle</h3>
                   <p style={{ margin: 0, opacity: 0.9 }}>GPU-accelerated hex battle renderer</p>
+                </div>
+              )}
+              {onFreeMoveBattle && (
+                <div style={newCardStyle} onClick={onFreeMoveBattle}>
+                  <div style={{ fontSize: '3rem', marginBottom: '10px' }}>dY??</div>
+                  <h3 style={{ margin: '0 0 5px 0' }}>Free-Move Greentide</h3>
+                  <p style={{ margin: 0, opacity: 0.9 }}>Formations pushing across the ford</p>
                 </div>
               )}
 

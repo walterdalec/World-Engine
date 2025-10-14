@@ -15,51 +15,103 @@ import { TerrainAdapter, BiomeGrid } from '../renderers/TerrainAdapter';
 const DEMO_CONFIG = {
     tileSize: 4,            // 4x4 pixel tiles (MUCH smaller for strategic view)
     chunkSizeTiles: 128,    // 128x128 tiles per chunk = 512x512 pixels
-    atlasGrid: { cols: 4, rows: 4 }, // 16-tile atlas (4x4 grid)
-    canvasWidth: 1280,
-    canvasHeight: 720,
-    worldSizeTiles: 256,    // 256x256 tile world = 4x4 chunks
+    atlasGrid: { cols: 8, rows: 8 }, // 64-tile atlas (8x8 grid) with transitions
+    canvasWidth: 720,       // Portrait orientation
+    canvasHeight: 1280,
+    worldSizeTilesX: 1024,  // 1024 tiles wide = 8 chunks
+    worldSizeTilesY: 720,   // 720 tiles tall ≈ 6 chunks
 };
 
 /**
- * Create a fake atlas for testing (single-color tiles)
+ * Create a fake atlas with gradient/transition tiles
  */
 function createTestAtlas(tileSize: number): PIXI.Texture {
-    const size = tileSize * 4; // 4x4 grid
+    // Expanded atlas: 8x8 grid = 64 tiles
+    // First 16 are solid biome colors, rest are transitions
+    const gridSize = 8;
+    const size = tileSize * gridSize;
     const canvas = document.createElement('canvas');
     canvas.width = size;
     canvas.height = size;
     const ctx = canvas.getContext('2d')!;
 
-    // Define tile colors (matches BIOME_TO_TILE_ID in TerrainAdapter)
-    const colors = [
-        '#1a4d7a', // 0: ocean
-        '#0d2a4d', // 1: deep-ocean
-        '#c2b280', // 2: shore
-        '#f4e3b5', // 3: beach
-        '#7fb069', // 4: plains
-        '#5d9c59', // 5: grass
-        '#2d5016', // 6: forest
-        '#1e3810', // 7: dense-forest
-        '#8b7355', // 8: hills
-        '#696969', // 9: mountains
-        '#e8f4f8', // 10: snow
-        '#a9c0c9', // 11: tundra
-        '#d4a76a', // 12: desert
-        '#4a5d53', // 13: swamp
-        '#228b22', // 14: jungle
-        '#5c4033', // 15: wasteland
+    // Base biome colors (matches BIOME_TO_TILE_ID in TerrainAdapter)
+    const biomeColors: Record<string, string> = {
+        'ocean': '#1a4d7a',
+        'deep-ocean': '#0d2a4d',
+        'shore': '#c2b280',
+        'beach': '#f4e3b5',
+        'plains': '#7fb069',
+        'grass': '#5d9c59',
+        'forest': '#2d5016',
+        'dense-forest': '#1e3810',
+        'hills': '#8b7355',
+        'mountains': '#696969',
+        'snow': '#e8f4f8',
+        'tundra': '#a9c0c9',
+        'desert': '#d4a76a',
+        'swamp': '#4a5d53',
+        'jungle': '#228b22',
+        'wasteland': '#5c4033',
+    };
+
+    const baseColors = [
+        '#1a4d7a', '#0d2a4d', '#c2b280', '#f4e3b5', // Row 0
+        '#7fb069', '#5d9c59', '#2d5016', '#1e3810', // Row 1
+        '#8b7355', '#696969', '#e8f4f8', '#a9c0c9', // Row 2
+        '#d4a76a', '#4a5d53', '#228b22', '#5c4033', // Row 3
     ];
 
-    for (let i = 0; i < colors.length; i++) {
-        const row = Math.floor(i / 4);
-        const col = i % 4;
-        ctx.fillStyle = colors[i];
+    // Draw base tiles (first 16)
+    for (let i = 0; i < 16; i++) {
+        const row = Math.floor(i / gridSize);
+        const col = i % gridSize;
+        ctx.fillStyle = baseColors[i];
         ctx.fillRect(col * tileSize, row * tileSize, tileSize, tileSize);
+    }
 
-        // Add subtle border for visibility
-        ctx.strokeStyle = 'rgba(0,0,0,0.2)';
-        ctx.lineWidth = 0.5;
+    // Create gradient transitions for common biome pairs
+    const transitions = [
+        // Ocean transitions (slots 16-19)
+        { from: '#0d2a4d', to: '#1a4d7a', slot: 16 },  // deep-ocean → ocean
+        { from: '#1a4d7a', to: '#c2b280', slot: 17 },  // ocean → shore
+        { from: '#c2b280', to: '#f4e3b5', slot: 18 },  // shore → beach
+        { from: '#f4e3b5', to: '#7fb069', slot: 19 },  // beach → plains
+
+        // Land transitions (slots 20-23)
+        { from: '#7fb069', to: '#5d9c59', slot: 20 },  // plains → grass
+        { from: '#5d9c59', to: '#2d5016', slot: 21 },  // grass → forest
+        { from: '#2d5016', to: '#1e3810', slot: 22 },  // forest → dense-forest
+        { from: '#7fb069', to: '#8b7355', slot: 23 },  // plains → hills
+
+        // Mountain transitions (slots 24-27)
+        { from: '#8b7355', to: '#696969', slot: 24 },  // hills → mountains
+        { from: '#696969', to: '#e8f4f8', slot: 25 },  // mountains → snow
+        { from: '#2d5016', to: '#8b7355', slot: 26 },  // forest → hills
+        { from: '#5d9c59', to: '#8b7355', slot: 27 },  // grass → hills
+    ];
+
+    // Draw gradient transitions
+    for (const trans of transitions) {
+        const row = Math.floor(trans.slot / gridSize);
+        const col = trans.slot % gridSize;
+        const x = col * tileSize;
+        const y = row * tileSize;
+
+        // Create horizontal gradient
+        const gradient = ctx.createLinearGradient(x, y, x + tileSize, y);
+        gradient.addColorStop(0, trans.from);
+        gradient.addColorStop(1, trans.to);
+        ctx.fillStyle = gradient;
+        ctx.fillRect(x, y, tileSize, tileSize);
+    }
+
+    // Add subtle borders to all tiles for visibility
+    ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+    ctx.lineWidth = 0.3;
+    for (let i = 0; i < gridSize * gridSize; i++) {
+        const row = Math.floor(i / gridSize);
+        const col = i % gridSize;
         ctx.strokeRect(col * tileSize, row * tileSize, tileSize, tileSize);
     }
 
@@ -132,30 +184,50 @@ export async function initPixiV8Demo(container: HTMLElement): Promise<() => void
         chunkSizeTiles: DEMO_CONFIG.chunkSizeTiles,
     });
 
-    // Generate test terrain - 4x4 chunks = 512x512 tiles
+    // Generate test terrain (1024x720 tiles = 8x6 chunks at 128 tiles/chunk)
     const biomeGrid = generateTestBiomeGrid(
-        DEMO_CONFIG.worldSizeTiles,
-        DEMO_CONFIG.worldSizeTiles
+        DEMO_CONFIG.worldSizeTilesX,
+        DEMO_CONFIG.worldSizeTilesY
     );
 
-    // Load all 4x4 chunks (16 total)
+    console.log('🗺️ Generated biome grid:', {
+        width: biomeGrid.width,
+        height: biomeGrid.height,
+        tiles: biomeGrid.biomes.length,
+        chunkSizeTiles: DEMO_CONFIG.chunkSizeTiles,
+        expectedChunks: Math.ceil(biomeGrid.width / DEMO_CONFIG.chunkSizeTiles),
+    });
+
+    // Calculate how many chunks we actually need
+    const chunksX = Math.ceil(biomeGrid.width / DEMO_CONFIG.chunkSizeTiles);
+    const chunksY = Math.ceil(biomeGrid.height / DEMO_CONFIG.chunkSizeTiles);
+
+    // Only load chunks visible on screen + 1 buffer
+    // Canvas is 720x1280, tiles are 4px, so visible area is ~180x320 tiles
+    // At 128 tiles/chunk, that's ~2x3 chunks visible
+    // Load 3x4 = 12 chunks instead of all 48
+    const maxVisibleChunksX = Math.min(3, chunksX);
+    const maxVisibleChunksY = Math.min(4, chunksY);
+
     const chunksToLoad = [];
-    for (let cy = 0; cy < 4; cy++) {
-        for (let cx = 0; cx < 4; cx++) {
+    for (let cy = 0; cy < maxVisibleChunksY; cy++) {
+        for (let cx = 0; cx < maxVisibleChunksX; cx++) {
             chunksToLoad.push({ x: cx, y: cy });
         }
     }
 
+    console.log(`📦 Loading ${chunksToLoad.length} chunks (of ${chunksX * chunksY} total)`);
+
     for (const chunk of chunksToLoad) {
+        console.log(`📦 Loading chunk (${chunk.x}, ${chunk.y})...`);
         const chunkData = adapter.convertToChunk(biomeGrid, chunk.x, chunk.y);
         worldLayer.upsertChunk(chunkData);
-    }
-
-    // Center camera on world
-    const worldPixelSize = DEMO_CONFIG.worldSizeTiles * DEMO_CONFIG.tileSize;
+    }    // Center camera on world
+    const worldPixelWidth = DEMO_CONFIG.worldSizeTilesX * DEMO_CONFIG.tileSize;
+    const worldPixelHeight = DEMO_CONFIG.worldSizeTilesY * DEMO_CONFIG.tileSize;
     worldLayer.position.set(
-        DEMO_CONFIG.canvasWidth / 2 - worldPixelSize / 2,
-        DEMO_CONFIG.canvasHeight / 2 - worldPixelSize / 2
+        DEMO_CONFIG.canvasWidth / 2 - worldPixelWidth / 2,
+        DEMO_CONFIG.canvasHeight / 2 - worldPixelHeight / 2
     );
 
     // Add pan/zoom controls
@@ -188,9 +260,20 @@ export async function initPixiV8Demo(container: HTMLElement): Promise<() => void
 
     canvas.addEventListener('wheel', (e) => {
         e.preventDefault();
+
+        // Clamp zoom to prevent performance issues
+        const MIN_SCALE = 0.1;  // Max zoom out (10% - see more tiles)
+        const MAX_SCALE = 4.0;  // Max zoom in (400% - bigger tiles)
+
         const scaleFactor = Math.exp(-e.deltaY * 0.001);
-        worldLayer.scale.x *= scaleFactor;
-        worldLayer.scale.y *= scaleFactor;
+        const newScaleX = worldLayer.scale.x * scaleFactor;
+        const newScaleY = worldLayer.scale.y * scaleFactor;
+
+        // Only apply zoom if within limits
+        if (newScaleX >= MIN_SCALE && newScaleX <= MAX_SCALE) {
+            worldLayer.scale.x = newScaleX;
+            worldLayer.scale.y = newScaleY;
+        }
     }, { passive: false });
 
     canvas.style.cursor = 'grab';
@@ -199,11 +282,11 @@ export async function initPixiV8Demo(container: HTMLElement): Promise<() => void
     console.log('📊 Stats:', {
         tileSize: `${DEMO_CONFIG.tileSize}px`,
         chunkSizeTiles: DEMO_CONFIG.chunkSizeTiles,
-        worldSizeTiles: DEMO_CONFIG.worldSizeTiles,
-        chunks: 16, // 4x4 chunk grid
+        worldSizeTiles: `${DEMO_CONFIG.worldSizeTilesX}x${DEMO_CONFIG.worldSizeTilesY}`,
+        chunks: chunksToLoad.length,
         tilesPerChunk: DEMO_CONFIG.chunkSizeTiles * DEMO_CONFIG.chunkSizeTiles, // 16,384
-        totalTiles: DEMO_CONFIG.worldSizeTiles * DEMO_CONFIG.worldSizeTiles, // 65,536
-        worldPixelSize: `${DEMO_CONFIG.worldSizeTiles * DEMO_CONFIG.tileSize}px`, // 1024px
+        totalTiles: DEMO_CONFIG.worldSizeTilesX * DEMO_CONFIG.worldSizeTilesY, // 737,280
+        worldPixelSize: `${DEMO_CONFIG.worldSizeTilesX * DEMO_CONFIG.tileSize}x${DEMO_CONFIG.worldSizeTilesY * DEMO_CONFIG.tileSize}px`,
         atlasSize: `${atlas.width}x${atlas.height}`,
     });
 

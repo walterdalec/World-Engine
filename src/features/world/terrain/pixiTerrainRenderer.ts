@@ -4,7 +4,11 @@ import {
     Sprite,
     Texture
 } from 'pixi.js';
-import { DomainWarp, ValueNoise2D } from '../../../proc/noise';
+import { ValueNoise2D, DomainWarp } from '../../../proc/noise';
+import { RiverGenerator } from './riverGenerator';
+import { applyDimetric, DIMETRIC_DEFAULT, type DimetricParams } from '../overworld/dimetric';
+import { makeRiversOverlay } from '../overworld/overlays/rivers';
+// import { makeRoadsOverlay } from '../overworld/overlays/roads'; // Available for future use
 
 const DEFAULT_WIDTH = 1280;
 const DEFAULT_HEIGHT = 720;
@@ -112,6 +116,7 @@ export interface TerrainOptionsOverrides {
 }
 
 interface TerrainRenderState {
+    worldLayer?: Container;             // NEW: parent container for dimetric transform
     terrainLayer?: Container;
     overlayLayer?: Container;
     __terrainCanvas?: HTMLCanvasElement;
@@ -119,6 +124,8 @@ interface TerrainRenderState {
     __lastTerrainHash?: string;
     __overlaySprites?: Map<string, Sprite>;
     __overlayHashes?: Map<string, string>;
+    __dimetric?: DimetricParams;        // NEW: dimetric projection params
+    __riverGen?: RiverGenerator;        // NEW: store river generator for overlays
 }
 
 type TerrainApplication = Application & TerrainRenderState;
@@ -129,7 +136,7 @@ const DEFAULT_PALETTE: TerrainPalette = {
     FOREST: '#3a6f3f',
     SWAMP: '#55663a',
     PLAINS: '#b7c178',
-    MOUNTAIN: '#7b6f5a',
+    MOUNTAIN: '#4a4a48',  // Very dark gray - almost charcoal for high contrast
     SNOW: '#f3f7fb'
 };
 
@@ -212,7 +219,7 @@ function resolveOptions(app: TerrainApplication, overrides: TerrainOptionsOverri
         temperatureFrequency: overrides.temperatureFrequency ?? DEFAULT_TEMPERATURE_FREQUENCY,
         persistence: overrides.persistence ?? DEFAULT_PERSISTENCE,
         seaLevel: overrides.seaLevel ?? -0.2,  // Matched to terrainGenerator.ts
-        snowLevel: overrides.snowLevel ?? 0.55,
+        snowLevel: overrides.snowLevel ?? 0.25, // Lowered to 0.25 - snow appears on upper half of mountains
         palette,
         lighting,
         contour,
@@ -227,17 +234,28 @@ function resolveOptions(app: TerrainApplication, overrides: TerrainOptionsOverri
 }
 
 function ensureRenderLayers(app: TerrainApplication): void {
+    if (!app.worldLayer) {
+        const worldLayer = new Container();
+        worldLayer.sortableChildren = false;
+        app.stage.addChild(worldLayer);
+        app.worldLayer = worldLayer;
+
+        // default dimetric
+        app.__dimetric = app.__dimetric ?? DIMETRIC_DEFAULT;
+        applyDimetric(worldLayer, app.__dimetric);
+    }
+
     if (!app.terrainLayer) {
         const terrainLayer = new Container();
         terrainLayer.sortableChildren = false;
-        app.stage.addChild(terrainLayer);
+        app.worldLayer!.addChild(terrainLayer);
         app.terrainLayer = terrainLayer;
     }
 
     if (!app.overlayLayer) {
         const overlayLayer = new Container();
         overlayLayer.sortableChildren = true;
-        app.stage.addChild(overlayLayer);
+        app.worldLayer!.addChild(overlayLayer);
         app.overlayLayer = overlayLayer;
     }
 
@@ -349,6 +367,35 @@ function generateTerrainPixels(
     const { width, height, pixelScale, warpStrength, worldScale, octaves, persistence } = options;
     const data = new Uint8ClampedArray(width * height * 4);
 
+    // Generate rivers using proper downhill flow algorithm
+    const riverGen = new RiverGenerator();
+
+    // Create elevation sampler function for river generation
+    const sampleElevationAt = (px: number, py: number): number => {
+        const nx = (px / width - 0.5) * worldScale;
+        const ny = (py / height - 0.5) * worldScale;
+        const warped = domainWarp.warp(nx, ny, warpStrength);
+        let elev = sampleElev(
+            elevationNoise,
+            warped.x,
+            warped.y,
+            options.elevationFrequency,
+            octaves.elevation,
+            persistence
+        );
+        // Apply same elevation boost as rendering
+        elev = elev * 1.5 + (elev > 0 ? elev * 0.5 : 0);
+        return elev;
+    };
+
+    // Generate rivers - use seed as number
+    const seedNum = options.seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    riverGen.generateRivers(width, height, sampleElevationAt, seedNum, 100); // Increased to 100 for better coverage
+    console.log(`🌊 Generated ${riverGen.getRivers().length} rivers for terrain`);
+
+    // Return riverGen along with pixel data so it can be used for overlays
+    (options as any).__riverGen = riverGen;
+
     const cSea = hexToRgb(options.palette.SEA);
     const cShoal = hexToRgb(options.palette.SHOAL);
     const cForest = hexToRgb(options.palette.FOREST);
@@ -356,6 +403,10 @@ function generateTerrainPixels(
     const cPlains = hexToRgb(options.palette.PLAINS);
     const cMount = hexToRgb(options.palette.MOUNTAIN);
     const cSnow = hexToRgb(options.palette.SNOW);
+
+    let maxElev = -999;
+    let minElev = 999;
+    let elevSamples = 0;
 
     for (let y = 0; y < height; y += pixelScale) {
         for (let x = 0; x < width; x += pixelScale) {
@@ -369,7 +420,7 @@ function generateTerrainPixels(
             const dwx = warped.x;
             const dwy = warped.y;
 
-            const elev = sampleElev(
+            let elev = sampleElev(
                 elevationNoise,
                 dwx,
                 dwy,
@@ -377,6 +428,12 @@ function generateTerrainPixels(
                 octaves.elevation,
                 persistence
             );
+
+            // BOOST elevation to create taller mountains (multiply by 1.5 and add 0.2 to peaks)
+            elev = elev * 1.5 + (elev > 0 ? elev * 0.5 : 0); // Amplify positive elevations more
+
+            // Use eroded elevation if this pixel was carved by a river
+            elev = riverGen.getElevation(Math.floor(sampleX), Math.floor(sampleY), sampleElevationAt);
 
             const moist = sampleElev(
                 moistureNoise,
@@ -401,11 +458,22 @@ function generateTerrainPixels(
 
             const oceanW = smoothstep((options.seaLevel - 0.11) - 0.03, options.seaLevel + 0.02, elev);
             const shoreBand = clamp01((elev - (options.seaLevel - 0.02)) / 0.06);
-            const forestW = clamp01((moist + 0.15) * (0.9 - Math.abs(temp) * 0.9));
-            const swampW = clamp01(moist * 0.9 - elev * 0.3);
-            const plainsW = clamp01(1 - forestW - swampW) * clamp01(elev + 0.6);
-            const mountW = clamp01(elev - 0.55) * clamp01(1 - moist * 0.6);
-            const snowW = clamp01(elev - options.snowLevel);
+
+            // AGGRESSIVE mountain visibility - mountains start at elevation 0.15 (just above sea level)
+            const forestW = clamp01((moist + 0.15) * (0.9 - Math.abs(temp) * 0.9)) * clamp01(1 - elev * 1.5); // Heavy reduction at elevation
+
+            // Boost swamps near rivers for marsh effect
+            const nearRiver = riverGen.isRiver(x, y) || riverGen.isRiver(x + 1, y) || riverGen.isRiver(x, y + 1);
+            const swampBoost = nearRiver ? 0.15 : 0.0;
+            const swampW = clamp01(moist * 0.9 + swampBoost - elev * 0.5) * clamp01(1 - elev * 2); // Swamps only at low elevation
+
+            const plainsW = clamp01(1 - forestW - swampW) * clamp01(elev + 0.6) * clamp01(1 - elev * 2); // Plains fade fast
+
+            // MOUNTAINS: Start at 0.15, become dominant by 0.3
+            const mountW = Math.max(0, (elev - 0.15) * 4.0); // 4x multiplier for strong mountain presence
+
+            // SNOW: Much more aggressive - snow DOMINATES above threshold (10x multiplier)
+            const snowW = Math.max(0, (elev - options.snowLevel) * 10); // 10x multiplier for pure white peaks
 
             let color: RGB;
 
@@ -451,6 +519,20 @@ function generateTerrainPixels(
                 b: clamp255(color.b * shade)
             };
 
+            // RIVERS: Check if this pixel is part of a generated river path
+            // Rivers are generated using proper downhill flow algorithm
+            if (riverGen.isRiver(x, y)) {
+                // Blend river color (blue-cyan) with terrain
+                const riverBlue = { r: 80, g: 160, b: 220 }; // Darker blue for visibility
+                const riverBlend = 0.8; // Strong blue color
+
+                color = {
+                    r: Math.round(lerp(color.r, riverBlue.r, riverBlend)),
+                    g: Math.round(lerp(color.g, riverBlue.g, riverBlend)),
+                    b: Math.round(lerp(color.b, riverBlue.b, riverBlend))
+                };
+            }
+
             if (options.contour.enabled && elev >= options.seaLevel) {
                 const bands = (elev - options.seaLevel) / Math.max(1e-6, (1 - options.seaLevel));
                 const band = (bands / options.contour.step) % 1;
@@ -479,8 +561,17 @@ function generateTerrainPixels(
                     data[idx + 3] = 255;
                 }
             }
+
+            // Track elevation stats
+            maxElev = Math.max(maxElev, elev);
+            minElev = Math.min(minElev, elev);
+            elevSamples++;
         }
     }
+
+    // Log elevation range for debugging
+    console.log(`🏔️ Terrain elevation range: ${minElev.toFixed(3)} to ${maxElev.toFixed(3)} (${elevSamples} samples)`);
+    console.log(`📊 Mountain threshold: 0.15, Snow threshold: ${options.snowLevel}`);
 
     return data;
 }
@@ -599,6 +690,7 @@ export function generateTerrain(app: Application, overrides: TerrainOptionsOverr
 
     const texture = Texture.from(canvas);
     texture.source.scaleMode = 'linear'; // Pixi v8: texture.source instead of baseTexture
+    // Note: Pixi v8 handles mipmaps automatically for appropriate textures
 
     if (terrainApp.__terrainSprite) {
         terrainApp.terrainLayer?.removeChild(terrainApp.__terrainSprite);
@@ -615,6 +707,27 @@ export function generateTerrain(app: Application, overrides: TerrainOptionsOverr
 
     terrainApp.__terrainSprite = sprite;
     terrainApp.__lastTerrainHash = configHash;
+
+    // Add automatic river overlay if riverGen was created during terrain generation
+    const riverGen = (options as any).__riverGen as RiverGenerator | undefined;
+    if (riverGen) {
+        terrainApp.__riverGen = riverGen;
+
+        // Calculate adaptive river width based on map size
+        const maxWidth = Math.max(5, Math.floor(Math.min(options.width, options.height) / 180));
+        const autoRiverOverlay = makeRiversOverlay('rivers', riverGen, {
+            minWidth: 2,
+            maxWidth: maxWidth,
+            foamSlope: 0.9,
+            alpha: 0.9
+        });
+
+        // If the caller didn't supply a rivers overlay, append ours
+        const hasRivers = options.overlays?.some(o => o.id === 'rivers');
+        if (!hasRivers) {
+            options.overlays = [...options.overlays, autoRiverOverlay];
+        }
+    }
 
     updateOverlays(terrainApp, options, configHash);
 
@@ -652,4 +765,12 @@ export function makeOverlaySprite(width: number, height: number, paintFn2D: (_ct
     const texture = Texture.from(canvas);
     texture.source.scaleMode = 'linear'; // Pixi v8: texture.source instead of baseTexture
     return new Sprite(texture);
+}
+
+/** Set or update the dimetric projection parameters for the terrain view */
+export function setDimetric(app: Application, p: DimetricParams): void {
+    const terrainApp = app as TerrainApplication;
+    ensureRenderLayers(terrainApp);
+    terrainApp.__dimetric = p;
+    applyDimetric(terrainApp.worldLayer!, p);
 }

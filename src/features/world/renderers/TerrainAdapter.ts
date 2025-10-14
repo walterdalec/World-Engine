@@ -49,6 +49,39 @@ const BIOME_TO_TILE_ID: Record<string, number> = {
 const WATER_BIOMES = new Set<string>(['ocean', 'deep-ocean']);
 
 /**
+ * Transition tile mapping - detects biome edges and returns gradient tile IDs
+ * Format: "biomeA→biomeB" maps to transition tile ID
+ */
+const TRANSITION_TILES: Record<string, number> = {
+    // Ocean transitions (slots 16-19)
+    'deep-ocean→ocean': 16,
+    'ocean→shore': 17,
+    'shore→beach': 18,
+    'beach→plains': 19,
+
+    // Land transitions (slots 20-23)
+    'plains→grass': 20,
+    'grass→forest': 21,
+    'forest→dense-forest': 22,
+    'plains→hills': 23,
+
+    // Mountain transitions (slots 24-27)
+    'hills→mountains': 24,
+    'mountains→snow': 25,
+    'forest→hills': 26,
+    'grass→hills': 27,
+};
+
+/**
+ * Check if two biomes should have a transition tile
+ */
+function getTransitionTile(biomeA: string, biomeB: string): number | null {
+    const key = `${biomeA}→${biomeB}`;
+    const reverseKey = `${biomeB}→${biomeA}`;
+    return TRANSITION_TILES[key] ?? TRANSITION_TILES[reverseKey] ?? null;
+}
+
+/**
  * Converts biome grid data to chunk format for Pixi v8 renderer
  */
 export class TerrainAdapter {
@@ -95,7 +128,30 @@ export class TerrainAdapter {
                 }
 
                 const biome = biomeGrid.biomes[biomeIndex];
-                tileIndex[i] = BIOME_TO_TILE_ID[biome] ?? BIOME_TO_TILE_ID['plains'];
+
+                // Check for transitions with neighbors (only check right and down for now)
+                let transitionTile: number | null = null;
+
+                // Check right neighbor
+                if (worldX + 1 < biomeGrid.width) {
+                    const rightBiomeIndex = worldY * biomeGrid.width + (worldX + 1);
+                    const rightBiome = biomeGrid.biomes[rightBiomeIndex];
+                    if (rightBiome && rightBiome !== biome) {
+                        transitionTile = getTransitionTile(biome, rightBiome);
+                    }
+                }
+
+                // Check down neighbor (if no right transition found)
+                if (!transitionTile && worldY + 1 < biomeGrid.height) {
+                    const downBiomeIndex = (worldY + 1) * biomeGrid.width + worldX;
+                    const downBiome = biomeGrid.biomes[downBiomeIndex];
+                    if (downBiome && downBiome !== biome) {
+                        transitionTile = getTransitionTile(biome, downBiome);
+                    }
+                }
+
+                // Use transition tile if found, otherwise use base biome tile
+                tileIndex[i] = transitionTile ?? BIOME_TO_TILE_ID[biome] ?? BIOME_TO_TILE_ID['plains'];
                 coastMask[i] = WATER_BIOMES.has(biome) ? 1 : 0;
             }
         }
