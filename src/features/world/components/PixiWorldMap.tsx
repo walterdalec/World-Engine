@@ -62,13 +62,25 @@ const computeMapDimensions = (screenWidth: number, screenHeight: number) => {
 };
 
 const attachTerrainLayers = (app: TerrainApp, viewport: Viewport) => {
-    if (app.terrainLayer && app.terrainLayer.parent !== viewport) {
-        app.terrainLayer.parent?.removeChild(app.terrainLayer);
-        viewport.addChildAt(app.terrainLayer, 0);
+    // Attach worldLayer (which contains terrain + overlays) to viewport
+    // This preserves the dimetric transform applied to worldLayer
+    const worldLayer = (app as any).worldLayer as Container | undefined;
+    
+    if (worldLayer && worldLayer.parent !== viewport) {
+        worldLayer.parent?.removeChild(worldLayer);
+        viewport.addChildAt(worldLayer, 0);
     }
-    if (app.overlayLayer && app.overlayLayer.parent !== viewport) {
-        app.overlayLayer.parent?.removeChild(app.overlayLayer);
-        viewport.addChild(app.overlayLayer);
+    
+    // Legacy fallback: if no worldLayer, attach layers individually
+    if (!worldLayer) {
+        if (app.terrainLayer && app.terrainLayer.parent !== viewport) {
+            app.terrainLayer.parent?.removeChild(app.terrainLayer);
+            viewport.addChildAt(app.terrainLayer, 0);
+        }
+        if (app.overlayLayer && app.overlayLayer.parent !== viewport) {
+            app.overlayLayer.parent?.removeChild(app.overlayLayer);
+            viewport.addChild(app.overlayLayer);
+        }
     }
 };
 
